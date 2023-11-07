@@ -37,3 +37,10 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
     -e "ovos_installer_listener_port=${HIVEMIND_PORT}" \
     -e "ovos_installer_satellite_key=${SATELLITE_KEY}" \
     -e "ovos_installer_satellite_password=${SATELLITE_PASSWORD}" | tee -a "$LOG_FILE"
+
+exit_status=$?
+if [ "$exit_status" == 0 ]; then
+  source tui/finish.sh
+else
+    echo "➤ Unable to finalize the installation, please check $LOG_FILE for more details."
+fi
