@@ -12,8 +12,7 @@ else
     export FEATURE_SKILLS="false"
 fi
 if [[ "$PROFILE" == "satellite" ]]; then
-    # source tui/satellite/main.sh
-    source tui/satellite.sh
+    source tui/satellite/main.sh
 fi
 if [[ "$RASPBERRYPI_MODEL" != "N/A" ]]; then
     source tui/tuning.sh
