@@ -16,5 +16,7 @@ if [[ "$PROFILE" == "satellite" ]]; then
 fi
 if [[ "$RASPBERRYPI_MODEL" != "N/A" ]]; then
     source tui/tuning.sh
+else 
+    export TUNING="no"
 fi
 source tui/summary.sh
