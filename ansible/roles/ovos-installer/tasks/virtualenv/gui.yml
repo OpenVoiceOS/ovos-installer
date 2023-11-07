@@ -1,0 +1,85 @@
+---
+- name: Install package requirements for ovos-gui
+  ansible.builtin.apt:
+    name:
+      - cmake
+      - gettext
+      - pkg-kde-tools
+      - qtbase5-dev
+      - qtdeclarative5-dev
+      - libkf5kio-dev
+      - libqt5websockets5-dev
+      - libkf5i18n-dev
+      - libkf5notifications-dev
+      - libkf5plasma-dev
+      - libqt5webview5-dev
+      - qtmultimedia5-dev
+      - kirigami2-dev
+      - libkf5dbusaddons-dev
+      - libqt5webview5
+      - libkf5configcore5
+      - qml-module-qtwebengine
+      - qml-module-qtmultimedia
+      - qml-module-qtquick-shapes
+      - libqt5multimedia5
+      - libqt5virtualkeyboard5
+  when: ansible_os_family == "Debian"
+
+- name: Install package requirements for ovos-gui
+  ansible.builtin.dnf:
+    name:
+      - cmake
+      - gettext
+      - qt5-qtwebsockets-devel
+      - qt5-qtdeclarative-devel
+      - qt5-qtmultimedia-devel
+      - qt5-qtwebview-devel
+      - qt5-qtwebengine
+      - qt5-qtmultimedia
+      - qt5-qtvirtualkeyboard
+      - kf5-kio-devel
+      - kf5-knotifications-devel
+      - kf5-ki18n-devel
+      - kf5-plasma-devel
+      - kf5-kconfig-core
+      - kf5-kdbusaddons-devel
+      - kf5-kirigami2-devel
+      - kf5-kiconthemes
+      - kf5-kguiaddons-devel
+  when: ansible_os_family == "RedHat"
+
+- name: Clone GUI repositories
+  ansible.builtin.git:
+    repo: "{{ item.url }}"
+    dest: "{{ item.dest }}"
+    version: "{{ item.branch }}"
+  loop:
+    - {"url": "https://github.com/OpenVoiceOS/mycroft-gui-qt5.git", "dest": "/opt/mycroft-gui", "branch": "dev"}
+    - {"url": "https://github.com/OpenVoiceOS/ovos-shell.git", "dest": "/opt/ovos-shell", "branch": "master"}
+    - {"url": "https://github.com/kbroulik/lottie-qml.git", "dest": "/opt/lottie", "branch": "master"}
+
+- name: Create GUI directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+  loop:
+    - /opt/mycroft-gui/build-testing
+    - /opt/ovos-shell/build-testing
+    - /opt/lottie/build-testing
+
+- name: Compile GUI components
+  ansible.builtin.shell:
+    cmd: |
+      cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DKDE_INSTALL_LIBDIR=lib -DKDE_INSTALL_USE_QT_SYS_PATHS=ON
+      make -j {{ ansible_processor_vcpus }}
+      make install
+    executable: /bin/bash
+    chdir: "{{ item }}"
+    creates: "{{ item }}"
+  loop:
+    - /opt/mycroft-gui/build-testing
+    - /opt/ovos-shell/build-testing
+    - /opt/lottie/build-testing

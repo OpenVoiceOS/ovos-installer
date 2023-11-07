@@ -1,0 +1,15 @@
+[Unit]
+Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/terms/#hivemind
+Description=HiveMind - Satellite
+After=network.target
+
+[Service]
+WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
+ExecStart={{ ovos_installer_user_home }}/.venvs/ovos/bin/hivemind-voice-sat --key {{ ovos_installer_satellite_key }} --password {{ ovos_installer_satellite_password }} --host {{ ovos_installer_listener_host }} --port {{ ovos_installer_listener_port | default(5678) }}
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s KILL $MAINPID
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

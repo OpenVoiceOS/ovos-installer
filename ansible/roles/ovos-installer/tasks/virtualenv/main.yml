@@ -1,0 +1,13 @@
+---
+- name: Include virtualenv/packages.yml
+  ansible.builtin.include_tasks: virtualenv/packages.yml
+
+- name: Include virtualenv/venv.yml
+  ansible.builtin.include_tasks: virtualenv/venv.yml
+
+- name: Include virtualenv/gui.yml
+  ansible.builtin.include_tasks: virtualenv/gui.yml
+  when: ovos_installer_feature_gui | bool
+
+- name: Include virtualenv/systemd.yml
+  ansible.builtin.include_tasks: virtualenv/systemd.yml

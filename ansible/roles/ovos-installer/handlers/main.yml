@@ -1,0 +1,19 @@
+---
+- name: Start Sound Server
+  ansible.builtin.include_tasks: block-sound.yml
+
+- name: Reload Systemd User
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.systemd:
+    daemon_reload: true
+    scope: user
+
+- name: Reload Systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Reload Udev
+  ansible.builtin.shell:
+    cmd: |
+      udevadm control --reload-rules && udevadm trigger
+    executable: /bin/bash

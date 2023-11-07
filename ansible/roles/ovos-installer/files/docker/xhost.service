@@ -1,0 +1,14 @@
+[Unit]
+Description=Allow ovos_gui container to use X from user session
+
+[Service]
+Type=oneshot
+Environment="DISPLAY=:0"
+ExecStart=/usr/bin/xhost +local:ovos_gui
+ExecStop=/usr/bin/xhost -local:ovos_gui
+RemainAfterExit=yes
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

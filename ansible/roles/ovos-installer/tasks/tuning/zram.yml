@@ -1,0 +1,40 @@
+---
+- name: Install systemd-zram-generator
+  ansible.builtin.apt:
+    name: systemd-zram-generator
+  when: ansible_os_family == "Debian"
+
+- name: Install zram-generator-defaults
+  ansible.builtin.dnf:
+    name: zram-generator-defaults
+  when: ansible_os_family == "RedHat"
+
+- name: Copy zram-generator.conf systemd configuration file
+  ansible.builtin.copy:
+    src: tuning/zram-generator.conf
+    dest: "/etc/systemd/zram-generator.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload Systemd
+
+- name: Flush handlers zram
+  ansible.builtin.meta: flush_handlers
+
+- name: Start systemd zram unit
+  ansible.builtin.systemd:
+    name: /dev/zram0
+    state: started
+
+- name: Apply sysctl tuning for ZRAM
+  ansible.posix.sysctl:
+    name: "{{ item.option }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/98-zram.conf
+    reload: true
+  loop:
+    - {"option": "vm.swappiness", "value": 100}
+    - {"option": "vm.page-cluster", "value": 0}
+    - {"option": "vm.vfs_cache_pressure", "value": 500}
+    - {"option": "vm.dirty_background_ratio", "value": 1}
+    - {"option": "vm.dirty_ratio", "value": 50}

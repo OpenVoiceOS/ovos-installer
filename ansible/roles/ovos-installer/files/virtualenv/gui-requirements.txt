@@ -1,0 +1,3 @@
+ovos-gui
+ovos-gui-plugin-shell-companion
+ovos-skill-homescreen

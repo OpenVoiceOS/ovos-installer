@@ -1,0 +1,4 @@
+---
+_ovos_install_working_directory: /tmp
+_ovos_install_debian_docker_gpg: /usr/share/keyrings/docker
+_ovos_installer_project_name: "{{ 'hivemind-docker' if ovos_installer_profile == 'satellite' else 'ovos-docker' }}"

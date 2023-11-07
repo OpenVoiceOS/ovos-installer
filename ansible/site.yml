@@ -1,0 +1,28 @@
+---
+- name: Open Voice OS Installer
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  user: "{{ ovos_installer_user }}"
+  become: true
+
+  pre_tasks:
+    - name: Gather reduced subset of facts
+      ansible.builtin.setup:
+        gather_subset:
+          - "hardware"
+          - "interfaces"
+      tags:
+        - always
+
+    - name: Check CPU architecture support
+      ansible.builtin.fail:
+        msg: "CPU architecture {{ ansible_architecture }} not supported"
+      when:
+        ansible_architecture == "armv6l" or
+        ansible_architecture == "armhf" or
+        ansible_architecture == "armv7l" or
+        ansible_architecture == "armhf"
+
+  roles:
+    - ovos-installer

@@ -1,0 +1,30 @@
+#jinja2: lstrip_blocks: True
+{
+  "log_level": "INFO",
+  "logs": {
+    "path": "stdout"
+  },
+  "play_wav_cmdline": "aplay %1",
+  "play_mp3_cmdline": "pw-play %1",
+  "lang": "en-us",
+  "listener": {
+    "remove_silence": true,
+    "VAD": {
+      "module": "ovos-vad-plugin-silero"
+    }
+  },
+{% if ovos_installer_feature_gui | bool %}
+  "gui": {
+    "extension": "ovos-gui-plugin-shell-companion",
+    "idle_display_skill": "skill-ovos-homescreen.openvoiceos",
+    "generic": {
+      "homescreen_supported": true
+    }{% if ovos_installer_method == "containers" %},
+    "gui_file_host_path": "/home/ovos/.cache/gui_files"
+{% endif %}
+  },
+{% endif %}
+  "websocket": {
+    "max_msg_size": {{ 100 if ovos_installer_feature_gui | bool and ovos_installer_method == "containers" else 25 }}
+  }
+}

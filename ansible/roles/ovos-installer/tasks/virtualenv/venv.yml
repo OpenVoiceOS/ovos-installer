@@ -1,0 +1,45 @@
+---
+- name: Copy Python requirements.txt files
+  ansible.builtin.copy:
+    src: "{{ item.file }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop:
+    - {"file": "virtualenv/core-requirements.txt", "dest": "/tmp/core-requirements.txt", "state": "{{ true if ovos_installer_profile != 'satellite' else false }}"}
+    - {"file": "virtualenv/gui-requirements.txt", "dest": "/tmp/gui-requirements.txt", "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}"}
+    - {"file": "virtualenv/skills-requirements.txt", "dest": "/tmp/skills-requirements.txt", "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}"}
+    - {"file": "virtualenv/listener-requirements.txt", "dest": "/tmp/listener-requirements.txt", "state": "{{ true if ovos_installer_profile == 'listener' else false }}"}
+    - {"file": "virtualenv/satellite-requirements.txt", "dest": "/tmp/satellite-requirements.txt", "state": "{{ true if ovos_installer_profile == 'satellite' else false }}"}
+  when: item.state | bool
+
+- name: Create {{ ovos_installer_user_home }}/.venvs/ovos Python venv with tflite_runtime
+  ansible.builtin.pip:
+    name: tflite_runtime
+    virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    virtualenv_command: python3 -m venv
+    extra_args: "-f 'https://whl.smartgic.io/'"
+
+- name: Install Open Voice OS in Python venv
+  vars:
+    _pip_args: "{{ '--pre' if ovos_installer_channel == 'development' else '' }}"
+  ansible.builtin.pip:
+    requirements: "{{ item.file }}"
+    virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    extra_args: "{{ _pip_args }}"
+  loop:
+    - {"file": "/tmp/core-requirements.txt", "state": "{{ true if ovos_installer_profile != 'satellite' else false }}"}
+    - {"file": "/tmp/gui-requirements.txt", "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}"}
+    - {"file": "/tmp/skills-requirements.txt", "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}"}
+    - {"file": "/tmp/listener-requirements.txt", "state": "{{ true if ovos_installer_profile == 'listener' else false }}"}
+    - {"file": "/tmp/satellite-requirements.txt", "state": "{{ true if ovos_installer_profile == 'satellite' else false }}"}
+  when: item.state | bool
+
+- name: Change file ownership of {{ ovos_installer_user_home }}/.venvs/ovos
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_user }}"
+    recurse: true
+    state: directory

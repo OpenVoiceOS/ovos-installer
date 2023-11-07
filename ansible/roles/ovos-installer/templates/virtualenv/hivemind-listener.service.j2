@@ -1,0 +1,16 @@
+[Unit]
+Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/terms/#hivemind
+Description=HiveMind - Listener
+After=network.target ovos-core.service
+Requires=ovos-core.service
+
+[Service]
+WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
+ExecStart={{ ovos_installer_user_home }}/.venvs/ovos/bin/hivemind-core listen
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s KILL $MAINPID
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

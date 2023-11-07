@@ -1,0 +1,68 @@
+---
+- name: Retrieve groups information
+  ansible.builtin.getent:
+    database: group
+
+- name: Retrieve configured timezone
+  ansible.builtin.command:
+    cmd: |
+      timedatectl show --property=Timezone --value
+  register: _ovos_installer_timezone
+  changed_when: false
+
+- name: Generate .env file for docker-compose
+  ansible.builtin.template:
+    src: docker/env.j2
+    dest: "{{ _ovos_install_working_directory }}/{{ _ovos_installer_project_name }}/compose/.env"
+    owner: root
+    group: root
+    mode: '0644'
+
+# Required because docker-compose (not docker compose) doesn't support userns option
+- name: Remove YAML x-podman function from composition files
+  vars:
+    _remove_x_podman_ovos: "{{ 'true' if ovos_installer_profile != 'satellite' else 'false' }}"
+    _remove_x_podman_satellite: "{{ 'true' if ovos_installer_profile == 'satellite' else 'false' }}"
+  ansible.builtin.lineinfile:
+    path: "{{ item.file }}"
+    search_string: "<<: *podman"
+    state: absent
+  loop:
+    - {"file": "{{ _ovos_install_working_directory }}/ovos-docker/compose/docker-compose.yml", "state": "{{ _remove_x_podman_ovos }}"}
+    - {"file": "{{ _ovos_install_working_directory }}/ovos-docker/compose/docker-compose.skills.yml", "state": "{{ _remove_x_podman_ovos }}"}
+    - {"file": "{{ _ovos_install_working_directory }}/ovos-docker/compose/docker-compose.hivemind.yml", "state": "{{ _remove_x_podman_ovos }}"}
+    - {"file": "{{ _ovos_install_working_directory }}/ovos-docker/compose/docker-compose.gui.yml", "state": "{{ _remove_x_podman_ovos }}"}
+    - {"file": "{{ _ovos_install_working_directory }}/hivemind-docker/compose/docker-compose.satellite.yml", "state": "{{ _remove_x_podman_satellite }}"}
+  when: item.state | bool
+
+- name: Define composition
+  ansible.builtin.set_fact:
+    _composition_files: "{{ _composition_files | default([]) + [item.file] }}"
+  loop:
+    - {"file": "docker-compose.yml", "state": "{{ 'true' if ovos_installer_profile != 'satellite' else 'false' }}"}
+    - {"file": "docker-compose.raspberrypi.yml", "state": "{{ 'true' if (ovos_installer_profile != 'satellite' and ovos_installer_raspberrypi != 'N/A') else 'false' }}"}
+    - {"file": "docker-compose.skills.yml", "state": "{{ 'false' if (ansible_memtotal_mb < 2048 and ovos_installer_profile != 'satellite' or not ovos_installer_feature_skills | bool) else 'true' }}"}
+    - {"file": "docker-compose.hivemind.yml", "state": "{{ 'true' if ovos_installer_profile == 'listener' else 'false' }}"}
+    - {"file": "docker-compose.gui.yml", "state": "{{ 'true' if (ansible_memtotal_mb >= 2048 and ovos_installer_profile != 'satellite' and ovos_installer_feature_gui | bool) else 'false' }}"}
+    - {"file": "docker-compose.raspberrypi.gui.yml", "state": "{{ 'true' if (ansible_memtotal_mb >= 2048 and ovos_installer_profile != 'satellite' and ovos_installer_raspberrypi != 'N/A' and ovos_installer_feature_gui | bool) else 'false' }}"}
+    - {"file": "docker-compose.satellite.yml", "state": "{{ 'true' if ovos_installer_profile == 'satellite' else 'false' }}"}
+  when: item.state | bool
+
+- name: Deploy docker-compose stack
+  become_user: "{{ ovos_installer_user }}"
+  vars:
+    _project_name: "{{ 'hivemind' if ovos_installer_profile == 'satellite' else 'ovos' }}"
+  community.docker.docker_compose:
+    project_src: "{{ _ovos_install_working_directory }}/{{ _ovos_installer_project_name }}/compose"
+    project_name: "{{ _project_name }}"
+    files: "{{ _composition_files }}"
+    pull: true
+    remove_orphans: "{{ ovos_installer_docker_compose_remove_orphans }}"
+    remove_images: "{{ ovos_installer_docker_compose_remove_images }}"
+    remove_volumes: "{{ ovos_installer_docker_compose_remove_volumes }}"
+  register: _ovos_installer_docker_compose
+  until: not _ovos_installer_docker_compose.failed | bool
+  retries: 5
+  delay: 3
+  environment:
+    DOCKER_TIMEOUT: 900

@@ -1,0 +1,14 @@
+---
+- name: Include docker/setup-RedHat.yml
+  ansible.builtin.include_tasks: docker/setup-RedHat.yml
+  when: ansible_os_family == "RedHat"
+
+- name: Include docker/setup-Debian.yml
+  ansible.builtin.include_tasks: docker/setup-Debian.yml
+  when: ansible_os_family == "Debian"
+
+- name: Include docker/common.yml
+  ansible.builtin.include_tasks: docker/common.yml
+
+- name: Include docker/composer.yml
+  ansible.builtin.include_tasks: docker/composer.yml

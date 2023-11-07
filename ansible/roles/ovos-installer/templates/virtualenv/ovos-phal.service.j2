@@ -1,0 +1,16 @@
+[Unit]
+Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-phal
+Description=Open Voice OS - PHAL
+After=network.target ovos-messagebus.service
+Requires=ovos-messagebus.service
+
+[Service]
+WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
+ExecStart={{ ovos_installer_user_home }}/.venvs/ovos/bin/ovos_PHAL
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s KILL $MAINPID
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

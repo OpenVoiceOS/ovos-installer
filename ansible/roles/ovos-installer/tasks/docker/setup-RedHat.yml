@@ -1,0 +1,19 @@
+---
+- name: Detect RHEL based distribution
+  ansible.builtin.set_fact:
+    os_distribution: "{{ 'centos' if (ansible_distribution == 'CentOS|Rocky Linux') else 'fedora' }}"
+
+- name: Retrieve docker-ce.repo file
+  ansible.builtin.get_url:
+    url: "https://download.docker.com/linux/{{ os_distribution }}/docker-ce.repo"
+    dest: /etc/yum.repos.d/docker-ce.repo
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install Docker Engine
+  ansible.builtin.dnf:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - docker-ce-rootless-extras

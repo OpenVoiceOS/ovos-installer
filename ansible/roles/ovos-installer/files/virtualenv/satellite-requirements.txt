@@ -1,0 +1,13 @@
+HiveMind-voice-sat
+hivemind_bus_client
+ovos-audio[extras]
+ovos-audio-plugin-simple
+ovos-classifiers
+ovos-microphone-plugin-alsa
+ovos-microphone-plugin-sounddevice
+ovos-PHAL
+ovos-stt-plugin-server
+ovos-vad-plugin-silero
+ovos-ww-plugin-pocketsphinx
+ovos-ww-plugin-precise-lite
+poorman-handshake

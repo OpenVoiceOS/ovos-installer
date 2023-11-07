@@ -1,0 +1,18 @@
+---
+- name: Block Start Sound Server
+  block:
+    - name: Start PipeWire systemd service
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.systemd:
+        name: pipewire
+        scope: user
+        state: started
+      when: ovos_installer_sound_server == 'PipeWire' or ovos_installer_sound_server == 'N/A'
+
+    - name: Start PulseAudio via PipeWire systemd service
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.systemd:
+        name: pipewire-pulse
+        scope: user
+        state: started
+      when: ovos_installer_sound_server == 'PulseAudio'

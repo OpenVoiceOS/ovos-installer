@@ -1,0 +1,27 @@
+---
+- name: Install virtualenv package requirements (ovos-core)
+  ansible.builtin.apt:
+    name:
+      - swig
+      - libfann-dev
+      - libasound2-dev
+      - libpulse-dev
+      - flac
+      - mpg123
+      - music123
+      - sox
+      - libsox-fmt-all
+  when: ansible_os_family == "Debian"
+
+- name: Install virtualenv package requirements (ovos-core)
+  ansible.builtin.dnf:
+    name:
+      - gcc-c++
+      - swig
+      - fann-devel
+      - alsa-lib-devel
+      - pulseaudio-libs-devel
+      - flac123
+      - mpg123
+      - sox
+  when: ansible_os_family == "RedHat"

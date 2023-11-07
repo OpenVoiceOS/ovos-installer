@@ -1,0 +1,24 @@
+[Unit]
+Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-shell
+Description=Open Voice OS - GUI
+After=network.target ovos-gui-websocket.service ovos-phal.service
+Requires=ovos-gui-websocket.service ovos-phal.service
+
+[Service]
+Environment="QT_QPA_PLATFORM=eglfs"
+Environment="QT_IM_MODULE=virtualkeyboard"
+Environment="QT_QPA_PLATFORMTHEME=qt5ct"
+Environment="QT_QPA_EGLFS_KMS_ATOMIC=1"
+Environment="QT_FONT_DPI=120"
+Environment="QT_QUICK_CONTROLS_STYLE=OpenVoiceStyle"
+Environment="QT_FILE_SELECTORS=ovos"
+Environment="QT_QPA_EGLFS_HIDECURSOR=1"
+WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
+ExecStart=/usr/bin/ovos-shell
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s KILL $MAINPID
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

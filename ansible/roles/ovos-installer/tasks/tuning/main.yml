@@ -1,0 +1,18 @@
+---
+- name: Include tuning/governor.yml
+  ansible.builtin.include_tasks: tuning/governor.yml
+
+- name: Include tuning/wireless.yml
+  ansible.builtin.include_tasks: tuning/wireless.yml
+  when:
+    - ansible_wlan0 is defined
+    - ansible_wlan0.active | bool
+
+- name: Include tuning/udev.yml
+  ansible.builtin.include_tasks: tuning/udev.yml
+
+- name: Include tuning/zram.yml
+  ansible.builtin.include_tasks: tuning/zram.yml
+
+- name: Include tuning/sysctl.yml
+  ansible.builtin.include_tasks: tuning/sysctl.yml

@@ -1,0 +1,11 @@
+[Unit]
+Documentation=https://wiki.archlinux.org/index.php/CPU_frequency_scaling
+Description=Set CPU governor to performance to avoid contex switcing between ondemand and performance
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/cpupower frequency-set -g performance
+ExecStop=/usr/bin/cpupower frequency-set -g ondemand
+
+[Install]
+WantedBy=default.target

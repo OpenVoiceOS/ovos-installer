@@ -1,0 +1,13 @@
+---
+- name: Add I/O scheduler rules for MMC and USB to udev
+  ansible.builtin.lineinfile:
+    path: /etc/udev/rules.d/60-mmc-usb-scheduler.rules
+    line: "{{ item }}"
+    owner: root
+    group: root
+    mode: "0644"
+    create: true
+  loop:
+    - ACTION=="add|change", KERNEL=="mmc*", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="none"
+    - ACTION=="add|change", KERNEL=="sd[a-z]", ATTR{removable}=="1", ATTR{queue/scheduler}="none"
+  notify: Reload Udev

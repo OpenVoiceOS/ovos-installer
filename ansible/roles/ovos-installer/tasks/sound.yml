@@ -1,0 +1,20 @@
+---
+- name: Install PipeWire with ALSA support
+  ansible.builtin.package:
+    name:
+      - pipewire
+      - pipewire-alsa
+
+- name: Enable lingering for {{ ovos_installer_user }}
+  ansible.builtin.file:
+    path: "/var/lib/systemd/linger/{{ ovos_installer_user }}"
+    owner: root
+    group: root
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+    state: touch
+  notify: Start Sound Server
+
+- name: Flush handlers sound
+  ansible.builtin.meta: flush_handlers
