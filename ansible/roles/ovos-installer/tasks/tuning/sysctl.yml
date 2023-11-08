@@ -18,3 +18,5 @@
     - {"option": "net.ipv4.tcp_rmem", "value": "4096 87380 16777216"}
     - {"option": "net.ipv4.tcp_wmem", "value": "4096 65536 16777216"}
     - {"option": "net.core.optmem_max", "value": 40960}
+    - {"option": "fs.inotify.max_user_instances", "value": 8192}
+    - {"option": "fs.inotify.max_user_watches", "value": 524288}
