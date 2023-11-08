@@ -16,3 +16,6 @@
 
 - name: Include tuning/sysctl.yml
   ansible.builtin.include_tasks: tuning/sysctl.yml
+
+- name: Include tuning/fstab.yml
+  ansible.builtin.include_tasks: tuning/fstab.yml
