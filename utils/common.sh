@@ -47,6 +47,16 @@ function detect_sound {
     echo -e "[$done_format]"
 }
 
+function detect_cpu_instructions {
+    echo -ne "➤ Detecting AVX/SIMD support... "
+    if grep -q -i -E "avx|simd" /proc/cpuinfo; then
+        export CPU_IS_CAPABLE="true"
+    else
+        export CPU_IS_CAPABLE="false"
+    fi
+    echo -e "[$done_format]"
+}
+
 function detect_x {
     echo -ne "➤ Detecting X server... "
     export X_SERVER="N/A"

@@ -1,7 +1,15 @@
 ovos-audio[extras]
 ovos-audio-plugin-simple
 ovos-core[lgpl]
+{% if ovos_installer_cpu_is_capable | bool %}
 ovos-dinkum-listener[extras]
+{% else %}
+ovos-dinkum-listener
+ovos-backend-client
+ovos-microphone-plugin-alsa
+ovos-stt-plugin-server
+ovos-vad-plugin-webrtcvad
+{% endif %}
 ovos-messagebus
 ovos-microphone-plugin-sounddevice
 ovos-PHAL
@@ -13,7 +21,9 @@ ovos-plugin-vlc
 ovos-translate-server-plugin
 ovos-skills-manager
 ovos-stt-plugin-vosk
+{% if ovos_installer_cpu_is_capable | bool %}
 ovos-vad-plugin-silero
+{% endif %}
 ovos-ww-plugin-pocketsphinx
 ovos-ww-plugin-vosk
 

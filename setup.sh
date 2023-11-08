@@ -6,6 +6,7 @@ source utils/common.sh
 
 detect_user
 get_distro
+detect_cpu_instructions
 is_raspeberrypi_soc
 detect_sound
 detect_x
@@ -36,7 +37,8 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
     -e "ovos_installer_listener_host=${HIVEMIND_HOST}" \
     -e "ovos_installer_listener_port=${HIVEMIND_PORT}" \
     -e "ovos_installer_satellite_key=${SATELLITE_KEY}" \
-    -e "ovos_installer_satellite_password=${SATELLITE_PASSWORD}" | tee -a "$LOG_FILE"
+    -e "ovos_installer_satellite_password=${SATELLITE_PASSWORD}" \
+    -e "ovos_installer_cpu_is_capable=${CPU_IS_CAPABLE}" | tee -a "$LOG_FILE"
 
 exit_status=$?
 if [ "$exit_status" == 0 ]; then

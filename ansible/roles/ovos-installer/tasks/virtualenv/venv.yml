@@ -1,7 +1,7 @@
 ---
 - name: Copy Python requirements.txt files
-  ansible.builtin.copy:
-    src: "{{ item.file }}"
+  ansible.builtin.template:
+    src: "{{ item.file }}.j2"
     dest: "{{ item.dest }}"
     owner: root
     group: root
@@ -20,6 +20,14 @@
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
     virtualenv_command: python3 -m venv
     extra_args: "-f 'https://whl.smartgic.io/'"
+  when: ovos_installer_cpu_is_capable | bool
+
+- name: Create {{ ovos_installer_user_home }}/.venvs/ovos Python venv without tflite_runtime
+  ansible.builtin.pip:
+    name: wheel
+    virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    virtualenv_command: python3 -m venv
+  when: not ovos_installer_cpu_is_capable | bool
 
 - name: Install Open Voice OS in Python venv
   vars:

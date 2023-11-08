@@ -7,11 +7,22 @@
   "play_wav_cmdline": "aplay %1",
   "play_mp3_cmdline": "pw-play %1",
   "lang": "en-us",
+{% if not ovos_installer_cpu_is_capable | bool %}
+  "hotwords": {
+    "hey_mycroft": {
+        "listen": false
+    },
+    "hey_mycroft_precise": {
+        "listen": false
+    }
+  },
+{% endif %}
   "listener": {
-    "remove_silence": true,
+    "remove_silence": true{% if ovos_installer_cpu_is_capable | bool %},
     "VAD": {
       "module": "ovos-vad-plugin-silero"
     }
+{% endif %}
   },
 {% if ovos_installer_feature_gui | bool %}
   "gui": {

@@ -7,7 +7,9 @@ ovos-microphone-plugin-alsa
 ovos-microphone-plugin-sounddevice
 ovos-PHAL
 ovos-stt-plugin-server
+{% if ovos_installer_cpu_is_capable | bool %}
 ovos-vad-plugin-silero
-ovos-ww-plugin-pocketsphinx
 ovos-ww-plugin-precise-lite
+{% endif %}
+ovos-ww-plugin-pocketsphinx
 poorman-handshake
