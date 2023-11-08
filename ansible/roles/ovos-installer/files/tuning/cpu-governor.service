@@ -6,6 +6,7 @@ Description=Set CPU governor to performance to avoid contex switcing between ond
 Type=oneshot
 ExecStart=/usr/bin/cpupower frequency-set -g performance
 ExecStop=/usr/bin/cpupower frequency-set -g ondemand
+RemainAfterExit=yes
 
 [Install]
 WantedBy=default.target
