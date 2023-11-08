@@ -11,6 +11,7 @@
       - music123
       - sox
       - libsox-fmt-all
+      - vlc
   when: ansible_os_family == "Debian"
 
 - name: Install virtualenv package requirements (ovos-core)
@@ -24,4 +25,5 @@
       - flac123
       - mpg123
       - sox
+      - vlc-core
   when: ansible_os_family == "RedHat"
