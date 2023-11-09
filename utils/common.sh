@@ -110,10 +110,10 @@ function required_packages {
     case $DISTRO_NAME in
     debian | ubuntu)
         apt-get update &>>"$LOG_FILE"
-        apt-get install --no-install-recommends -y python3.11 python3-pip python3-venv whiptail expect jq git &>>"$LOG_FILE"
+        apt-get install --no-install-recommends -y python3.11 python3.11-dev python3-pip python3-venv whiptail expect jq git &>>"$LOG_FILE"
         ;;
     fedora | rocky)
-        dnf install -y python3.11 python3-pip python3-virtualenv newt expect jq git &>>"$LOG_FILE"
+        dnf install -y python3.11 python3.11-devel python3-pip python3-virtualenv newt expect jq git &>>"$LOG_FILE"
         ;;
     esac
     echo -e "[$done_format]"
