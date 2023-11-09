@@ -136,7 +136,7 @@ function create_python_venv {
 
 function install_ansible {
     echo -ne "➤ Installing Ansible requirements in Python virtualenv... "
-    pip3 install ansible PyYAML==5.3.1 &>>"$LOG_FILE"
+    pip3 install ansible PyYAML==5.3.1 setuptools &>>"$LOG_FILE"
     ansible-galaxy collection install community.docker community.general &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }
