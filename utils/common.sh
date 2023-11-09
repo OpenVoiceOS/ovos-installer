@@ -113,6 +113,7 @@ function create_python_venv {
         if ! grep -q "VIRTUAL_ENV=$VENV_PATH" "$RUN_AS_HOME/.bashrc" &>>"$LOG_FILE"; then
             echo "VIRTUAL_ENV=$VENV_PATH" >> "$RUN_AS_HOME/.bashrc"
         fi
+        chown "$RUN_AS":"$RUN_AS" "$RUN_AS_HOME"/.venvs
         echo -e "[$done_format]"
     } 
 }
