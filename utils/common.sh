@@ -26,13 +26,6 @@ function detect_user {
     fi
 }
 
-function is_installed {
-    if ! [ -x "$(command -v "$1")" ]; then
-        echo "Unable to find $1 command"s
-        exit 1
-    fi
-}
-
 function detect_sound {
     echo -ne "➤ Detecting sound server... "
     if pgrep -a -f -c "pulse" 1>/dev/null; then
