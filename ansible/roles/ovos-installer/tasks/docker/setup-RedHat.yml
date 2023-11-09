@@ -17,3 +17,4 @@
       - docker-ce
       - docker-ce-cli
       - docker-ce-rootless-extras
+    autoremove: true

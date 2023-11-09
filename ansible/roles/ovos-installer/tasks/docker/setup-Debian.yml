@@ -8,6 +8,7 @@
     name:
       - ca-certificates
       - gnupg
+    autoremove: true
 
 - name: Retrieve Docker GPG repository key
   ansible.builtin.get_url:
