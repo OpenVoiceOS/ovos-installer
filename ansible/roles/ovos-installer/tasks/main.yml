@@ -1,7 +1,8 @@
 ---
 - name: Include tuning/main.yml
   ansible.builtin.import_tasks: tuning/main.yml
-  when: (ovos_installer_raspberrypi != "N/A" and ovos_installer_tuning | bool) or ovos_installer_cleaning | bool
+  when: (ovos_installer_raspberrypi != "N/A" and ovos_installer_tuning | bool) or
+        (ovos_installer_raspberrypi != "N/A" and ovos_installer_cleaning | bool)
 
 - name: Include sound.yml
   ansible.builtin.import_tasks: sound.yml
