@@ -6,6 +6,7 @@
       - libfann-dev
       - libasound2-dev
       - libpulse-dev
+      - libportaudio2
       - flac
       - mpg123
       - music123
@@ -24,6 +25,7 @@
       - fann-devel
       - alsa-lib-devel
       - pulseaudio-libs-devel
+      - portaudio
       - flac123
       - mpg123
       - sox
