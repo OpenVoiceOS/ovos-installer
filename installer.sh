@@ -8,5 +8,4 @@ fi
 
 git clone --quiet https://github.com/smartgic/ovos-installer.git "$installer_path"
 cd "$installer_path" || exit 1
-chmod +x setup.sh
-sudo ./setup.sh
+bash ./setup.sh
