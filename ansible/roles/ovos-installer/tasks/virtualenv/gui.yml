@@ -83,3 +83,12 @@
     - /opt/mycroft-gui/build-testing
     - /opt/ovos-shell/build-testing
     - /opt/lottie/build-testing
+
+- name: Delete GUI directories once compiled
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /opt/mycroft-gui
+    - /opt/ovos-shell
+    - /opt/lottie
