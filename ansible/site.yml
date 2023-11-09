@@ -25,4 +25,4 @@
         ansible_architecture == "armhf"
 
   roles:
-    - ovos-installer
+    - role: ovos-installer
