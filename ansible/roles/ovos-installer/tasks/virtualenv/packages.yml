@@ -11,7 +11,6 @@
       - music123
       - sox
       - libsox-fmt-all
-      - vlc
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
   tags:
@@ -28,7 +27,6 @@
       - flac123
       - mpg123
       - sox
-      - vlc-core
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
   tags:
