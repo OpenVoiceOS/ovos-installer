@@ -17,7 +17,7 @@ If you enabled the default skills feature then you can start to interact with yo
   - Hey Mycroft, who is Ada Lovelace?
   - Hey Mycroft, what would Duke Nukem say?
 
-The settings of you assistant could be changed in the $config_file configuration file.
+The settings of your assistant could be changed in the $config_file configuration file.
 
 Should you need any assistance or updates in the future, feel free to reach out. Enjoy your Open Voice OS experience!"
 
