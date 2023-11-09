@@ -52,10 +52,9 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
     -e "ovos_installer_satellite_password=${SATELLITE_PASSWORD}" \
     -e "ovos_installer_cpu_is_capable=${CPU_IS_CAPABLE}" \
     -e "ovos_installer_cleaning=${ansible_cleaning}" \
-    $ansible_tags | tee -a "$LOG_FILE"
+    $ansible_tags "$@" | tee -a "$LOG_FILE"
 
-exit_status=$?
-if [ "$exit_status" == 0 ]; then
+if [ "${PIPESTATUS[0]}" == 0 ]; then
   if [[ "$CONFIRM_UNINSTALL" == "false" ]] || [[ -z "$CONFIRM_UNINSTALL" ]]; then
     source tui/finish.sh
   else
