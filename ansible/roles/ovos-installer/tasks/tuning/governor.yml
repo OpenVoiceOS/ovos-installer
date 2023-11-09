@@ -8,7 +8,7 @@
     - always
 
 - name: Handle linux-cpupower package
-  ansible.builtin.apt:
+  ansible.builtin.dnf:
     name: kernel-tools
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
