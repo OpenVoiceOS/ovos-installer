@@ -7,6 +7,7 @@ Wants=network-online.target
 Type=oneshot
 ExecStart=/sbin/iw wlan0 set power_save off
 ExecStop=/sbin/iw wlan0 set power_save on
+RemainAfterExit=yes
 
 [Install]
 WantedBy=multi-user.target
