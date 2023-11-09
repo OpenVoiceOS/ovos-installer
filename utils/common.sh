@@ -30,7 +30,11 @@ function detect_sound {
     echo -ne "➤ Detecting sound server... "
     if pgrep -a -f -c "pulse" 1>/dev/null; then
         export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
-        SOUND_SERVER="$(pactl info | awk -F":" '$1 ~ /Server Name/ { print $2}' | sed 's/^ *//')"
+        if command -v pactl &> /dev/nuul; then
+            SOUND_SERVER="$(pactl info | awk -F":" '$1 ~ /Server Name/ { print $2}' | sed 's/^ *//')"
+        else
+            SOUND_SERVER="Server Name: PulseAudio (on PipeWire)"
+        fi            
         export SOUND_SERVER
     elif pgrep -a -f -c "pipewire$" 1>/dev/null; then
         export SOUND_SERVER="PipeWire"
