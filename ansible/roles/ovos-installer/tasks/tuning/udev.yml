@@ -14,3 +14,17 @@
 
 - name: Flush handlers udev
   ansible.builtin.meta: flush_handlers
+
+- name: Block uninstall wireless
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Remove 60-mmc-usb-scheduler.rules file
+      ansible.builtin.file:
+        path: /etc/udev/rules.d/60-mmc-usb-scheduler.rules
+        state: absent
+      notify: Reload Udev
+
+    - name: Flush handlers udev (uninstall)
+      ansible.builtin.meta: flush_handlers

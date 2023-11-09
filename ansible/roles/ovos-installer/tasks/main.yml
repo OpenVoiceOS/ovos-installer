@@ -1,20 +1,18 @@
 ---
 - name: Include tuning/main.yml
-  ansible.builtin.include_tasks: tuning/main.yml
-  when:
-    - ovos_installer_raspberrypi != "N/A"
-    - ovos_installer_tuning | bool
+  ansible.builtin.import_tasks: tuning/main.yml
+  when: (ovos_installer_raspberrypi != "N/A" and ovos_installer_tuning | bool) or ovos_installer_cleaning | bool
 
 - name: Include sound.yml
-  ansible.builtin.include_tasks: sound.yml
+  ansible.builtin.import_tasks: sound.yml
 
 - name: Include ovos.yml
-  ansible.builtin.include_tasks: ovos.yml
+  ansible.builtin.import_tasks: ovos.yml
 
 - name: Include docker/main.yml
-  ansible.builtin.include_tasks: docker/main.yml
-  when: ovos_installer_method == "containers"
+  ansible.builtin.import_tasks: docker/main.yml
+  when: ovos_installer_method == "containers" or ovos_installer_cleaning | bool
 
 - name: Include virtualenv/main.yml
-  ansible.builtin.include_tasks: virtualenv/main.yml
-  when: ovos_installer_method == "virtualenv"
+  ansible.builtin.import_tasks: virtualenv/main.yml
+  when: ovos_installer_method == "virtualenv" or ovos_installer_cleaning | bool

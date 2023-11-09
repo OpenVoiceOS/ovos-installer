@@ -1,18 +1,24 @@
 ---
-- name: Install systemd-zram-generator
+- name: Handle systemd-zram-generator
   ansible.builtin.apt:
     name: systemd-zram-generator
+    state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
+  tags:
+    - always
 
-- name: Install zram-generator-defaults
+- name: Handle zram-generator-defaults
   ansible.builtin.dnf:
     name: zram-generator-defaults
+    state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
+  tags:
+    - always
 
 - name: Copy zram-generator.conf systemd configuration file
   ansible.builtin.copy:
     src: tuning/zram-generator.conf
-    dest: "/etc/systemd/zram-generator.conf"
+    dest: /etc/systemd/zram-generator.conf
     owner: root
     group: root
     mode: "0644"
@@ -26,15 +32,35 @@
     name: /dev/zram0
     state: started
 
-- name: Apply sysctl tuning for ZRAM
+- name: Handle sysctl tuning for ZRAM
   ansible.posix.sysctl:
     name: "{{ item.option }}"
     value: "{{ item.value }}"
     sysctl_file: /etc/sysctl.d/98-zram.conf
     reload: true
+    state: "{{ ovos_installer_uninstall }}"
   loop:
     - {"option": "vm.swappiness", "value": 100}
     - {"option": "vm.page-cluster", "value": 0}
     - {"option": "vm.vfs_cache_pressure", "value": 500}
     - {"option": "vm.dirty_background_ratio", "value": 1}
     - {"option": "vm.dirty_ratio", "value": 50}
+  tags:
+    - always
+
+- name: Block uninstall ZRAM
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Remove ZRAM files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      notify: Reload Systemd
+      loop:
+        - /etc/sysctl.d/98-zram.conf
+        - /etc/systemd/zram-generator.conf
+
+    - name: Flush handlers zram (uninstall)
+      ansible.builtin.meta: flush_handlers

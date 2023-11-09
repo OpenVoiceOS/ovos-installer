@@ -1,10 +1,11 @@
 ---
-- name: Apply sysctl tuning for Open Voice OS
+- name: Handle sysctl tuning for Open Voice OS
   ansible.posix.sysctl:
     name: "{{ item.option }}"
     value: "{{ item.value }}"
     sysctl_file: /etc/sysctl.d/99-ovos.conf
     reload: true
+    state: "{{ ovos_installer_uninstall }}"
   loop:
     - {"option": "net.ipv4.tcp_slow_start_after_idle", "value": 0}
     - {"option": "net.ipv4.tcp_tw_reuse", "value": 1}
@@ -20,3 +21,13 @@
     - {"option": "net.core.optmem_max", "value": 40960}
     - {"option": "fs.inotify.max_user_instances", "value": 8192}
     - {"option": "fs.inotify.max_user_watches", "value": 524288}
+  tags:
+    - always
+
+- name: Remove 99-ovos.conf file
+  ansible.builtin.file:
+    path: /etc/sysctl.d/99-ovos.conf
+    state: absent
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall

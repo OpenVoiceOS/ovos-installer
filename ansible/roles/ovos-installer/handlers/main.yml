@@ -1,6 +1,6 @@
 ---
 - name: Start Sound Server
-  ansible.builtin.include_tasks: block-sound.yml
+  ansible.builtin.import_tasks: block-sound.yml
 
 - name: Reload Systemd User
   become_user: "{{ ovos_installer_user }}"

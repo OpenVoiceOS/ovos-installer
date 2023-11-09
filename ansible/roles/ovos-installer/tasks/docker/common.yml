@@ -6,7 +6,7 @@
     append: true
 
 - name: Include docker/xhost.yml
-  ansible.builtin.include_tasks: docker/xhost.yml
+  ansible.builtin.import_tasks: docker/xhost.yml
   when: ovos_installer_feature_gui | bool
 
 - name: Start docker service
@@ -21,14 +21,18 @@
       - docker
       - docker-compose
     virtualenv: "{{ ovos_installer_venv }}"
+  tags:
+    - always
 
-- name: Clone ovos-docker or hivemind-docker repository
+- name: Clone ovos-docker and/or hivemind-docker repository
   ansible.builtin.git:
     repo: "{{ item.url }}"
     dest: "{{ _ovos_install_working_directory }}/{{ item.dest }}"
     version: "{{ item.branch }}"
     force: true
   loop:
-    - {"url": "{{ ovos_installer_ovos_docker_repo_url }}", "branch": "{{ ovos_installer_ovos_docker_repo_branch }}", "dest": "ovos-docker", "state": "{{ true if ovos_installer_profile != 'satellite' else false }}"}
-    - {"url": "{{ ovos_installer_hivemind_docker_repo_url }}", "branch": "{{ ovos_installer_hivemind_docker_repo_branch }}", "dest": "hivemind-docker", "state": "{{ true if ovos_installer_profile == 'satellite' else false }}"}
+    - {"url": "{{ ovos_installer_ovos_docker_repo_url }}", "branch": "{{ ovos_installer_ovos_docker_repo_branch }}", "dest": "ovos-docker", "state": "{{ true if (ovos_installer_profile != 'satellite' or ovos_installer_cleaning | bool) else false }}"}
+    - {"url": "{{ ovos_installer_hivemind_docker_repo_url }}", "branch": "{{ ovos_installer_hivemind_docker_repo_branch }}", "dest": "hivemind-docker", "state": "{{ true if (ovos_installer_profile == 'satellite' or ovos_installer_cleaning | bool) else false }}"}
   when: item.state | bool
+  tags:
+    - always

@@ -19,3 +19,17 @@
     force: true
     state: started
     scope: user
+
+- name: Block uninstall xhost
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Remove xhost.service file
+      ansible.builtin.file:
+        path: "{{ ovos_installer_user_home }}/.config/systemd/user/xhost.service"
+        state: absent
+      notify: Reload Systemd User
+
+    - name: Flush handlers xhost (uninstall)
+      ansible.builtin.meta: flush_handlers

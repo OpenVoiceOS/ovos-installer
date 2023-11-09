@@ -5,6 +5,7 @@ source utils/banner.sh
 source utils/common.sh
 
 detect_user
+detect_existing_instance
 get_distro
 detect_cpu_instructions
 is_raspeberrypi_soc
@@ -15,7 +16,18 @@ required_packages
 create_python_venv
 install_ansible
 
-source tui/main.sh
+if [[ "$EXISTING_INSTANCE" == "false" ]]; then
+  source tui/main.sh
+  ansible_cleaning="false"
+else
+  source tui/uninstall.sh
+  if [[ "$CONFIRM_UNINSTALL" == "true" ]]; then
+    ansible_tags="--tags uninstall"
+    ansible_cleaning="true"
+  else
+    source tui/main.sh
+  fi
+fi
 
 echo "➤ Starting Ansible playbook... ☕🍵🧋"
 
@@ -38,11 +50,19 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
     -e "ovos_installer_listener_port=${HIVEMIND_PORT}" \
     -e "ovos_installer_satellite_key=${SATELLITE_KEY}" \
     -e "ovos_installer_satellite_password=${SATELLITE_PASSWORD}" \
-    -e "ovos_installer_cpu_is_capable=${CPU_IS_CAPABLE}" | tee -a "$LOG_FILE"
+    -e "ovos_installer_cpu_is_capable=${CPU_IS_CAPABLE}" \
+    -e "ovos_installer_cleaning=${ansible_cleaning}" \
+    $ansible_tags | tee -a "$LOG_FILE"
 
 exit_status=$?
 if [ "$exit_status" == 0 ]; then
-  source tui/finish.sh
+  if [[ "$CONFIRM_UNINSTALL" == "false" ]] || [[ -z "$CONFIRM_UNINSTALL" ]]; then
+    source tui/finish.sh
+  else
+    echo ""
+    echo "➤ Open Voice OS has been successfully uninstalled."
+  fi
 else
-    echo "➤ Unable to finalize the installation, please check $LOG_FILE for more details."
+    echo ""
+    echo "➤ Unable to finalize the process, please check $LOG_FILE for more details."
 fi

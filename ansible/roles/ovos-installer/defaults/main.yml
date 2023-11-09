@@ -8,4 +8,4 @@ ovos_installer_docker_pull_policy: always
 ovos_installer_docker_compose_remove_orphans: true
 ovos_installer_docker_compose_remove_images: all
 ovos_installer_docker_compose_remove_volumes: true
-ovos_installer_uninstall: false
+ovos_installer_uninstall: "{{ 'present' if (not ovos_installer_cleaning | bool | default(false)) else 'absent' }}"

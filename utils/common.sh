@@ -50,6 +50,18 @@ function detect_cpu_instructions {
     echo -e "[$done_format]"
 }
 
+function detect_existing_instance {
+    echo -ne "➤ Checking for existing instance... "
+    if docker ps -a | grep -q -E "ovos|hivemind"; then
+        export EXISTING_INSTANCE="true"
+    elif [[ -d "${RUN_AS_HOME}/.venvs/ovos" ]]; then
+        export EXISTING_INSTANCE="true"
+    else
+        export EXISTING_INSTANCE="false"
+    fi
+    echo -e "[$done_format]"
+}
+
 function detect_x {
     echo -ne "➤ Detecting X server... "
     export X_SERVER="N/A"

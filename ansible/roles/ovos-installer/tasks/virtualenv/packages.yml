@@ -1,5 +1,5 @@
 ---
-- name: Install virtualenv package requirements (ovos-core)
+- name: Handle virtualenv package requirements (ovos-core)
   ansible.builtin.apt:
     name:
       - swig
@@ -12,9 +12,12 @@
       - sox
       - libsox-fmt-all
       - vlc
+    state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
+  tags:
+    - always
 
-- name: Install virtualenv package requirements (ovos-core)
+- name: Handle virtualenv package requirements (ovos-core)
   ansible.builtin.dnf:
     name:
       - gcc-c++
@@ -26,4 +29,7 @@
       - mpg123
       - sox
       - vlc-core
+    state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
+  tags:
+    - always

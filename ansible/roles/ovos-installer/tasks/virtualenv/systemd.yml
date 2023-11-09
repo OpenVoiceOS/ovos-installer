@@ -27,7 +27,7 @@
 - name: Flush handlers ovos
   ansible.builtin.meta: flush_handlers
 
-- name: Enable and start OVOS systemd units
+- name: Enable and start OVOS and/or HiveMind systemd units
   become_user: "{{ item.user }}"
   ansible.builtin.systemd:
     name: "{{ item.unit }}"
@@ -47,3 +47,51 @@
     - {"unit": "hivemind-listener.service", "scope": "user", "user": "{{ ovos_installer_user }}", "state": "{{ true if ovos_installer_profile == 'listener' else false }}"}
     - {"unit": "hivemind-satellite.service", "scope": "user", "user": "{{ ovos_installer_user }}", "state": "{{ true if ovos_installer_profile == 'satellite' else false }}"}
   when: item.state | bool
+
+- name: Block uninstall systemd
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Disable and stop OVOS and/or HiveMind systemd units
+      become_user: "{{ item.user }}"
+      ansible.builtin.systemd:
+        name: "{{ item.unit }}"
+        enabled: false
+        state: stopped
+        scope: "{{ item.scope }}"
+      loop:
+        - {"unit": "ovos-messagebus.service", "scope": "user", "user": "{{ ovos_installer_user }}"}
+        - {"unit": "ovos-core.service", "scope": "user", "user": "{{ ovos_installer_user }}"}
+        - {"unit": "ovos-phal.service", "scope": "user", "user": "{{ ovos_installer_user }}"}
+        - {"unit": "ovos-phal-admin.service", "scope": "system", "user": "root"}
+        - {"unit": "ovos-listener.service", "scope": "user", "user": "{{ ovos_installer_user }}"}
+        - {"unit": "ovos-audio.service", "scope": "user", "user": "{{ ovos_installer_user }}"}
+        - {"unit": "ovos-gui-websocket.service", "scope": "user", "user": "{{ ovos_installer_user }}"}
+        - {"unit": "ovos-gui.service", "scope": "user", "user": "{{ ovos_installer_user }}"}
+        - {"unit": "hivemind-listener.service", "scope": "user", "user": "{{ ovos_installer_user }}"}
+        - {"unit": "hivemind-satellite.service", "scope": "user", "user": "{{ ovos_installer_user }}"}
+      register: _systemd_stop
+      failed_when: _systemd_stop is not defined # We never want it to fail even if systemd unit doesn't exist
+
+    - name: Remove OVOS systemd unit files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      notify:
+        - Reload Udev
+        - Reload Systemd User
+      loop:
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-messagebus.service"
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-core.service"
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-phal.service"
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-listener.service"
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-audio.service"
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-gui-websocket.service"
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-gui.service"
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/hivemind-listener.service"
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/hivemind-satellite.service"
+        - /etc/systemd/system/ovos-phal-admin.service
+
+    - name: Flush handlers ovos (uninstall)
+      ansible.builtin.meta: flush_handlers

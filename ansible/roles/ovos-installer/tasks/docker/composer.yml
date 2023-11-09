@@ -2,6 +2,8 @@
 - name: Retrieve groups information
   ansible.builtin.getent:
     database: group
+  tags:
+    - always
 
 - name: Retrieve configured timezone
   ansible.builtin.command:
@@ -17,6 +19,8 @@
     owner: root
     group: root
     mode: '0644'
+  tags:
+    - always
 
 # Required because docker-compose (not docker compose) doesn't support userns option
 - name: Remove YAML x-podman function from composition files
@@ -66,3 +70,40 @@
   delay: 3
   environment:
     DOCKER_TIMEOUT: 900
+
+- name: Remove docker-compose stack(s)
+  become_user: "{{ ovos_installer_user }}"
+  vars:
+    _composition_mapping:
+      - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.yml"}
+      - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.raspberrypi.yml"}
+      - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.skills.yml"}
+      - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.hivemind.yml"}
+      - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.gui.yml"}
+      - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.raspberrypi.gui.yml"}
+      - {"src": "hivemind-docker", "name": "hivemind", "file": "docker-compose.satellite.yml"}
+  community.docker.docker_compose:
+    project_src: "{{ _ovos_install_working_directory }}/{{ item.src }}/compose"
+    project_name: "{{ item.name }}"
+    files: "{{ item.file }}"
+    remove_orphans: "{{ ovos_installer_docker_compose_remove_orphans }}"
+    remove_images: "{{ ovos_installer_docker_compose_remove_images }}"
+    remove_volumes: "{{ ovos_installer_docker_compose_remove_volumes }}"
+    timeout: 1
+    state: absent
+  loop: "{{ _composition_mapping }}"
+  environment:
+    DOCKER_TIMEOUT: 900
+  register: _composer_deletion
+  failed_when: _composer_deletion is not defined # We never want it to fail even if systemd unit doesn't exist
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+
+- name: Delete composer directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ _ovos_install_working_directory }}/ovos-docker"
+    - "{{ _ovos_install_working_directory }}/hivemind-docker"

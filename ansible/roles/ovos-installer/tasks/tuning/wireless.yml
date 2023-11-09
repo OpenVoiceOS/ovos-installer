@@ -17,3 +17,17 @@
     enabled: true
     force: true
     state: started
+
+- name: Block uninstall wireless
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Remove wlan0-power systemd unit file
+      ansible.builtin.file:
+        path: /etc/systemd/system/wlan0-power.service
+        state: absent
+      notify: Reload Systemd
+
+    - name: Flush handlers wireless (uninstall)
+      ansible.builtin.meta: flush_handlers

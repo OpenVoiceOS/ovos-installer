@@ -51,3 +51,11 @@
     group: "{{ ovos_installer_user }}"
     recurse: true
     state: directory
+
+- name: Remove {{ ovos_installer_user_home }}/.venvs/ovos Python virtualenv
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    state: absent
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall

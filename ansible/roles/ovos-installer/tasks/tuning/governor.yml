@@ -1,13 +1,19 @@
 ---
-- name: Install linux-cpupower
+- name: Handle linux-cpupower package
   ansible.builtin.apt:
     name: linux-cpupower
+    state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
+  tags:
+    - always
 
-- name: Install kernel-tools
+- name: Handle linux-cpupower package
   ansible.builtin.apt:
     name: kernel-tools
+    state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
+  tags:
+    - always
 
 - name: Copy cpu-governor systemd unit file
   ansible.builtin.copy:
@@ -27,3 +33,17 @@
     enabled: true
     force: true
     state: started
+
+- name: Block uninstall cpu-governor
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Remove cpu-governor systemd unit file
+      ansible.builtin.file:
+        path: /etc/systemd/system/cpu-governor.service
+        state: absent
+      notify: Reload Systemd
+
+    - name: Flush handlers cpugovernor (uninstall)
+      ansible.builtin.meta: flush_handlers
