@@ -21,7 +21,7 @@ function detect_user {
     else
         export RUN_AS=$USER
         export RUN_AS_UID="$EUID"
-        export RUN_AS_HOME="/$SUDO_USER"
+        export RUN_AS_HOME="/$RUN_AS"
         export VENV_PATH="${RUN_AS_HOME}/.venvs/ovos-installer"
     fi
 }
