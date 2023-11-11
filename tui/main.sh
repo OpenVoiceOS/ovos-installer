@@ -1,5 +1,7 @@
 #!/bin/env bash
 
+source tui/language.sh
+source "tui/locales/$LOCALE/misc.sh"
 source tui/welcome.sh
 source tui/detection.sh
 source tui/methods.sh

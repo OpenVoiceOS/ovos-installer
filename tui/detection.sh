@@ -1,15 +1,5 @@
 #!/bin/env bash
 
-message="Please find the detected information:
+source "tui/locales/$LOCALE/detection.sh"
 
-    - OS:       ${DISTRO_NAME^} $DISTRO_VERSION
-    - Kernel:   $KERNEL
-    - RPi:      $RASPBERRYPI_MODEL
-    - Python:   $(echo "$PYTHON" | awk '{ print $NF }')
-    - AVX/SIMD: $CPU_IS_CAPABLE
-    - Venv:     $VENV_PATH
-    - Sound:    $SOUND_SERVER
-    - Graphic:  ${X_SERVER^}
-"
-
-whiptail --msgbox --title "Open Voice OS Installation - Detected" "$message" 25 80
+whiptail --msgbox --ok-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" 25 80

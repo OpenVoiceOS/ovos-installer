@@ -1,25 +1,16 @@
 #!/bin/env bash
 
-message="
-Open Voice OS has two main release channels:
-
-  - stable (recommended)
-  - development
-
-The stable release of Open Voice OS is a well-tested and reliable version suitable for everyday use.
-
-The development release of Open Voice OS is intended for developers and enthusiasts who want to experiment with cutting-edge features and contribute to the platform's development.
-
-Please select a channel:
-"
+source "tui/locales/$LOCALE/channels.sh"
 
 active_channel="development"
-available_channels=( stable development )
+available_channels=( development )
 
 whiptail_args=(
-    --title "Open Voice OS Installation - Channels"
-    --radiolist "$message"
-    --cancel-button "Exit"
+    --title "$TITLE"
+    --radiolist "$CONTENT"
+    --cancel-button "$CANCEL_BUTTON"
+    --ok-button "$OK_BUTTON"
+    --yes-button "$OK_BUTTON"
     25 80 "${#available_channels[@]}"
 )
 

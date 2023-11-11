@@ -1,22 +1,16 @@
 #!/bin/env bash
 
-message="To install Open Voice OS, you have two primary methods:
-
-    - Containers engine such as Docker or Podman
-    - Setting it up in a Python virtual environment
-
-Containers provide isolation and easy deployment, while a Python virtual environment offers more flexibility and control over the installation.
-
-Please select an installation method:
-"
+source "tui/locales/$LOCALE/methods.sh"
 
 active_method="containers"
 available_methods=( containers virtualenv )
 
 whiptail_args=(
-    --title "Open Voice OS Installation - Methods"
-    --radiolist "$message"
-    --cancel-button "Exit"
+    --title "$TITLE"
+    --radiolist "$CONTENT"
+    --cancel-button "$CANCEL_BUTTON"
+    --ok-button "$OK_BUTTON"
+    --yes-button "$OK_BUTTON"
     25 80 "${#available_methods[@]}"
 )
 

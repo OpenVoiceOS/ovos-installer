@@ -1,21 +1,16 @@
 #!/bin/env bash
 
-message="Using Open Voice OS Tuning for Raspberry Pi involves optimizing the operating system to run efficiently on the Raspberry Pi hardware.
-
-This tuning process aims to enhance performance, reduce resource usage, and ensure a smoother user experience, making it an excellent choice for resource-constrained devices like the Raspberry Pi.
-
-Please note that tuning may require technical expertise and could impact stability. Exercise caution and back up data before making any modifications.
-
-Enable tuning for Raspberry Pi:
-"
+source "tui/locales/$LOCALE/tuning.sh"
 
 active_option="no"
 available_options=( no yes )
 
 whiptail_args=(
-    --title "Open Voice OS Installation - Tuning"
-    --radiolist "$message"
-    --cancel-button "Exit"
+    --title "$TITLE"
+    --radiolist "$CONTENT"
+    --cancel-button "$CANCEL_BUTTON"
+    --ok-button "$OK_BUTTON"
+    --yes-button "$OK_BUTTON"
     25 80 "${#available_options[@]}"
 )
 

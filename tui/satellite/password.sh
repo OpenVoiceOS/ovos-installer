@@ -1,11 +1,6 @@
 #!/bin/bash
 
-message="
-By connecting to the Hivemind listener, HiveMind satellites gain access to a network of shared knowledge and capabilities, facilitating a unified and efficient voice assistant and automation experience.
-
-Please enter the HiveMind listener password related to the satellite:"
-
-SATELLITE_PASSWORD=$(whiptail --passwordbox --title "Open Voice OS Installation - Satellite 4/4" "$message" 25 80 3>&1 1>&2 2>&3)
+SATELLITE_PASSWORD=$(whiptail --passwordbox --cancel-button "$CANCEL_BUTTON" --ok-button "$OK_BUTTON" --title "$TITLE_PASSWORD" "$CONTENT_PASSWORD" 25 80 3>&1 1>&2 2>&3)
 export SATELLITE_PASSWORD
 
 exit_status=$?

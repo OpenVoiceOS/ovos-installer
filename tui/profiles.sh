@@ -1,26 +1,16 @@
 #!/bin/env bash
 
-message="
-In today's quest for the perfect digital companion, we find ourselves at a crossroads with three intriguing choices:
-
-  - Open Voice OS: The Open Voice OS classic experience
-  - HiveMind Satellite: Run only the audio components on a device
-  - HiveMind Listener: Hub for HiveMind Satellite to connect to
-
-Each of these profiles offers unique features and capabilities that could greatly enhance your digital experience.
-
-The question is, which one aligns best with your needs and preferences?
-
-Please select a profile:
-"
+source "tui/locales/$LOCALE/profiles.sh"
 
 active_profile="ovos"
 available_profiles=( ovos satellite listener )
 
 whiptail_args=(
-    --title "Open Voice OS Installation - Profiles"
-    --radiolist "$message"
-    --cancel-button "Exit"
+    --title "$TITLE"
+    --radiolist "$CONTENT"
+    --cancel-button "$CANCEL_BUTTON"
+    --ok-button "$OK_BUTTON"
+    --yes-button "$OK_BUTTON"
     25 80 "${#available_profiles[@]}"
 )
 
