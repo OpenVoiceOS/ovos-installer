@@ -20,6 +20,8 @@ if [[ "$EXISTING_INSTANCE" == "false" ]]; then
   source tui/main.sh
   ansible_cleaning="false"
 else
+  source tui/language.sh
+  source "tui/locales/$LOCALE/misc.sh"
   source tui/uninstall.sh
   if [[ "$CONFIRM_UNINSTALL" == "true" ]]; then
     ansible_tags="--tags uninstall"

@@ -2,8 +2,6 @@
 
 export CONFIRM_UNINSTALL="true"
 
-source tui/language.sh
-source "tui/locales/$LOCALE/misc.sh"
 source "tui/locales/$LOCALE/uninstall.sh"
 
 whiptail --yesno --defaultno --no-button "$CANCEL_BUTTON" --yes-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" 25 80
