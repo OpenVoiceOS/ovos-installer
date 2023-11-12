@@ -8,6 +8,12 @@ else
     export RUN_AS_HOME="/$SUDO_USER"
 fi
 
+if ! command -v git &> /dev/null; then
+    echo "git command not found..."
+    echo "Make sure to install git package before running the installer."
+    exit 1
+fi
+
 installer_path="$RUN_AS_HOME/ovos-installer"
 
 if [[ -d "$installer_path" ]]; then
