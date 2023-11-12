@@ -60,6 +60,7 @@ if [ "${PIPESTATUS[0]}" == 0 ]; then
   if [[ "$CONFIRM_UNINSTALL" == "false" ]] || [[ -z "$CONFIRM_UNINSTALL" ]]; then
     source tui/finish.sh
   else
+    rm -rf "$VENV_PATH" 
     echo ""
     echo "➤ Open Voice OS has been successfully uninstalled."
   fi
