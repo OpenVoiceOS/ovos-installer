@@ -26,6 +26,6 @@ done
 CHANNEL=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
 export CHANNEL
 
-if [ "$CHANNEL" = "" ]; then
+if [ -z "$CHANNEL" ]; then
   exit 1
 fi

@@ -25,6 +25,6 @@ for FEATURE in $OVOS_FEATURES; do
 done
 
 exit_status=$?
-if [ "$exit_status" = 1 ]; then
+if [ "$exit_status" -eq 1 ]; then
   exit 1
 fi

@@ -26,6 +26,6 @@ done
 PROFILE=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
 export PROFILE
 
-if [ "$PROFILE" = "" ]; then
+if [ -z "$PROFILE" ]; then
   exit 1
 fi

@@ -32,6 +32,6 @@ declare -A locales
 locales=( ["english"]="en-us" ["french"]="fr-fr")
 export LOCALE="${locales[$language]}"
 
-if [ "$LOCALE" = "" ]; then
+if [ -z "$LOCALE" ]; then
   exit 1
 fi

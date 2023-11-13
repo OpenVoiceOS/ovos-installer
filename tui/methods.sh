@@ -26,6 +26,6 @@ done
 METHOD=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
 export METHOD
 
-if [ "$METHOD" = "" ]; then
+if [ -z "$METHOD" ]; then
   exit 1
 fi
