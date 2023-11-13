@@ -7,7 +7,9 @@
 
 - name: Include docker/xhost.yml
   ansible.builtin.import_tasks: docker/xhost.yml
-  when: ovos_installer_feature_gui | bool
+  when:
+    - ovos_installer_feature_gui | bool
+    - ovos_installer_graphic_server != 'N/A'
 
 - name: Start docker service
   ansible.builtin.systemd:

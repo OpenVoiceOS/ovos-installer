@@ -54,6 +54,7 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
     -e "ovos_installer_satellite_password=${SATELLITE_PASSWORD}" \
     -e "ovos_installer_cpu_is_capable=${CPU_IS_CAPABLE}" \
     -e "ovos_installer_cleaning=${ansible_cleaning}" \
+    -e "ovos_installer_graphic_server=${X_SERVER}" \
     $ansible_tags "$@" | tee -a "$LOG_FILE"
 
 if [ "${PIPESTATUS[0]}" == 0 ]; then
