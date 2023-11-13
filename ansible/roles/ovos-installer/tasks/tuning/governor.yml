@@ -2,7 +2,6 @@
 - name: Handle linux-cpupower package
   ansible.builtin.apt:
     name: linux-cpupower
-    autoremove: true
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
   tags:
@@ -11,7 +10,6 @@
 - name: Handle linux-cpupower package
   ansible.builtin.dnf:
     name: kernel-tools
-    autoremove: true
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
   tags:

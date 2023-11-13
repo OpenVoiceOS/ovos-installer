@@ -2,7 +2,6 @@
 - name: Handle systemd-zram-generator
   ansible.builtin.apt:
     name: systemd-zram-generator
-    autoremove: true
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
   tags:
@@ -11,7 +10,6 @@
 - name: Handle zram-generator-defaults
   ansible.builtin.dnf:
     name: zram-generator-defaults
-    autoremove: true
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
   tags:
