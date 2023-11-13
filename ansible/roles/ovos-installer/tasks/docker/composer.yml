@@ -39,6 +39,15 @@
     - {"file": "{{ _ovos_install_working_directory }}/hivemind-docker/compose/docker-compose.satellite.yml", "state": "{{ _remove_x_podman_satellite }}"}
   when: item.state | bool
 
+- name: Remove DISPLAY variable if EGLFS is used
+  ansible.builtin.lineinfile:
+    path: "{{ _ovos_install_working_directory }}/ovos-docker/compose/docker-compose.gui.yml"
+    search_string: "DISPLAY"
+    state: absent
+  when: ovos_installer_profile != 'satellite' and
+        ovos_installer_feature_gui | bool and
+        ovos_installer_graphic_server != 'N/A'
+
 - name: Define composition
   ansible.builtin.set_fact:
     _composition_files: "{{ _composition_files | default([]) + [item.file] }}"
