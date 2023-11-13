@@ -28,3 +28,10 @@ cd "$installer_path" || exit 1
 
 # Execute the installer entrypoint
 bash ./setup.sh
+
+# Delete ovos-installer directory once the installer is successfull
+exit_status="$?"
+if [ "$exit_status" -eq 0 ]; then
+    cd "$RUN_AS_HOME" || exit 1
+    rm -f "$installer_path"
+fi
