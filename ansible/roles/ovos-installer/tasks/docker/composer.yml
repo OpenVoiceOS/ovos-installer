@@ -46,7 +46,7 @@
     state: absent
   when: ovos_installer_profile != 'satellite' and
         ovos_installer_feature_gui | bool and
-        ovos_installer_graphic_server != 'N/A'
+        ovos_installer_graphic_server == 'N/A'
 
 - name: Define composition
   ansible.builtin.set_fact:
