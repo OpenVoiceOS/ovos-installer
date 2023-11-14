@@ -78,7 +78,7 @@
       make install
     executable: /bin/bash
     chdir: "{{ item }}"
-    creates: "{{ item }}"
+    creates: /usr/bin/ovos-shell
   loop:
     - /opt/mycroft-gui/build-testing
     - /opt/ovos-shell/build-testing
