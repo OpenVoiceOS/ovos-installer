@@ -49,7 +49,7 @@ function detect_sound {
     if pgrep -a -f -c "pulse" &>>"$LOG_FILE"; then
         # PULSE_SERVER is required by pactl as it is executed via sudo
         export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
-        if command -v pactl 2>>"$LOG_FILE"; then
+        if command -v pactl &>>"$LOG_FILE"; then
             SOUND_SERVER="$(pactl info | awk -F":" '$1 ~ /Server Name/ { print $2 }' | sed 's/^ *//')"
         else
             SOUND_SERVER="Server Name: PulseAudio (on PipeWire)"
