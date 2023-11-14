@@ -45,6 +45,7 @@
       - kf5-kdbusaddons-devel
       - kf5-kirigami2-devel
       - kf5-kiconthemes
+      - kf5-kiconthemes-devel
       - kf5-kguiaddons-devel
   when: ansible_os_family == "RedHat"
 
