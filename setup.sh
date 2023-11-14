@@ -27,10 +27,12 @@ source tui/language.sh
 if [[ "$EXISTING_INSTANCE" == "false" ]]; then
   # shellcheck source=tui/main.sh
   source tui/main.sh
+
   ansible_cleaning="false"
 else
   # shellcheck source=tui/uninstall.sh
   source tui/uninstall.sh
+
   if [[ "$CONFIRM_UNINSTALL" == "true" ]]; then
     ansible_tags=(--tags uninstall)
     ansible_cleaning="true"
@@ -74,10 +76,8 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     source tui/finish.sh
   else
     rm -rf "$VENV_PATH"
-    echo ""
-    echo "➤ Open Voice OS has been successfully uninstalled."
+    echo -e "\n➤ Open Voice OS has been successfully uninstalled."
   fi
 else
-    echo ""
-    echo "➤ Unable to finalize the process, please check $LOG_FILE for more details."
+    echo -e "\n➤ Unable to finalize the process, please check $LOG_FILE for more details."
 fi
