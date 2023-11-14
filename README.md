@@ -1,5 +1,7 @@
 # Open Voice OS and HiveMind Installer
 
+A nice, simple and intuitive installer for Open Voice OS and HiveMind using Bash, Whiptail *(Newt)* and Ansible.
+
 ## Quickstart
 
 `curl`, `git` and `sudo` packages must be installed before running the installer.
@@ -18,5 +20,10 @@ sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main
 
 ![Screenshot 4](docs/screenshot_4.png)
 
-![Screenshot 15](docs/screenshot_5.png)
+![Screenshot 5](docs/screenshot_5.png)
 
+![Screenshot 6](docs/screenshot_6.png)
+
+![Screenshot 7](docs/screenshot_7.png)
+
+![Screenshot 8](docs/screenshot_8.png)
