@@ -71,7 +71,7 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
 
 # Retrieve the ansible-playbook status code before tee command and check for success or failure
 if [ "${PIPESTATUS[0]}" -eq 0 ]; then
-  if [[ "$CONFIRM_UNINSTALL" == "false" ]] || [[ -z "$CONFIRM_UNINSTALL" ]]; then
+  if [ "$CONFIRM_UNINSTALL" == "false" ] || [ -z "$CONFIRM_UNINSTALL" ]; then
     # shellcheck source=tui/finish.sh
     source tui/finish.sh
   else
