@@ -92,3 +92,17 @@
     - /opt/mycroft-gui
     - /opt/ovos-shell
     - /opt/lottie
+
+- name: Remove compiled GUI components
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /usr/bin/ovos-shell
+    - /usr/bin/ovos-gui-app
+    - /usr/share/applications/ovos-shell.desktop
+    - /usr/share/applications/ai.ovos.gui-app.desktop
+    - /usr/share/OVOS
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
