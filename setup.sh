@@ -48,28 +48,28 @@ echo "➤ Starting Ansible playbook... ☕🍵🧋"
 export ANSIBLE_CONFIG=ansible/ansible.cfg
 export ANSIBLE_PYTHON_INTERPRETER="$VENV_PATH/bin/python3"
 unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
-    -e "ovos_installer_user=${RUN_AS}" \
-    -e "ovos_installer_uid=${RUN_AS_UID}" \
-    -e "ovos_installer_venv=${VENV_PATH}" \
-    -e "ovos_installer_user_home=${RUN_AS_HOME}" \
-    -e "ovos_installer_method=${METHOD}" \
-    -e "ovos_installer_profile=${PROFILE}" \
-    -e "ovos_installer_sound_server=$(echo "$SOUND_SERVER" | awk '{ print $1 }')" \
-    -e "ovos_installer_raspberrypi=${RASPBERRYPI_MODEL}" \
-    -e "ovos_installer_channel=${CHANNEL}" \
-    -e "ovos_installer_feature_gui=${FEATURE_GUI}" \
-    -e "ovos_installer_feature_skills=${FEATURE_SKILLS}" \
-    -e "ovos_installer_tuning=${TUNING}" \
-    -e "ovos_installer_listener_host=${HIVEMIND_HOST}" \
-    -e "ovos_installer_listener_port=${HIVEMIND_PORT}" \
-    -e "ovos_installer_satellite_key=${SATELLITE_KEY}" \
-    -e "ovos_installer_satellite_password=${SATELLITE_PASSWORD}" \
-    -e "ovos_installer_cpu_is_capable=${CPU_IS_CAPABLE}" \
-    -e "ovos_installer_cleaning=${ansible_cleaning}" \
-    -e "ovos_installer_display_server=${DISPLAY_SERVER}" \
-    "${ansible_tags[@]}" "$@" | tee -a "$LOG_FILE"
+  -e "ovos_installer_user=${RUN_AS}" \
+  -e "ovos_installer_uid=${RUN_AS_UID}" \
+  -e "ovos_installer_venv=${VENV_PATH}" \
+  -e "ovos_installer_user_home=${RUN_AS_HOME}" \
+  -e "ovos_installer_method=${METHOD}" \
+  -e "ovos_installer_profile=${PROFILE}" \
+  -e "ovos_installer_sound_server=$(echo "$SOUND_SERVER" | awk '{ print $1 }')" \
+  -e "ovos_installer_raspberrypi=${RASPBERRYPI_MODEL}" \
+  -e "ovos_installer_channel=${CHANNEL}" \
+  -e "ovos_installer_feature_gui=${FEATURE_GUI}" \
+  -e "ovos_installer_feature_skills=${FEATURE_SKILLS}" \
+  -e "ovos_installer_tuning=${TUNING}" \
+  -e "ovos_installer_listener_host=${HIVEMIND_HOST}" \
+  -e "ovos_installer_listener_port=${HIVEMIND_PORT}" \
+  -e "ovos_installer_satellite_key=${SATELLITE_KEY}" \
+  -e "ovos_installer_satellite_password=${SATELLITE_PASSWORD}" \
+  -e "ovos_installer_cpu_is_capable=${CPU_IS_CAPABLE}" \
+  -e "ovos_installer_cleaning=${ansible_cleaning}" \
+  -e "ovos_installer_display_server=${DISPLAY_SERVER}" \
+  "${ansible_tags[@]}" "$@" | tee -a "$LOG_FILE"
 
-# Retrieve the ansible-playbook status code before tee and check for success or failure
+# Retrieve the ansible-playbook status code before tee command and check for success or failure
 if [ "${PIPESTATUS[0]}" -eq 0 ]; then
   if [[ "$CONFIRM_UNINSTALL" == "false" ]] || [[ -z "$CONFIRM_UNINSTALL" ]]; then
     # shellcheck source=tui/finish.sh
@@ -79,5 +79,5 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     echo -e "\n➤ Open Voice OS has been successfully uninstalled."
   fi
 else
-    echo -e "\n➤ Unable to finalize the process, please check $LOG_FILE for more details."
+  echo -e "\n➤ Unable to finalize the process, please check $LOG_FILE for more details."
 fi

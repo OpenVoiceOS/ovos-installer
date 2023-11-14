@@ -16,12 +16,12 @@ OVOS_FEATURES=$(whiptail --separate-output --title "$TITLE" \
 
 for FEATURE in $OVOS_FEATURES; do
   case "$FEATURE" in
-    "gui")
-      export FEATURE_GUI="true"
-      ;;
-    "skills")
-      export FEATURE_SKILLS="true"
-      ;;
+  "gui")
+    export FEATURE_GUI="true"
+    ;;
+  "skills")
+    export FEATURE_SKILLS="true"
+    ;;
   esac
 done
 

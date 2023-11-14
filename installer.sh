@@ -10,7 +10,7 @@ else
 fi
 
 # Check for git command to be installed
-if ! command -v git &> /dev/null; then
+if ! command -v git &>/dev/null; then
     echo "git command not found..."
     echo "Make sure to install git package before running the installer."
     exit 1

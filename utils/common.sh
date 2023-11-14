@@ -185,15 +185,12 @@ function create_python_venv {
         source "$VENV_PATH/bin/activate"
 
         pip3 install --upgrade pip &>>"$LOG_FILE"
-
         if ! grep -q "^VIRTUAL_ENV=$VENV_PATH" "$RUN_AS_HOME/.bashrc" &>>"$LOG_FILE"; then
             echo "VIRTUAL_ENV=$VENV_PATH" >>"$RUN_AS_HOME/.bashrc"
         fi
-
         if ! grep -q "^PATH=" "$RUN_AS_HOME/.bashrc" &>>"$LOG_FILE"; then
             echo "PATH=$PATH:$VENV_PATH/bin" >>"$RUN_AS_HOME/.bashrc"
         fi
-
         chown "$RUN_AS":"$RUN_AS" "$RUN_AS_HOME"/.venvs
         echo -e "[$done_format]"
     }

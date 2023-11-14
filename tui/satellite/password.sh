@@ -4,6 +4,6 @@ SATELLITE_PASSWORD=$(whiptail --passwordbox --cancel-button "$CANCEL_BUTTON" --o
 export SATELLITE_PASSWORD
 
 exit_status=$?
-if [ "$exit_status" = 1 ]; then
+if [ "$exit_status" -eq 1 ]; then
   exit 1
 fi

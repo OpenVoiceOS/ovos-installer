@@ -20,6 +20,3 @@ Should you need any assistance or updates in the future, feel free to reach out.
 TITLE="Open Voice OS Installation - Finish"
 
 export CONTENT TITLE
-
-
-

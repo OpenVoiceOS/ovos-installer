@@ -5,21 +5,21 @@ Please select a language:
 "
 
 active_language="English"
-available_languages=( English French )
+available_languages=(English French)
 
 whiptail_args=(
-    --title "Open Voice OS Installation - Language"
-    --radiolist "$message"
-    --cancel-button "Exit"
-    25 80 "${#available_profiles[@]}"
+  --title "Open Voice OS Installation - Language"
+  --radiolist "$message"
+  --cancel-button "Exit"
+  25 80 "${#available_profiles[@]}"
 )
 
 for language in "${available_languages[@]}"; do
-  whiptail_args+=( "$language" "" )
+  whiptail_args+=("$language" "")
   if [[ $language = "$active_language" ]]; then
-    whiptail_args+=( "on" )
+    whiptail_args+=("on")
   else
-    whiptail_args+=( "off" )
+    whiptail_args+=("off")
   fi
 done
 
@@ -33,5 +33,5 @@ fi
 
 # Hash of locales
 declare -A locales
-locales=( ["english"]="en-us" ["french"]="fr-fr")
+locales=(["english"]="en-us" ["french"]="fr-fr")
 export LOCALE="${locales[$language]}"

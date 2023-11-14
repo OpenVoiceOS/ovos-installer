@@ -4,23 +4,23 @@
 source "tui/locales/$LOCALE/tuning.sh"
 
 active_option="no"
-available_options=( no yes )
+available_options=(no yes)
 
 whiptail_args=(
-    --title "$TITLE"
-    --radiolist "$CONTENT"
-    --cancel-button "$CANCEL_BUTTON"
-    --ok-button "$OK_BUTTON"
-    --yes-button "$OK_BUTTON"
-    25 80 "${#available_options[@]}"
+  --title "$TITLE"
+  --radiolist "$CONTENT"
+  --cancel-button "$CANCEL_BUTTON"
+  --ok-button "$OK_BUTTON"
+  --yes-button "$OK_BUTTON"
+  25 80 "${#available_options[@]}"
 )
 
 for option in "${available_options[@]}"; do
-  whiptail_args+=( "$option" "" )
+  whiptail_args+=("$option" "")
   if [[ $option = "$active_option" ]]; then
-    whiptail_args+=( "on" )
+    whiptail_args+=("on")
   else
-    whiptail_args+=( "off" )
+    whiptail_args+=("off")
   fi
 done
 

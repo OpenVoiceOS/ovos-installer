@@ -34,7 +34,7 @@ fi
 if [[ "$RASPBERRYPI_MODEL" != "N/A" ]]; then
     # shellcheck source=tuning.sh
     source tui/tuning.sh
-else 
+else
     export TUNING="no"
 fi
 

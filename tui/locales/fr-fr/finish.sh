@@ -20,6 +20,3 @@ Si vous avez besoin d'aide ou d'informations, n'hésitez pas à nous contacter. 
 TITLE="Open Voice OS Installation - Clap de fin"
 
 export CONTENT TITLE
-
-
-
