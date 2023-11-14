@@ -74,7 +74,7 @@
   ansible.builtin.shell:
     cmd: |
       cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DKDE_INSTALL_LIBDIR=lib -DKDE_INSTALL_USE_QT_SYS_PATHS=ON
-      make -j {{ ansible_processor_vcpus }}
+      make -j {{ ansible_processor_vcpus - 1 }}
       make install
     executable: /bin/bash
     chdir: "{{ item }}"
