@@ -1,5 +1,9 @@
 #!/bin/env bash
 
+# Base installer version on commit hash
+INSTALLER_VERSION="$(git rev-parse --short=8 HEAD )"
+export INSTALLER_VERSION
+
 # shellcheck source=utils/constants.sh
 source utils/constants.sh
 

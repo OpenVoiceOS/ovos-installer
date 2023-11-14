@@ -37,7 +37,7 @@ echo -e "\e[1;31m
                               .**=         .::..        -**.                              
 \e[0m"
 
-echo -e "\t\t\t\t\033[1m===========================\033[0m"
-echo -e "\t\t\t\t  \033[1mOPEN VOICE OS INSTALLER\033[0m"
-echo -e "\t\t\t\t\033[1m===========================\033[0m"
+echo -e "\t\t      \033[1m===============================================\033[0m"
+echo -e "\t\t        \033[1mOPEN VOICE OS INSTALLER | Version: $INSTALLER_VERSION\033[0m"
+echo -e "\t\t      \033[1m===============================================\033[0m"
 echo ""

@@ -2,7 +2,6 @@
 
 export INSTALLER_VENV_NAME="ovos-installer"
 export LOG_FILE=/var/log/ovos-installer.log
-export VERSION_INSTALLER="1.0.0"
 export NEWT_COLORS="
     root=white,black
     border=black,lightgray
