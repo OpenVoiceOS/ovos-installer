@@ -33,5 +33,5 @@ bash ./setup.sh
 exit_status="$?"
 if [ "$exit_status" -eq 0 ]; then
     cd "$RUN_AS_HOME" || exit 1
-    rm -f "$installer_path"
+    rm -rf "$installer_path"
 fi
