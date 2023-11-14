@@ -27,11 +27,11 @@ done
 language=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
 language="${language@L}"
 
+if [ -z "$language" ]; then
+  exit 1
+fi
+
 # Hash of locales
 declare -A locales
 locales=( ["english"]="en-us" ["french"]="fr-fr")
 export LOCALE="${locales[$language]}"
-
-if [ -z "$LOCALE" ]; then
-  exit 1
-fi
