@@ -1,5 +1,6 @@
 #!/bin/env bash
 
+# shellcheck source=locales/en-us/methods.sh
 source "tui/locales/$LOCALE/methods.sh"
 
 active_method="containers"

@@ -2,7 +2,10 @@
 
 export CONFIRM_UNINSTALL="true"
 
+# shellcheck source=locales/en-us/misc.sh
 source "tui/locales/$LOCALE/misc.sh"
+
+# shellcheck source=locales/en-us/uninstall.sh
 source "tui/locales/$LOCALE/uninstall.sh"
 
 whiptail --yesno --defaultno --no-button "$CANCEL_BUTTON" --yes-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" 25 80

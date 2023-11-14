@@ -1,5 +1,6 @@
 #!/bin/env bash
 
+# shellcheck source=locales/en-us/profiles.sh
 source "tui/locales/$LOCALE/profiles.sh"
 
 active_profile="ovos"

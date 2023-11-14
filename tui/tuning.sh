@@ -1,5 +1,6 @@
 #!/bin/env bash
 
+# shellcheck source=locales/en-us/tuning.sh
 source "tui/locales/$LOCALE/tuning.sh"
 
 active_option="no"

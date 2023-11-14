@@ -1,7 +1,12 @@
 #!/bin/env bash
 
+# shellcheck source=utils/constants.sh
 source utils/constants.sh
+
+# shellcheck source=utils/banner.sh
 source utils/banner.sh
+
+# shellcheck source=utils/common.sh
 source utils/common.sh
 
 detect_user
@@ -16,23 +21,28 @@ required_packages
 create_python_venv
 install_ansible
 
+# shellcheck source=tui/language.sh
 source tui/language.sh
 
 if [[ "$EXISTING_INSTANCE" == "false" ]]; then
+  # shellcheck source=tui/main.sh
   source tui/main.sh
   ansible_cleaning="false"
 else
+  # shellcheck source=tui/uninstall.sh
   source tui/uninstall.sh
   if [[ "$CONFIRM_UNINSTALL" == "true" ]]; then
-    ansible_tags="--tags uninstall"
+    ansible_tags=(--tags uninstall)
     ansible_cleaning="true"
   else
+    # shellcheck source=tui/main.sh
     source tui/main.sh
   fi
 fi
 
 echo "➤ Starting Ansible playbook... ☕🍵🧋"
 
+# Execute the Ansible playbook on localhost
 export ANSIBLE_CONFIG=ansible/ansible.cfg
 export ANSIBLE_PYTHON_INTERPRETER="$VENV_PATH/bin/python3"
 unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
@@ -55,10 +65,12 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
     -e "ovos_installer_cpu_is_capable=${CPU_IS_CAPABLE}" \
     -e "ovos_installer_cleaning=${ansible_cleaning}" \
     -e "ovos_installer_graphic_server=${X_SERVER}" \
-    $ansible_tags "$@" | tee -a "$LOG_FILE"
+    "${ansible_tags[@]}" "$@" | tee -a "$LOG_FILE"
 
-if [ "${PIPESTATUS[0]}" == 0 ]; then
+# Retrieve the ansible-playbook status code before tee and check for success or failure
+if [ "${PIPESTATUS[0]}" -eq 0 ]; then
   if [[ "$CONFIRM_UNINSTALL" == "false" ]] || [[ -z "$CONFIRM_UNINSTALL" ]]; then
+    # shellcheck source=tui/finish.sh
     source tui/finish.sh
   else
     rm -rf "$VENV_PATH"
