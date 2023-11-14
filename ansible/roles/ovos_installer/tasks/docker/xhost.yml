@@ -12,6 +12,7 @@
   ansible.builtin.meta: flush_handlers
 
 - name: Enable and start systemd xhost unit (user)
+  become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.systemd:
     name: xhost.service

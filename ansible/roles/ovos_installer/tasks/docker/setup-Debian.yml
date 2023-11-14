@@ -12,7 +12,7 @@
 - name: Retrieve Docker GPG repository key
   ansible.builtin.get_url:
     url: "https://download.docker.com/linux/{{ os_distribution }}/gpg"
-    dest: "{{ _ovos_install_debian_docker_gpg }}"
+    dest: "{{ _ovos_installer_debian_docker_gpg }}"
     owner: root
     group: root
     mode: "0644"
@@ -20,14 +20,14 @@
 - name: Extract and replace gpg key with dearmor
   ansible.builtin.command:
     cmd: |
-      gpg --dearmor {{ _ovos_install_debian_docker_gpg }}
-    creates: "{{ _ovos_install_debian_docker_gpg }}.gpg"
+      gpg --dearmor {{ _ovos_installer_debian_docker_gpg }}
+    creates: "{{ _ovos_installer_debian_docker_gpg }}.gpg"
 
 - name: Add Docker repository
   vars:
     architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ architecture }}, signed-by={{ _ovos_install_debian_docker_gpg }}.gpg] https://download.docker.com/linux/{{ os_distribution }} {{ ansible_distribution_release }} stable"
+    repo: "deb [arch={{ architecture }}, signed-by={{ _ovos_installer_debian_docker_gpg }}.gpg] https://download.docker.com/linux/{{ os_distribution }} {{ ansible_distribution_release }} stable"
     filename: /etc/apt/sources.list.d/docker
     update_cache: true
 

@@ -28,6 +28,7 @@
   ansible.builtin.meta: flush_handlers
 
 - name: Enable and start OVOS and/or HiveMind systemd units
+  become: true
   become_user: "{{ item.user }}"
   ansible.builtin.systemd:
     name: "{{ item.unit }}"
@@ -54,6 +55,7 @@
     - uninstall
   block:
     - name: Disable and stop OVOS and/or HiveMind systemd units
+      become: true
       become_user: "{{ item.user }}"
       ansible.builtin.systemd:
         name: "{{ item.unit }}"

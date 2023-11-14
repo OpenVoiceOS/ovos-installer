@@ -1,22 +1,25 @@
+---
 galaxy_info:
   author: Gaëtan trellu (@goldyfruit)
   description: Open Voice OS installer
   company: Smart'Gic
+  standalone: true
 
   issue_tracker_url: https://github.com/smartgic/ovos-installer/issues
 
   license: Apache-2.0
 
-  min_ansible_version: 2.12
+  min_ansible_version: "2.12"
 
   platforms:
     - name: Fedora
       versions:
-        - 39
-        - 38
+        - "39"
+        - "38"
+        - "37"
     - name: EL
       versions:
-        - 9
+        - "9"
     - name: Ubuntu
       versions:
         - mantic

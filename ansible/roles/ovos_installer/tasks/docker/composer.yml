@@ -15,7 +15,7 @@
 - name: Generate .env file for docker-compose
   ansible.builtin.template:
     src: docker/env.j2
-    dest: "{{ _ovos_install_working_directory }}/{{ _ovos_installer_project_name }}/compose/.env"
+    dest: "{{ _ovos_installer_working_directory }}/{{ _ovos_installer_project_name }}/compose/.env"
     owner: root
     group: root
     mode: '0644'
@@ -32,16 +32,16 @@
     search_string: "<<: *podman"
     state: absent
   loop:
-    - {"file": "{{ _ovos_install_working_directory }}/ovos-docker/compose/docker-compose.yml", "state": "{{ _remove_x_podman_ovos }}"}
-    - {"file": "{{ _ovos_install_working_directory }}/ovos-docker/compose/docker-compose.skills.yml", "state": "{{ _remove_x_podman_ovos }}"}
-    - {"file": "{{ _ovos_install_working_directory }}/ovos-docker/compose/docker-compose.hivemind.yml", "state": "{{ _remove_x_podman_ovos }}"}
-    - {"file": "{{ _ovos_install_working_directory }}/ovos-docker/compose/docker-compose.gui.yml", "state": "{{ _remove_x_podman_ovos }}"}
-    - {"file": "{{ _ovos_install_working_directory }}/hivemind-docker/compose/docker-compose.satellite.yml", "state": "{{ _remove_x_podman_satellite }}"}
+    - {"file": "{{ _ovos_installer_working_directory }}/ovos-docker/compose/docker-compose.yml", "state": "{{ _remove_x_podman_ovos }}"}
+    - {"file": "{{ _ovos_installer_working_directory }}/ovos-docker/compose/docker-compose.skills.yml", "state": "{{ _remove_x_podman_ovos }}"}
+    - {"file": "{{ _ovos_installer_working_directory }}/ovos-docker/compose/docker-compose.hivemind.yml", "state": "{{ _remove_x_podman_ovos }}"}
+    - {"file": "{{ _ovos_installer_working_directory }}/ovos-docker/compose/docker-compose.gui.yml", "state": "{{ _remove_x_podman_ovos }}"}
+    - {"file": "{{ _ovos_installer_working_directory }}/hivemind-docker/compose/docker-compose.satellite.yml", "state": "{{ _remove_x_podman_satellite }}"}
   when: item.state | bool
 
 - name: Remove DISPLAY variable if EGLFS is used
   ansible.builtin.lineinfile:
-    path: "{{ _ovos_install_working_directory }}/ovos-docker/compose/docker-compose.gui.yml"
+    path: "{{ _ovos_installer_working_directory }}/ovos-docker/compose/docker-compose.gui.yml"
     search_string: "DISPLAY"
     state: absent
   when: ovos_installer_profile != 'satellite' and
@@ -62,11 +62,12 @@
   when: item.state | bool
 
 - name: Deploy docker-compose stack
+  become: true
   become_user: "{{ ovos_installer_user }}"
   vars:
     _project_name: "{{ 'hivemind' if ovos_installer_profile == 'satellite' else 'ovos' }}"
   community.docker.docker_compose:
-    project_src: "{{ _ovos_install_working_directory }}/{{ _ovos_installer_project_name }}/compose"
+    project_src: "{{ _ovos_installer_working_directory }}/{{ _ovos_installer_project_name }}/compose"
     project_name: "{{ _project_name }}"
     files: "{{ _composition_files }}"
     pull: true
@@ -78,9 +79,10 @@
   retries: 5
   delay: 3
   environment:
-    DOCKER_TIMEOUT: 900
+    DOCKER_TIMEOUT: "900"
 
 - name: Remove docker-compose stack(s)
+  become: true
   become_user: "{{ ovos_installer_user }}"
   vars:
     _composition_mapping:
@@ -92,7 +94,7 @@
       - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.raspberrypi.gui.yml"}
       - {"src": "hivemind-docker", "name": "hivemind", "file": "docker-compose.satellite.yml"}
   community.docker.docker_compose:
-    project_src: "{{ _ovos_install_working_directory }}/{{ item.src }}/compose"
+    project_src: "{{ _ovos_installer_working_directory }}/{{ item.src }}/compose"
     project_name: "{{ item.name }}"
     files: "{{ item.file }}"
     remove_orphans: "{{ ovos_installer_docker_compose_remove_orphans }}"
@@ -102,7 +104,7 @@
     state: absent
   loop: "{{ _composition_mapping }}"
   environment:
-    DOCKER_TIMEOUT: 900
+    DOCKER_TIMEOUT: "900"
   register: _composer_deletion
   failed_when: _composer_deletion is not defined # We never want it to fail even if systemd unit doesn't exist
   when: ovos_installer_cleaning | bool
@@ -114,5 +116,5 @@
     path: "{{ item }}"
     state: absent
   loop:
-    - "{{ _ovos_install_working_directory }}/ovos-docker"
-    - "{{ _ovos_install_working_directory }}/hivemind-docker"
+    - "{{ _ovos_installer_working_directory }}/ovos-docker"
+    - "{{ _ovos_installer_working_directory }}/hivemind-docker"
