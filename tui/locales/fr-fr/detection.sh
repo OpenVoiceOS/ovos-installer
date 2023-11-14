@@ -10,7 +10,7 @@ Veuillez trouver ci-dessous les information détectées:
     - AVX/SIMD:                $CPU_IS_CAPABLE
     - Environnement virtuel:   $VENV_PATH
     - Serveur de son:          $SOUND_SERVER
-    - Serveur graphique:       ${X_SERVER^}
+    - Serveur graphique:       ${DISPLAY_SERVER^}
 "
 TITLE="Open Voice OS Installation - Détecté"
 

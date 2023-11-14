@@ -10,7 +10,7 @@ Please find the detected information:
     - AVX/SIMD: $CPU_IS_CAPABLE
     - Venv:     $VENV_PATH
     - Sound:    $SOUND_SERVER
-    - Graphic:  ${X_SERVER^}
+    - Display:  ${DISPLAY_SERVER^}
 "
 TITLE="Open Voice OS Installation - Detected"
 
