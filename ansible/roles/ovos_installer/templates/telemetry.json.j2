@@ -10,6 +10,7 @@
     "display_server": "{{ ovos_installer_display_server | lower }}",
     "container": {{ true if ovos_installer_method == 'containers' else false }},
     "venv": {{ true if ovos_installer_method == 'virtualenv' else false }},
+    "installed_at": "{{ ansible_date_time.iso8601_micro }}",
     "channel": "{{ ovos_installer_channel }}",
     "profile": "{{ ovos_installer_profile }}",
     "raspberry_pi": "{{ ovos_installer_raspberrypi }}",
