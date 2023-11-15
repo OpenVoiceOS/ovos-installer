@@ -9,6 +9,6 @@ Les informations recueillies nous aident à identifier les problèmes potentiels
 
 Acceptez-vous de partager avec nous des données de télémétrie anonymes?
 "
-TITLE="Open Voice OS Installation - Telemetry"
+TITLE="Open Voice OS Installation - Télémétrie"
 
 export CONTENT TITLE
