@@ -11,8 +11,8 @@ fi
 
 # Check for git command to be installed
 if ! command -v git &>/dev/null; then
-    echo "git command not found..."
-    echo "Make sure to install git package before running the installer."
+    echo -e "\n\e[31mx\e[0m git command not found..."
+    echo -e "  Make sure to install git package before running the installer.\n"
     exit 1
 fi
 
