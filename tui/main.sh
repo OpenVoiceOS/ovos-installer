@@ -40,3 +40,6 @@ fi
 
 # shellcheck source=summary.sh
 source tui/summary.sh
+
+# shellcheck source=telemetry.sh
+source tui/telemetry.sh

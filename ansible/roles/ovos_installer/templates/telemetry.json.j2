@@ -1,0 +1,21 @@
+#jinja2: lstrip_blocks: True
+{
+    "os_type": "{{ ansible_system | lower }}",
+    "os_name": "{{ ansible_distribution | lower }}",
+    "os_version": "{{ ansible_distribution_major_version }}",
+    "os_kernel": "{{ ansible_kernel }}",
+    "architecture": "{{ ansible_architecture }}",
+    "sound_server": "{{ ovos_installer_sound_server | lower }}",
+    "python_version": "{{ ansible_python_version }}",
+    "display_server": "{{ ovos_installer_display_server | lower }}",
+    "container": {{ true if ovos_installer_method == 'containers' else false }},
+    "venv": {{ true if ovos_installer_method == 'virtualenv' else false }},
+    "channel": "{{ ovos_installer_channel }}",
+    "profile": "{{ ovos_installer_profile }}",
+    "raspberry_pi": "{{ ovos_installer_raspberrypi | lower }}",
+    "skills_feature": {{ ovos_installer_feature_skills }},
+    "gui_feature": {{ ovos_installer_feature_gui }},
+    "cpu_capable": {{ ovos_installer_cpu_is_capable }},
+    "tuning_enabled": {{ true if ovos_installer_tuning == 'yes' else false }},
+    "country": "{{ _isp_data.json.country | lower }}"
+}

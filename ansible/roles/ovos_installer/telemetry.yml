@@ -1,0 +1,23 @@
+---
+- name: Retrieve country based on ISP address
+  ansible.builtin.uri:
+    url: http://ip-api.com/json
+    method: GET
+    status_code: 200
+    return_content: true
+    headers:
+      Content-Type: application/json
+      accept: application/json
+  register: _isp_data
+
+- name: Share telemetry data
+  ansible.builtin.uri:
+    url: "{{ _ovos_installer_telemetry_url }}"
+    method: POST
+    body: "{{ lookup('ansible.builtin.template','telemetry.json.j2') }}"
+    status_code: 200
+    body_format: json
+    headers:
+      Content-Type: application/json
+      accept: application/json
+      user-agent: "{{ _ovos_installer_telemetry_user_agent }}"
