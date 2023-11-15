@@ -12,7 +12,7 @@
     "venv": {{ true if ovos_installer_method == 'virtualenv' else false }},
     "channel": "{{ ovos_installer_channel }}",
     "profile": "{{ ovos_installer_profile }}",
-    "raspberry_pi": "{{ ovos_installer_raspberrypi | lower }}",
+    "raspberry_pi": "{{ ovos_installer_raspberrypi }}",
     "skills_feature": {{ ovos_installer_feature_skills }},
     "gui_feature": {{ ovos_installer_feature_gui }},
     "cpu_capable": {{ ovos_installer_cpu_is_capable }},

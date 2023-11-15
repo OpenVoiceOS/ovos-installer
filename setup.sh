@@ -59,7 +59,7 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_method=${METHOD}" \
   -e "ovos_installer_profile=${PROFILE}" \
   -e "ovos_installer_sound_server=$(echo "$SOUND_SERVER" | awk '{ print $1 }')" \
-  -e "ovos_installer_raspberrypi=${RASPBERRYPI_MODEL}" \
+  -e "ovos_installer_raspberrypi='${RASPBERRYPI_MODEL}'" \
   -e "ovos_installer_channel=${CHANNEL}" \
   -e "ovos_installer_feature_gui=${FEATURE_GUI}" \
   -e "ovos_installer_feature_skills=${FEATURE_SKILLS}" \
