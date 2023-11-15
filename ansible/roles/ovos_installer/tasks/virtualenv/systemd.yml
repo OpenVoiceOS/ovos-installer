@@ -97,3 +97,15 @@
 
     - name: Flush handlers ovos (uninstall)
       ansible.builtin.meta: flush_handlers
+
+    - name: Remove directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ ovos_installer_user_home }}/.config/mycroft"
+        - "{{ ovos_installer_user_home }}/.config/hivemind"
+        - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS"
+        - "{{ ovos_installer_user_home }}/.share/mycroft"
+        - "{{ ovos_installer_user_home }}/.share/OpenVoiceOS"
+

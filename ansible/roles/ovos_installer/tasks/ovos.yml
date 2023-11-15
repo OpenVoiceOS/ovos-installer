@@ -43,19 +43,3 @@
     group: "{{ ovos_installer_user }}"
     mode: '0600'
     backup: true
-
-- name: Remove directories
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  loop:
-    - "{{ ovos_installer_user_home }}/ovos"
-    - "{{ ovos_installer_user_home }}/hivemind"
-    - "{{ ovos_installer_user_home }}/.config/mycroft"
-    - "{{ ovos_installer_user_home }}/.config/hivemind"
-    - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS"
-    - "{{ ovos_installer_user_home }}/.share/mycroft"
-    - "{{ ovos_installer_user_home }}/.share/OpenVoiceOS"
-  when: ovos_installer_cleaning | bool
-  tags:
-    - uninstall
