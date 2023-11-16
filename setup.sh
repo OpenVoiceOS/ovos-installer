@@ -14,7 +14,7 @@ source utils/banner.sh
 source utils/common.sh
 
 set -eE
-trap on_exit ERR
+trap on_error ERR
 delete_log
 detect_user
 detect_existing_instance

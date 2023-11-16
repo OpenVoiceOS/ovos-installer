@@ -10,7 +10,7 @@ fail_format="\e[31mfail\e[0m"
 # The function exits the install when trap detects ERR as signal.
 # This is mainly used in setup.sh to handle errors during the functions
 # execution.
-function on_exit() {
+function on_error() {
     echo -e "[$fail_format]"
     echo -e "\nPlease check $LOG_FILE for more details.\n"
     exit 1
