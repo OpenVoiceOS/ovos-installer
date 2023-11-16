@@ -18,12 +18,12 @@ jobs:
         run: |
           pip install ansible-playbook-grapher
           sudo apt-get -y install graphviz
-          ansible-galaxy collection install community.general community.docker --force
+          ansible-galaxy collection install -r ansible/requirements.yml --force
 
       - name: Run ansible-lint
         uses: ansible/ansible-lint-action@main
         with:
-          ansiblelint_flags: "ansible/.ansible-lint"
+          ansiblelint_flags: "-c ansible/.ansible-lint -s --profile production"
 
       - name: Retrieve task list from playbook
         env:
@@ -36,7 +36,7 @@ jobs:
         env:
           ANSIBLE_LOCALHOST_WARNING: False
         run: |
-          ansible-playbook-grapher --include-role-tasks iansible/site.yml -o artifacts/graph-site
+          ansible-playbook-grapher --include-role-tasks ansible/site.yml -o artifacts/graph-site
 
       - name: Upload Ansible artifacts
         uses: actions/upload-artifact@v3
