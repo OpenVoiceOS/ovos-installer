@@ -3,3 +3,8 @@ skip_list:
   - yaml[line-length]
   - name[template]
   - schema[meta]
+profile: production
+exclude_paths:
+  - .git/
+  - .github/
+offline: True
