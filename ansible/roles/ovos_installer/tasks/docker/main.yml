@@ -6,13 +6,13 @@
   ansible.builtin.import_tasks: docker/setup-RedHat.yml
   when:
     - ansible_os_family == "RedHat"
-    - not packages["docker-ce"] | length
+    - "'docker-ce' not in ansible_facts.packages"
 
 - name: Include docker/setup-Debian.yml
   ansible.builtin.import_tasks: docker/setup-Debian.yml
   when:
     - ansible_os_family == "Debian"
-    - not packages["docker-ce"] | length
+    - "'docker-ce' not in ansible_facts.packages"
 
 - name: Include docker/common.yml
   ansible.builtin.import_tasks: docker/common.yml
