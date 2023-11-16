@@ -21,10 +21,9 @@ jobs:
           ansible-galaxy collection install -r ansible/requirements.yml --force
 
       - name: Run ansible-lint
+        working-directory: ./ansible
         run: |
           ansible-lint -c ansible/.ansible-lint
-        with:
-          working-directory: ./ansible
 
       - name: Retrieve task list from playbook
         env:
