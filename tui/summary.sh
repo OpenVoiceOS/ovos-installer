@@ -7,5 +7,5 @@ whiptail --yesno --defaultno --no-button "$CANCEL_BUTTON" --yes-button "$OK_BUTT
 
 exit_status=$?
 if [ "$exit_status" -eq 1 ]; then
-  exit 1
+  exit 0
 fi

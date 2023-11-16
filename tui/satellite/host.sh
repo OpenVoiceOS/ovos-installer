@@ -5,5 +5,5 @@ export HIVEMIND_HOST
 
 exit_status=$?
 if [ "$exit_status" -eq 1 ]; then
-  exit 1
+  exit 0
 fi

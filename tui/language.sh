@@ -28,7 +28,7 @@ language=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
 language="${language@L}"
 
 if [ -z "$language" ]; then
-  exit 1
+  exit 0
 fi
 
 # Hash of locales

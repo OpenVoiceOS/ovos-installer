@@ -28,5 +28,5 @@ TUNING=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
 export TUNING
 
 if [ -z "$TUNING" ]; then
-  exit 1
+  exit 0
 fi
