@@ -1,0 +1,57 @@
+name: Ansible/YAML Linting & Artifacts
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Ansible requirements
+        run: |
+          pip install ansible-playbook-grapher
+          sudo apt-get -y install graphviz
+          ansible-galaxy collection install community.general community.docker
+
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint-action@main
+        with:
+          ansiblelint_flags: "ansible/.ansible-lint"
+
+      - name: Retrieve task list from playbook
+        env:
+          ANSIBLE_LOCALHOST_WARNING: False
+        run: |
+          mkdir artifacts
+          ansible-playbook --list-tasks ansible/site.yml > artifacts/list-tasks-site
+
+      - name: Generate graph representing the Ansible playbook
+        env:
+          ANSIBLE_LOCALHOST_WARNING: False
+        run: |
+          ansible-playbook-grapher --include-role-tasks iansible/site.yml -o artifacts/graph-site
+
+      - name: Upload Ansible artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ansible-artifacts
+          path: artifacts
+
+  yaml-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run yaml-lint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          format: standard
+          strict: true
