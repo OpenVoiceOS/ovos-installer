@@ -16,7 +16,7 @@ jobs:
 
       - name: Install Ansible requirements
         run: |
-          pip install ansible-playbook-grapher ansible-lint
+          pip install ansible-playbook-grapher ansible ansible-lint
           sudo apt-get -y install graphviz
           ansible-galaxy collection install -r ansible/requirements.yml --force
 
