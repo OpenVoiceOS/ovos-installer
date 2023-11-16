@@ -1,7 +1,5 @@
 #!/bin/env bash
 
-set -e
-
 # Base installer version on commit hash
 INSTALLER_VERSION="$(git rev-parse --short=8 HEAD)"
 export INSTALLER_VERSION
@@ -15,6 +13,8 @@ source utils/banner.sh
 # shellcheck source=utils/common.sh
 source utils/common.sh
 
+set -eE
+trap on_exit ERR
 delete_log
 detect_user
 detect_existing_instance
@@ -26,6 +26,8 @@ detect_display
 required_packages
 create_python_venv
 install_ansible
+trap "" ERR
+set +eE
 
 # shellcheck source=tui/language.sh
 source tui/language.sh

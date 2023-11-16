@@ -7,6 +7,15 @@
 done_format="\e[32mdone\e[0m"
 fail_format="\e[31mfail\e[0m"
 
+# The function exits the install when trap detects ERR as signal.
+# This is mainly used in setup.sh to handle errors during the functions
+# execution.
+function on_exit() {
+    echo -e "[$fail_format]"
+    echo -e "\nPlease check $LOG_FILE for more details.\n"
+    exit 1
+}
+
 # Delete installer log file if existing
 # This file will be deleted at each execution of the installer.
 function delete_log() {
@@ -177,7 +186,6 @@ function required_packages() {
 # .bashrc in order to provide the PATH and enable the virtualenv when the
 # user logs in.
 function create_python_venv() {
-
     echo -ne "➤ Creating Python virtualenv... "
     python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
 
