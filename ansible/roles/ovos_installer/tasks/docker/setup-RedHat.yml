@@ -1,7 +1,7 @@
 ---
 - name: Detect RHEL based distribution
   ansible.builtin.set_fact:
-    os_distribution: "{{ 'centos' if (ansible_distribution == 'CentOS|Rocky Linux') else 'fedora' }}"
+    os_distribution: "{{ 'centos' if (ansible_distribution == 'CentOS|Rocky') else 'fedora' }}"
 
 - name: Retrieve docker-ce.repo file
   ansible.builtin.get_url:
