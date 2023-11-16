@@ -18,7 +18,7 @@ jobs:
         run: |
           pip install ansible-playbook-grapher
           sudo apt-get -y install graphviz
-          ansible-galaxy collection install community.general community.docker
+          ansible-galaxy collection install community.general community.docker --force
 
       - name: Run ansible-lint
         uses: ansible/ansible-lint-action@main
@@ -53,5 +53,4 @@ jobs:
       - name: Run yaml-lint
         uses: ibiqlik/action-yamllint@v3
         with:
-          format: standard
-          strict: true
+          config_file: ansible/.yamllint
