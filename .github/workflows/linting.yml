@@ -18,7 +18,7 @@ jobs:
         run: |
           pip install ansible-playbook-grapher
           sudo apt-get -y install graphviz
-          sudo ansible-galaxy collection install community.general community.docker --force
+          ansible-galaxy collection install community.general community.docker --force
 
       - name: Run ansible-lint
         uses: ansible/ansible-lint-action@main
