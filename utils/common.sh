@@ -7,7 +7,7 @@
 done_format="\e[32mdone\e[0m"
 fail_format="\e[31mfail\e[0m"
 
-# The function exits the install when trap detects ERR as signal.
+# The function exits the installer when trap detects ERR as signal.
 # This is mainly used in setup.sh to handle errors during the functions
 # execution.
 function on_error() {
@@ -212,6 +212,6 @@ function create_python_venv() {
 function install_ansible() {
     echo -ne "➤ Installing Ansible requirements in Python virtualenv... "
     pip3 install ansible PyYAML==5.3.1 setuptools &>>"$LOG_FILE"
-    ansible-galaxy collection install community.docker community.general &>>"$LOG_FILE"
+    ansible-galaxy collection install -r ansible/requirements.yml &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }
