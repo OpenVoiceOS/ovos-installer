@@ -16,14 +16,15 @@ jobs:
 
       - name: Install Ansible requirements
         run: |
-          pip install ansible-playbook-grapher
+          pip install ansible-playbook-grapher ansible-lint
           sudo apt-get -y install graphviz
           ansible-galaxy collection install -r ansible/requirements.yml --force
 
       - name: Run ansible-lint
-        uses: ansible/ansible-lint-action@main
+        run: |
+          ansible-lint -c ansible/.ansible-lint
         with:
-          ansiblelint_flags: "-c ansible/.ansible-lint -s --profile production"
+          working-directory: ./ansible
 
       - name: Retrieve task list from playbook
         env:
