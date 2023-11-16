@@ -52,10 +52,17 @@
     recurse: true
     state: directory
 
-- name: Remove {{ ovos_installer_user_home }}/.venvs/ovos Python virtualenv
+- name: Remove {{ ovos_installer_user_home }}/.venvs/ovos Python virtualenv and requirements.txt files
   ansible.builtin.file:
     path: "{{ ovos_installer_user_home }}/.venvs/ovos"
     state: absent
+  loop:
+    - "{{ ovos_installer_user_home }}/.venvs/ovos"
+    - /tmp/core-requirements.txt
+    - /tmp/gui-requirements.txt
+    - /tmp/skills-requirements.txt
+    - /tmp/listener-requirements.txt
+    - /tmp/satellite-requirements.txt
   when: ovos_installer_cleaning | bool
   tags:
     - uninstall
