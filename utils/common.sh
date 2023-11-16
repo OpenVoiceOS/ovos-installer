@@ -61,7 +61,7 @@ function detect_sound() {
         if command -v pactl &>>"$LOG_FILE"; then
             SOUND_SERVER="$(pactl info | awk -F":" '$1 ~ /Server Name/ { print $2 }' | sed 's/^ *//')"
         else
-            SOUND_SERVER="Server Name: PulseAudio (on PipeWire)"
+            SOUND_SERVER="PulseAudio (on PipeWire)"
         fi
         export SOUND_SERVER
     # Looking for strictly for pipepire process
