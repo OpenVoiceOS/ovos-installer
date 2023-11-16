@@ -169,11 +169,14 @@ function required_packages() {
     case $DISTRO_NAME in
     debian | ubuntu)
         apt-get update &>>"$LOG_FILE"
-        apt-get install --no-install-recommends -y python3.11 python3.11-dev python3-pip python3-venv whiptail expect jq git &>>"$LOG_FILE"
+        apt-get install --no-install-recommends -y python3.11 python3.11-dev python3-pip python3-venv whiptail expect jq &>>"$LOG_FILE"
         ;;
-    fedora | rocky | centos | rhel)
-        dnf install -y python3.11 python3.11-devel python3-pip python3-virtualenv newt expect jq git &>>"$LOG_FILE"
+    fedora)
+        dnf install -y python3.11 python3.11-devel python3-pip python3-virtualenv newt expect jq &>>"$LOG_FILE"
         ;;
+    rocky | centos | rhel)
+        dnf install -y python3.11 python3.11-devel python3-pip newt expect jq &>>"$LOG_FILE"
+        ;;        
     *)
         echo -e "[$fail_format]"
         echo "Operating systemd not supported."
