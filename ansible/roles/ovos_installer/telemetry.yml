@@ -9,6 +9,9 @@
       Content-Type: application/json
       accept: application/json
   register: _isp_data
+  until: _isp_data.status == 200
+  retries: 5
+  delay: 3
 
 - name: Share telemetry data
   ansible.builtin.uri:
@@ -21,3 +24,7 @@
       Content-Type: application/json
       accept: application/json
       user-agent: "{{ _ovos_installer_telemetry_user_agent }}"
+  register: _push_telemetry_data
+  until: _push_telemetry_data.status == 200
+  retries: 5
+  delay: 3
