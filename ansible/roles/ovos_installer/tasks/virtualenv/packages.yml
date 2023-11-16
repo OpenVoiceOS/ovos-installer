@@ -3,12 +3,16 @@
   ansible.builtin.command:
     cmd: dnf config-manager --enable crb
   changed_when: false
-  when: ansible_distribution != "Fedora"
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution != "Fedora"
 
 - name: Add EPEL repository
   ansible.builtin.dnf:
     name: epel-release
-  when: ansible_distribution != "Fedora"
+  when:
+    - ansible_os_family == "RedHat"
+    - ansible_distribution != "Fedora"  
 
 - name: Handle virtualenv package requirements (ovos-core)
   ansible.builtin.apt:
