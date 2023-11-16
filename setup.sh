@@ -1,7 +1,9 @@
 #!/bin/env bash
 
+set -e
+
 # Base installer version on commit hash
-INSTALLER_VERSION="$(git rev-parse --short=8 HEAD )"
+INSTALLER_VERSION="$(git rev-parse --short=8 HEAD)"
 export INSTALLER_VERSION
 
 # shellcheck source=utils/constants.sh
@@ -13,14 +15,14 @@ source utils/banner.sh
 # shellcheck source=utils/common.sh
 source utils/common.sh
 
+delete_log
 detect_user
 detect_existing_instance
 get_distro
 detect_cpu_instructions
 is_raspeberrypi_soc
 detect_sound
-detect_x
-delete_log
+detect_display
 required_packages
 create_python_venv
 install_ansible

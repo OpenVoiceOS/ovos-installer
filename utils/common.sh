@@ -9,7 +9,7 @@ fail_format="\e[31mfail\e[0m"
 
 # Delete installer log file if existing
 # This file will be deleted at each execution of the installer.
-function delete_log {
+function delete_log() {
     if [ -f "$LOG_FILE" ]; then
         rm -f "$LOG_FILE"
     fi
@@ -18,9 +18,9 @@ function delete_log {
 # Detect information about the user running the installer
 # Installer must be executed with super privileges but either
 # root or sudo can run this script, we need to know whom.
-function detect_user {
+function detect_user() {
     if [ "$EUID" -ne 0 ]; then
-        echo "This script must be run as root or with sudo"
+        echo -e "\n[$fail_format] This script must be run as root or with sudo\n"
         exit 1
     fi
 
@@ -43,7 +43,7 @@ function detect_user {
 # Check for which sound server is running, PulseAudio or PipeWire.
 # If PulseAudio is running, the function checks to see how the PulseAudio
 # service is started, is it via PulseAudio itself or via pipewire-pulse.
-function detect_sound {
+function detect_sound() {
     echo -ne "➤ Detecting sound server... "
     # Looking for any pulse processes
     if pgrep -a -f -c "pulse" &>>"$LOG_FILE"; then
@@ -68,7 +68,7 @@ function detect_sound {
 # and/or ONNXruntime. The exported variable will be used
 # within the Ansible playbook to disable wake word and VAD plugins using
 # these features if AVX or SIMD are not detected.
-function detect_cpu_instructions {
+function detect_cpu_instructions() {
     echo -ne "➤ Detecting AVX/SIMD support... "
     if grep -q -i -E "avx|simd" /proc/cpuinfo; then
         export CPU_IS_CAPABLE="true"
@@ -82,7 +82,7 @@ function detect_cpu_instructions {
 # First Docker and Podman will be checked for ovos-* and/or hivemind-*
 # containers, if nothing was found then the function will check for
 # the Python virtual environement.
-function detect_existing_instance {
+function detect_existing_instance() {
     echo -ne "➤ Checking for existing instance... "
     if [ -n "$(docker ps -a --filter="name=ovos*|hivemind*" -q 2>>"$LOG_FILE")" ]; then
         export EXISTING_INSTANCE="true"
@@ -99,7 +99,7 @@ function detect_existing_instance {
 # Check is a display server is running such as X or Wayland
 # This function only works with systemd as it leveraged loginctl
 # to retrieve the session type.
-function detect_x {
+function detect_display() {
     echo -ne "➤ Detecting display server... "
     export DISPLAY_SERVER="N/A"
     sessions="$(loginctl | grep "$RUN_AS" | awk '{ print $1 }')"
@@ -117,7 +117,7 @@ function detect_x {
 # Parse /sys/firmware/devicetree/base/model file if exist and check
 # for "raspberrypi" string. This will be used by the installer to
 # apply the Ansible tuning tasks.
-function is_raspeberrypi_soc {
+function is_raspeberrypi_soc() {
     echo -ne "➤ Checking for Raspberry Pi board... "
     RASPBERRYPI_MODEL="N/A"
     DT_FILE=/sys/firmware/devicetree/base/model
@@ -133,7 +133,7 @@ function is_raspeberrypi_soc {
 # Retrieve operating system information based on standard /etc/os-release
 # and Python command. This is used to provide information to the user
 # about the platform where the installer is running on.
-function get_distro {
+function get_distro() {
     echo -ne "➤ Retrieving OS information... "
     if [ -f /etc/os-release ]; then
         KERNEL="$(uname -r)"
@@ -155,7 +155,7 @@ function get_distro {
 # Install packages required by the installer based on retrieved information
 # from get_distro() function. If the operating system is not supported then
 # the installer will exit with a message.
-function required_packages {
+function required_packages() {
     echo -ne "➤ Validating installer package requirements... "
     case $DISTRO_NAME in
     debian | ubuntu)
@@ -176,24 +176,23 @@ function required_packages {
 # Create Python virtual environment and add the information to the user's
 # .bashrc in order to provide the PATH and enable the virtualenv when the
 # user logs in.
-function create_python_venv {
-    {
-        echo -ne "➤ Creating Python virtualenv... "
-        python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
+function create_python_venv() {
 
-        # shellcheck source=/dev/null
-        source "$VENV_PATH/bin/activate"
+    echo -ne "➤ Creating Python virtualenv... "
+    python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
 
-        pip3 install --upgrade pip &>>"$LOG_FILE"
-        if ! grep -q "^VIRTUAL_ENV=$VENV_PATH" "$RUN_AS_HOME/.bashrc" &>>"$LOG_FILE"; then
-            echo "VIRTUAL_ENV=$VENV_PATH" >>"$RUN_AS_HOME/.bashrc"
-        fi
-        if ! grep -q "^PATH=" "$RUN_AS_HOME/.bashrc" &>>"$LOG_FILE"; then
-            echo "PATH=$PATH:$VENV_PATH/bin" >>"$RUN_AS_HOME/.bashrc"
-        fi
-        chown "$RUN_AS":"$RUN_AS" "$RUN_AS_HOME"/.venvs
-        echo -e "[$done_format]"
-    }
+    # shellcheck source=/dev/null
+    source "$VENV_PATH/bin/activate"
+
+    pip3 install --upgrade pip &>>"$LOG_FILE"
+    if ! grep -q "^VIRTUAL_ENV=$VENV_PATH" "$RUN_AS_HOME/.bashrc" &>>"$LOG_FILE"; then
+        echo "VIRTUAL_ENV=$VENV_PATH" >>"$RUN_AS_HOME/.bashrc"
+    fi
+    if ! grep -q "^PATH=" "$RUN_AS_HOME/.bashrc" &>>"$LOG_FILE"; then
+        echo "PATH=$PATH:$VENV_PATH/bin" >>"$RUN_AS_HOME/.bashrc"
+    fi
+    chown "$RUN_AS":"$RUN_AS" "$RUN_AS_HOME"/.venvs
+    echo -e "[$done_format]"
 }
 
 # Install Ansible into the new Python virtual environment and install the
@@ -202,7 +201,7 @@ function create_python_venv {
 #
 # NOTE: PyYAML is downgraded because of docker-compose Python library which
 # does not support PyYAML > 5.3.1 version.
-function install_ansible {
+function install_ansible() {
     echo -ne "➤ Installing Ansible requirements in Python virtualenv... "
     pip3 install ansible PyYAML==5.3.1 setuptools &>>"$LOG_FILE"
     ansible-galaxy collection install community.docker community.general &>>"$LOG_FILE"
