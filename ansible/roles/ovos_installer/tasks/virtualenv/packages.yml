@@ -7,7 +7,6 @@
       - libasound2-dev
       - libpulse-dev
       - libportaudio2
-      - flac
       - mpg123
       - music123
       - sox
@@ -26,7 +25,6 @@
       - alsa-lib-devel
       - pulseaudio-libs-devel
       - portaudio
-      - flac123
       - mpg123
       - sox
     state: "{{ ovos_installer_uninstall }}"
