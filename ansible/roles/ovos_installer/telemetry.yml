@@ -17,7 +17,7 @@
   ansible.builtin.uri:
     url: "{{ _ovos_installer_telemetry_url }}"
     method: POST
-    body: "{{ lookup('ansible.builtin.template','telemetry.json.j2') }}"
+    body: "{{ lookup('ansible.builtin.template', 'telemetry.json.j2') }}"
     status_code: 200
     body_format: json
     headers:
