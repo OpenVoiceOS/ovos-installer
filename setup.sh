@@ -18,7 +18,7 @@ trap on_error ERR
 delete_log
 detect_user
 detect_existing_instance
-get_distro
+get_os_information
 detect_cpu_instructions
 is_raspeberrypi_soc
 detect_sound

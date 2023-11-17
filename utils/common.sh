@@ -143,7 +143,7 @@ function is_raspeberrypi_soc() {
 # Retrieve operating system information based on standard /etc/os-release
 # and Python command. This is used to provide information to the user
 # about the platform where the installer is running on.
-function get_distro() {
+function get_os_information() {
     echo -ne "➤ Retrieving OS information... "
     if [ -f /etc/os-release ]; then
         KERNEL="$(uname -r)"
