@@ -1,4 +1,4 @@
-name: Ansible/YAML Linting & Artifacts
+name: Linting
 
 on:
   push:
@@ -53,3 +53,14 @@ jobs:
         uses: ibiqlik/action-yamllint@v3
         with:
           config_file: ansible/.yamllint
+
+  shell-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        env:
+          SHELLCHECK_OPTS: -x
