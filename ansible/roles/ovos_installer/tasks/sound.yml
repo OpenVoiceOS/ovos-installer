@@ -4,6 +4,7 @@
     name:
       - pipewire
       - pipewire-alsa
+      - alsa-utils
 
 - name: Enable lingering for {{ ovos_installer_user }}
   ansible.builtin.file:
