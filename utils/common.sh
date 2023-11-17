@@ -28,7 +28,7 @@ function delete_log() {
 # Installer must be executed with super privileges but either
 # root or sudo can run this script, we need to know whom.
 function detect_user() {
-    if [ "$EUID" -ne 0 ]; then
+    if [ "$USER_ID" -ne 0 ]; then
         echo -e "\n[$fail_format] This script must be run as root or with sudo\n"
         exit 1
     fi
