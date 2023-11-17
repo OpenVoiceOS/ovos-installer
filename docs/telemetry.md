@@ -2,7 +2,7 @@
 
 One of the many ways to improve a software is to know how the users utilize it and to get this information some data must be shared from the user to the developpers.
 
-The installer collects anonymous data and sends it to Open Voice OS servers to help improve Open Voice OS none of them be used for commercial purpose.
+The installer collects anonymous data and sends it to Open Voice OS servers to help improve Open Voice OS, none of them be used for commercial purpose.
 
 **The installer will ask you if you want to share or not the data.**
 
