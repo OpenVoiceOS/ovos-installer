@@ -111,6 +111,7 @@ function detect_existing_instance() {
 function detect_display() {
     echo -ne "➤ Detecting display server... "
     export DISPLAY_SERVER="N/A"
+    local sessions
     sessions="$(loginctl | grep "$RUN_AS" | awk '{ print $1 }')"
     for session in $sessions; do
         session_type="$(loginctl show-session "$session" -p Type --value)"
@@ -129,10 +130,10 @@ function detect_display() {
 function is_raspeberrypi_soc() {
     echo -ne "➤ Checking for Raspberry Pi board... "
     RASPBERRYPI_MODEL="N/A"
-    DT_FILE=/sys/firmware/devicetree/base/model
-    if [ -f "$DT_FILE" ]; then
-        if grep -q -i raspberry "$DT_FILE"; then
-            RASPBERRYPI_MODEL="$(tr -d '\0' <"$DT_FILE")"
+    local dt_file=/sys/firmware/devicetree/base/model
+    if [ -f "$dt_file" ]; then
+        if grep -q -i raspberry "$dt_file"; then
+            RASPBERRYPI_MODEL="$(tr -d '\0' <"$dt_file")"
         fi
     fi
     export RASPBERRYPI_MODEL
