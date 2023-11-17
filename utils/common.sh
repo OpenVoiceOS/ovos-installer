@@ -177,7 +177,7 @@ function required_packages() {
         ;;
     rocky | centos | rhel)
         dnf install -y python3.11 python3.11-devel python3-pip newt expect jq &>>"$LOG_FILE"
-        ;;        
+        ;;
     *)
         echo -e "[$fail_format]"
         echo "Operating systemd not supported."
