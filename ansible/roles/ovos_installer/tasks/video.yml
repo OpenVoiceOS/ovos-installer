@@ -1,0 +1,9 @@
+---
+- name: Add {{ ovos_installer_user }} to video and render groups
+  ansible.builtin.user:
+    name: "{{ ovos_installer_user }}"
+    groups: audio
+    append: true
+  loop:
+    - video
+    - render
