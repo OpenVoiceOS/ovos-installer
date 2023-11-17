@@ -1,0 +1,27 @@
+name: Shell testing with BATS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install BATS requirements
+        run: |
+          mkdir ~/shell-testing
+          cd ~/shell-testing
+          git init
+          git submodule add https://github.com/bats-core/bats-core.git bats
+          git submodule add https://github.com/bats-core/bats-support.git test_helper/bats-support
+          git submodule add https://github.com/bats-core/bats-assert.git test_helper/bats-assert
+          git submodule add https://github.com/bats-core/bats-file.git test_helper/bats-file
+          cd bats
+          bash install.sh
