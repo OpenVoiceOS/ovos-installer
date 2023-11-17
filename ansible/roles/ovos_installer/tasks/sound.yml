@@ -6,6 +6,12 @@
       - pipewire-alsa
       - alsa-utils
 
+- name: Add {{ ovos_installer_user }} to audio group
+  ansible.builtin.user:
+    name: "{{ ovos_installer_user }}"
+    groups: audio
+    append: true
+
 - name: Enable lingering for {{ ovos_installer_user }}
   ansible.builtin.file:
     path: "/var/lib/systemd/linger/{{ ovos_installer_user }}"
