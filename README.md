@@ -14,18 +14,18 @@ Then follow the instructions display on screen.
 
 ## Screenshots
 
-![Screenshot 1](docs/screenshot_1.png)
+![Screenshot 1](docs/images/screenshot_1.png)
 
-![Screenshot 2](docs/screenshot_2.png)
+![Screenshot 2](docs/images/screenshot_2.png)
 
-![Screenshot 3](docs/screenshot_3.png)
+![Screenshot 3](docs/images/screenshot_3.png)
 
-![Screenshot 4](docs/screenshot_4.png)
+![Screenshot 4](docs/images/screenshot_4.png)
 
-![Screenshot 5](docs/screenshot_5.png)
+![Screenshot 5](docs/images/screenshot_5.png)
 
-![Screenshot 6](docs/screenshot_6.png)
+![Screenshot 6](docs/images/screenshot_6.png)
 
-![Screenshot 7](docs/screenshot_7.png)
+![Screenshot 7](docs/images/screenshot_7.png)
 
-![Screenshot 8](docs/screenshot_8.png)
+![Screenshot 8](docs/images/screenshot_8.png)

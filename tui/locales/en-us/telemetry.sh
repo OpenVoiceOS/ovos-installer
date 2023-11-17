@@ -7,7 +7,9 @@ Your telemetry data includes essential insights into how the software functions 
 
 The information gathered helps us identify potential issues, optimize features, and ensure a smoother, more efficient user experience for everyone.
 
-Do you accept to share anonymous telemetry data with us?
+For more information about collected data please visit: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md
+
+Do you accept to share anonymous data with us?
 "
 TITLE="Open Voice OS Installation - Telemetry"
 

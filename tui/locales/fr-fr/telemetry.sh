@@ -7,7 +7,9 @@ Vos données de télémétrie comprennent des informations essentielles sur le f
 
 Les informations recueillies nous aident à identifier les problèmes potentiels, à optimiser les fonctionnalités et à garantir une expérience utilisateur plus fluide et plus efficace pour chacun.
 
-Acceptez-vous de partager avec nous des données de télémétrie anonymes?
+Pour de plus amples informations au sujet des données collectées, veuillez visiter: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md
+
+Acceptez-vous de partager avec nous des données anonymes?
 "
 TITLE="Open Voice OS Installation - Télémétrie"
 
