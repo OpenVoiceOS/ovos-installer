@@ -55,7 +55,7 @@ function detect_user() {
 function detect_sound() {
     echo -ne "➤ Detecting sound server... "
     # Looking for any pulse processes
-    if pgrep -a -f -c "pulse" &>>"$LOG_FILE"; then
+    if [[ "$(pgrep -a -f "pulse" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")" =~ "pulse" ]]; then
         # PULSE_SERVER is required by pactl as it is executed via sudo
         export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
         if command -v pactl &>>"$LOG_FILE"; then
@@ -65,7 +65,7 @@ function detect_sound() {
         fi
         export SOUND_SERVER
     # Looking for strictly for pipepire process
-    elif pgrep -a -f -c "pipewire$" &>>"$LOG_FILE"; then
+    elif [ "$(pgrep -a -f "pipewire$" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")" == "pipewire" ]; then
         export SOUND_SERVER="PipeWire"
     else
         export SOUND_SERVER="N/A"
