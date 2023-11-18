@@ -4,6 +4,8 @@ One of the many ways to improve a software is to know how the users utilize it a
 
 The installer collects anonymous data and sends it to Open Voice OS servers to help improve Open Voice OS, none of them be used for commercial purpose.
 
+The data collection only happens during the installation process, nothing else will be collected once the installation is over.
+
 **The installer will ask you if you want to share or not the data.**
 
 Below is a list of the collected data *(please have a look to the [Ansible tempalte](https://github.com/OpenVoiceOS/ovos-installer/blob/main/ansible/roles/ovos_installer/templates/telemetry.json.j2) used ti publish the data)*.
