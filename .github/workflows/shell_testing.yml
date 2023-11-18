@@ -24,4 +24,4 @@ jobs:
           git submodule add https://github.com/bats-core/bats-assert.git test_helper/bats-assert
           git submodule add https://github.com/bats-core/bats-file.git test_helper/bats-file
           cd bats
-          bash install.sh ~/.local/
+          ./install.sh ~/.local/
