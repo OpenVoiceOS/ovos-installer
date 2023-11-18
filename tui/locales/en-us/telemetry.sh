@@ -9,6 +9,8 @@ The information gathered helps us identify potential issues, optimize features, 
 
 For more information about collected data please visit: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md
 
+This data collection will only happen during the installation process.
+
 Do you accept to share anonymous data with us?
 "
 TITLE="Open Voice OS Installation - Telemetry"
