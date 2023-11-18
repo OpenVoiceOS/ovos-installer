@@ -109,3 +109,4 @@
         - "{{ ovos_installer_user_home }}/.share/mycroft"
         - "{{ ovos_installer_user_home }}/.share/OpenVoiceOS"
         - "{{ ovos_installer_user_home }}/nltk_data"
+        - "{{ ovos_installer_user_home }}/stdout"
