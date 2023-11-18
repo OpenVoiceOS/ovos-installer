@@ -1,4 +1,4 @@
-name: Shell testing with BATS
+name: Testing shell components with BATS
 
 on:
   push:

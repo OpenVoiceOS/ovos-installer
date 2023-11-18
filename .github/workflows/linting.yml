@@ -1,4 +1,4 @@
-name: Linting
+name: Check code style and quality
 
 on:
   push:
