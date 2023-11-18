@@ -1,8 +1,8 @@
 #!/usr/bin/env bats
 
 function setup() {
-    load "$HOME/Developments/SmartGic/shell-test/test_helper/bats-support/load"
-    load "$HOME/Developments/SmartGic/shell-test/test_helper/bats-assert/load"
+    load "$HOME/shell-testing/test_helper/bats-support/load"
+    load "$HOME/shell-testing/test_helper/bats-assert/load"
     load ../../utils/constants.sh
     load ../../utils/common.sh
     LOG_FILE=/tmp/ovos-installer.log
