@@ -20,7 +20,7 @@ function setup() {
 }
 
 @test "function_delete_log_fail" {
-    LOG_FILE=/var/log/ovos-installer.log
+    LOG_FILE=/var/log/ovos-installer.logX
     run delete_log
     assert_failure
 }
