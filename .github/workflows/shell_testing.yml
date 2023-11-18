@@ -25,3 +25,6 @@ jobs:
           git submodule add https://github.com/bats-core/bats-file.git test_helper/bats-file
           cd bats
           ./install.sh ~/.local/
+
+      - name: Run bats
+        run: ~/.local/bin/bats tests/bats/main.bats --verbose-run
