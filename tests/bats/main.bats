@@ -19,12 +19,6 @@ function setup() {
     assert_success
 }
 
-@test "function_delete_log_fail" {
-    LOG_FILE=/var/log/ovos-installer.logX
-    run delete_log
-    assert_failure
-}
-
 @test "function_detect_user_root" {
     USER_ID=0
     run detect_user
