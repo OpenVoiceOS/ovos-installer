@@ -36,8 +36,8 @@ function setup() {
     }
     export -f grep
     detect_cpu_instructions
-    echo $CPU_IS_CAPABLE
-    [ "${CPU_IS_CAPABLE}" == "true" ]
+    echo "$CPU_IS_CAPABLE"
+    [ "$CPU_IS_CAPABLE" == "true" ]
     unset grep
 }
 
@@ -47,7 +47,57 @@ function setup() {
     }
     export -f grep
     detect_cpu_instructions
-    echo $CPU_IS_CAPABLE
-    [ "${CPU_IS_CAPABLE}" == "false" ]
+    echo "$CPU_IS_CAPABLE"
+    [ "$CPU_IS_CAPABLE" == "false" ]
     unset grep
+}
+
+@test "function_detect_existing_instance_docker_exists" {
+    function docker() {
+        echo "adf1dedc2025"
+    }
+    export -f docker
+    detect_existing_instance
+    echo "$EXISTING_INSTANCE"
+    [ "$EXISTING_INSTANCE" == "true" ]
+    unset docker
+}
+
+@test "function_detect_existing_instance_docker_non_exists" {
+    function docker() {
+        return 0
+    }
+    export -f docker
+    detect_existing_instance
+    echo "$EXISTING_INSTANCE"
+    [ "$EXISTING_INSTANCE" == "false" ]
+    unset docker
+}
+
+@test "function_detect_existing_instance_podman_exists" {
+    function docker() {
+        return 0
+    }
+    function podman() {
+        echo "adf1dedc2025"
+    }
+    export -f docker podman
+    detect_existing_instance
+    echo "$EXISTING_INSTANCE"
+    [ "$EXISTING_INSTANCE" == "true" ]
+    unset docker podman
+}
+
+@test "function_detect_existing_instance_podman_non_exists" {
+    function docker() {
+        return 0
+    }
+    function podman() {
+        return 0
+    }
+    export -f docker podman
+    detect_existing_instance
+    echo "$EXISTING_INSTANCE"
+    [ "$EXISTING_INSTANCE" == "false" ]
+    unset docker podman
 }
