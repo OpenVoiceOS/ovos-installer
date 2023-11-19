@@ -44,8 +44,9 @@
     - {"file": "/tmp/satellite-requirements.txt", "state": "{{ true if ovos_installer_profile == 'satellite' else false }}"}
   when: item.state | bool
 
-# We are using the file module with the recurse option because of performances
-- name: Change file ownership of {{ ovos_installer_user_home }}/.venvs/ovos
+# We are not using the file module but the command module because of performances "issue".
+# file module takes about 50 seconds on slow devices to finish.
+- name: Change files ownership of {{ ovos_installer_user_home }}/.venvs/ovos
   ansible.builtin.command:
     cmd: |
       chown -R {{ ovos_installer_user }}:{{ ovos_installer_user }} {{ ovos_installer_user_home }}/.venvs/ovos
