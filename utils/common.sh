@@ -130,10 +130,9 @@ function detect_display() {
 function is_raspeberrypi_soc() {
     echo -ne "➤ Checking for Raspberry Pi board... "
     RASPBERRYPI_MODEL="N/A"
-    local dt_file=/sys/firmware/devicetree/base/model
-    if [ -f "$dt_file" ]; then
-        if grep -q -i raspberry "$dt_file"; then
-            RASPBERRYPI_MODEL="$(tr -d '\0' <"$dt_file")"
+    if [ -f "$DT_FILE" ]; then
+        if grep -q -i raspberry "$DT_FILE"; then
+            RASPBERRYPI_MODEL="$(tr -d '\0' <"$DT_FILE")"
         fi
     fi
     export RASPBERRYPI_MODEL
