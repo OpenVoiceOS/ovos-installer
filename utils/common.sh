@@ -144,19 +144,19 @@ function is_raspeberrypi_soc() {
 # about the platform where the installer is running on.
 function get_os_information() {
     echo -ne "➤ Retrieving OS information... "
-    if [ -f /etc/os-release ]; then
-        KERNEL="$(uname -r)"
-        PYTHON="$(python3 --version)"
+    if [ -f "$OS_RELEASE" ]; then
+        KERNEL="$(uname -r 2>>"$LOG_FILE")"
+        PYTHON="$(python3 --version 2>>"$LOG_FILE")"
 
         # shellcheck source=/etc/os-release
-        source /etc/os-release
+        source "$OS_RELEASE"
 
         export DISTRO_NAME=$ID
         export DISTRO_VERSION=$VERSION
         export KERNEL PYTHON
     else
         # Mostly if the detected system is no a Linux OS
-        uname
+        uname 2>>"$LOG_FILE"
     fi
     echo -e "[$done_format]"
 }

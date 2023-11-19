@@ -1,6 +1,5 @@
 #!/bin/env bash
 
-export USER_ID="$EUID"
 export DT_FILE=/sys/firmware/devicetree/base/model
 export INSTALLER_VENV_NAME="ovos-installer"
 export LOG_FILE=/var/log/ovos-installer.log
@@ -29,3 +28,5 @@ export NEWT_COLORS="
     helpline=white,black
     roottext=lightgrey,black
 "
+export OS_RELEASE=/etc/os-release
+export USER_ID="$EUID"
