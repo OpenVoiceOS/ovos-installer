@@ -44,13 +44,29 @@
     - {"file": "/tmp/satellite-requirements.txt", "state": "{{ true if ovos_installer_profile == 'satellite' else false }}"}
   when: item.state | bool
 
+# We are using the file module with the recurse option because of performances
 - name: Change file ownership of {{ ovos_installer_user_home }}/.venvs/ovos
-  ansible.builtin.file:
-    path: "{{ ovos_installer_user_home }}/.venvs/ovos"
+  ansible.builtin.command:
+    cmd: |
+      chown -R {{ ovos_installer_user }}:{{ ovos_installer_user }} {{ ovos_installer_user_home }}/.venvs/ovos
+  changed_when: false
+
+- name: Add VIRTUAL_ENV variable to .bashrc and update {{ ovos_installer_user }}'s PATH
+  vars:
+    _path: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_installer_user_home }}/.bashrc"
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_user }}"
-    recurse: true
-    state: directory
+    mode: "0644"
+    state: "{{ ovos_installer_uninstall }}"
+  loop:
+    - {"line": "VIRTUAL_ENV={{ _path }}", "regexp": "^VIRTUAL_ENV"}
+    - {"line": "PATH=$PATH:{{ _path }}", "regexp": "^PATH"}
+  tags:
+    - always
 
 - name: Remove {{ ovos_installer_user_home }}/.venvs/ovos Python virtualenv and requirements.txt files
   ansible.builtin.file:
