@@ -10,13 +10,13 @@ function setup() {
 }
 
 @test "function_is_raspeberrypi_soc_detected" {
-    run echo "Raspberry Pi 4 Model B Rev 1.5" > "$DT_FILE"
+    echo "Raspberry Pi 4 Model B Rev 1.5" >"$DT_FILE"
     is_raspeberrypi_soc
     assert_equal "$RASPBERRYPI_MODEL" "Raspberry Pi 4 Model B Rev 1.5"
 }
 
 @test "function_is_raspeberrypi_soc_file_exists_but_not_rpi" {
-    run echo "Fake Board Name 0.0" > "$DT_FILE"
+    echo "Fake Board Name 0.0" >"$DT_FILE"
     is_raspeberrypi_soc
     assert_equal "$RASPBERRYPI_MODEL" "N/A"
 }
@@ -25,4 +25,8 @@ function setup() {
     DT_FILE=/sys/fake/model
     is_raspeberrypi_soc
     assert_equal "$RASPBERRYPI_MODEL" "N/A"
+}
+
+function teardown() {
+    rm -f "$DT_FILE" "$LOG_FILE"
 }

@@ -30,7 +30,6 @@ function setup() {
     unset loginctl
 }
 
-
 @test "function_detect_display_no_display" {
     function loginctl() {
         echo "tty"
@@ -40,4 +39,8 @@ function setup() {
     detect_display
     assert_equal "$DISPLAY_SERVER" "N/A"
     unset loginctl
+}
+
+function teardown() {
+    rm -f "$LOG_FILE"
 }

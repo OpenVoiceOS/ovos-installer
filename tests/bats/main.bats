@@ -56,3 +56,7 @@ function setup() {
     assert_equal "$CPU_IS_CAPABLE" "false"
     unset grep
 }
+
+function teardown() {
+    rm -f "$LOG_FILE"
+}

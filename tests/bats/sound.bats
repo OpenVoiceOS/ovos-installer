@@ -57,3 +57,7 @@ function setup() {
     assert_equal "$SOUND_SERVER" "N/A"
     unset pgrep
 }
+
+function teardown() {
+    rm -f "$LOG_FILE"
+}

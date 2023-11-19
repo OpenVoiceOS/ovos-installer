@@ -81,3 +81,7 @@ function setup() {
     assert_equal "$EXISTING_INSTANCE" "false"
     unset docker podman
 }
+
+function teardown() {
+    rm -f "$LOG_FILE"
+}
