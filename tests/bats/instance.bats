@@ -14,8 +14,7 @@ function setup() {
     }
     export -f docker
     detect_existing_instance
-    echo "$EXISTING_INSTANCE"
-    [ "$EXISTING_INSTANCE" == "true" ]
+    assert_equal "$EXISTING_INSTANCE" "true"
     unset docker
 }
 
@@ -25,8 +24,7 @@ function setup() {
     }
     export -f docker
     detect_existing_instance
-    echo "$EXISTING_INSTANCE"
-    [ "$EXISTING_INSTANCE" == "false" ]
+    assert_equal "$EXISTING_INSTANCE" "false"
     unset docker
 }
 
@@ -39,8 +37,7 @@ function setup() {
     }
     export -f docker podman
     detect_existing_instance
-    echo "$EXISTING_INSTANCE"
-    [ "$EXISTING_INSTANCE" == "true" ]
+    assert_equal "$EXISTING_INSTANCE" "true"
     unset docker podman
 }
 
@@ -53,8 +50,7 @@ function setup() {
     }
     export -f docker podman
     detect_existing_instance
-    echo "$EXISTING_INSTANCE"
-    [ "$EXISTING_INSTANCE" == "false" ]
+    assert_equal "$EXISTING_INSTANCE" "false"
     unset docker podman
 }
 
@@ -69,9 +65,8 @@ function setup() {
     }
     export -f docker podman
     detect_existing_instance
-    echo "$EXISTING_INSTANCE"
-    [ "$EXISTING_INSTANCE" == "true" ]
-    unset docker podman 
+    assert_equal "$EXISTING_INSTANCE" "true"
+    unset docker podman
 }
 
 @test "function_detect_existing_instance_venv_non_exists" {
@@ -83,7 +78,6 @@ function setup() {
     }
     export -f docker podman
     detect_existing_instance
-    echo "$EXISTING_INSTANCE"
-    [ "$EXISTING_INSTANCE" == "false" ]
+    assert_equal "$EXISTING_INSTANCE" "false"
     unset docker podman
 }

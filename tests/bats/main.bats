@@ -8,6 +8,12 @@ function setup() {
     LOG_FILE=/tmp/ovos-installer.log
 }
 
+@test "function_on_error_detected" {
+    run on_error
+    assert_failure
+    assert_output --partial "Please check $LOG_FILE for more details"
+}
+
 @test "function_delete_log_if_exist" {
     run touch "$LOG_FILE"
     run delete_log
@@ -20,13 +26,14 @@ function setup() {
 }
 
 @test "function_detect_user_root" {
-    USER_ID=0
+    USER_ID="0"
     run detect_user
     assert_success
 }
 
 @test "function_detect_user_non_root" {
     run detect_user
+    assert_failure
     assert_output --partial "This script must be run as root or with sudo"
 }
 
@@ -36,8 +43,7 @@ function setup() {
     }
     export -f grep
     detect_cpu_instructions
-    echo "$CPU_IS_CAPABLE"
-    [ "$CPU_IS_CAPABLE" == "true" ]
+    assert_equal "$CPU_IS_CAPABLE" "true"
     unset grep
 }
 
@@ -47,8 +53,6 @@ function setup() {
     }
     export -f grep
     detect_cpu_instructions
-    echo "$CPU_IS_CAPABLE"
-    [ "$CPU_IS_CAPABLE" == "false" ]
+    assert_equal "$CPU_IS_CAPABLE" "false"
     unset grep
 }
-

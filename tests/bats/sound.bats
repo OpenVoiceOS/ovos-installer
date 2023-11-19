@@ -20,8 +20,7 @@ function setup() {
     }
     export -f pgrep command pactl
     detect_sound
-    echo "$SOUND_SERVER"
-    [ "$SOUND_SERVER" == "pulseaudio" ]
+    assert_equal "$SOUND_SERVER" "pulseaudio"
     unset pgrep command pactl
 }
 
@@ -34,8 +33,7 @@ function setup() {
     }
     export -f pgrep command
     detect_sound
-    echo "$SOUND_SERVER"
-    [ "$SOUND_SERVER" == "PulseAudio (on PipeWire)" ]
+    assert_equal "$SOUND_SERVER" "PulseAudio (on PipeWire)"
     unset pgrep command
 }
 
@@ -45,8 +43,7 @@ function setup() {
     }
     export -f pgrep
     detect_sound
-    echo "$SOUND_SERVER"
-    [ "$SOUND_SERVER" == "PipeWire" ]
+    assert_equal "$SOUND_SERVER" "PipeWire"
     unset pgrep
 }
 
@@ -57,7 +54,6 @@ function setup() {
     }
     export -f pgrep
     detect_sound
-    echo "$SOUND_SERVER"
-    [ "$SOUND_SERVER" == "N/A" ]
+    assert_equal "$SOUND_SERVER" "N/A"
     unset pgrep
 }

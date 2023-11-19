@@ -11,24 +11,22 @@ function setup() {
 @test "function_detect_display_x11" {
     function loginctl() {
         echo "x11"
-    }    
+    }
     sessions="3"
     export -f loginctl
     detect_display
-    echo $DISPLAY_SERVER
-    [ "$DISPLAY_SERVER" == "x11" ]
+    assert_equal "$DISPLAY_SERVER" "x11"
     unset loginctl
 }
 
 @test "function_detect_display_wayland" {
     function loginctl() {
         echo "wayland"
-    }    
+    }
     sessions="6"
     export -f loginctl
     detect_display
-    echo $DISPLAY_SERVER
-    [ "$DISPLAY_SERVER" == "wayland" ]
+    assert_equal "$DISPLAY_SERVER" "wayland"
     unset loginctl
 }
 
@@ -36,11 +34,10 @@ function setup() {
 @test "function_detect_display_no_display" {
     function loginctl() {
         echo "tty"
-    }    
+    }
     sessions="11"
     export -f loginctl
     detect_display
-    echo $DISPLAY_SERVER
-    [ "$DISPLAY_SERVER" == "N/A" ]
+    assert_equal "$DISPLAY_SERVER" "N/A"
     unset loginctl
 }
