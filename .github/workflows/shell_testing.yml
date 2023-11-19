@@ -27,4 +27,4 @@ jobs:
           ./install.sh ~/.local/
 
       - name: Run bats
-        run: ~/.local/bin/bats tests/bats/main.bats --verbose-run
+        run: ~/.local/bin/bats tests/bats/* --verbose-run --print-output-on-failure -x
