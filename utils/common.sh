@@ -180,6 +180,7 @@ function required_packages() {
     *)
         echo -e "[$fail_format]"
         echo "Operating systemd not supported."
+        exit 1
         ;;
     esac
     echo -e "[$done_format]"
