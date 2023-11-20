@@ -185,18 +185,20 @@ function required_packages() {
     echo -e "[$done_format]"
 }
 
-# Create Python virtual environment and update pip package.
+# Create the installer Python virtual environment and update pip package.
 # Permissions on the virtual environment are set to match the
 # target user.
 function create_python_venv() {
-    echo -ne "➤ Creating Python virtualenv... "
-    python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
+    echo -ne "➤ Creating installer Python virtualenv... "
+    if [ ! -d "$VENV_PATH" ]; then
+        python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
 
-    # shellcheck source=/dev/null
-    source "$VENV_PATH/bin/activate"
+        # shellcheck source=/dev/null
+        source "$VENV_PATH/bin/activate"
 
-    pip3 install --upgrade pip &>>"$LOG_FILE"
-    chown "$RUN_AS":"$RUN_AS" "$RUN_AS_HOME"/.venvs
+        pip3 install --upgrade pip setuptools &>>"$LOG_FILE"
+        chown "$RUN_AS":"$RUN_AS" "$RUN_AS_HOME"/.venvs
+     fi
     echo -e "[$done_format]"
 }
 
