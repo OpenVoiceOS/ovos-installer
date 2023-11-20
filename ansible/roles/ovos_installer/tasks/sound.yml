@@ -5,8 +5,8 @@
       - pipewire
       - pipewire-alsa
       - alsa-utils
-  when: (not ansible_distribution == 'Ubuntu' and not ansible_distribution_version is version('23.04', '>=')) or
-        (not ansible_distribution == 'Debian' and not ansible_distribution_version is version('12.0', '>='))
+  when: not (ansible_distribution == 'Ubuntu' and ansible_distribution_version is version('23.04', '<=')) or
+        not (ansible_distribution == 'Debian' and ansible_distribution_version is version('12.0', '<='))
 
 - name: Install PulseAudio on older Debian and Ubuntu versions
   ansible.builtin.package:
