@@ -5,16 +5,16 @@
       - pipewire
       - pipewire-alsa
       - alsa-utils
-  when: (not ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('23', operator='ge', strict=True)) or
-        (not ansible_distribution == 'Debian' and ansible_distribution_major_version is version('12', operator='ge', strict=True))
+  when: (not ansible_distribution == 'Ubuntu' and distribution_version is version('23.04', 'ge')) or
+        (not ansible_distribution == 'Debian' and distribution_version is version('12.0', 'ge'))
 
 - name: Install PulseAudio on older Debian and Ubuntu versions
   ansible.builtin.package:
     name:
       - pulseaudio
       - alsa-utils
-  when: (ansible_distribution == 'Ubuntu' and ansible_distribution_major_version is version('23', operator='lt', strict=True)) or
-        (ansible_distribution == 'Debian' and ansible_distribution_major_version is version('12', operator='lt', strict=True))
+  when: (ansible_distribution == 'Ubuntu' and distribution_version is version('23.04', 'lt') or
+        (ansible_distribution == 'Debian' and distribution_version is version('12.0', 'lt'))
 
 - name: Add {{ ovos_installer_user }} to audio group
   ansible.builtin.user:
