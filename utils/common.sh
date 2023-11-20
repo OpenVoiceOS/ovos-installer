@@ -162,7 +162,7 @@ function get_os_information() {
 }
 
 # Install packages required by the installer based on retrieved information
-# from get_distro() function. If the operating system is not supported then
+# from get_os_information() function. If the operating system is not supported then
 # the installer will exit with a message.
 function required_packages() {
     echo -ne "➤ Validating installer package requirements... "
