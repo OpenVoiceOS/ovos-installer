@@ -1,4 +1,6 @@
 ---
 collections:
   - name: community.docker
+    version: 3.4.11
   - name: community.general
+    version: 8.0.2
