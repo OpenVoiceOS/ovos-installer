@@ -29,4 +29,5 @@ export NEWT_COLORS="
     roottext=lightgrey,black
 "
 export OS_RELEASE=/etc/os-release
+export PULSE_SOCKET_WSL2=/mnt/wslg/PulseServer
 export USER_ID="$EUID"

@@ -37,6 +37,18 @@ function setup() {
     unset pgrep command
 }
 
+@test "function_detect_sound_pulseaudio_wsl2" {
+    PULSE_SOCKET_WSL2=/tmp/PulseServer
+    run touch "$PULSE_SOCKET_WSL2"
+    function pactl() {
+        echo "Server Name: pulseaudio"
+    }
+    export -f pactl
+    detect_sound
+    assert_equal "$SOUND_SERVER" "pulseaudio"
+    unset pactl
+}
+
 @test "function_detect_sound_pipewire" {
     function pgrep() {
         echo "pipewire"
@@ -59,5 +71,5 @@ function setup() {
 }
 
 function teardown() {
-    rm -f "$LOG_FILE"
+    rm -f "$LOG_FILE" "$PULSE_SOCKET_WSL2"
 }

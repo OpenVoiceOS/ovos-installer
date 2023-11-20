@@ -63,6 +63,13 @@ function detect_sound() {
             SOUND_SERVER="PulseAudio (on PipeWire)"
         fi
         export SOUND_SERVER
+    elif [ -f "$PULSE_SOCKET_WSL2" ]; then
+        # This condition is only related to WSL2 as PulseServer socket will be under
+        # /mnt/wslg/  directory.
+        if command -v pactl &>>"$LOG_FILE"; then
+            SOUND_SERVER="$(pactl info | awk -F":" '$1 ~ /Server Name/ { print $2 }' | sed 's/^ *//')"\
+            export SOUND_SERVER
+        fi
     # Looking for strictly for pipepire process
     elif [ "$(pgrep -a -f "pipewire$" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")" == "pipewire" ]; then
         export SOUND_SERVER="PipeWire"
