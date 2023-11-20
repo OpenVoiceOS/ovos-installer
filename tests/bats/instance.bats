@@ -55,7 +55,7 @@ function setup() {
 }
 
 @test "function_detect_existing_instance_venv_exists" {
-    RUN_AS_HOME=$USER
+    RUN_AS_HOME=/home/$USER
     run mkdir -p "$RUN_AS_HOME/.venvs/ovos"
     function docker() {
         return 0
