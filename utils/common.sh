@@ -57,10 +57,10 @@ function detect_sound() {
     if [[ "$(pgrep -a -f "pulse" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")" =~ "pulse" ]]; then
         # PULSE_SERVER is required by pactl as it is executed via sudo
         # Detect if a PulseAudio socket exists either Linux or WSL2
-        if [ -e "/run/user/${RUN_AS_UID}/pulse/native" ]; then
+        if [ -S "/run/user/${RUN_AS_UID}/pulse/native" ] && [ ! -S "$PULSE_SOCKET_WSL2" ]; then
             # When running on Linux
             export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
-        elif [ -e "$PULSE_SOCKET_WSL2" ]; then
+        elif [ -S "$PULSE_SOCKET_WSL2" ]; then
             # When running on WSL2
             export PULSE_SERVER="$PULSE_SOCKET_WSL2"
         fi
