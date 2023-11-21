@@ -157,8 +157,8 @@ function get_os_information() {
         # shellcheck source=/etc/os-release
         source "$OS_RELEASE"
 
-        export DISTRO_NAME=$ID
-        export DISTRO_VERSION=$VERSION
+        export DISTRO_NAME="$ID"
+        export DISTRO_VERSION="$VERSION"
         export KERNEL PYTHON
     else
         # Mostly if the detected system is no a Linux OS
