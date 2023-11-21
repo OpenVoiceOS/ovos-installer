@@ -50,9 +50,10 @@
         ovos_installer_display_server == 'N/A'
 
 - name: Define composition
+  vars:
+    _os_type: "{{ 'wls2' if ansible_kernel is search('microsoft') else 'linux' }}"
   ansible.builtin.set_fact:
     _composition_files: "{{ _composition_files | default([]) + [item.file] }}"
-    _os_type: "{{ 'wls2' if ansible_kernel is search('microsoft') else 'linux' }}"
   loop:
     - {"file": "docker-compose.yml", "state": "{{ 'true' if (ovos_installer_profile != 'satellite' and _os_type == 'linux') else 'false' }}"}
     - {"file": "docker-compose.windows.yml", "state": "{{ 'true' (if ovos_installer_profile != 'satellite' and _os_type == 'wsl2') else 'false' }}"}
