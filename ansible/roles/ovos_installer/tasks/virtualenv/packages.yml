@@ -12,11 +12,12 @@
     name: epel-release
   when:
     - ansible_os_family == "RedHat"
-    - ansible_distribution != "Fedora"  
+    - ansible_distribution != "Fedora"
 
 - name: Handle virtualenv package requirements (ovos-core)
   ansible.builtin.apt:
     name:
+      - build-essential
       - swig
       - libfann-dev
       - libasound2-dev
