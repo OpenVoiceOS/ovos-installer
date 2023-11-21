@@ -36,6 +36,7 @@
     - {"file": "{{ _ovos_installer_working_directory }}/ovos-docker/compose/docker-compose.skills.yml", "state": "{{ _remove_x_podman_ovos }}"}
     - {"file": "{{ _ovos_installer_working_directory }}/ovos-docker/compose/docker-compose.hivemind.yml", "state": "{{ _remove_x_podman_ovos }}"}
     - {"file": "{{ _ovos_installer_working_directory }}/ovos-docker/compose/docker-compose.gui.yml", "state": "{{ _remove_x_podman_ovos }}"}
+    - {"file": "{{ _ovos_installer_working_directory }}/ovos-docker/compose/docker-compose.windows.yml", "state": "{{ _remove_x_podman_ovos }}"}
     - {"file": "{{ _ovos_installer_working_directory }}/hivemind-docker/compose/docker-compose.satellite.yml", "state": "{{ _remove_x_podman_satellite }}"}
   when: item.state | bool
 
@@ -51,8 +52,10 @@
 - name: Define composition
   ansible.builtin.set_fact:
     _composition_files: "{{ _composition_files | default([]) + [item.file] }}"
+    _os_type: "{{ 'wls2' if ansible_kernel is search('microsoft') else 'linux' }}"
   loop:
-    - {"file": "docker-compose.yml", "state": "{{ 'true' if ovos_installer_profile != 'satellite' else 'false' }}"}
+    - {"file": "docker-compose.yml", "state": "{{ 'true' if (ovos_installer_profile != 'satellite' and _os_type == 'linux') else 'false' }}"}
+    - {"file": "docker-compose.windows.yml", "state": "{{ 'true' (if ovos_installer_profile != 'satellite' and _os_type == 'wsl2') else 'false' }}"}
     - {"file": "docker-compose.raspberrypi.yml", "state": "{{ 'true' if (ovos_installer_profile != 'satellite' and ovos_installer_raspberrypi != 'N/A') else 'false' }}"}
     - {"file": "docker-compose.skills.yml", "state": "{{ 'false' if (ansible_memtotal_mb < 2048 and ovos_installer_profile != 'satellite' or not ovos_installer_feature_skills | bool) else 'true' }}"}
     - {"file": "docker-compose.hivemind.yml", "state": "{{ 'true' if ovos_installer_profile == 'listener' else 'false' }}"}
@@ -97,6 +100,7 @@
           - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.hivemind.yml"}
           - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.gui.yml"}
           - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.raspberrypi.gui.yml"}
+          - {"src": "ovos-docker", "name": "ovos", "file": "docker-compose.windows.yml"}
           - {"src": "hivemind-docker", "name": "hivemind", "file": "docker-compose.satellite.yml"}
       community.docker.docker_compose:
         project_src: "{{ _ovos_installer_working_directory }}/{{ item.src }}/compose"
