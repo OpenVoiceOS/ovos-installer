@@ -51,7 +51,7 @@
 
 - name: Define composition
   vars:
-    _os_type: "{{ 'wls2' if ansible_kernel is search('microsoft') else 'linux' }}"
+    _os_type: "{{ 'wsl2' if ansible_kernel is search('microsoft') else 'linux' }}"
   ansible.builtin.set_fact:
     _composition_files: "{{ _composition_files | default([]) + [item.file] }}"
   loop:
