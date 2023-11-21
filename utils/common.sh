@@ -63,7 +63,7 @@ function detect_sound() {
             SOUND_SERVER="PulseAudio (on PipeWire)"
         fi
         export SOUND_SERVER
-    elif [ -s "$PULSE_SOCKET_WSL2" ]; then
+    elif [ -e "$PULSE_SOCKET_WSL2" ]; then
         # This condition is only related to WSL2 as PulseServer socket will be
         # created under the /mnt/wslg/ directory.
         if command -v pactl &>>"$LOG_FILE"; then
