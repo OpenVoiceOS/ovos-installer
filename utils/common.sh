@@ -72,7 +72,7 @@ function detect_sound() {
             SOUND_SERVER="$(pactl info | awk -F":" '$1 ~ /Server Name/ { print $2 }' | sed 's/^ *//')"
             export SOUND_SERVER
         else
-            SOUND_SERVER="N/A"
+            export SOUND_SERVER="N/A"
         fi
     # Looking for strictly for pipepire process
     elif [ "$(pgrep -a -f "pipewire$" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")" == "pipewire" ]; then
