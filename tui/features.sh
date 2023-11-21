@@ -7,7 +7,7 @@ export FEATURE_GUI="false"
 export FEATURE_SKILLS="false"
 
 features=("skills" "$SKILL_DESCRIPTION" ON)
-if [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 3"* ]] || [[ "$KERNEL" == *"microsoft"* ]]; then
+if [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 3"* ]] && [[ "$KERNEL" != *"microsoft"* ]]; then
   features+=("gui" "$GUI_DESCRIPTION" OFF)
 fi
 
