@@ -33,5 +33,17 @@
     state: touch
   notify: Start Sound Server
 
+- name: Re-detect sound server
+  ansible.builtin.shell:
+    cmd: |
+      if pgrep -x "pipewire-pulse$" &>/dev/null || pgrep -x "pulseaudio$" &>/dev/null; then
+        echo "pulseaudio"
+      elif pgrep -x "pipewire$" &>/dev/null; then
+        echo "pipewire"
+      fi
+    executable: /bin/bash
+  register: _detect_sound_server
+  changed_when: false
+
 - name: Flush handlers sound
   ansible.builtin.meta: flush_handlers
