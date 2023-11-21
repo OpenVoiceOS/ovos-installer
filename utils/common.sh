@@ -56,7 +56,11 @@ function detect_sound() {
     # Looking for any pulse processes
     if [[ "$(pgrep -a -f "pulse" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")" =~ "pulse" ]]; then
         # PULSE_SERVER is required by pactl as it is executed via sudo
-        export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
+        if [ -f "/run/user/${RUN_AS_UID}/pulse/native" ]; then
+            export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
+        elif [ -f "$PULSE_SOCKET_WSL2" ]; then
+            export PULSE_SERVER="$PULSE_SOCKET_WSL2"
+        fi
         if command -v pactl &>>"$LOG_FILE"; then
             SOUND_SERVER="$(pactl info | awk -F":" '$1 ~ /Server Name/ { print $2 }' | sed 's/^ *//')"
         else
