@@ -58,7 +58,7 @@ function detect_sound() {
         # PULSE_SERVER is required by pactl as it is executed via sudo
         if [ -f "/run/user/${RUN_AS_UID}/pulse/native" ]; then
             export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
-        elif [ -f "$PULSE_SOCKET_WSL2" ]; then
+        elif [ -e "$PULSE_SOCKET_WSL2" ]; then
             export PULSE_SERVER="$PULSE_SOCKET_WSL2"
         fi
         if command -v pactl &>>"$LOG_FILE"; then
