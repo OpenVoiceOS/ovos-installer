@@ -56,7 +56,7 @@
     _composition_files: "{{ _composition_files | default([]) + [item.file] }}"
   loop:
     - {"file": "docker-compose.yml", "state": "{{ 'true' if (ovos_installer_profile != 'satellite' and _os_type == 'linux') else 'false' }}"}
-    - {"file": "docker-compose.windows.yml", "state": "{{ 'true' (if ovos_installer_profile != 'satellite' and _os_type == 'wsl2') else 'false' }}"}
+    - {"file": "docker-compose.windows.yml", "state": "{{ 'true' if (ovos_installer_profile != 'satellite' and _os_type == 'wsl2') else 'false' }}"}
     - {"file": "docker-compose.raspberrypi.yml", "state": "{{ 'true' if (ovos_installer_profile != 'satellite' and ovos_installer_raspberrypi != 'N/A') else 'false' }}"}
     - {"file": "docker-compose.skills.yml", "state": "{{ 'false' if (ansible_memtotal_mb < 2048 and ovos_installer_profile != 'satellite' or not ovos_installer_feature_skills | bool) else 'true' }}"}
     - {"file": "docker-compose.hivemind.yml", "state": "{{ 'true' if ovos_installer_profile == 'listener' else 'false' }}"}
