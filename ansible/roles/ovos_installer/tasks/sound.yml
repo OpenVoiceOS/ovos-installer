@@ -38,7 +38,7 @@
 
 - name: Re-detect sound server
   become: true
-  become_user: "{{ item.user }}"
+  become_user: "{{ ovos_installer_user }}"
   ansible.builtin.shell:
     cmd: |
       if pgrep -x "pipewire-pulse$" &>/dev/null || pgrep -x "pulseaudio$" &>/dev/null; then
