@@ -1,5 +1,8 @@
 #!/bin/env bash
 
+# Override system's locales
+export LANG=C.UTF-8
+
 # Base installer version on commit hash
 INSTALLER_VERSION="$(git rev-parse --short=8 HEAD)"
 export INSTALLER_VERSION
