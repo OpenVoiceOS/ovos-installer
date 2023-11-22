@@ -210,7 +210,7 @@ function required_packages() {
 function create_python_venv() {
     echo -ne "➤ Creating installer Python virtualenv... "
     if [ ! -d "$VENV_PATH" ]; then
-        python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
+        python3.11 -m venv "$VENV_PATH" &>>"$LOG_FILE"
     fi
 
     # shellcheck source=/dev/null
