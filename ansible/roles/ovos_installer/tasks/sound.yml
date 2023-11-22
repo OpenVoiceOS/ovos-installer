@@ -46,7 +46,7 @@
       elif pgrep -x "pipewire$" &>/dev/null; then
         echo "pipewire"
       else
-        if pactl info &>>/den/null; then
+        if pactl info &>>/dev/null; then
           echo "pulseaudio"
         else
           echo "n/a"
