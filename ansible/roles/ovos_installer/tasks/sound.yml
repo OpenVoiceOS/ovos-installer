@@ -33,6 +33,9 @@
     state: touch
   notify: Start Sound Server
 
+- name: Flush handlers sound
+  ansible.builtin.meta: flush_handlers
+
 - name: Re-detect sound server
   ansible.builtin.shell:
     cmd: |
@@ -44,6 +47,3 @@
     executable: /bin/bash
   register: _detect_sound_server
   changed_when: false
-
-- name: Flush handlers sound
-  ansible.builtin.meta: flush_handlers
