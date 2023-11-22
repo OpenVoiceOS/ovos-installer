@@ -30,6 +30,7 @@
     - {"directory": "{{ ovos_installer_user_home }}/.config/mycroft", "status": true}
     - {"directory": "{{ ovos_installer_user_home }}/.config/systemd/user", "status": true}
     - {"directory": "{{ ovos_installer_user_home }}/stdout", "status": true}
+    - {"directory": "{{ ovos_installer_user_home }}/nltk_data", "status": true}
   when:
     - item.status | bool
     - ovos_installer_method == "virtualenv"
