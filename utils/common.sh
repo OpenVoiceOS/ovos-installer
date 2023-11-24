@@ -247,7 +247,7 @@ function download_yq() {
     arch="$(uname -m | sed s/aarch64/arm64/g | sed s/x86_64/amd64/g 2>>"$LOG_FILE")"
     kernel="$(uname -s 2>>"$LOG_FILE")"
 
-    curl -s -L "$YQ_URL/yq_${kernel@L}_$arch" -o "$YQ_BINARY_PATH" &>>"$LOG_FILE"
+    curl -s -f -L "$YQ_URL/yq_${kernel@L}_$arch" -o "$YQ_BINARY_PATH" &>>"$LOG_FILE"
     chmod 0755 "$YQ_BINARY_PATH" &>>"$LOG_FILE"
 }
 
