@@ -267,10 +267,11 @@ function detect_scenario() {
             # Make sure scenario is valid YAML
             download_yq
             "$YQ_BINARY_PATH" "$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME" &>>"$LOG_FILE"
-            export SCENARIO_FOUND="true"
 
             # shellcheck source=scenario.sh
             source utils/scenario.sh
+
+            export SCENARIO_FOUND="true"
 
             if [ -f "$YQ_BINARY_PATH" ]; then
                 rm "$YQ_BINARY_PATH"
