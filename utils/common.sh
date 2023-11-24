@@ -255,27 +255,20 @@ function download_yq() {
 # installation.
 function detect_scenario() {
     echo -ne "➤ Looking for automated scenario... "
-    profile_path="$RUN_AS_HOME/.config/ovos-installer"
+    SCENARIO_PATH="$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME"
     export SCENARIO_FOUND="false"
-    if [ -d "$profile_path" ]; then
-        find_scenario="$(find "$profile_path" \
-            -maxdepth 1 \
-            -type f \
-            -name "$SCENARIO_NAME" \
-            -printf '.' | wc -c)"
-        if [ "$find_scenario" -eq 1 ]; then
-            # Make sure scenario is valid YAML
-            download_yq
-            "$YQ_BINARY_PATH" "$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME" &>>"$LOG_FILE"
+    if [ -f "$SCENARIO_PATH" ]; then
+        # Make sure scenario is valid YAML
+        download_yq
+        "$YQ_BINARY_PATH" "$SCENARIO_PATH" &>>"$LOG_FILE"
 
-            # shellcheck source=scenario.sh
-            source utils/scenario.sh
+        # shellcheck source=scenario.sh
+        source utils/scenario.sh
 
-            export SCENARIO_FOUND="true"
+        export SCENARIO_FOUND="true"
 
-            if [ -f "$YQ_BINARY_PATH" ]; then
-                rm "$YQ_BINARY_PATH"
-            fi
+        if [ -f "$YQ_BINARY_PATH" ]; then
+            rm "$YQ_BINARY_PATH"
         fi
     fi
     echo -e "[$done_format]"
