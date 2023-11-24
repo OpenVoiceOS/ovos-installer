@@ -271,6 +271,10 @@ function detect_scenario() {
 
             # shellcheck source=scenario.sh
             source utils/scenario.sh
+
+            if [ -f "$YQ_BINARY_PATH" ]; then
+                rm "$YQ_BINARY_PATH"
+            fi
         fi
     fi
     echo -e "[$done_format]"
