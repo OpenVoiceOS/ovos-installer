@@ -29,27 +29,35 @@ detect_display
 required_packages
 create_python_venv
 install_ansible
+download_yq
+detect_scenario
 trap "" ERR
 set +eE
 
-# shellcheck source=tui/language.sh
-source tui/language.sh
+if [ "$SCENARIO_FOUND" == "false" ]; then
+  # shellcheck source=tui/language.sh
+  source tui/language.sh
+fi
 
-if [[ "$EXISTING_INSTANCE" == "false" ]]; then
+if [ "$EXISTING_INSTANCE" == "false" ] && [ "$SCENARIO_FOUND" == "false" ]; then
   # shellcheck source=tui/main.sh
   source tui/main.sh
 
   ansible_cleaning="false"
 else
-  # shellcheck source=tui/uninstall.sh
-  source tui/uninstall.sh
+  if [ "$SCENARIO_FOUND" == "false" ]; then
+    # shellcheck source=tui/uninstall.sh
+    source tui/uninstall.sh
+  fi
 
-  if [[ "$CONFIRM_UNINSTALL" == "true" ]]; then
+  if [ "$CONFIRM_UNINSTALL" == "true" ]; then
     ansible_tags=(--tags uninstall)
     ansible_cleaning="true"
   else
-    # shellcheck source=tui/main.sh
-    source tui/main.sh
+    if [ "$SCENARIO_FOUND" == "false" ]; then
+      # shellcheck source=tui/main.sh
+      source tui/main.sh
+    fi
   fi
 fi
 
@@ -84,8 +92,10 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
 # Retrieve the ansible-playbook status code before tee command and check for success or failure
 if [ "${PIPESTATUS[0]}" -eq 0 ]; then
   if [ "$CONFIRM_UNINSTALL" == "false" ] || [ -z "$CONFIRM_UNINSTALL" ]; then
-    # shellcheck source=tui/finish.sh
-    source tui/finish.sh
+    if [ "$SCENARIO_FOUND" == "false" ]; then
+      # shellcheck source=tui/finish.sh
+      source tui/finish.sh
+    fi
   else
     rm -rf "$VENV_PATH"
     echo -e "\n➤ Open Voice OS has been successfully uninstalled."

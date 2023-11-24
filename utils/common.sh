@@ -184,7 +184,7 @@ function get_os_information() {
 # the installer will exit with a message.
 function required_packages() {
     echo -ne "➤ Validating installer package requirements... "
-    case $DISTRO_NAME in
+    case "$DISTRO_NAME" in
     debian | ubuntu)
         apt-get update &>>"$LOG_FILE"
         apt-get install --no-install-recommends -y python3.11 python3.11-dev python3-pip python3.11-venv whiptail expect jq &>>"$LOG_FILE"
@@ -232,4 +232,64 @@ function install_ansible() {
     pip3 install ansible==8.6.1 PyYAML==5.3.1 &>>"$LOG_FILE"
     ansible-galaxy collection install -r ansible/requirements.yml &>>"$LOG_FILE"
     echo -e "[$done_format]"
+}
+
+# Downloads the yq tool from GitHub to parse YAML scenerio file.
+# The binary will be downloaded based on the found operating system and CPU
+# architecture.
+function download_yq() {
+    if [ -f "$YQ_BINARY_PATH" ]; then
+        rm "$YQ_BINARY_PATH"
+    fi
+    # Retrieve kernel information and map it to a more generic CPU architecture
+    local arch
+    local kernel
+    arch="$(uname -m | sed s/aarch64/arm64/g | sed s/x86_64/amd64/g 2>>"$LOG_FILE")"
+    kernel="$(uname -s 2>>"$LOG_FILE")"
+
+    curl -s -L "$YQ_URL/yq_${kernel@L}_$arch" -o "$YQ_BINARY_PATH" &>>"$LOG_FILE"
+    chmod 0755 "$YQ_BINARY_PATH" &>>"$LOG_FILE"
+}
+
+# Search for a scenario.yaml file. This file fill be used for non-interactive
+# installation.
+function detect_scenario() {
+    echo -ne "➤ Looking for automated scenario... "
+    profile_path="$RUN_AS_HOME/.config/ovos-installer"
+    export SCENARIO_FOUND="false"
+    if [ -d "$profile_path" ]; then
+        find_scenario="$(find "$profile_path" \
+            -maxdepth 1 \
+            -type f \
+            -name "$SCENARIO_NAME" \
+            -printf '.' | wc -c)"
+        if [ "$find_scenario" -eq 1 ]; then
+            # Make sure scenario is valid YAML
+            download_yq
+            "$YQ_BINARY_PATH" "$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME" &>>"$LOG_FILE"
+            export SCENARIO_FOUND="true"
+
+            # shellcheck source=scenario.sh
+            source utils/scenario.sh
+        fi
+    fi
+    echo -e "[$done_format]"
+}
+
+# This function checks if element exists within an array.
+# The function takes two arguments:
+#  1. The Bash array
+#  2. The element to find
+# Credit: https://raymii.org/s/snippets/Bash_Bits_Check_If_Item_Is_In_Array.html
+function in_array() {
+    local haystack="${1}[@]"
+    local needle="${2}"
+    for element in "${!haystack}"; do
+        if [ "${element}" == "${needle}" ]; then
+            return 0
+        fi
+    done
+    # Call on_error() function if option is not supported
+    echo "$needle is an unsupported option" &>>"$LOG_FILE"
+    on_error
 }

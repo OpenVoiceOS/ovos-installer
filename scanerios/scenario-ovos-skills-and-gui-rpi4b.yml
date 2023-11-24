@@ -1,0 +1,10 @@
+---
+uninstall: false
+method: containers
+channel: development
+profile: ovos
+features:
+  skills: true
+  gui: true
+rapsberry_pi_tuning: true
+share_telemetry: true

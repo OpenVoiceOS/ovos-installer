@@ -30,4 +30,11 @@ export NEWT_COLORS="
 "
 export OS_RELEASE=/etc/os-release
 export PULSE_SOCKET_WSL2=/mnt/wslg/PulseServer
+declare -a SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry profile method uninstall rapsberry_pi_tuning)
+export SCENARIO_ALLOWED_OPTIONS
+declare -a SCENARIO_ALLOWED_FEATURES=(skills gui)
+export SCENARIO_ALLOWED_FEATURES
+export SCENARIO_NAME="scenario.yaml"
 export USER_ID="$EUID"
+export YQ_BINARY_PATH=/tmp/yq
+export YQ_URL="https://github.com/mikefarah/yq/releases/download/v4.40.3"

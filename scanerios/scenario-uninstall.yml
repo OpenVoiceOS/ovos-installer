@@ -1,0 +1,10 @@
+---
+uninstall: true
+method: containers
+channel: development
+profile: satellite
+features:
+  skills: false
+  gui: false
+rapsberry_pi_tuning: false
+share_telemetry: true
