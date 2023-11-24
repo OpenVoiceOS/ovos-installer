@@ -4,6 +4,8 @@ Description=Open Voice OS - PHAL Admin
 After=network.target ovos-messagebus.service
 
 [Service]
+Environment=XDG_CONFIG_HOME={{ ovos_installer_user_home }}/.config
+Environment=XDG_CACHE_HOME={{ ovos_installer_user_home }}/.cache
 WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
 ExecStart={{ ovos_installer_user_home }}/.venvs/ovos/bin/ovos_PHAL_admin
 ExecReload=/bin/kill -s HUP $MAINPID
