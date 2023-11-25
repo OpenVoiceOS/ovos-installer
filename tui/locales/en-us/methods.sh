@@ -3,7 +3,7 @@
 CONTENT="
 To install Open Voice OS, you have two primary methods:
 
-    - Containers engine such as Docker or Podman
+    - Containers engine such as Docker
     - Setting it up in a Python virtual environment
 
 Containers provide isolation and easy deployment, while a Python virtual environment offers more flexibility and control over the installation.
