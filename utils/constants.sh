@@ -35,6 +35,7 @@ export SCENARIO_ALLOWED_OPTIONS
 declare -a SCENARIO_ALLOWED_FEATURES=(skills gui)
 export SCENARIO_ALLOWED_FEATURES
 export SCENARIO_NAME="scenario.yaml"
+export SCENARIO_PATH=""
 export USER_ID="$EUID"
 export YQ_BINARY_PATH=/tmp/yq
 export YQ_URL="https://github.com/mikefarah/yq/releases/download/v4.40.3"
