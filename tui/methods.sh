@@ -3,8 +3,17 @@
 # shellcheck source=locales/en-us/methods.sh
 source "tui/locales/$LOCALE/methods.sh"
 
+declare -a available_methods
 active_method="containers"
 available_methods=(containers virtualenv)
+
+# Limit available method to match the existing instance
+# If containers instance has been deployed then only containers
+# method will be available.
+if [ "$EXISTING_INSTANCE" == "true" ]; then
+  active_method="$INSTANCE_TYPE"
+  available_methods=("$INSTANCE_TYPE")
+fi
 
 whiptail_args=(
   --title "$TITLE"

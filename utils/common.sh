@@ -113,10 +113,13 @@ function detect_existing_instance() {
     echo -ne "➤ Checking for existing instance... "
     if [ -n "$(docker ps -a --filter="name=ovos*|hivemind*" -q 2>>"$LOG_FILE")" ]; then
         export EXISTING_INSTANCE="true"
+        export INSTANCE_TYPE="containers"
     elif [ -n "$(podman ps -a --filter="name=ovos*|hivemind*" -q 2>>"$LOG_FILE")" ]; then
         export EXISTING_INSTANCE="true"
+        export INSTANCE_TYPE="containers"
     elif [ -d "${RUN_AS_HOME}/.venvs/ovos" ]; then
         export EXISTING_INSTANCE="true"
+        export INSTANCE_TYPE="virtualenv"
     else
         export EXISTING_INSTANCE="false"
     fi
