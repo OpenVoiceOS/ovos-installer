@@ -22,6 +22,7 @@ Here is an example of a scenario to install Open Voice OS within Docker containe
 ```shell
 mkdir -p ~/.config/ovos-installer
 cat <<EOF > ~/.config/ovos-installer/scenario.yaml
+---
 uninstall: false
 method: containers
 channel: development
