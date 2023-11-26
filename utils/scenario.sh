@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 
-# Define absolute path to the scenario
-scenario="$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME"
-
-if [ -f "$scenario" ]; then
+if [ -f "$SCENARIO_PATH" ]; then
     # Variables to store options and features content
     declare -A options
     declare -A features
@@ -12,14 +9,14 @@ if [ -f "$scenario" ]; then
     while IFS="=" read -r key_option value_option; do
         options["$key_option"]="$value_option"
     done < <(
-        "$YQ_BINARY_PATH" 'to_entries | map([.key, .value] | join("=")) | .[]' "$scenario"
+        "$YQ_BINARY_PATH" 'to_entries | map([.key, .value] | join("=")) | .[]' "$SCENARIO_PATH"
     )
 
     # Read all the features
     while IFS="=" read -r key_feature value_feature; do
         features["$key_feature"]="$value_feature"
     done < <(
-        "$YQ_BINARY_PATH" '.features | to_entries | map([.key, .value] | join("=")) | .[]' "$scenario"
+        "$YQ_BINARY_PATH" '.features | to_entries | map([.key, .value] | join("=")) | .[]' "$SCENARIO_PATH"
     )
 
     # Loop over each options and features
