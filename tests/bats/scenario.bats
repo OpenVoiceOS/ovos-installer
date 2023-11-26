@@ -6,6 +6,8 @@ function setup() {
     load ../../utils/constants.sh
     load ../../utils/common.sh
     LOG_FILE=/tmp/ovos-installer.log
+    SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry profile method uninstall rapsberry_pi_tuning)
+    SCENARIO_ALLOWED_FEATURES=(skills gui)
 }
 
 @test "function_download_yq_file_removal" {
@@ -86,6 +88,41 @@ function setup() {
 @test "function_detect_scenario_directory_not_found" {
     detect_scenario
     assert_equal "$SCENARIO_FOUND" "false"
+}
+
+@test "function_detect_scenario_found" {
+    RUN_AS_HOME=/home/$USER
+    run touch $RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
+    detect_scenario
+    assert_equal "$SCENARIO_FOUND" "true"
+}
+
+@test "function_detect_scenario_valid" {
+    RUN_AS_HOME=/home/$USER
+    cat <<EOF >$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
+---
+uninstall: false
+method: containers
+channel: development
+profile: ovos
+features:
+  skills: true
+  gui: true
+rapsberry_pi_tuning: true
+share_telemetry: true
+EOF
+    run detect_scenario
+    assert_success
+}
+
+@test "function_in_array_found" {
+    run in_array SCENARIO_ALLOWED_OPTIONS uninstall
+    assert_success
+}
+
+@test "function_in_array_not_found" {
+    run in_array SCENARIO_ALLOWED_OPTIONS dukenukem
+    assert_failure
 }
 
 function teardown() {
