@@ -1,0 +1,8 @@
+#!/bin/env bash
+
+CANCEL_BUTTON="Annuleren"
+OK_BUTTON="Volgende"
+YES_BUTTON="Ja"
+NO_BUTTON="Geen"
+
+export CANCEL_BUTTON OK_BUTTON YES_BUTTON NO_BUTTON

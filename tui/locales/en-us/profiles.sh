@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 CONTENT="
-In today's quest for the perfect digital companion, we find ourselves at a crossroads with three intriguing choices:
+To create a The versatile system that is suitable for many applications there are three intriguing choices:
 
   - Open Voice OS: The Open Voice OS classic experience
   - HiveMind Satellite: Run only the audio components on a device
