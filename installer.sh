@@ -26,12 +26,6 @@ fi
 git clone --quiet https://github.com/OpenVoiceOS/ovos-installer.git "$installer_path"
 cd "$installer_path" || exit 1
 
-# shellcheck source=utils/argparse.sh
-source utils/argparse.sh
-
-# Parse command line arguments
-handle_options "$@"
-
 # Execute the installer entrypoint
 bash setup.sh "$@"
 
