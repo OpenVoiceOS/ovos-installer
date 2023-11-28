@@ -1,0 +1,62 @@
+---
+- name: Block containers configuration
+  when: ovos_installer_method == "containers"
+  block:
+    - name: Register {{ ovos_installer_user_home }}/ovos/config directory status
+      ansible.builtin.stat:
+        path: "{{ ovos_installer_user_home }}/ovos/config"
+      register: _ovos_config_dir
+
+    - name: Assert that {{ ovos_installer_user_home }}/ovos/config directory is created
+      ansible.builtin.assert:
+        that:
+          - _ovos_config_dir.stat.exists
+          - _ovos_config_dir.stat.isdir
+          - _ovos_config_dir.stat.pw_name == ovos_installer_user
+          - _ovos_config_dir.stat.gr_name == ovos_installer_user
+          - _ovos_config_dir.stat.mode == '0755'
+
+    - name: Register {{ ovos_installer_user_home }}/ovos/config/mycroft.conf file status
+      ansible.builtin.stat:
+        path: "{{ ovos_installer_user_home }}/ovos/config/mycroft.conf"
+      register: _ovos_config_file
+
+    - name: Assert that {{ ovos_installer_user_home }}/ovos/config/mycroft.conf file is created
+      ansible.builtin.assert:
+        that:
+          - _ovos_config_file.stat.exists
+          - not _ovos_config_file.stat.isdir
+          - _ovos_config_file.stat.pw_name == ovos_installer_user
+          - _ovos_config_file.stat.gr_name == ovos_installer_user
+          - _ovos_config_file.stat.mode == '0600'
+
+- name: Block virtualenv configuration
+  when: ovos_installer_method == "virtualenv"
+  block:
+    - name: Register {{ ovos_installer_user_home }}/.config/mycroft directory status
+      ansible.builtin.stat:
+        path: "{{ ovos_installer_user_home }}/.config/mycroft"
+      register: _ovos_config_dir
+
+    - name: Assert that {{ ovos_installer_user_home }}/.config/mycroft directory is created
+      ansible.builtin.assert:
+        that:
+          - _ovos_config_dir.stat.exists
+          - _ovos_config_dir.stat.isdir
+          - _ovos_config_dir.stat.pw_name == ovos_installer_user
+          - _ovos_config_dir.stat.gr_name == ovos_installer_user
+          - _ovos_config_dir.stat.mode == '0755'
+
+    - name: Register {{ ovos_installer_user_home }}/.config/mycroft/mycroft.conf file status
+      ansible.builtin.stat:
+        path: "{{ ovos_installer_user_home }}/.config/mycroft/mycroft.conf"
+      register: _ovos_config_file
+
+    - name: Assert that {{ ovos_installer_user_home }}/.config/mycroft/mycroft.conf file is created
+      ansible.builtin.assert:
+        that:
+          - _ovos_config_file.stat.exists
+          - not _ovos_config_file.stat.isdir
+          - _ovos_config_file.stat.pw_name == ovos_installer_user
+          - _ovos_config_file.stat.gr_name == ovos_installer_user
+          - _ovos_config_file.stat.mode == '0600'

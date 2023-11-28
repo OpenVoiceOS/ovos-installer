@@ -1,0 +1,10 @@
+---
+- name: Testing Open Voice OS Installer
+  hosts: all
+  # connection: local
+  gather_facts: false
+  user: ga-runner
+  become: true
+
+  roles:
+    - role: test_ovos_installer

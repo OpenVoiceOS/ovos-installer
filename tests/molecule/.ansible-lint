@@ -1,0 +1,7 @@
+---
+skip_list:
+  - yaml[line-length]
+  - name[template]
+  - schema[meta]
+profile: production
+strict: true

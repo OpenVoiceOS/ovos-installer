@@ -1,0 +1,11 @@
+---
+driver:
+  name: default
+
+platforms:
+  - name: $HOST
+
+provisioner:
+  env:
+    ANSIBLE_ROLES_PATH: ../../../ansible/roles/
+  name: ansible

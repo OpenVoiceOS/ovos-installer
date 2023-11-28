@@ -1,0 +1,10 @@
+---
+- name: Retrieve system groups
+  ansible.builtin.getent:
+    database: group
+
+- name: Assert user's groups
+  ansible.builtin.assert:
+    that:
+      - "getent_group['audio'] is search('{{ ovos_installer_user }}')"
+      - "getent_group['docker'] is search('{{ ovos_installer_user }}')"

@@ -1,11 +1,11 @@
 ---
 galaxy_info:
   author: Gaëtan trellu (@goldyfruit)
-  description: Open Voice OS installer
+  description: Open Voice OS installer testing role
   company: Smart'Gic
   standalone: true
 
-  issue_tracker_url: https://github.com/openvoiceos/ovos-installer/issues
+  issue_tracker_url: https://github.com/openvoiceis/ovos-installer/issues
 
   license: Apache-2.0
 

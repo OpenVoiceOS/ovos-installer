@@ -1,0 +1,6 @@
+---
+- name: Include groups.yml
+  ansible.builtin.import_tasks: groups.yml
+
+- name: Include configuration.yml
+  ansible.builtin.import_tasks: configuration.yml
