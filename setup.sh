@@ -102,4 +102,5 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
   fi
 else
   echo -e "\n➤ Unable to finalize the process, please check $LOG_FILE for more details."
+  exit 1
 fi
