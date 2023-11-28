@@ -1,5 +1,11 @@
 #!/bin/env bash
 
+# shellcheck source=utils/argparse.sh
+source utils/argparse.sh
+
+# Parse command line arguments
+handle_options "$@"
+
 # Set global variables based on sudo usage
 if [ -n "$SUDO_USER" ]; then
     export RUN_AS="$SUDO_USER"
@@ -27,7 +33,7 @@ git clone --quiet https://github.com/OpenVoiceOS/ovos-installer.git "$installer_
 cd "$installer_path" || exit 1
 
 # Execute the installer entrypoint
-bash ./setup.sh
+bash setup.sh "$@"
 
 # Delete ovos-installer directory once the installer is successfull
 exit_status="$?"

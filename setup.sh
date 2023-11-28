@@ -16,6 +16,18 @@ source utils/banner.sh
 # shellcheck source=utils/common.sh
 source utils/common.sh
 
+# # shellcheck source=utils/argparse.sh
+source utils/argparse.sh
+
+# Parse command line arguments
+handle_options "$@"
+
+# Enable debug/verbosity for Bash and Ansible
+if [ "$DEBUG" == "true" ]; then
+  set -x
+  ansible_debug=(-vvv)
+fi
+
 set -eE
 trap on_error ERR
 detect_user
@@ -87,7 +99,7 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_cleaning=${ansible_cleaning}" \
   -e "ovos_installer_display_server=${DISPLAY_SERVER}" \
   -e "ovos_installer_telemetry=${SHARE_TELEMETRY}" \
-  "${ansible_tags[@]}" "$@" | tee -a "$LOG_FILE"
+  "${ansible_tags[@]}" "${ansible_debug[@]}" | tee -a "$LOG_FILE"
 
 # Retrieve the ansible-playbook status code before tee command and check for success or failure
 if [ "${PIPESTATUS[0]}" -eq 0 ]; then
