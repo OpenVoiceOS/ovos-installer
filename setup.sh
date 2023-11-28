@@ -18,8 +18,8 @@ source utils/common.sh
 
 set -eE
 trap on_error ERR
-delete_log
 detect_user
+delete_log
 detect_existing_instance
 get_os_information
 detect_cpu_instructions
