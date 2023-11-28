@@ -21,6 +21,10 @@ jobs:
           sudo apt-get install curl git -y
           mkdir -p ~/.config/ovos-installer
 
+      - name: Uninstall existing instance
+        run: |
+          sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh -v -u"
+
       - name: Scenario containers, development, ovos, skills
         run: |
           cat <<EOF >~/.config/ovos-installer/scenario.yaml
@@ -35,4 +39,4 @@ jobs:
           rapsberry_pi_tuning: false
           share_telemetry: false
           EOF
-          sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh"
+          sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh -v -u"
