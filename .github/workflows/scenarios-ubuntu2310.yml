@@ -10,7 +10,9 @@ on:
 
 jobs:
   scenario-u2310-amd64-containers-dev-ovos-skills:
-    runs-on: ubuntu2310-t490
+    runs-on:
+      - self-hosted
+      - x64
     steps:
       - name: Installer requirements
         run: |
