@@ -16,8 +16,8 @@ jobs:
     steps:
       - name: Installer requirements
         run: |
-          apt-get update
-          apt-get install curl git -y
+          sudo apt-get update
+          sudo apt-get install curl git -y
           mkdir -p ~/.config/ovos-installer
 
       - name: Scenario containers, development, ovos, skills
