@@ -62,7 +62,7 @@ else
     source tui/uninstall.sh
   fi
 
-  if [ "$CONFIRM_UNINSTALL" == "true" ]; then
+  if [ "$CONFIRM_UNINSTALL" == "true" ] || [ "$CONFIRM_UNINSTALL_CLI" == "true" ]; then
     ansible_tags=(--tags uninstall)
     ansible_cleaning="true"
   else

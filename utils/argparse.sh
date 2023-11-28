@@ -21,7 +21,7 @@ function handle_options() {
             export DEBUG="true"
             ;;
         -u | --uninstall)
-            export CONFIRM_UNINSTALL="true"
+            export CONFIRM_UNINSTALL_CLI="true"
             ;;
         -h | --help)
             usage
