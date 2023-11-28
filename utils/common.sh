@@ -29,7 +29,7 @@ function delete_log() {
 # root or sudo can run this script, we need to know whom.
 function detect_user() {
     if [ "$USER_ID" -ne 0 ]; then
-        echo -e "\n[$fail_format] This script must be run as root or with sudo\n"
+        echo -e "[$fail_format] This script must be run as root or with sudo\n"
         exit 1
     fi
 
