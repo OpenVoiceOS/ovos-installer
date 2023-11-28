@@ -1,11 +1,12 @@
 name: Scenarios on Ubuntu 23.10 x86_64
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "Check code style and quality"
+      - "Testing shell components with BATS"
+    types:
+      - completed
 
 jobs:
   scenario-u2310-amd64-containers-dev-ovos-skills:

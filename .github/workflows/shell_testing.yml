@@ -2,10 +2,8 @@ name: Testing shell components with BATS
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
+    paths:
+      - common/**
 
 jobs:
   shell-testing:
