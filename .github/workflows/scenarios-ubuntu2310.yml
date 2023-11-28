@@ -1,0 +1,34 @@
+name: Scenarios on Ubuntu 23.10 x86_64
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  shell-testing:
+    runs-on: ubuntu2310-t490
+    steps:
+      - name: Installer requirements
+        run: |
+          apt-get update
+          apt-get install curl git -y
+          mkdir -p ~/.config/ovos-installer
+
+      - name: Scenario containers, development, ovos, skills
+        run: |
+          cat <<EOF >~/.config/ovos-installer/scenario.yaml
+          ---
+          uninstall: false
+          method: containers
+          channel: development
+          profile: ovos
+          features:
+            skills: true
+            gui: false
+          rapsberry_pi_tuning: false
+          share_telemetry: false
+          EOF
+          sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh"
