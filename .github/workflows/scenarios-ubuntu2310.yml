@@ -23,7 +23,7 @@ jobs:
 
       - name: Uninstall existing instance
         run: |
-          sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh -d -u"
+          sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh -u"
 
       - name: Scenario containers, development, ovos, skills
         run: |
@@ -39,4 +39,4 @@ jobs:
           rapsberry_pi_tuning: false
           share_telemetry: false
           EOF
-          sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh -d -u"
+          sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh"
