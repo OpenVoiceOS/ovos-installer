@@ -7,6 +7,7 @@ on:
       - "Testing shell components with BATS"
     types:
       - completed
+  workflow_dispatch:
 
 jobs:
   scenario-u2310-amd64-containers-dev-ovos-skills:
