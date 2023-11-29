@@ -3,7 +3,7 @@ name: Testing shell components with BATS
 on:
   push:
     paths:
-      - common/**
+      - utils/**
 
 jobs:
   shell-testing:
