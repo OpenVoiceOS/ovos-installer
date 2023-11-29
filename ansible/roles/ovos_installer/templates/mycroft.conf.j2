@@ -6,7 +6,7 @@
   },
   "play_wav_cmdline": "aplay %1",
   "play_mp3_cmdline": "pw-play %1",
-  "lang": "en-us",
+  "lang": "{{ ovos_installer_locale }}",
 {% if not ovos_installer_cpu_is_capable | bool %}
   "hotwords": {
     "hey_mycroft": {
@@ -37,5 +37,14 @@
 {% endif %}
   "websocket": {
     "max_msg_size": {{ 100 if ovos_installer_feature_gui | bool and ovos_installer_method == "containers" else 25 }}
+  },
+  "tts": {
+    "ovos-tts-plugin-server": {
+      {% if ovos_installer_locale == "en-us" %}
+      "voice": "ryan-high"
+      {% elif ovos_installer_locale == "fr-fr" %}
+      "voice": "siwis-medium"
+      {% endif %}
+    }
   }
 }
