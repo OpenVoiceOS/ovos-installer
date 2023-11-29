@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 if [ -f "$SCENARIO_PATH" ]; then
-    # Variables to store options and features content
+    # Variables to store options, features and hivemind content
     declare -A options
     declare -A features
+    declare -A hivemind
 
     # Read all the options
     while IFS="=" read -r key_option value_option; do
@@ -17,6 +18,12 @@ if [ -f "$SCENARIO_PATH" ]; then
         features["$key_feature"]="$value_feature"
     done < <(
         "$YQ_BINARY_PATH" '.features | to_entries | map([.key, .value] | join("=")) | .[]' "$SCENARIO_PATH"
+    )
+    # Read all the hivemind options
+    while IFS="=" read -r key_hivemind value_hivemind; do
+        hivemind["$key_hivemind"]="$value_hivemind"
+    done < <(
+        "$YQ_BINARY_PATH" '.hivemind | to_entries | map([.key, .value] | join("=")) | .[]' "$SCENARIO_PATH"
     )
 
     # Loop over each options and features
@@ -55,6 +62,27 @@ if [ -f "$SCENARIO_PATH" ]; then
                         gui)
                             [ "${features[$feature]}" == "true" ] && FEATURE_GUI="true" || FEATURE_GUI="false"
                             export FEATURE_GUI
+                            ;;
+                        esac
+                    fi
+                done
+                ;;
+            hivemind)
+                for hivemind_option in "${!hivemind[@]}"; do
+                    # Ensure the hivemind option is supported by the installer
+                    if in_array SCENARIO_ALLOWED_HIVEMIND_OPTIONS "$hivemind_option"; then
+                        case "$hivemind_option" in
+                        host)
+                            [ -n "${hivemind[$hivemind_option]}" ] && export HIVEMIND_HOST="${hivemind[$hivemind_option]}"
+                            ;;
+                        port)
+                            [ -n "${hivemind[$hivemind_option]}" ] && export HIVEMIND_PORT="${hivemind[$hivemind_option]}"
+                            ;;
+                        key)
+                            [ -n "${hivemind[$hivemind_option]}" ] && export SATELLITE_KEY="${hivemind[$hivemind_option]}"
+                            ;;
+                        password)
+                            [ -n "${hivemind[$hivemind_option]}" ] && export SATELLITE_PASSWORD="${hivemind[$hivemind_option]}"
                             ;;
                         esac
                     fi

@@ -3,6 +3,11 @@ uninstall: false
 method: containers
 channel: development
 profile: satellite
+hivemind:
+  host: 192.168.100.50
+  port: 5678
+  key: 95b774f1e85c2ea8e8a80ac2c5d09c6b
+  password: 255203b3c8a7e59de1d60441a55d4f48
 features:
   skills: false
   gui: false
