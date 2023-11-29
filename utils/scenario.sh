@@ -37,8 +37,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 export CHANNEL
                 ;;
             profile)
-                [ "${options[$option]}" == "containers" ] && PROFILE="containers" || PROFILE="virtualenv"
-                export PROFILE
+                [ -n "${options[$option]}" ] && export PROFILE="${options[$option]}"
                 ;;
             rapsberry_pi_tuning)
                 [ "${options[$option]}" == "yes" ] && TUNING="yes" || TUNING="no"
