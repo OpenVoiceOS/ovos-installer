@@ -99,7 +99,7 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_cleaning=${ansible_cleaning}" \
   -e "ovos_installer_display_server=${DISPLAY_SERVER}" \
   -e "ovos_installer_telemetry=${SHARE_TELEMETRY}" \
-  -e "ovos_installer_locale=${LOCALE}" \
+  -e "ovos_installer_locale=${LOCALE:-en-us}" \
   "${ansible_tags[@]}" "${ansible_debug[@]}" | tee -a "$LOG_FILE"
 
 # Retrieve the ansible-playbook status code before tee command and check for success or failure
