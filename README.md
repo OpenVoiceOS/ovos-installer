@@ -16,7 +16,6 @@ Then follow the instructions display on screen.
 
 The installer supports a non-interactive *(automated)* process of installation by using a scenario file, this file must be created under the `~/.config/ovos-installer/` directory and should be named `scenario.yaml`.
 
-
 Here is an example of a scenario to install Open Voice OS within Docker containers on a Raspberry Pi 4B with default skills and GUI support.
 
 ```shell
