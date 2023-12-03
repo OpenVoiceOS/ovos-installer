@@ -38,10 +38,20 @@
   },
   "tts": {
     "ovos-tts-plugin-server": {
-      {% if ovos_installer_locale == "en-us" %}
+      {% if ovos_installer_locale == "de-de" %}
+      "voice": "thorsten-high"
+      {% elif ovos_installer_locale == "en-us" %}
       "voice": "ryan-high"
+      {% elif ovos_installer_locale == "es-es" %}
+      "voice": "davefx-medium"
       {% elif ovos_installer_locale == "fr-fr" %}
       "voice": "siwis-medium"
+      {% elif ovos_installer_locale == "it-it" %}
+      "voice": "riccardo_fasol-x-low"
+      {% elif ovos_installer_locale == "nl-nl" %}
+      "voice": "rdh-medium"
+      {% elif ovos_installer_locale == "pt-pt" %}
+      "voice": "tugao-medium"
       {% endif %}
     }
   }
