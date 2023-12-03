@@ -4,8 +4,8 @@ CONTENT="
 Per creare un sistema versatile e collegato in rete, adatto a molte applicazioni, esistono tre affascinanti opzioni:
 
   - Open Voice OS Master: la classica esperienza Open Voice OS
-  - Open Voice OS Satellite: Installa solo i componenti audio OVOS che si collegano a un master tramite HiveMind.
-  - HiveMind Listener: Collegare al sistema i propri componenti tramite HiveMind
+  - HiveMind Satellite: Apri i componenti audio Voice OS collegati a HiveMind Listener
+  - HiveMind Listener: Hub per HiveMind Satellite, bot, ecc. a cui connettersi
 
 Ognuno di questi profili offre caratteristiche e funzionalità uniche che possono migliorare significativamente la vostra esperienza digitale.
 

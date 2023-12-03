@@ -1,11 +1,11 @@
 #!/bin/env bash
 
 CONTENT="
-To create a The versatile system that is suitable for many applications there are three intriguing choices:
+To create a The versatile system that is suitable for many applications, there are three intriguing choices:
 
   - Open Voice OS Master: The Open Voice OS classic experience
-  - Open Voice OS Satellite: Run only the Open Voice OS audio components connecting per HiveMind to a Master
-  - HiveMind Listener: Connect any custom component to the system via HiveMind  
+  - HiveMind Satellite: Open Voice OS audio components connected to HiveMind Listener
+  - HiveMind Listener: Hub for HiveMind Satellite, bots, etc.. to connect to
 
 Each of these profiles offers unique features and capabilities that could greatly enhance your digital experience.
 
