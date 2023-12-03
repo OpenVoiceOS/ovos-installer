@@ -14,6 +14,7 @@
       - libkf5plasma-dev
       - libqt5webview5-dev
       - qtmultimedia5-dev
+      - kdeconnect
       - kirigami2-dev
       - libkf5dbusaddons-dev
       - libqt5webview5
@@ -21,6 +22,9 @@
       - qml-module-qtwebengine
       - qml-module-qtmultimedia
       - qml-module-qtquick-shapes
+      - qml-module-termwidget
+      - qmltermwidget-common
+      - qtvirtualkeyboard-plugin
       - libqt5multimedia5
       - libqt5virtualkeyboard5
   when: ansible_os_family == "Debian"
@@ -30,6 +34,7 @@
     name:
       - cmake
       - gettext
+      - qmltermwidget
       - qt5-qtwebsockets-devel
       - qt5-qtdeclarative-devel
       - qt5-qtmultimedia-devel
@@ -37,6 +42,8 @@
       - qt5-qtwebengine
       - qt5-qtmultimedia
       - qt5-qtvirtualkeyboard
+      - qtermwidget
+      - kde-connect
       - kf5-kio-devel
       - kf5-knotifications-devel
       - kf5-ki18n-devel
