@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  scenario-u2310-amd64-containers-dev-ovos-skills:
+  scenario-u2310-amd64-containers-dev-ovos-skills-gui:
     runs-on:
       - self-hosted
       - ubuntu-latest-amd64
@@ -35,7 +35,7 @@ jobs:
           profile: ovos
           features:
             skills: true
-            gui: false
+            gui: true
           rapsberry_pi_tuning: false
           share_telemetry: false
           EOF
