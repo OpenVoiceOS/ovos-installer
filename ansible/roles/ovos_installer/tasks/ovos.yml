@@ -45,3 +45,4 @@
     group: "{{ ovos_installer_user }}"
     mode: '0600'
     backup: true
+  register: _configuration
