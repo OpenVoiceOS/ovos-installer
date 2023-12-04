@@ -12,7 +12,7 @@
   ansible.builtin.meta: flush_handlers
 
 - name: Enable and start systemd wlan0-power unit
-  ansible.builtin.systemd:
+  ansible.builtin.systemd_service:
     name: wlan0-power.service
     enabled: true
     force: true

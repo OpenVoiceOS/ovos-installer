@@ -12,7 +12,7 @@
     - ovos_installer_display_server != 'N/A'
 
 - name: Start docker service
-  ansible.builtin.systemd:
+  ansible.builtin.systemd_service:
     name: docker
     enabled: true
     state: started

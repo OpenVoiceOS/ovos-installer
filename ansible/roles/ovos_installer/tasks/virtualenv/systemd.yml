@@ -30,7 +30,7 @@
 - name: Enable and start OVOS and/or HiveMind systemd units
   become: true
   become_user: "{{ item.user }}"
-  ansible.builtin.systemd:
+  ansible.builtin.systemd_service:
     name: "{{ item.unit }}"
     enabled: true
     force: true
@@ -57,7 +57,7 @@
     - name: Disable and stop OVOS and/or HiveMind systemd units
       become: true
       become_user: "{{ item.user }}"
-      ansible.builtin.systemd:
+      ansible.builtin.systemd_service:
         name: "{{ item.unit }}"
         enabled: false
         state: stopped
