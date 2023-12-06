@@ -18,7 +18,7 @@
   ansible.builtin.pip:
     name: tflite_runtime
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    virtualenv_command: "{{ discovered_interpreter_python }} -m venv"
+    virtualenv_command: "{{ ansible_python.executable }} -m venv"
     extra_args: "-f 'https://whl.smartgic.io/'"
   when: ovos_installer_cpu_is_capable | bool
 
@@ -26,7 +26,7 @@
   ansible.builtin.pip:
     name: wheel
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    virtualenv_command: "{{ discovered_interpreter_python }} -m venv"
+    virtualenv_command: "{{ ansible_python.executable }} -m venv"
   when: not ovos_installer_cpu_is_capable | bool
 
 - name: Install Open Voice OS in Python venv
