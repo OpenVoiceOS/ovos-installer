@@ -191,7 +191,7 @@ function required_packages() {
     PYTHON_VERSION="3.11"
     case "$DISTRO_NAME" in
     debian | ubuntu)
-        [ "$DISTRO_VERSION_ID" -lt 12 ] && PYTHON_VERSION="3"
+        [ "$DISTRO_VERSION_ID" == "11" ] && PYTHON_VERSION="3"
         export PYTHON_VERSION
         apt-get update &>>"$LOG_FILE"
         apt-get install --no-install-recommends -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" python3-pip "python${PYTHON_VERSION}-venv" whiptail expect jq &>>"$LOG_FILE"
