@@ -298,3 +298,16 @@ function in_array() {
     echo "$needle is an unsupported option" &>>"$LOG_FILE"
     on_error
 }
+
+# This function validates basic requirements for Windows WSL2 such as systemd
+# handles the boot process, etc...
+function wsl2_requirements() {
+    if [[ "$KERNEL" == *"microsoft"* ]]; then
+        echo -ne "➤ Validating WSL2 requirements... "
+        if ! grep -q "systemd=true" "$WSL_FILE" &>>"$LOG_FILE"; then
+            echo "systemd=boot must be added to $WSL_FILE" &>>"$LOG_FILE"
+            return 1
+        fi
+        echo -e "[$done_format]"
+    fi
+}

@@ -39,5 +39,6 @@ export SCENARIO_ALLOWED_HIVEMIND_OPTIONS
 export SCENARIO_NAME="scenario.yaml"
 export SCENARIO_PATH=""
 export USER_ID="$EUID"
+export WSL_FILE=/etc/wsl.conf
 export YQ_BINARY_PATH=/tmp/yq
 export YQ_URL="https://github.com/mikefarah/yq/releases/download/v4.40.3"
