@@ -10,4 +10,4 @@ ExecStop=/sbin/iw wlan0 set power_save on
 RemainAfterExit=yes
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
