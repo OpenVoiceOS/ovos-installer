@@ -15,6 +15,18 @@
   tags:
     - always
 
+- name: Check for existing CPU governor configuration
+  ansible.builtin.stat:
+    path: /etc/default/cpu_governor
+  register: _cpu_governor_config
+
+- name: Set existing CPU governor to "performance"
+  ansible.builtin.lineinfile:
+    path: /etc/default/cpu_governor
+    regexp: '^CPU_DEFAULT_GOVERNOR='
+    line: 'CPU_DEFAULT_GOVERNOR="performance"'
+  when: _cpu_governor_config.stat.exists
+
 - name: Copy cpu-governor systemd unit file
   ansible.builtin.copy:
     src: tuning/cpu-governor.service
