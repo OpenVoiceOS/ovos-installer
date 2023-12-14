@@ -47,7 +47,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 [ -n "${options[$option]}" ] && export PROFILE="${options[$option]}"
                 ;;
             rapsberry_pi_tuning)
-                [ "${options[$option]}" == "yes" ] && TUNING="yes" || TUNING="no"
+                [ "${options[$option]}" == "true" ] && TUNING="yes" || TUNING="no"
                 export TUNING
                 ;;
             features)
