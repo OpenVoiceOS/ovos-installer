@@ -2,6 +2,7 @@
 
 export DT_FILE=/sys/firmware/devicetree/base/model
 export INSTALLER_VENV_NAME="ovos-installer"
+export I2C_DEVICE=/dev/i2c-1
 export LOG_FILE=/var/log/ovos-installer.log
 export NEWT_COLORS="
     root=white,black
