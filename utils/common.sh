@@ -164,7 +164,6 @@ function is_raspeberrypi_soc() {
                 echo -e "       sudo reboot\n"
                 exit 1
             fi
-            echo -e "[$done_format]"
         fi
     fi
     export RASPBERRYPI_MODEL
