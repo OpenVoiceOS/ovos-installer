@@ -20,7 +20,7 @@
 - name: Install Python docker and docker-compose libraries
   ansible.builtin.pip:
     name:
-      - docker
+      - docker==6.1.3
       - docker-compose
     virtualenv: "{{ ovos_installer_venv }}"
   tags:
