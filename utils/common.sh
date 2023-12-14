@@ -155,7 +155,7 @@ function is_raspeberrypi_soc() {
     if [ -f "$DT_FILE" ]; then
         if grep -q -i raspberry "$DT_FILE"; then
             RASPBERRYPI_MODEL="$(tr -d '\0' <"$DT_FILE")"
-            if [ ! -f /dev/i2c-1 ]; then
+            if [ ! -e "$I2C_DEVICE" ]; then
                 echo -e "[$fail_format]"
                 echo -e "\n➤ I2C and I2S must be enabled. Follow the steps below:\n" | tee -a "$LOG_FILE"
                 echo -e "       echo 'dtparam=i2c_arm=on' | sudo tee -a /boot/config.txt"
