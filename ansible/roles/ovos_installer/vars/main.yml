@@ -4,3 +4,4 @@ _ovos_installer_debian_docker_gpg: /usr/share/keyrings/docker
 _ovos_installer_project_name: "{{ 'hivemind-docker' if ovos_installer_profile == 'satellite' else 'ovos-docker' }}"
 _ovos_installer_telemetry_url: https://telemetry.smartgic.io/ovos-installer/metrics/
 _ovos_installer_telemetry_user_agent: "OVOS-Installer/1.0 (Ansible)"
+_ovos_installer_cpu_governor_config: /etc/default/cpu_governor
