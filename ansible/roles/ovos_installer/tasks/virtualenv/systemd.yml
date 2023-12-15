@@ -56,7 +56,7 @@
   tags:
     - uninstall
   block:
-    - name: Disable and stop OVOS and/or HiveMind systemd units
+    - name: Stop and disable OVOS and/or HiveMind systemd units
       become: true
       become_user: "{{ item.user }}"
       ansible.builtin.systemd_service:
