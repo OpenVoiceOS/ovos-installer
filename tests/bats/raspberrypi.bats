@@ -8,11 +8,12 @@ function setup() {
     LOG_FILE=/tmp/ovos-installer.log
     DT_FILE=/tmp/model
     I2C_DEVICE=/tmp/i2c-1
+    SPI_DEVICE=/tmp/spidev0.0
 }
 
 @test "function_is_raspeberrypi_soc_detected" {
     echo "Raspberry Pi 4 Model B Rev 1.5" >"$DT_FILE"
-    run touch "$I2C_DEVICE"
+    run touch "$I2C_DEVICE" "$SPI_DEVICE"
     is_raspeberrypi_soc
     assert_equal "$RASPBERRYPI_MODEL" "Raspberry Pi 4 Model B Rev 1.5"
 }
@@ -31,12 +32,25 @@ function setup() {
 
 @test "function_is_raspeberrypi_i2c_detected" {
     echo "Raspberry Pi 4 Model B Rev 1.5" >"$DT_FILE"
-    run touch "$I2C_DEVICE"
+    run touch "$I2C_DEVICE" "$SPI_DEVICE"
     run is_raspeberrypi_soc
     assert_success
 }
 
 @test "function_is_raspeberrypi_i2c_not_detected" {
+    echo "Raspberry Pi 4 Model B Rev 1.5" >"$DT_FILE"
+    run is_raspeberrypi_soc
+    assert_failure
+}
+
+@test "function_is_raspeberrypi_spi_detected" {
+    echo "Raspberry Pi 4 Model B Rev 1.5" >"$DT_FILE"
+    run touch "$I2C_DEVICE" "$SPI_DEVICE"
+    run is_raspeberrypi_soc
+    assert_success
+}
+
+@test "function_is_raspeberrypi_spi_not_detected" {
     echo "Raspberry Pi 4 Model B Rev 1.5" >"$DT_FILE"
     run is_raspeberrypi_soc
     assert_failure
