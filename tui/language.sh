@@ -23,9 +23,9 @@ for language in "${available_languages[@]}"; do
   fi
 done
 
-# Retrieve language and make it lower case with "@L"
+# Retrieve language and make it lower case with ",,"
 language=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
-language="${language@L}"
+language="${language,,}"
 
 if [ -z "$language" ]; then
   exit 0
