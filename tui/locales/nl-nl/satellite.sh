@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 # Global message
-content="Door verbinding te maken met de HiveMind Listener krijgen HiveMind-satellieten toegang tot een netwerk van gedeelde kennis en vaardigheden dat een uniforme en efficiënte taalondersteuning en -automatisering mogelijk maakt."
+content="Door verbinding te maken met de HiveMind Listener krijgen HiveMind-satellieten toegang tot een netwerk van gedeelde kennis en skills die een uniforme en efficiënte taalondersteuning en -automatisering mogelijk maken."
 
 # Host
 CONTENT_HOST="
@@ -14,26 +14,26 @@ Voer de host van de HiveMind listener in (DNS of IP-adres):
 CONTENT_PORT="
 $content
 
-Gib den HiveMind listener port ein:
+Voer de HiveMind listener poort in:
 "
 
 # Key
 CONTENT_KEY="
 $content
 
-Voer de luisterpoort van HiveMind in:
+Voer de HiveMind listener sleutel in, behorende bij de satelliet:
 "
 
 # Password
 CONTENT_PASSWORD="
 $content
 
-Voer het HiveMind luisterwachtwoord van de satelliet in:
+Voer het HiveMind listener wachtwoord in, behorende bij de satelliet:
 "
 
-TITLE_HOST="Open Voice OS Installation - Satelliet 1/4"
-TITLE_PORT="Open Voice OS Installation - Satelliet 2/4"
-TITLE_KEY="Open Voice OS Installation - Satelliet 3/4"
-TITLE_PASSWORD="Open Voice OS Installation - Satelliet 4/4"
+TITLE_HOST="Open Voice OS Installatie - Satelliet 1/4"
+TITLE_PORT="Open Voice OS Installatie - Satelliet 2/4"
+TITLE_KEY="Open Voice OS Installatie - Satelliet 3/4"
+TITLE_PASSWORD="Open Voice OS Installatie - Satelliet 4/4"
 
 export CONTENT_HOST CONTENT_PORT CONTENT_KEY CONTENT_PASSWORD TITLE_HOST TITLE_PORT TITLE_KEY TITLE_PASSWORD
