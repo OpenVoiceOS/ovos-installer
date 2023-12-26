@@ -3,7 +3,7 @@
 CONTENT="
 Door telemetriegegevens met ons te delen, speelt u een belangrijke rol in het leveren van waardevolle, anonieme informatie waarmee we de gebruikerservaring beter kunnen begrijpen en de prestaties van onze software kunnen verbeteren.
 
-Uw telemetriegegevens geven ons belangrijke inzichten in hoe de software in de praktijk werkt. Deze gegevens worden anoniem verzameld om je privacy en vertrouwelijkheid te beschermen.
+Je telemetriegegevens geven ons belangrijke inzichten in hoe de software in de praktijk werkt. Deze gegevens worden anoniem verzameld om je privacy en vertrouwelijkheid te beschermen.
 
 De verzamelde informatie helpt ons om mogelijke problemen te identificeren, functies te optimaliseren en te zorgen voor een soepelere, efficiëntere gebruikerservaring voor iedereen.
 
