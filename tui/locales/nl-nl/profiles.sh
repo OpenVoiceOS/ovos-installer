@@ -13,6 +13,6 @@ De enige vraag is welk profiel het beste past bij jouw behoeften en voorkeuren.
 
 Selecteer een profiel:
 "
-TITLE="Open Voice OS Installation - Profiel"
+TITLE="Open Voice OS Installatie - Profiel"
 
 export CONTENT TITLE
