@@ -7,6 +7,6 @@ Dit tuningproces heeft als doel de prestaties te verbeteren, het gebruik van bro
 
 'Tuning' inschakelen voor Raspberry Pi? (aanbevolen)
 "
-TITLE="Open Voice OS Installation - Tuning"
+TITLE="Open Voice OS Installatie - Tuning"
 
 export CONTENT TITLE
