@@ -1,9 +1,9 @@
 #!/bin/env bash
 
 CONTENT="
-Er is een bestaande instantie van Open Voice OS gedetecteerd.
+Er is een bestaande installatie van Open Voice OS gedetecteerd.
 
-Aangezien Docker en PipeWire door het systeem of handmatig kunnen zijn geïnstalleerd, verwijdert het installatieprogramma de volgende pakketten niet:
+Aangezien Docker en PipeWire door het systeem (of handmatig) kunnen zijn geïnstalleerd, verwijdert het installatieprogramma de volgende pakketten niet:
 
   - docker-ce
   - docker-compose-plugin
@@ -14,6 +14,6 @@ Aangezien Docker en PipeWire door het systeem of handmatig kunnen zijn geïnstal
 
 Wil je Open Voice OS verwijderen?
 "
-TITLE="Open Voice OS Installation - Deïnstallatie"
+TITLE="Open Voice OS Installatie - Deïnstallatie"
 
 export CONTENT TITLE
