@@ -14,6 +14,6 @@ De beslissingen die zijn genomen tijdens het installatieproces van Open Voice OS
 
 Zijn de instellingen correct?
 "
-TITLE="Open Voice OS Installation - Samenvatting"
+TITLE="Open Voice OS Installatie - Samenvatting"
 
 export CONTENT TITLE
