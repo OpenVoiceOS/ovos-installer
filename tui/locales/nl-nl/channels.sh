@@ -12,6 +12,6 @@ De ontwikkelversie van Open Voice OS is bedoeld voor ontwikkelaars en enthousias
 
 Kies een versie:
 "
-TITLE="Open Voice OS Installation - Versies"
+TITLE="Open Voice OS Installatie - Versies"
 
 export CONTENT TITLE
