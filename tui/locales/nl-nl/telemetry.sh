@@ -11,8 +11,8 @@ Meer informatie over de verzamelde gegevens vind je op: https://github.com/OpenV
 
 Deze gegevensverzameling vindt alleen plaats tijdens het installatieproces.
 
-Gaat u ermee akkoord anonieme gegevens met ons te delen?
+Ga je ermee akkoord anonieme gegevens met ons te delen?
 "
-TITLE="Open Voice OS Installation - Telemetrie"
+TITLE="Open Voice OS Installatie - Telemetrie"
 
 export CONTENT TITLE
