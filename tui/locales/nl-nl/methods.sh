@@ -12,6 +12,6 @@ Als de containermethode is geselecteerd, wordt Docker automatisch geïnstalleerd
 
 Selecteer een installatieomgeving:
 "
-TITLE="Open Voice OS Installation - Installatieomgeving"
+TITLE="Open Voice OS Installatie - Installatieomgeving"
 
 export CONTENT TITLE

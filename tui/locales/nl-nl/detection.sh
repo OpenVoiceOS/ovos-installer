@@ -9,9 +9,9 @@ Automatisch herkende systeemeigenschappen:
     - Python:   $(echo "$PYTHON" | awk '{ print $NF }')
     - AVX/SIMD: $CPU_IS_CAPABLE
     - Venv:     $VENV_PATH
-    - Sound:    $SOUND_SERVER
-    - Display:  ${DISPLAY_SERVER^}
+    - Geluid:    $SOUND_SERVER
+    - Beeldscherm:  ${DISPLAY_SERVER^}
 "
-TITLE="Open Voice OS Installation - Systeemeigenschappen"
+TITLE="Open Voice OS Installatie - Systeemeigenschappen"
 
 export CONTENT TITLE

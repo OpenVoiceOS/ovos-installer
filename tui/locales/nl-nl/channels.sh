@@ -3,7 +3,7 @@
 CONTENT="
 Er zijn twee verschillende versies voor Open Voice OS:
 
-  - Stable (aanbevolen, maar nog niet beschikbaar)
+  - Stabiel (aanbevolen, maar nog niet beschikbaar)
   - Ontwikkelaar
 
 De stabiele versie van Open Voice OS is een goed geteste en betrouwbare versie voor dagelijks gebruik.
@@ -12,6 +12,6 @@ De ontwikkelversie van Open Voice OS is bedoeld voor ontwikkelaars en enthousias
 
 Kies een versie:
 "
-TITLE="Open Voice OS Installation - Versies"
+TITLE="Open Voice OS Installatie - Versies"
 
 export CONTENT TITLE
