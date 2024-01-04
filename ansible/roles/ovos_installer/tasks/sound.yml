@@ -28,6 +28,16 @@
     groups: audio
     append: true
 
+- name: Add {{ ovos_installer_user }} to pipewire group
+  ansible.builtin.user:
+    name: "{{ ovos_installer_user }}"
+    groups:
+      - pipewire
+      - rtkit
+    append: true
+  when: not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
+        ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
+
 - name: Enable lingering for {{ ovos_installer_user }}
   ansible.builtin.file:
     path: "/var/lib/systemd/linger/{{ ovos_installer_user }}"
