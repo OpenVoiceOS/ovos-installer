@@ -1,9 +1,11 @@
 #jinja2: lstrip_blocks: True
 {
   "log_level": "INFO",
+{% if ovos_installer_method == "containers" %}
   "logs": {
     "path": "stdout"
   },
+{% endif %}
   "play_wav_cmdline": "aplay %1",
   "play_mp3_cmdline": "pw-play %1",
   "lang": "{{ ovos_installer_locale }}",
