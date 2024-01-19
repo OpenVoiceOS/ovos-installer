@@ -10,6 +10,7 @@
     - {"directory": "{{ ovos_installer_user_home }}/.config/systemd/user", "status": true}
     - {"directory": "{{ ovos_installer_user_home }}/ovos", "status": true}
     - {"directory": "{{ ovos_installer_user_home }}/ovos/config", "status": true}
+    - {"directory": "{{ ovos_installer_user_home }}/ovos/config/phal", "status": true}
     - {"directory": "{{ ovos_installer_user_home }}/ovos/share", "status": true}
     - {"directory": "{{ ovos_installer_user_home }}/ovos/tmp", "status": true}
     - {"directory": "{{ ovos_installer_user_home }}/hivemind", "status": "{{ 'false' if ovos_installer_profile == 'ovos' else 'true' }}"}
