@@ -18,8 +18,7 @@
     - name: Check CPU architecture support
       ansible.builtin.fail:
         msg: "CPU architecture {{ ansible_architecture }} not supported..."
-      when:
-        ansible_architecture == "armv6l" or
+      when: ansible_architecture == "armv6l" or
         ansible_architecture == "armhf" or
         ansible_architecture == "armv7l" or
         ansible_architecture == "armhf"

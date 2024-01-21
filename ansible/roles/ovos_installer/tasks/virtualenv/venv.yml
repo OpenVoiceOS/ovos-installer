@@ -7,11 +7,31 @@
     group: root
     mode: "0644"
   loop:
-    - {"file": "virtualenv/core-requirements.txt", "dest": "/tmp/core-requirements.txt", "state": "{{ true if ovos_installer_profile != 'satellite' else false }}"}
-    - {"file": "virtualenv/gui-requirements.txt", "dest": "/tmp/gui-requirements.txt", "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}"}
-    - {"file": "virtualenv/skills-requirements.txt", "dest": "/tmp/skills-requirements.txt", "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}"}
-    - {"file": "virtualenv/listener-requirements.txt", "dest": "/tmp/listener-requirements.txt", "state": "{{ true if ovos_installer_profile == 'listener' else false }}"}
-    - {"file": "virtualenv/satellite-requirements.txt", "dest": "/tmp/satellite-requirements.txt", "state": "{{ true if ovos_installer_profile == 'satellite' else false }}"}
+    - {
+        "file": "virtualenv/core-requirements.txt",
+        "dest": "/tmp/core-requirements.txt",
+        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
+      }
+    - {
+        "file": "virtualenv/gui-requirements.txt",
+        "dest": "/tmp/gui-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
+        "file": "virtualenv/skills-requirements.txt",
+        "dest": "/tmp/skills-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
+        "file": "virtualenv/listener-requirements.txt",
+        "dest": "/tmp/listener-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'listener' else false }}",
+      }
+    - {
+        "file": "virtualenv/satellite-requirements.txt",
+        "dest": "/tmp/satellite-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'satellite' else false }}",
+      }
   when: item.state | bool
 
 - name: Create {{ ovos_installer_user_home }}/.venvs/ovos Python venv with tflite_runtime
@@ -37,11 +57,26 @@
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
     extra_args: "{{ _pip_args }}"
   loop:
-    - {"file": "/tmp/core-requirements.txt", "state": "{{ true if ovos_installer_profile != 'satellite' else false }}"}
-    - {"file": "/tmp/gui-requirements.txt", "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}"}
-    - {"file": "/tmp/skills-requirements.txt", "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}"}
-    - {"file": "/tmp/listener-requirements.txt", "state": "{{ true if ovos_installer_profile == 'listener' else false }}"}
-    - {"file": "/tmp/satellite-requirements.txt", "state": "{{ true if ovos_installer_profile == 'satellite' else false }}"}
+    - {
+        "file": "/tmp/core-requirements.txt",
+        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
+      }
+    - {
+        "file": "/tmp/gui-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
+        "file": "/tmp/skills-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
+        "file": "/tmp/listener-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'listener' else false }}",
+      }
+    - {
+        "file": "/tmp/satellite-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'satellite' else false }}",
+      }
   when: item.state | bool
 
 # We are not using the file module but the command module because of performances "issue".
@@ -64,8 +99,8 @@
     mode: "0644"
     state: "{{ ovos_installer_uninstall }}"
   loop:
-    - {"line": "VIRTUAL_ENV={{ _path }}", "regexp": "^VIRTUAL_ENV"}
-    - {"line": "PATH=$PATH:{{ _path }}", "regexp": "^PATH"}
+    - { "line": "VIRTUAL_ENV={{ _path }}", "regexp": "^VIRTUAL_ENV" }
+    - { "line": "PATH=$PATH:{{ _path }}", "regexp": "^PATH" }
   tags:
     - always
 

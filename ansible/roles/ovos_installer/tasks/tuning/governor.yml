@@ -23,7 +23,7 @@
 - name: Set existing CPU governor to "performance"
   ansible.builtin.lineinfile:
     path: "{{ _ovos_installer_cpu_governor_config }}"
-    regexp: '^CPU_DEFAULT_GOVERNOR='
+    regexp: "^CPU_DEFAULT_GOVERNOR="
     line: 'CPU_DEFAULT_GOVERNOR="performance"'
   when: _cpu_governor_config.stat.exists
 

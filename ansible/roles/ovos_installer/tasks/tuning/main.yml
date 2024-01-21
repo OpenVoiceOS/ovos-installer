@@ -16,8 +16,9 @@
     # Debian Unstable hack
     _distribution_version: "{{ '99' if ansible_distribution == 'Debian' and ansible_distribution_version == 'n/a' else ansible_distribution_version }}"
   ansible.builtin.import_tasks: tuning/zram.yml
-  when: not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
-        ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
+  when:
+    not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
+    ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
 
 - name: Include tuning/sysctl.yml
   ansible.builtin.import_tasks: tuning/sysctl.yml

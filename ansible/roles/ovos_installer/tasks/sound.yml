@@ -8,8 +8,9 @@
       - pipewire
       - pipewire-alsa
       - alsa-utils
-  when: not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
-        ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
+  when:
+    not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
+    ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
 
 - name: Install PulseAudio on older Debian and Ubuntu versions
   vars:
@@ -19,8 +20,9 @@
     name:
       - pulseaudio
       - alsa-utils
-  when: (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
-        ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
+  when:
+    (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
+    ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
 
 - name: Add {{ ovos_installer_user }} to audio group
   ansible.builtin.user:
@@ -38,8 +40,9 @@
       - pipewire
       - rtkit
     append: true
-  when: not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
-        ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
+  when:
+    not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
+    ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
 
 - name: Enable lingering for {{ ovos_installer_user }}
   ansible.builtin.file:
