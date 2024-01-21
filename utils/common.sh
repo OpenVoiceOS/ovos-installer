@@ -242,12 +242,9 @@ function create_python_venv() {
 # Install Ansible into the new Python virtual environment and install the
 # Ansible collections required by the Ansible playbook as well. These
 # collection will be installed under the /root/.ansible directory.
-#
-# NOTE: PyYAML is downgraded because of docker-compose Python library which
-# does not support PyYAML > 5.3.1 version.
 function install_ansible() {
     echo -ne "➤ Installing Ansible requirements in Python virtualenv... "
-    pip3 install ansible==8.6.1 PyYAML==5.3.1 &>>"$LOG_FILE"
+    pip3 install ansible==9.1.0 docker==7.0.0 &>>"$LOG_FILE"
     ansible-galaxy collection install -r ansible/requirements.yml &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }

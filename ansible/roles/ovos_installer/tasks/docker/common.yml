@@ -17,15 +17,6 @@
     enabled: true
     state: started
 
-- name: Install Python docker and docker-compose libraries
-  ansible.builtin.pip:
-    name:
-      - docker==6.1.3
-      - docker-compose
-    virtualenv: "{{ ovos_installer_venv }}"
-  tags:
-    - always
-
 - name: Clone ovos-docker and/or hivemind-docker repository
   ansible.builtin.git:
     repo: "{{ item.url }}"
@@ -33,8 +24,18 @@
     version: "{{ item.branch }}"
     force: true
   loop:
-    - {"url": "{{ ovos_installer_ovos_docker_repo_url }}", "branch": "{{ ovos_installer_ovos_docker_repo_branch }}", "dest": "ovos-docker", "state": "{{ true if (ovos_installer_profile != 'satellite' or ovos_installer_cleaning | bool) else false }}"}
-    - {"url": "{{ ovos_installer_hivemind_docker_repo_url }}", "branch": "{{ ovos_installer_hivemind_docker_repo_branch }}", "dest": "hivemind-docker", "state": "{{ true if (ovos_installer_profile == 'satellite' or ovos_installer_cleaning | bool) else false }}"}
+    - {
+        "url": "{{ ovos_installer_ovos_docker_repo_url }}",
+        "branch": "{{ ovos_installer_ovos_docker_repo_branch }}",
+        "dest": "ovos-docker",
+        "state": "{{ true if (ovos_installer_profile != 'satellite' or ovos_installer_cleaning | bool) else false }}",
+      }
+    - {
+        "url": "{{ ovos_installer_hivemind_docker_repo_url }}",
+        "branch": "{{ ovos_installer_hivemind_docker_repo_branch }}",
+        "dest": "hivemind-docker",
+        "state": "{{ true if (ovos_installer_profile == 'satellite' or ovos_installer_cleaning | bool) else false }}",
+      }
   when: item.state | bool
   tags:
     - always
