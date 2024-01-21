@@ -81,6 +81,9 @@
   ansible.builtin.template:
     src: docker/compose.yaml.j2
     dest: "{{ _composition_directory }}/compose.yaml"
+    owner: root
+    group: root
+    mode: "0644"
 
 - name: Deploy docker-compose stack
   become: true
