@@ -23,7 +23,8 @@
     "remove_silence": true{% if ovos_installer_cpu_is_capable | bool %},
     "VAD": {
       "module": "ovos-vad-plugin-silero"
-    }
+    },
+    "instant_listen": true
 {% endif %}
   },
 {% if ovos_installer_feature_gui | bool %}
