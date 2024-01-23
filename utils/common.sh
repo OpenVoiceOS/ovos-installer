@@ -146,25 +146,13 @@ function detect_display() {
 }
 
 # Parse /sys/firmware/devicetree/base/model file if it exists and check
-# for "raspberrypi" string. I2C and I2S will be checked as well as they
-# could be required when using a HAT. This will be used by the installer
-# to apply the Ansible tuning tasks.
+# for "raspberrypi" string.
 function is_raspeberrypi_soc() {
     echo -ne "➤ Checking for Raspberry Pi board... "
     RASPBERRYPI_MODEL="N/A"
     if [ -f "$DT_FILE" ]; then
         if grep -q -i raspberry "$DT_FILE"; then
             RASPBERRYPI_MODEL="$(tr -d '\0' <"$DT_FILE")"
-            if [ ! -e "$I2C_DEVICE" ] || [ ! -e "$SPI_DEVICE" ]; then
-                echo -e "[$fail_format]"
-                echo -e "\n➤ I2C, I2S and SPI interfaces must be enabled. Follow the steps below:\n" | tee -a "$LOG_FILE"
-                echo -e "       echo 'dtparam=i2c_arm=on' | sudo tee -a /boot/config.txt"
-                echo -e "       echo 'dtparam=i2s=on' | sudo tee -a /boot/config.txt"
-                echo -e "       echo 'dtparam=spi=on' | sudo tee -a /boot/config.txt"
-                echo -e "       echo 'i2c-dev' | sudo tee /etc/modules-load.d/i2c.conf"
-                echo -e "       sudo reboot\n"
-                exit 1
-            fi
         fi
     fi
     export RASPBERRYPI_MODEL

@@ -1,0 +1,18 @@
+---
+- name: Load i2c-dev and spidev kernel modules
+  community.general.modprobe:
+    name: "{{ item }}"
+    persistent: present
+  loop:
+    - i2c-dev
+    - spidev
+
+- name: Manage I2C, SPI and I2S buses
+  ansible.builti.lineinfile:
+    path: /boot/config.txt
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+  loop:
+    - { key: "dtparam=i2c_arm", value: "on" }
+    - { key: "dtparam=spi", value: "on" }
+    - { key: "dtparam=i2s", value: "on" }

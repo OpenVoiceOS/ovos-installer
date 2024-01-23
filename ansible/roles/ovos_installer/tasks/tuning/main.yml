@@ -11,6 +11,9 @@
 - name: Include tuning/udev.yml
   ansible.builtin.import_tasks: tuning/udev.yml
 
+- name: Include tuning/io.yml
+  ansible.builtin.import_tasks: tuning/io.yml
+
 - name: Include tuning/zram.yml
   vars:
     # Debian Unstable hack
