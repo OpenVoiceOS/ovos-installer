@@ -8,7 +8,7 @@
     - spidev
 
 - name: Manage I2C, SPI and I2S buses
-  ansible.builti.lineinfile:
+  ansible.builtin.lineinfile:
     path: /boot/config.txt
     regexp: "^{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
