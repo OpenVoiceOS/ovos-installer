@@ -11,7 +11,6 @@ function setup() {
 
 @test "function_is_raspeberrypi_soc_detected" {
     echo "Raspberry Pi 4 Model B Rev 1.5" >"$DT_FILE"
-    run touch "$I2C_DEVICE" "$SPI_DEVICE"
     is_raspeberrypi_soc
     assert_equal "$RASPBERRYPI_MODEL" "Raspberry Pi 4 Model B Rev 1.5"
 }
@@ -29,5 +28,5 @@ function setup() {
 }
 
 function teardown() {
-    rm -f "$DT_FILE" "$I2C_DEVICE" "$LOG_FILE"
+    rm -f "$DT_FILE" "$LOG_FILE"
 }

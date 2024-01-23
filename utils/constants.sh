@@ -2,7 +2,6 @@
 
 export DT_FILE=/sys/firmware/devicetree/base/model
 export INSTALLER_VENV_NAME="ovos-installer"
-export I2C_DEVICE=/dev/i2c-1
 export LOG_FILE=/var/log/ovos-installer.log
 export NEWT_COLORS="
     root=white,black
@@ -39,7 +38,6 @@ declare -a SCENARIO_ALLOWED_HIVEMIND_OPTIONS=(host port key password)
 export SCENARIO_ALLOWED_HIVEMIND_OPTIONS
 export SCENARIO_NAME="scenario.yaml"
 export SCENARIO_PATH=""
-export SPI_DEVICE=/dev/spidev0.0
 export USER_ID="$EUID"
 export WSL_FILE=/etc/wsl.conf
 export YQ_BINARY_PATH=/tmp/yq
