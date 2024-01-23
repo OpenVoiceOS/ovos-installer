@@ -1,7 +1,7 @@
 ---
 - name: Block timezone
   block:
-    - name: Try to auto-detect timezone
+    - name: Auto-detect timezone
       ansible.builtin.uri:
         url: http://ip-api.com/json
         method: GET
