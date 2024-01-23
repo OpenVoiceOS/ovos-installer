@@ -15,6 +15,9 @@
 - name: Include ovos.yml
   ansible.builtin.import_tasks: ovos.yml
 
+- name: Include timezone.yml
+  ansible.builtin.import_tasks: timezone.yml
+
 - name: Include docker/main.yml
   ansible.builtin.import_tasks: docker/main.yml
   when: ovos_installer_method == "containers" or ovos_installer_cleaning | bool

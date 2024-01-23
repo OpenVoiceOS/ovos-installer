@@ -5,13 +5,6 @@
   tags:
     - always
 
-- name: Retrieve configured timezone
-  ansible.builtin.command:
-    cmd: |
-      timedatectl show --property=Timezone --value
-  register: _ovos_installer_timezone
-  changed_when: false
-
 - name: Set _composition_directory fact
   ansible.builtin.set_fact:
     _composition_directory: "{{ _ovos_installer_working_directory }}/{{ _ovos_installer_project_name }}/compose"

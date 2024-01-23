@@ -1,0 +1,32 @@
+---
+- name: Block timezone
+  block:
+    - name: Try to auto-detect timezone
+      ansible.builtin.uri:
+        url: http://ip-api.com/json
+        method: GET
+        status_code:
+          - 200
+        return_content: true
+        headers:
+          Content-Type: application/json
+      register: _detected_timezone
+      until: _detected_timezone.status == 200
+      retries: 5
+      delay: 3
+
+    - name: Set system's timezone
+      community.general.timezone:
+        name: "{{ _detected_timezone.json.timezone }}"
+
+    - name: Set _ovos_installer_timezone fact
+      ansible.builtin.set_fact:
+        _ovos_installer_timezone: "{{ _detected_timezone.json.timezone }}"
+  rescue:
+    - name: Rescue timezone
+      ansible.builtin.debug:
+        msg: "The installer was not able to set the timezone..."
+
+    - name: Set _ovos_installer_timezone fact to UTC (rescue)
+      ansible.builtin.set_fact:
+        _ovos_installer_timezone: UTC
