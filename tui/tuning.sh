@@ -3,8 +3,8 @@
 # shellcheck source=locales/en-us/tuning.sh
 source "tui/locales/$LOCALE/tuning.sh"
 
-active_option="no"
-available_options=(no yes)
+active_option="yes"
+available_options=(yes no)
 
 whiptail_args=(
   --title "$TITLE"
