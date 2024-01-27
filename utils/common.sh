@@ -187,7 +187,7 @@ function get_os_information() {
 # the installer will exit with a message.
 function required_packages() {
     echo -ne "➤ Validating installer package requirements... "
-    PYTHON_VERSION="3.11"
+    PYTHON_VERSION="$PYTHON"
     case "$DISTRO_NAME" in
     debian | ubuntu)
         [ "$DISTRO_VERSION_ID" == "11" ] && PYTHON_VERSION="3"
