@@ -15,7 +15,7 @@
     "wake_word": "hey_mycroft_pocketsphinx"
 {% endif %}
     "VAD": {
-      "module": "ovos-vad-plugin-silero"
+      "module": "{% 'ovos-vad-plugin-silero' if ovos_installer_cpu_is_capable | bool else 'ovos-vad-plugin-webrtcvad' %}"
     },
     "instant_listen": true
 {% endif %}
