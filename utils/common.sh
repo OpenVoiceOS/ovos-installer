@@ -202,7 +202,7 @@ function required_packages() {
         ;;
     *)
         echo -e "[$fail_format]"
-        echo "Operating systemd not supported."
+        echo "Operating systemd not supported." | tee -a "$LOG_FILE"
         exit 1
         ;;
     esac
