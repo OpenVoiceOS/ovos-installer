@@ -248,7 +248,7 @@ function download_yq() {
     # Retrieve kernel information and map it to a more generic CPU architecture
     local arch
     local kernel
-    arch="$(uname -m | sed s/aarch64/arm64/g | sed s/x86_64/amd64/g 2>>"$LOG_FILE")"
+    arch="$(uname -m | sed s/aarch64/arm64/g | sed s/x86_64/amd64/g | sed s/armv6l/386/g | sed s/armv7l/386/g 2>>"$LOG_FILE")"
     kernel="$(uname -s 2>>"$LOG_FILE")"
 
     curl -s -f -L "$YQ_URL/yq_${kernel,,}_$arch" -o "$YQ_BINARY_PATH" &>>"$LOG_FILE"
