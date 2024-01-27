@@ -9,6 +9,8 @@
   "play_wav_cmdline": "{{ 'aplay' if _detect_sound_server.stdout == "pulseaudio" else 'pw-play' }} %1",
   "play_mp3_cmdline": "{{ 'paplay' if _detect_sound_server.stdout == "pulseaudio" else 'pw-play' }} %1",
   "lang": "{{ ovos_installer_locale }}",
+  "listener": {
+    "remove_silence": true,
 {% if not ovos_installer_cpu_is_capable | bool %}
   "hotwords": {
     "hey_mycroft": {
@@ -19,8 +21,6 @@
     }
   },
 {% endif %}
-  "listener": {
-    "remove_silence": true{% if ovos_installer_cpu_is_capable | bool %},
     "VAD": {
       "module": "ovos-vad-plugin-silero"
     },
