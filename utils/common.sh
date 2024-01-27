@@ -307,3 +307,9 @@ function wsl2_requirements() {
         echo -e "[$done_format]"
     fi
 }
+
+# This is a helper to strip the point from sementic versioning such as 3.9 or
+# 6.5.3. Mostly useful when comparing Python or kernel version.
+function ver() {
+    printf "%03d" "$(echo "$1" | tr '.' ' ')"
+}
