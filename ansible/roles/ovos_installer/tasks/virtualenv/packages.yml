@@ -14,7 +14,7 @@
     - ansible_os_family == "RedHat"
     - ansible_distribution != "Fedora"
 
-- name: Handle virtualenv package requirements (ovos-core)
+- name: Handle virtualenv package requirements (ovos/hivemind)
   ansible.builtin.apt:
     name:
       - build-essential
@@ -34,7 +34,7 @@
   tags:
     - always
 
-- name: Handle virtualenv package requirements (ovos-core)
+- name: Handle virtualenv package requirements (ovos/hivemind)
   ansible.builtin.dnf:
     name:
       - gcc-c++
