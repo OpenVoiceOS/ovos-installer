@@ -191,7 +191,6 @@ function required_packages() {
     case "$DISTRO_NAME" in
     debian | ubuntu | raspbian)
         [ "$DISTRO_VERSION_ID" == "11" ] && PYTHON_VERSION="3"
-        export PYTHON_VERSION
         apt-get update &>>"$LOG_FILE"
         apt-get install --no-install-recommends -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" python3-pip "python${PYTHON_VERSION}-venv" whiptail expect jq &>>"$LOG_FILE"
         ;;
@@ -216,7 +215,7 @@ function required_packages() {
 function create_python_venv() {
     echo -ne "➤ Creating installer Python virtualenv... "
     if [ ! -d "$VENV_PATH" ]; then
-        "python${PYTHON_VERSION}" -m venv "$VENV_PATH" &>>"$LOG_FILE"
+        "python${PYTHON}" -m venv "$VENV_PATH" &>>"$LOG_FILE"
     fi
 
     # shellcheck source=/dev/null
