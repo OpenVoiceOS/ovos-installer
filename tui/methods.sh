@@ -7,6 +7,11 @@ declare -a available_methods
 active_method="containers"
 available_methods=(containers virtualenv)
 
+if [[ "$ARCH" != @(x86_64|aarch64) ]]; then
+  active_method="virtualenv"
+  available_methods=(virtualenv)
+fi
+
 # Limit available method to match the existing instance
 # If containers instance has been deployed then only containers
 # method will be available.
