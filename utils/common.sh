@@ -189,7 +189,7 @@ function required_packages() {
     echo -ne "➤ Validating installer package requirements... "
     PYTHON_VERSION="$PYTHON"
     case "$DISTRO_NAME" in
-    debian | ubuntu)
+    debian | ubuntu | raspbian)
         [ "$DISTRO_VERSION_ID" == "11" ] && PYTHON_VERSION="3"
         export PYTHON_VERSION
         apt-get update &>>"$LOG_FILE"
