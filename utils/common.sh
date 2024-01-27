@@ -165,6 +165,7 @@ function is_raspeberrypi_soc() {
 function get_os_information() {
     echo -ne "➤ Retrieving OS information... "
     if [ -f "$OS_RELEASE" ]; then
+        ARCH="$(uname -m 2>>"$LOG_FILE")"
         KERNEL="$(uname -r 2>>"$LOG_FILE")"
         PYTHON="$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE")"
 
@@ -174,7 +175,7 @@ function get_os_information() {
         export DISTRO_NAME="$ID"
         export DISTRO_VERSION_ID="$VERSION_ID"
         export DISTRO_VERSION="$VERSION"
-        export KERNEL PYTHON
+        export ARCH KERNEL PYTHON
     else
         # Mostly if the detected system is no a Linux OS
         uname 2>>"$LOG_FILE"
@@ -248,7 +249,7 @@ function download_yq() {
     # Retrieve kernel information and map it to a more generic CPU architecture
     local arch
     local kernel
-    arch="$(uname -m | sed s/aarch64/arm64/g | sed s/x86_64/amd64/g | sed s/armv6l/386/g | sed s/armv7l/386/g 2>>"$LOG_FILE")"
+    arch="$(echo "$ARCH" | sed s/aarch64/arm64/g | sed s/x86_64/amd64/g | sed s/armv6l/386/g | sed s/armv7l/386/g 2>>"$LOG_FILE")"
     kernel="$(uname -s 2>>"$LOG_FILE")"
 
     curl -s -f -L "$YQ_URL/yq_${kernel,,}_$arch" -o "$YQ_BINARY_PATH" &>>"$LOG_FILE"
