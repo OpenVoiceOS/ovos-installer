@@ -12,14 +12,7 @@
   "listener": {
     "remove_silence": true,
 {% if not ovos_installer_cpu_is_capable | bool %}
-  "hotwords": {
-    "hey_mycroft": {
-        "listen": false
-    },
-    "hey_mycroft_precise": {
-        "listen": false
-    }
-  },
+    "wake_word": "hey_mycroft_pocketsphinx"
 {% endif %}
     "VAD": {
       "module": "ovos-vad-plugin-silero"
