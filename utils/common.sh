@@ -166,7 +166,7 @@ function get_os_information() {
     echo -ne "➤ Retrieving OS information... "
     if [ -f "$OS_RELEASE" ]; then
         KERNEL="$(uname -r 2>>"$LOG_FILE")"
-        PYTHON="$(python3 --version 2>>"$LOG_FILE")"
+        PYTHON="$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE")"
 
         # shellcheck source=/etc/os-release
         source "$OS_RELEASE"
