@@ -313,5 +313,5 @@ function wsl2_requirements() {
 # This is a helper to strip the point from sementic versioning such as 3.9 or
 # 6.5.3. Mostly useful when comparing Python or kernel version.
 function ver() {
-    printf "%03d" "$(echo "$1" | tr '.' ' ')"
+    printf "%03d%03d%03d%03d" "$(echo "$1" | tr '.' ' ')"
 }
