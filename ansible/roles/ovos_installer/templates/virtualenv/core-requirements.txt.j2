@@ -25,7 +25,9 @@ ovos-stt-plugin-vosk
 ovos-vad-plugin-silero
 {% endif %}
 ovos-ww-plugin-pocketsphinx
+{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 ovos-ww-plugin-vosk
+{% endif %}
 
 # No PyPi release
 git+https://github.com/OpenVoiceOS/ovos-bidirectional-translation-plugin.git
@@ -39,5 +41,7 @@ git+https://github.com/OpenVoiceOS/ovos-utterance-plugin-cancel
 
 # Non-OVOS libraries
 #neon-mana-utils #Commented until PyYAML requirement is fixed
+{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 onnxruntime
 vosk
+{% endif %}
