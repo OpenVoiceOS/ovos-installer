@@ -117,6 +117,6 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 else
   debug_url="$(curl -sF 'sprunge=<-' http://sprunge.us <"$LOG_FILE")"
   echo -e "\n➤ Unable to finalize the process, please check $LOG_FILE for more details."
-  echo -e "\n➤ Please share this URL with us $debug_url"
+  echo -e "➤ Please share this URL with us $debug_url"
   exit 1
 fi
