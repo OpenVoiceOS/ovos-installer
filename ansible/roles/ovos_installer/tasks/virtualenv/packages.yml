@@ -29,6 +29,8 @@
       - libsox-fmt-all
       - flac
       - vlc
+      - libxslt1-dev
+      - libopenblas-dev
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
   tags:
@@ -47,6 +49,8 @@
       - sox
       - flac
       - vlc
+      - libxslt
+      - openblas-serial
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
   tags:
