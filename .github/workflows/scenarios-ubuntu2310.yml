@@ -18,7 +18,7 @@ jobs:
       - name: Installer requirements
         run: |
           sudo apt-get update
-          sudo apt-get install curl git -y
+          sudo apt-get --no-install-recommends install curl git -y
           mkdir -p ~/.config/ovos-installer
 
       - name: Uninstall existing instance
