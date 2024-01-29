@@ -8,6 +8,7 @@
     name:
       - ca-certificates
       - gnupg
+    install_recommends: false
 
 - name: Retrieve Docker GPG repository key
   ansible.builtin.get_url:
@@ -39,3 +40,4 @@
       - containerd.io
       - docker-buildx-plugin
       - docker-compose-plugin
+    install_recommends: false

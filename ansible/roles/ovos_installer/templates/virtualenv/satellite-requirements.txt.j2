@@ -1,9 +1,16 @@
 HiveMind-voice-sat
 hivemind_bus_client
-ovos-audio[extras]
+{% if ovos_installer_cpu_is_capable | bool %}
+ovos-dinkum-listener[extras]
+{% else %}
+ovos-dinkum-listener
+ovos-backend-client
+ovos-microphone-plugin-alsa
+ovos-stt-plugin-server
+ovos-vad-plugin-webrtcvad
+{% endif %}
 ovos-audio-plugin-simple
 ovos-classifiers
-ovos-microphone-plugin-alsa
 ovos-microphone-plugin-sounddevice
 ovos-PHAL
 ovos-PHAL-plugin-alsa
@@ -15,3 +22,6 @@ ovos-ww-plugin-precise-lite
 {% endif %}
 ovos-ww-plugin-pocketsphinx
 poorman-handshake
+
+# No PyPi release
+git+https://github.com/OpenVoiceOS/ovos-stt-plugin-chromium.git

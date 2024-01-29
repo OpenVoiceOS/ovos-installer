@@ -2,6 +2,7 @@
 - name: Handle linux-cpupower package
   ansible.builtin.apt:
     name: linux-cpupower
+    install_recommends: false
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
   tags:

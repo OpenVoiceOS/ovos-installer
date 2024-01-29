@@ -2,6 +2,7 @@
 - name: Handle systemd-zram-generator
   ansible.builtin.apt:
     name: systemd-zram-generator
+    install_recommends: false
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
   tags:

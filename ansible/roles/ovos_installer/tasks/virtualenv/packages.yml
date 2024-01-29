@@ -31,6 +31,7 @@
       - vlc
       - libxslt1-dev
       - libopenblas-dev
+    install_recommends: false
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
   tags:
