@@ -75,3 +75,23 @@
     executable: /bin/bash
   register: _detect_sound_server
   changed_when: false
+
+- name: Generate {{ ovos_installer_user_home }}/.asoundrc file based on detected sound server (Raspberry Pi boards only)
+  ansible.builtin.copy:
+    content: |
+      pcm.!default {{ _detect_sound_server.stdout }}
+      ctl.!default {{ _detect_sound_server.stdout }}
+    dest: "{{ ovos_installer_user_home }}/.asoundrc"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_user }}"
+    mode: "0644"
+    backup: true
+  when: ovos_installer_raspberrypi != "N/A"
+
+- name: Remove {{ ovos_installer_user_home }}/.asoundrc file
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.asoundrc"
+    state: absent
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
