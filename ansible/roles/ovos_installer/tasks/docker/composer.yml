@@ -70,14 +70,6 @@
       }
   when: item.state | bool
 
-- name: Merge composition files into compose.yaml
-  ansible.builtin.template:
-    src: docker/compose.yaml.j2
-    dest: "{{ _composition_directory }}/compose.yaml"
-    owner: root
-    group: root
-    mode: "0644"
-
 - name: Deploy docker-compose stack
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -86,6 +78,7 @@
   community.docker.docker_compose_v2:
     project_src: "{{ _composition_directory }}"
     project_name: "{{ _project_name }}"
+    files: "{{ _composition_files }}"
     pull: always
     remove_orphans: "{{ ovos_installer_docker_compose_remove_orphans }}"
     remove_images: "{{ ovos_installer_docker_compose_remove_images }}"
@@ -150,6 +143,7 @@
       community.docker.docker_compose_v2:
         project_src: "{{ _composition_directory }}"
         project_name: "{{ item.name }}"
+        files: "{{ item.file }}"
         remove_orphans: "{{ ovos_installer_docker_compose_remove_orphans }}"
         remove_images: "{{ ovos_installer_docker_compose_remove_images }}"
         remove_volumes: "{{ ovos_installer_docker_compose_remove_volumes }}"
