@@ -232,7 +232,7 @@ function create_python_venv() {
 # collection will be installed under the /root/.ansible directory.
 function install_ansible() {
     echo -ne "➤ Installing Ansible requirements in Python virtualenv... "
-    ANSIBLE_VERSION="9.1.0"
+    ANSIBLE_VERSION="9.2.0"
     [ "$(ver "$PYTHON")" -lt "$(ver 3.10)" ] && ANSIBLE_VERSION="8.7.0"
     pip3 install ansible=="$ANSIBLE_VERSION" docker==7.0.0 &>>"$LOG_FILE"
     ansible-galaxy collection install -r ansible/requirements.yml &>>"$LOG_FILE"
