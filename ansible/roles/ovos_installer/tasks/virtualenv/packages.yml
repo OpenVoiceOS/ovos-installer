@@ -50,7 +50,7 @@
       - sox
       - flac
       - vlc
-      - libxslt
+      - libxslt-devel
       - openblas-serial
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
