@@ -54,7 +54,6 @@
       - kf5-kiconthemes
       - kf5-kiconthemes-devel
       - kf5-kguiaddons-devel
-    install_recommends: false
   when: ansible_os_family == "RedHat"
 
 - name: Clone GUI repositories
