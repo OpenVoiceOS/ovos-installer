@@ -191,14 +191,16 @@ function required_packages() {
     PYTHON_VERSION="$MAX_PYTHON_VERSION"
     case "$DISTRO_NAME" in
     debian | ubuntu | raspbian)
-        [ "$DISTRO_VERSION_ID" == "11" ] && PYTHON_VERSION="3"
+        [ "$DISTRO_VERSION_ID" == "11" ] && export PYTHON_VERSION="3"
         apt-get update &>>"$LOG_FILE"
         apt-get install --no-install-recommends -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" python3-pip "python${PYTHON_VERSION}-venv" whiptail expect jq &>>"$LOG_FILE"
         ;;
     fedora)
+        export PYTHON_VERSION
         dnf install -y python3.11 python3.11-devel python3-pip python3-virtualenv newt expect jq &>>"$LOG_FILE"
         ;;
     rocky | centos | rhel)
+        export PYTHON_VERSION
         dnf install -y python3.11 python3.11-devel python3-pip newt expect jq &>>"$LOG_FILE"
         ;;
     *)
@@ -216,7 +218,7 @@ function required_packages() {
 function create_python_venv() {
     echo -ne "➤ Creating installer Python virtualenv... "
     if [ ! -d "$VENV_PATH" ]; then
-        "python${PYTHON}" -m venv "$VENV_PATH" &>>"$LOG_FILE"
+        "python${PYTHON_VERSION}" -m venv "$VENV_PATH" &>>"$LOG_FILE"
     fi
 
     # shellcheck source=/dev/null
