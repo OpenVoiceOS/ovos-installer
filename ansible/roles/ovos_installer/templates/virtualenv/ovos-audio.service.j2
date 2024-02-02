@@ -2,7 +2,7 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-audio
 Description=Open Voice OS - Audio
 After=network.target ovos-messagebus.service ovos-phal.service
-Requires=ovos-messagebus.service ovos-phal.service
+Requires=ovos-messagebus.service ovos-phal.service pipewire.socket
 
 [Service]
 WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos

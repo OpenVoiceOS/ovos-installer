@@ -2,7 +2,7 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-shell
 Description=Open Voice OS - GUI
 After=network.target ovos-gui-websocket.service ovos-phal.service
-Requires=ovos-gui-websocket.service ovos-phal.service
+Requires=ovos-gui-websocket.service ovos-phal.service pipewire.socket
 
 [Service]
 Environment="QT_QPA_PLATFORM=eglfs"

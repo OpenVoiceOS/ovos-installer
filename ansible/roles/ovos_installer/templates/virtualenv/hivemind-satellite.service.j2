@@ -2,6 +2,7 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/terms/#hivemind
 Description=HiveMind - Satellite
 After=network.target
+Requires=pipewire.socket
 
 [Service]
 WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos

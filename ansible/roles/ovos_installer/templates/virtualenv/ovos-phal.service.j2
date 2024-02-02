@@ -2,7 +2,7 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-phal
 Description=Open Voice OS - PHAL
 After=network.target ovos-messagebus.service
-Requires=ovos-messagebus.service
+Requires=ovos-messagebus.service pipewire.socket
 
 [Service]
 WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
