@@ -61,7 +61,9 @@
 - name: Re-detect sound server
   ansible.builtin.shell:
     cmd: |
-      if pgrep -x "pipewire-pulse$" &>/dev/null || pgrep -x "pulseaudio$" &>/dev/null; then
+      if pgrep -x "pipewire-pulse$" &>/dev/null; then
+        echo "pipewire"
+      elif pgrep -x "pulseaudio$" &>/dev/null; then
         echo "pulseaudio"
       elif pgrep -x "pipewire$" &>/dev/null; then
         echo "pipewire"
