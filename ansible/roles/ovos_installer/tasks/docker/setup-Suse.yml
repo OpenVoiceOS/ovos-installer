@@ -1,0 +1,13 @@
+---
+- name: Retrieve SELinux.repo repository
+  community.general.zypper_repository:
+    repo: https://download.opensuse.org/repositories/security:/SELinux/openSUSE_Factory/security:SELinux.repo
+    auto_import_keys: true
+    runrefresh: true
+
+- name: Install Docker Engine
+  ansible.builtin.zypper:
+    name:
+      - docker
+      - docker-rootless-extras
+      - docker-compose

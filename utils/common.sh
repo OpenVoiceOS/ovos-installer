@@ -199,9 +199,13 @@ function required_packages() {
         export PYTHON_VERSION
         dnf install -y python3.11 python3.11-devel python3-pip python3-virtualenv newt expect jq &>>"$LOG_FILE"
         ;;
-    rocky | centos | rhel)
+    rocky | centos)
         export PYTHON_VERSION
         dnf install -y python3.11 python3.11-devel python3-pip newt expect jq &>>"$LOG_FILE"
+        ;;
+    opensuse-tumbleweed | opensuse-leap)
+        export PYTHON_VERSION
+        zypper install -y python311 python311-devel python3-pip python3-rpm newt expect jq &>>"$LOG_FILE"
         ;;
     *)
         echo -e "[$fail_format]"
