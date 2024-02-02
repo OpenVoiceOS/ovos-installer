@@ -2,7 +2,7 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-listener
 Description=Open Voice OS - Listener
 After=network.target ovos-messagebus.service ovos-phal.service
-Requires=ovos-messagebus.service ovos-phal.service pipewire.socket
+Requires=ovos-messagebus.service ovos-phal.service {{ _detect_sound_server.stdout }}.socket
 
 [Service]
 WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
