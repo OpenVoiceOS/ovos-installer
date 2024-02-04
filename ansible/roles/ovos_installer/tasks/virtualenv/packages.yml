@@ -31,6 +31,8 @@
       - vlc
       - libxslt1-dev
       - libopenblas-dev
+      - pkg-config
+      - libicu-dev
     install_recommends: false
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
@@ -51,6 +53,8 @@
       - flac
       - vlc
       - openblas-serial
+      - pkgconf-pkg-config
+      - libicu-devel
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
   tags:
