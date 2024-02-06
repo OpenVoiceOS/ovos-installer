@@ -98,7 +98,7 @@
       make install
     executable: /bin/bash
     chdir: "{{ item }}"
-    creates: /usr/bin/ovos-shell
+    creates: "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-gui.service"
   loop:
     - /opt/mycroft-gui/build-testing
     - /opt/ovos-shell/build-testing
