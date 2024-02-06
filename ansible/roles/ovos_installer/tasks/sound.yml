@@ -7,6 +7,7 @@
     name:
       - pipewire
       - pipewire-alsa
+      - pulseaudio-utils
       - alsa-utils
   when:
     not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
