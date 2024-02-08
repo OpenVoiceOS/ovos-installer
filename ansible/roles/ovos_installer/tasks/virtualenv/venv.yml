@@ -56,6 +56,7 @@
     requirements: "{{ item.file }}"
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
     extra_args: "{{ _pip_args }}"
+    state: latest
   loop:
     - {
         "file": "/tmp/core-requirements.txt",
