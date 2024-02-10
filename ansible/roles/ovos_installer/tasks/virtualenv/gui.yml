@@ -56,6 +56,38 @@
       - kf5-kguiaddons-devel
   when: ansible_os_family == "RedHat"
 
+- name: Install package requirements for ovos-gui
+  ansible.builtin.zypper:
+    name:
+      - cmake
+      - extra-cmake-modules
+      - gettext-runtime
+      - qmltermwidget
+      - libqt5-qtwebsockets-devel
+      - libqt5-qtdeclarative-devel
+      - libqt5-qtmultimedia-devel
+      - libqt5-qtwebview-devel
+      - libqt5-qtwebengine
+      - libqt5-qtmultimedia-devel
+      - libqt5-qtvirtualkeyboard
+      - qtermwidget-qt5-data
+      - kdeconnect-kde
+      - kio-devel
+      - kio-extras5
+      - libKF5Notifications5
+      - libQt5QuickControls2-devel
+      - libKF5I18n5
+      - libKF5Plasma5
+      - kconfig-devel
+      - kdbusaddons-devel
+      - kirigami2-devel
+      - kiconthemes-devel
+      - kguiaddons-devel
+      - libqt5-qtbase-devel
+      - ki18n-devel
+      - plasma-framework-devel
+  when: ansible_os_family == "Suse"
+
 - name: Clone GUI repositories
   ansible.builtin.git:
     repo: "{{ item.url }}"
