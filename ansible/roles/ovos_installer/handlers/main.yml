@@ -1,9 +1,6 @@
 ---
 - name: Start Sound Server
   ansible.builtin.include_tasks: block-sound.yml
-  when:
-    not (ansible_distribution == 'Ubuntu' and ansible_distribution_version is version('23.04', '<=') or
-    ansible_distribution == 'Debian' and ansible_distribution_version is version('12.0', '<='))
 
 - name: Reload Systemd User
   become: true

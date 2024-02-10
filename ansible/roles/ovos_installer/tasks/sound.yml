@@ -9,6 +9,7 @@
       - pipewire-alsa
       - pulseaudio-utils
       - alsa-utils
+  register: _pipewire_install
   when:
     not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
     ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
@@ -21,6 +22,7 @@
     name:
       - pulseaudio
       - alsa-utils
+  register: _pulseaudio_install
   when:
     (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
     ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
