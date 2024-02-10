@@ -60,6 +60,7 @@ function detect_sound() {
         if [ -S "/run/user/${RUN_AS_UID}/pulse/native" ] && [ ! -S "$PULSE_SOCKET_WSL2" ]; then
             # When running on Linux
             export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
+            export PULSE_COOKIE="${RUN_AS_HOME}/.config/pulse/cookie"
         elif [ -S "$PULSE_SOCKET_WSL2" ]; then
             # When running on WSL2
             export PULSE_SERVER="$PULSE_SOCKET_WSL2"
