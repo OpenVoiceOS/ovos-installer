@@ -14,6 +14,12 @@
     - ansible_os_family == "Debian"
     - "'docker-ce' not in ansible_facts.packages"
 
+- name: Include docker/setup-Suse.yml
+  ansible.builtin.import_tasks: docker/setup-Suse.yml
+  when:
+    - ansible_os_family == "Suse"
+    - "'docker-ce' not in ansible_facts.packages"
+
 - name: Include docker/common.yml
   ansible.builtin.import_tasks: docker/common.yml
 

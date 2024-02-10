@@ -59,3 +59,22 @@
   when: ansible_os_family == "RedHat"
   tags:
     - always
+
+- name: Handle virtualenv package requirements (ovos/hivemind)
+  ansible.builtin.zypper:
+    name:
+      - gcc-c++
+      - swig
+      - libfann-devel
+      - alsa-lib-devel
+      - libpulse-devel
+      - libportaudio2
+      - mpg123
+      - sox
+      - flac
+      - vlc
+      - libopenblas_serial-devel
+    state: "{{ ovos_installer_uninstall }}"
+  when: ansible_os_family == "Suse"
+  tags:
+    - always

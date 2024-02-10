@@ -8,11 +8,19 @@
   tags:
     - always
 
-- name: Handle linux-cpupower package
+- name: Handle kernel-toolsr package
   ansible.builtin.dnf:
     name: kernel-tools
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
+  tags:
+    - always
+
+- name: Handle cpupower package
+  ansible.builtin.zypper:
+    name: kernel-tools
+    state: "{{ ovos_installer_uninstall }}"
+  when: ansible_os_family == "Suse"
   tags:
     - always
 
