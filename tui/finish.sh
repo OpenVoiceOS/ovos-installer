@@ -9,4 +9,4 @@ export CONFIG_FILE
 # shellcheck source=locales/en-us/finish.sh
 source "tui/locales/$LOCALE/finish.sh"
 
-whiptail --msgbox --ok-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" 25 80
+whiptail --msgbox --ok-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" 35 80
