@@ -12,7 +12,7 @@ whiptail_args=(
   --cancel-button "$CANCEL_BUTTON"
   --ok-button "$OK_BUTTON"
   --yes-button "$OK_BUTTON"
-  25 80 "${#available_options[@]}"
+  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_options[@]}"
 )
 
 for option in "${available_options[@]}"; do

@@ -12,7 +12,7 @@ if [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 3"* ]] && [[ "$KERNEL" != *"microso
 fi
 
 OVOS_FEATURES=$(whiptail --separate-output --title "$TITLE" \
-  --checklist "$CONTENT" --cancel-button "$CANCEL_BUTTON" --ok-button "$OK_BUTTON" --yes-button "$OK_BUTTON" 25 80 "${#features[@]}" "${features[@]}" 3>&1 1>&2 2>&3)
+  --checklist "$CONTENT" --cancel-button "$CANCEL_BUTTON" --ok-button "$OK_BUTTON" --yes-button "$OK_BUTTON" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#features[@]}" "${features[@]}" 3>&1 1>&2 2>&3)
 
 for FEATURE in $OVOS_FEATURES; do
   case "$FEATURE" in

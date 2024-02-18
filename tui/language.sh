@@ -11,7 +11,7 @@ whiptail_args=(
   --title "Open Voice OS Installation - Language"
   --radiolist "$message"
   --cancel-button "Exit"
-  25 80 "${#available_languages[@]}"
+  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_languages[@]}"
 )
 
 for language in "${available_languages[@]}"; do

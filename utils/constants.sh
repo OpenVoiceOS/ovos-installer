@@ -39,6 +39,8 @@ declare -a SCENARIO_ALLOWED_HIVEMIND_OPTIONS=(host port key password)
 export SCENARIO_ALLOWED_HIVEMIND_OPTIONS
 export SCENARIO_NAME="scenario.yaml"
 export SCENARIO_PATH=""
+export TUI_WINDOW_HEIGHT="35"
+export TUI_WINDOW_WIDTH="80"
 export USER_ID="$EUID"
 export WSL_FILE=/etc/wsl.conf
 export YQ_BINARY_PATH=/tmp/yq
