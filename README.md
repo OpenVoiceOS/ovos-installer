@@ -12,6 +12,17 @@ sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main
 
 Then follow the instructions display on screen.
 
+### Supported Linux distributions
+
+- Debian
+- Ubuntu
+- Raspbian
+- Fedora
+- Rocky
+- CentOS
+- Opensuse-tumbleweed
+- Opensuse-leap
+
 ## Update
 
 To update the current Open Voice OS instance, backup your `~/.config/mycroft/mycroft.conf` or `~/ovos/config/mycroft.conf` _(only if required)_ and re-run installer but answer **"No"** to the _"Do you want to uninstall Open Voice OS?"_ question.
