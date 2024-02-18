@@ -79,6 +79,8 @@
         "state": "{{ true if ovos_installer_profile == 'satellite' else false }}",
       }
   when: item.state | bool
+  tags:
+    - skip_ansible_lint
 
 # We are not using the file module but the command module because of performances "issue".
 # file module takes about 50 seconds on slow devices to finish.
