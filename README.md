@@ -14,15 +14,18 @@ Then follow the instructions display on screen.
 
 ### Supported Linux distributions
 
-- CentOS >= 8
-- Debian GNU/Linux >= 10
-- Fedora >= 37
-- openSUSE Leap >= 15
-- openSUSE Tumbleweed
-- Raspbian & Raspberry Pi OS
-- Rocky Linux >= 8
-- Ubuntu >= 20.4
-- WSL2
+| Distribution        | Version   |
+| ------------------- | --------- |
+| CentOS              | `>= 8`    |
+| Debian GNU/Linux    | `>= 10`   |
+| Fedora              | `>= 37`   |
+| openSUSE Leap       | `>= 15`   |
+| openSUSE Tumbleweed | `N/A`     |
+| Raspbian            | `N/A`     |
+| Raspberry Pi OS     | `N/A`     |
+| Rocky Linux         | `>=8`     |
+| Ubuntu              | `>=20.04` |
+| WSL2                | `N/A`     |
 
 ## Update
 
