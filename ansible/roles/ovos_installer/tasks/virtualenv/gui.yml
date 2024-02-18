@@ -57,7 +57,7 @@
   when: ansible_os_family == "RedHat"
 
 - name: Install package requirements for ovos-gui
-  ansible.builtin.zypper:
+  community.general.zypper:
     name:
       - cmake
       - extra-cmake-modules

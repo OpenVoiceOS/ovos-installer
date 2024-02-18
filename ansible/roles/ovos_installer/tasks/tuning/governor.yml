@@ -17,7 +17,7 @@
     - always
 
 - name: Handle cpupower package
-  ansible.builtin.zypper:
+  community.general.zypper:
     name: kernel-tools
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Suse"

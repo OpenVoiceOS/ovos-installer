@@ -17,7 +17,7 @@
     - always
 
 - name: Handle systemd-zram-generator
-  ansible.builtin.zypper:
+  community.general.zypper:
     name: systemd-zram-generator
     install_recommends: false
     state: "{{ ovos_installer_uninstall }}"

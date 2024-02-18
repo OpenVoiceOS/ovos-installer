@@ -6,7 +6,7 @@
     runrefresh: true
 
 - name: Install Docker Engine
-  ansible.builtin.zypper:
+  community.general.zypper:
     name:
       - docker
       - docker-rootless-extras

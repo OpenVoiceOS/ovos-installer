@@ -61,7 +61,7 @@
     - always
 
 - name: Handle virtualenv package requirements (ovos/hivemind)
-  ansible.builtin.zypper:
+  community.general.zypper:
     name:
       - gcc-c++
       - swig
