@@ -22,7 +22,6 @@
       - qml-module-qtwebengine
       - qml-module-qtmultimedia
       - qml-module-qtquick-shapes
-      - qml-module-termwidget
       - qmltermwidget-common
       - qtvirtualkeyboard-plugin
       - libqt5multimedia5
