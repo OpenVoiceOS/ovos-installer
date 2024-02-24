@@ -13,7 +13,7 @@ Environment="QT_QUICK_CONTROLS_STYLE=OpenVoiceStyle"
 Environment="QT_FILE_SELECTORS=ovos"
 Environment="QT_QPA_EGLFS_HIDECURSOR=1"
 WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
-ExecStart=/usr/bin/ovos-shell
+ExecStart=/usr/bin/{{ 'ovos-shell' if ovos_installer_display_server == "N/A" else 'ovos-gui-app' }}
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s KILL $MAINPID
 Restart=on-failure
