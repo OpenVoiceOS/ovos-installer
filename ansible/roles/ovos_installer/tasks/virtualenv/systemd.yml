@@ -13,6 +13,13 @@
   notify: "{{ _notify_systemd_scope }}"
   loop:
     - {
+        "unit": "ovos.service",
+        "dest": "{{ _path_user }}/ovos.service",
+        "scope": "user",
+        "user": "{{ ovos_installer_user }}",
+        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
+      }
+    - {
         "unit": "ovos-messagebus.service",
         "dest": "{{ _path_user }}/ovos-messagebus.service",
         "scope": "user",
@@ -91,6 +98,12 @@
     scope: "{{ item.scope }}"
   loop:
     - {
+        "unit": "ovos.service",
+        "scope": "user",
+        "user": "{{ ovos_installer_user }}",
+        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
+      }
+    - {
         "unit": "ovos-messagebus.service",
         "scope": "user",
         "user": "{{ ovos_installer_user }}",
@@ -167,6 +180,11 @@
         scope: "{{ item.scope }}"
       loop:
         - {
+            "unit": "ovos.service",
+            "scope": "user",
+            "user": "{{ ovos_installer_user }}",
+          }
+        - {
             "unit": "ovos-messagebus.service",
             "scope": "user",
             "user": "{{ ovos_installer_user }}",
@@ -227,6 +245,7 @@
         - Reload Udev
         - Reload Systemd User
       loop:
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos.service"
         - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-messagebus.service"
         - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-core.service"
         - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-phal.service"

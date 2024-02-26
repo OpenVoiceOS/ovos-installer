@@ -1,0 +1,13 @@
+[Unit]
+Documentation=https://openvoiceos.github.io/ovos-docker/about/what-is-it/
+Description=Open Voice OS
+After=network-online.target
+Requires={{ _detect_sound_server.stdout }}.socket
+
+[Service]
+Type=oneshot
+ExecStart=/bin/true
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

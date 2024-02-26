@@ -1,7 +1,7 @@
 [Unit]
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-phal
 Description=Open Voice OS - PHAL Admin
-After=network.target
+After=network-online.target
 
 [Service]
 Environment=XDG_CONFIG_HOME={{ ovos_installer_user_home }}/.config

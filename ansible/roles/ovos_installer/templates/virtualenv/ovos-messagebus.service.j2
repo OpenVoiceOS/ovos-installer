@@ -1,15 +1,16 @@
 [Unit]
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-messagebus
 Description=Open Voice OS - Message bus service
-After=network.target
+PartOf=ovos.service
+Requires=ovos.service
 
 [Service]
-WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
-ExecStart={{ ovos_installer_user_home }}/.venvs/ovos/bin/ovos-messagebus
+WorkingDirectory=%h/.venvs/ovos
+ExecStart=%h/.venvs/ovos/bin/ovos-messagebus
 ExecReload=/bin/kill -s HUP $MAINPID
 ExecStop=/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec=5s
 
 [Install]
-WantedBy=default.target
+WantedBy=ovos.service
