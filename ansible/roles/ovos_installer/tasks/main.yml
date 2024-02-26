@@ -26,6 +26,9 @@
   ansible.builtin.import_tasks: virtualenv/main.yml
   when: ovos_installer_method == "virtualenv" or ovos_installer_cleaning | bool
 
+- name: Include finalize.yml
+  ansible.builtin.import_tasks: finalize.yml
+
 - name: Include telemetry.yml
   ansible.builtin.import_tasks: telemetry.yml
   when: ovos_installer_telemetry | bool

@@ -1,0 +1,8 @@
+---
+- name: Restore /etc/pip.conf configuration
+  ansible.builtin.lineinfile:
+    dest: /etc/pip.conf
+    regexp: (?i)^\s*#\s*(extra-index.*)
+    line: \1
+    backrefs: yes
+  when: ansible_architecture == "aarch64" or "'Raspberry Pi 5' in ovos_installer_raspberrypi"
