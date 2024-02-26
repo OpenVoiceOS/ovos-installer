@@ -12,6 +12,9 @@ Environment="QT_FONT_DPI=120"
 Environment="QT_QUICK_CONTROLS_STYLE=OpenVoiceStyle"
 Environment="QT_FILE_SELECTORS=ovos"
 Environment="QT_QPA_EGLFS_HIDECURSOR=1"
+{% if "Raspberry Pi 5" in ovos_installer_raspberrypi %}
+Environment="QT_QPA_EGLFS_KMS_CONFIG=%h/.config/ovos-eglfs.json"
+{% endif %}
 WorkingDirectory=%h/.venvs/ovos
 ExecStart=/usr/bin/{{ 'ovos-shell' if ovos_installer_display_server == "N/A" else 'ovos-gui-app' }}
 ExecReload=/bin/kill -s HUP $MAINPID

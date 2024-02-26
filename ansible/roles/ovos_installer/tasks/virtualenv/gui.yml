@@ -143,6 +143,18 @@
     - /opt/ovos-shell
     - /opt/lottie
 
+- name: EGLFS requirements when running on Raspberry Pi 5
+  ansible.builtin.copy:
+    content: |
+      {
+        "device": "/dev/dri/card1"
+      }
+    dest: "{{ ovos_installer_user_home }}/.config/ovos-eglfs.json"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_user }}"
+    mode: "0600"
+  when: "'Raspberry Pi 5' in ovos_installer_raspberrypi"
+
 - name: Remove compiled GUI components
   ansible.builtin.file:
     path: "{{ item }}"
@@ -155,6 +167,7 @@
     - /usr/share/OVOS
     - /usr/lib64/qt5/qml/org/kde/lottie
     - /usr/lib/aarch64-linux-gnu/qt5/qml/org/kde/lottie
+    - "{{ ovos_installer_user_home }}/.config/ovos-eglfs.json"
   when: ovos_installer_cleaning | bool
   tags:
     - uninstall
