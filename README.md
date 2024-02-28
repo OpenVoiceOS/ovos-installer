@@ -15,9 +15,11 @@ Then follow the instructions display on screen.
 ### Supported Linux distributions
 
 | Distribution        | Version   |
-|---------------------| --------- |
+| ------------------- | --------- |
+| Arch                | `N/A`     |
 | CentOS              | `>= 8`    |
 | Debian GNU/Linux    | `>= 10`   |
+| EndeavourOS         | `N/A`     |
 | Fedora              | `>= 37`   |
 | openSUSE Leap       | `>= 15`   |
 | openSUSE Tumbleweed | `N/A`     |
