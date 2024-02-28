@@ -7,7 +7,7 @@
     name:
       - pipewire
       - pipewire-alsa
-      - pulseaudio-utils
+      - "{{ 'libpulse' if ansible_os_family == 'Archlinux' else 'pulseaudio-utils' }}"
       - alsa-utils
   register: _pipewire_install
   when:
