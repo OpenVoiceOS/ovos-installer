@@ -24,6 +24,14 @@
   tags:
     - always
 
+- name: Handle kernel-tools package on Arch Linux
+  ansible.builtin.pacman:
+    name: linux-tools
+    state: "{{ ovos_installer_uninstall }}"
+  when: ansible_os_family == "Arch"
+  tags:
+    - always
+
 - name: Check for existing CPU governor configuration
   ansible.builtin.stat:
     path: "{{ _ovos_installer_cpu_governor_config }}"
