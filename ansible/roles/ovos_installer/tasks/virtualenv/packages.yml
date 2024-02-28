@@ -80,7 +80,7 @@
     - always
 
 - name: Handle virtualenv package requirements (ovos/hivemind)
-  ansible.builtin.pacman:
+  community.general.pacman:
     name:
       - base-devel
       - swig

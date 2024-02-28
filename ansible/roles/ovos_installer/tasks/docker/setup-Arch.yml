@@ -12,7 +12,7 @@
     mode: "0644"
 
 - name: Update package cache and install Docker Engine
-  ansible.builtin.pacman:
+  community.general.pacman:
     name:
       - docker
       - docker-compose

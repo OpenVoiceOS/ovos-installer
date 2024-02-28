@@ -87,7 +87,7 @@
   when: ansible_os_family == "Suse"
 
 - name: Install package requirements for ovos-gui
-  ansible.builtin.pacman:
+  community.general.pacman:
     name:
       - cmake
       - extra-cmake-modules
