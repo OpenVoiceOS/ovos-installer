@@ -24,8 +24,8 @@ Then follow the instructions display on screen.
 | openSUSE Leap       | `>= 15`   |
 | openSUSE Tumbleweed | `N/A`     |
 | Manjaro             | `N/A`     |
-| Raspbian            | `N/A`     |
-| Raspberry Pi OS     | `N/A`     |
+| Raspbian            | `10`      |
+| Raspberry Pi OS     | `>= 11`   |
 | Rocky Linux         | `>=8`     |
 | Ubuntu              | `>=20.04` |
 | WSL2                | `N/A`     |
