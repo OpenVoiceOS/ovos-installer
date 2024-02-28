@@ -1,8 +1,4 @@
 ---
-- name: Detect Arch Linux distribution
-  ansible.builtin.set_fact:
-    os_distribution: "arch"
-
 - name: Update package cache and install Docker Engine
   community.general.pacman:
     name:
