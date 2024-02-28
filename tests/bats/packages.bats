@@ -143,7 +143,7 @@ EOF
 @test "function_required_packages_unknown" {
     DISTRO_NAME="unknown"
     run required_packages
-    assert_output --partial "Operating systemd not supported."
+    assert_output --partial "Operating system not supported."
 }
 
 function teardown() {
