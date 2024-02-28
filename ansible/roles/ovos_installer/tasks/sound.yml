@@ -46,6 +46,7 @@
   when:
     - not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
     - ansible_os_family != "Suse"
+    - ansible_os_family != "Archlinux"
 
 - name: Enable lingering for {{ ovos_installer_user }}
   ansible.builtin.file:
