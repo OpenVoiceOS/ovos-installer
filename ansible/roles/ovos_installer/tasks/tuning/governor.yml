@@ -42,7 +42,7 @@
     path: "{{ _ovos_installer_cpu_governor_config }}"
     regexp: "^CPU_DEFAULT_GOVERNOR="
     line: 'CPU_DEFAULT_GOVERNOR="performance"'
-  when: _cpu_governor_config.stat.exists
+  when: _cpu_governor_config.stat.exists | bool
 
 - name: Copy cpu-governor systemd unit file
   ansible.builtin.copy:
