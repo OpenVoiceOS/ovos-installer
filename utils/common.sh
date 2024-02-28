@@ -226,8 +226,10 @@ function create_python_venv() {
     echo -ne "➤ Creating installer Python virtualenv... "
     # Disable https://www.piwheels.org/simple when aarch64 CPU architecture
     # or Raspberry Pi 5 board are detected.
-    if [ "$ARCH" == "aarch64" ] || [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 5"* ]]; then
-        sed -e '/extra-index/ s/^#*/#/g' -i /etc/pip.conf &>>"$LOG_FILE"
+    if [ -f /etc/pip.conf ]; then
+        if [ "$ARCH" == "aarch64" ] || [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 5"* ]]; then
+            sed -e '/extra-index/ s/^#*/#/g' -i /etc/pip.conf &>>"$LOG_FILE"
+        fi
     fi
 
     if [ ! -d "$VENV_PATH" ]; then
