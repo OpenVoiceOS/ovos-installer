@@ -21,7 +21,7 @@ Then follow the instructions display on screen.
 | Fedora              | `>= 37`   |
 | openSUSE Leap       | `>= 15`   |
 | openSUSE Tumbleweed | `N/A`     |
-| Arch                | `N/A`     |
+| Manjaro             | `N/A`     |
 | Raspbian            | `N/A`     |
 | Raspberry Pi OS     | `N/A`     |
 | Rocky Linux         | `>=8`     |

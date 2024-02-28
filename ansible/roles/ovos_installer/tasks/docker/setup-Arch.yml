@@ -3,14 +3,6 @@
   ansible.builtin.set_fact:
     os_distribution: "arch"
 
-- name: Retrieve docker-ce repository file
-  ansible.builtin.get_url:
-    url: "https://download.docker.com/linux/{{ os_distribution }}/docker-ce.repo"
-    dest: /etc/pacman.d/docker-ce.repo
-    owner: root
-    group: root
-    mode: "0644"
-
 - name: Update package cache and install Docker Engine
   community.general.pacman:
     name:

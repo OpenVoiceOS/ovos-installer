@@ -102,11 +102,11 @@
       - qtermwidget
       - kdeconnect
       - kirigami2
-      - ki18n
-      - kconfig
-      - kdbusaddons
-      - kiconthemes
-      - kguiaddons
+      - ki18n5
+      - kconfig5
+      - kdbusaddons5
+      - kiconthemes5
+      - kguiaddons5
   when: ansible_os_family == "Arch"
 
 - name: Clone GUI repositories
