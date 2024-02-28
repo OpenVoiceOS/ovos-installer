@@ -212,7 +212,7 @@ function required_packages() {
         ;;
     arch | manjaro | endeavouros)
         export PYTHON_VERSION
-        pacman -Sy --noconfirm python python-pip python-virtualenv newt expect jq &>>"$LOG_FILE"
+        pacman -Sy --noconfirm python python-pip python-virtualenv libnewt expect jq &>>"$LOG_FILE"
         ;;
     *)
         echo -e "[$fail_format]"
