@@ -121,6 +121,25 @@ EOF
     assert_failure
 }
 
+
+@test "function_required_packages_manjaro" {
+    DISTRO_NAME="manjaro"
+    function pacman() {
+        exit 0
+    }
+    run required_packages
+    assert_success
+}
+
+@test "function_required_packages_manjaro_fail" {
+    DISTRO_NAME="manjaro"
+    function pacman() {
+        exit 1
+    }
+    run required_packages
+    assert_failure
+}
+
 @test "function_required_packages_unknown" {
     DISTRO_NAME="unknown"
     run required_packages
