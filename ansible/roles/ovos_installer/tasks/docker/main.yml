@@ -20,6 +20,12 @@
     - ansible_os_family == "Suse"
     - "'docker-ce' not in ansible_facts.packages"
 
+- name: Include docker/setup-Arch.yml
+  ansible.builtin.import_tasks: docker/setup-Arch.yml
+  when:
+    - ansible_os_family == "Arch"
+    - "'docker' not in ansible_facts.packages"
+
 - name: Include docker/common.yml
   ansible.builtin.import_tasks: docker/common.yml
 

@@ -1,0 +1,7 @@
+---
+- name: Update package cache and install Docker Engine
+  community.general.pacman:
+    name:
+      - docker
+      - docker-compose
+    update_cache: true

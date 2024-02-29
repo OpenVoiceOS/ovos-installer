@@ -25,6 +25,14 @@
   tags:
     - always
 
+- name: Handle systemd-zram-generator on Arch Linux
+  community.general.pacman:
+    name: systemd-zram-generator
+    state: "{{ ovos_installer_uninstall }}"
+  when: ansible_os_family == "Arch"
+  tags:
+    - always
+
 - name: Copy zram-generator.conf systemd configuration file
   ansible.builtin.copy:
     src: tuning/zram-generator.conf

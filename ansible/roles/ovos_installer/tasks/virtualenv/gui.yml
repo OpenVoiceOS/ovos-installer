@@ -86,6 +86,29 @@
       - plasma-framework-devel
   when: ansible_os_family == "Suse"
 
+- name: Install package requirements for ovos-gui
+  community.general.pacman:
+    name:
+      - cmake
+      - extra-cmake-modules
+      - gettext
+      - qmltermwidget
+      - qt5-websockets
+      - qt5-declarative
+      - qt5-multimedia
+      - qt5-webview
+      - qt5-webengine
+      - qt5-virtualkeyboard
+      - qtermwidget
+      - kdeconnect
+      - kirigami2
+      - ki18n5
+      - kconfig5
+      - kdbusaddons5
+      - kiconthemes5
+      - kguiaddons5
+  when: ansible_os_family == "Arch"
+
 - name: Clone GUI repositories
   ansible.builtin.git:
     repo: "{{ item.url }}"

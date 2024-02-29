@@ -210,9 +210,13 @@ function required_packages() {
         export PYTHON_VERSION
         zypper install -y python311 python311-devel python3-pip python3-rpm newt expect jq &>>"$LOG_FILE"
         ;;
+    arch | manjaro | endeavouros)
+        export PYTHON_VERSION
+        pacman -Sy --noconfirm python python-pip python-virtualenv libnewt expect jq &>>"$LOG_FILE"
+        ;;
     *)
         echo -e "[$fail_format]"
-        echo "Operating systemd not supported." | tee -a "$LOG_FILE"
+        echo "Operating system not supported." | tee -a "$LOG_FILE"
         exit 1
         ;;
     esac

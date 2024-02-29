@@ -78,3 +78,23 @@
   when: ansible_os_family == "Suse"
   tags:
     - always
+
+- name: Handle virtualenv package requirements (ovos/hivemind)
+  community.general.pacman:
+    name:
+      - base-devel
+      - swig
+      - libfann
+      - alsa-lib
+      - pulseaudio
+      - portaudio
+      - mpg123
+      - sox
+      - flac
+      - vlc
+      - libxslt
+      - openblas
+    state: "{{ ovos_installer_uninstall }}"
+  when: ansible_os_family == "Arch"
+  tags:
+    - always

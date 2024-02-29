@@ -16,13 +16,16 @@ Then follow the instructions display on screen.
 
 | Distribution        | Version   |
 | ------------------- | --------- |
+| Arch                | `N/A`     |
 | CentOS              | `>= 8`    |
 | Debian GNU/Linux    | `>= 10`   |
+| EndeavourOS         | `N/A`     |
 | Fedora              | `>= 37`   |
 | openSUSE Leap       | `>= 15`   |
 | openSUSE Tumbleweed | `N/A`     |
-| Raspbian            | `N/A`     |
-| Raspberry Pi OS     | `N/A`     |
+| Manjaro             | `N/A`     |
+| Raspbian            | `10`      |
+| Raspberry Pi OS     | `>= 11`   |
 | Rocky Linux         | `>=8`     |
 | Ubuntu              | `>=20.04` |
 | WSL2                | `N/A`     |
