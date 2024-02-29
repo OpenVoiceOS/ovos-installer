@@ -10,6 +10,7 @@
     owner: "{{ item.user }}"
     group: "{{ item.user }}"
     mode: "0644"
+    backup: true
   notify: "{{ _notify_systemd_scope }}"
   loop:
     - {
