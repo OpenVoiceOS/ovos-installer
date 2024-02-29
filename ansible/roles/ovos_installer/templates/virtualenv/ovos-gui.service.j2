@@ -5,7 +5,7 @@ PartOf=ovos.service
 Requires=ovos.service ovos-gui-websocket.service ovos-phal.service
 
 [Service]
-Environment="QT_QPA_PLATFORM=eglfs"
+Environment="QT_QPA_PLATFORM={{ 'eglfs' if ovos_installer_display_server == "N/A" else ovos_installer_display_server | lower }}"
 Environment="QT_QPA_PLATFORMTHEME=qt5ct"
 Environment="QT_QPA_EGLFS_KMS_ATOMIC=1"
 Environment="QT_FONT_DPI=120"
