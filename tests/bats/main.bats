@@ -11,7 +11,7 @@ function setup() {
 @test "function_on_error_detected" {
     run on_error
     assert_failure
-    assert_output --partial "Please check $LOG_FILE for more details"
+    assert_output --partial "Please share this URL with us"
 }
 
 @test "function_delete_log_if_exist" {

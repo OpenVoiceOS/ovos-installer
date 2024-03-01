@@ -58,9 +58,18 @@ EOF
     assert_success
 }
 
-@test "function_required_packages_rhel" {
-    DISTRO_NAME="rhel"
-    function dnf() {
+@test "function_required_packages_manjaro" {
+    DISTRO_NAME="manjaro"
+    function pacman() {
+        exit 0
+    }
+    run required_packages
+    assert_success
+}
+
+@test "function_required_packages_opensuse" {
+    DISTRO_NAME="opensuse-leap"
+    function zypper() {
         exit 0
     }
     run required_packages
@@ -112,28 +121,18 @@ EOF
     assert_failure
 }
 
-@test "function_required_packages_rhel_fail" {
-    DISTRO_NAME="rhel"
-    function dnf() {
+@test "function_required_packages_manjaro_fail" {
+    DISTRO_NAME="manjaro"
+    function pacman() {
         exit 1
     }
     run required_packages
     assert_failure
 }
 
-
-@test "function_required_packages_manjaro" {
-    DISTRO_NAME="manjaro"
-    function pacman() {
-        exit 0
-    }
-    run required_packages
-    assert_success
-}
-
-@test "function_required_packages_manjaro_fail" {
-    DISTRO_NAME="manjaro"
-    function pacman() {
+@test "function_required_packages_opensuse_fail" {
+    DISTRO_NAME="pensuse-leap"
+    function zypper() {
         exit 1
     }
     run required_packages
