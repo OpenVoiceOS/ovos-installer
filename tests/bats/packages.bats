@@ -22,6 +22,15 @@ EOF
     assert_success
 }
 
+@test "function_required_packages_raspbian" {
+    DISTRO_NAME="raspbian"
+    function apt-get() {
+        exit 0
+    }
+    run required_packages
+    assert_success
+}
+
 @test "function_required_packages_ubuntu" {
     DISTRO_NAME="ubuntu"
     function apt-get() {
@@ -67,8 +76,26 @@ EOF
     assert_success
 }
 
-@test "function_required_packages_opensuse" {
+@test "function_required_packages_arch" {
+    DISTRO_NAME="arch"
+    function pacman() {
+        exit 0
+    }
+    run required_packages
+    assert_success
+}
+
+@test "function_required_packages_opensuse_leap" {
     DISTRO_NAME="opensuse-leap"
+    function zypper() {
+        exit 0
+    }
+    run required_packages
+    assert_success
+}
+
+@test "function_required_packages_opensuse_tumbleweed" {
+    DISTRO_NAME="opensuse-tumbleweed"
     function zypper() {
         exit 0
     }
@@ -78,6 +105,15 @@ EOF
 
 @test "function_required_packages_debian_fail" {
     DISTRO_NAME="debian"
+    function apt-get() {
+        exit 1
+    }
+    run required_packages
+    assert_failure
+}
+
+@test "function_required_packages_raspbian_fail" {
+    DISTRO_NAME="raspbian"
     function apt-get() {
         exit 1
     }
@@ -130,8 +166,26 @@ EOF
     assert_failure
 }
 
-@test "function_required_packages_opensuse_fail" {
-    DISTRO_NAME="pensuse-leap"
+@test "function_required_packages_arch_fail" {
+    DISTRO_NAME="arch"
+    function pacman() {
+        exit 1
+    }
+    run required_packages
+    assert_failure
+}
+
+@test "function_required_packages_opensuse_leap_fail" {
+    DISTRO_NAME="opensuse-leap"
+    function zypper() {
+        exit 1
+    }
+    run required_packages
+    assert_failure
+}
+
+@test "function_required_packages_opensuse_tumbleweed_fail" {
+    DISTRO_NAME="opensuse-leap"
     function zypper() {
         exit 1
     }
