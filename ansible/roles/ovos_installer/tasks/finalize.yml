@@ -15,6 +15,8 @@
     - _pip_conf.stat.exists | bool
 
 - name: Configuration drift detection
+  vars:
+    _drift: "{{ 'true' if _configuration.changed | bool else 'false' }}"
   ansible.builtin.debug:
     msg: The "mycroft.conf" configuration file has been restored, existing file has been backup.
-  when: _configuration.changed | bool
+  when: _drift | bool
