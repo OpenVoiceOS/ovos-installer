@@ -1,7 +1,7 @@
 ---
 - name: Detect Debian based distribution
   ansible.builtin.set_fact:
-    os_distribution: "{{ 'debian' if (ansible_distribution == 'Debian') else 'ubuntu' }}"
+    os_distribution: "{{ 'ubuntu' if (ansible_distribution != 'Debian') else 'debian' }}"
 
 - name: Install required packages
   ansible.builtin.apt:
