@@ -21,7 +21,7 @@ Then follow the instructions display on screen.
 | Debian GNU/Linux    | `>= 10`   |
 | EndeavourOS         | `N/A`     |
 | Fedora              | `>= 37`   |
-| Linux Mint          | `>=21`    |
+| Linux Mint          | `>= 21`   |
 | openSUSE Leap       | `>= 15`   |
 | openSUSE Tumbleweed | `N/A`     |
 | Manjaro             | `N/A`     |
