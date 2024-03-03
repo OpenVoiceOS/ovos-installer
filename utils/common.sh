@@ -14,7 +14,7 @@ function on_error() {
     debug_url="$(curl -sF 'sprunge=<-' http://sprunge.us <"$LOG_FILE")"
     echo -e "[$fail_format]"
     echo -e "\nUnable to continue the process, please check $LOG_FILE for more details."
-    echo -e "\nPlease share this URL with us $debug_url"
+    echo -e "Please share this URL with us $debug_url"
     exit 1
 }
 
