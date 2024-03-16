@@ -17,8 +17,8 @@ Environment="QT_QPA_EGLFS_KMS_CONFIG=%h/.config/ovos-eglfs.json"
 {% endif %}
 WorkingDirectory=%h/.venvs/ovos
 ExecStart=/usr/bin/{{ 'ovos-shell' if ovos_installer_display_server == "N/A" else 'ovos-gui-app' }}
-ExecReload=/bin/kill -s HUP $MAINPID
-ExecStop=/bin/kill -s KILL $MAINPID
+ExecReload=/usr/bin/kill -s HUP $MAINPID
+ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec=5s
 

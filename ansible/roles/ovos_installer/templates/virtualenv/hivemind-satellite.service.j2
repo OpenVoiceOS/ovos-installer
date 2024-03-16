@@ -7,8 +7,8 @@ Requires={{ _detect_sound_server.stdout }}.socket
 [Service]
 WorkingDirectory=%h/.venvs/ovos
 ExecStart=%h/.venvs/ovos/bin/hivemind-voice-sat --key {{ ovos_installer_satellite_key }} --password {{ ovos_installer_satellite_password }} --host {{ ovos_installer_listener_host }} --port {{ ovos_installer_listener_port | default(5678) }}
-ExecReload=/bin/kill -s HUP $MAINPID
-ExecStop=/bin/kill -s KILL $MAINPID
+ExecReload=/usr/bin/kill -s HUP $MAINPID
+ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec=5s
 

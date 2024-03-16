@@ -7,8 +7,8 @@ Requires=ovos.service
 [Service]
 WorkingDirectory=%h/.venvs/ovos
 ExecStart=%h/.venvs/ovos/bin/hivemind-core listen
-ExecReload=/bin/kill -s HUP $MAINPID
-ExecStop=/bin/kill -s KILL $MAINPID
+ExecReload=/usr/bin/kill -s HUP $MAINPID
+ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec=5s
 
