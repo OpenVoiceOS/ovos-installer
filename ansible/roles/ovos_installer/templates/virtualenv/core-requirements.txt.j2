@@ -1,5 +1,8 @@
 ovos-audio[extras]
 ovos-audio-plugin-simple
+{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
+ovos-audio-transformer-plugin-ggwave
+{% endif %}
 ovos-core[lgpl]
 {% if ovos_installer_cpu_is_capable | bool %}
 ovos-dinkum-listener[extras]
@@ -44,10 +47,4 @@ git+https://github.com/OpenVoiceOS/ovos-utterance-plugin-cancel
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 onnxruntime
 vosk
-{% endif %}
-
-# Extra index because for ggwave
-{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
---extra-index-url https://whl.smartgic.io
-ovos-audio-transformer-plugin-ggwave
 {% endif %}

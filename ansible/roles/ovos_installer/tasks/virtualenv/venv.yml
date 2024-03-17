@@ -49,6 +49,13 @@
     virtualenv_command: "{{ ansible_python.executable }} -m venv"
   when: not ovos_installer_cpu_is_capable | bool
 
+- name: Install ggwave Python library
+  ansible.builtin.pip:
+    name: ggwave
+    virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    extra_args: "-f 'https://whl.smartgic.io/'"
+  when: ansible_architecture == "aarch64" or ansible_architecture == "x86_64"
+
 - name: Install Open Voice OS in Python venv
   vars:
     _pip_args: "{{ '--pre' if ovos_installer_channel == 'development' else '' }}"
