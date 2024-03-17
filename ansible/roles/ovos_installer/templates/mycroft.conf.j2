@@ -17,19 +17,13 @@
     "VAD": {
       "module": "{{ 'ovos-vad-plugin-silero' if ovos_installer_cpu_is_capable | bool else 'ovos-vad-plugin-webrtcvad' }}"
     },
-{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
-    "audio_transformers": {
-      "ovos-audio-transformer-plugin-ggwave": {
-        "start_enabled": true
-      }
-    },
-{% endif %}
     "instant_listen": true
   },
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
   "skills": {
     "installer": {
-      "allow_pip": true
+      "allow_pip": true,
+      "allow_alphas": true
     }
   },
 {% endif %}

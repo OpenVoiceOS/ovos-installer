@@ -6,6 +6,9 @@ ovos-skill-personal
 ovos-skill-volume
 
 # No PyPi release
+{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
+git+https://github.com/OpenVoiceOS/ovos-skill-ggwave.git
+{% endif %}
 git+https://github.com/OpenVoiceOS/skill-ovos-boot-finished.git
 git+https://github.com/OpenVoiceOS/skill-ovos-icanhazdadjokes.git
 git+https://github.com/OpenVoiceOS/skill-ovos-weather.git

@@ -1,0 +1,16 @@
+[Unit]
+Documentation=https://github.com/OpenVoiceOS/ovos-audio-transformer-plugin-ggwave
+Description=Open Voice OS - Audio
+PartOf=ovos.service
+Requires=ovos.service ovos-messagebus.service ovos-core.service ovos-listener.service
+
+[Service]
+WorkingDirectory=%h/.venvs/ovos
+ExecStart=%h/.venvs/ovos/bin/ovos-ggwave-listener
+ExecReload=/usr/usr/bin/kill -s HUP $MAINPID
+ExecStop=/usr/usr/bin/kill -s KILL $MAINPID
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=ovos.service

@@ -70,6 +70,12 @@
         "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
       }
     - {
+        "unit": "ovos-ggwave-listener.service",
+        "dest": "{{ _path_user }}/ovos-ggwave-listener.service",
+        "user": "{{ ovos_installer_user }}",
+        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
+      }
+    - {
         "unit": "hivemind-listener.service",
         "dest": "{{ _path_user }}/hivemind-listener.service",
         "user": "{{ ovos_installer_user }}",
@@ -153,6 +159,12 @@
         "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
       }
     - {
+        "unit": "ovos-ggwave-listener.service",
+        "scope": "user",
+        "user": "{{ ovos_installer_user }}",
+        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
+      }
+    - {
         "unit": "hivemind-listener.service",
         "scope": "user",
         "user": "{{ ovos_installer_user }}",
@@ -226,6 +238,11 @@
             "user": "{{ ovos_installer_user }}",
           }
         - {
+            "unit": "ovos-ggwave-listener.service",
+            "scope": "user",
+            "user": "{{ ovos_installer_user }}",
+          }
+        - {
             "unit": "hivemind-listener.service",
             "scope": "user",
             "user": "{{ ovos_installer_user }}",
@@ -254,6 +271,7 @@
         - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-audio.service"
         - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-gui-websocket.service"
         - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-gui.service"
+        - "{{ ovos_installer_user_home }}/.config/systemd/user/ovos-ggwave-listener.service"
         - "{{ ovos_installer_user_home }}/.config/systemd/user/hivemind-listener.service"
         - "{{ ovos_installer_user_home }}/.config/systemd/user/hivemind-satellite.service"
         - /etc/systemd/system/ovos-phal-admin.service
