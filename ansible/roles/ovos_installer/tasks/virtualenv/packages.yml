@@ -33,7 +33,7 @@
       - libopenblas-dev
       - pkg-config
       - libicu-dev
-      - portaudio-dev
+      - portaudio19-dev
     install_recommends: false
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
