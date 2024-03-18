@@ -33,6 +33,7 @@
       - libopenblas-dev
       - pkg-config
       - libicu-dev
+      - portaudio-dev
     install_recommends: false
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
@@ -55,6 +56,7 @@
       - openblas-serial
       - pkgconf-pkg-config
       - libicu-devel
+      - portaudio-devel
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
   tags:
@@ -74,6 +76,7 @@
       - flac
       - vlc
       - libopenblas_serial-devel
+      - portaudio-devel
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Suse"
   tags:
