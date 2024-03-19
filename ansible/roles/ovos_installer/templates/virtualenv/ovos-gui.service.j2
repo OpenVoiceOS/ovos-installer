@@ -12,7 +12,7 @@ Environment="QT_FONT_DPI=120"
 Environment="QT_QUICK_CONTROLS_STYLE=OpenVoiceStyle"
 Environment="QT_FILE_SELECTORS=ovos"
 Environment="QT_QPA_EGLFS_HIDECURSOR=1"
-{% if "Raspberry Pi 5" in ovos_installer_raspberrypi %}
+{% if "Raspberry Pi 5" in ovos_installer_raspberrypi and ovos_installer_display_server == "N/A" %}
 Environment="QT_QPA_EGLFS_KMS_CONFIG=%h/.config/ovos-eglfs.json"
 {% endif %}
 WorkingDirectory=%h/.venvs/ovos
