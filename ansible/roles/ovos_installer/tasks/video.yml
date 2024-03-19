@@ -7,3 +7,17 @@
   loop:
     - video
     - render
+
+- name: EGLFS requirements when running on Raspberry Pi 5
+  vars:
+    _configuration_path: "{{ '.config' if ovos_installer_method == 'virtualenv' else 'ovos/config' }}"
+  ansible.builtin.copy:
+    content: |
+      {
+        "device": "/dev/dri/card1"
+      }
+    dest: "{{ ovos_installer_user_home }}/{{ _configuration_path }}/ovos-eglfs.json"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_user }}"
+    mode: "0600"
+  when: "'Raspberry Pi 5' in ovos_installer_raspberrypi"
