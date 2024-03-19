@@ -10,7 +10,7 @@
 
 - name: EGLFS requirements when running on Raspberry Pi 5
   vars:
-    _configuration_path: "{{ '.config' if ovos_installer_method == 'virtualenv' else 'ovos/config' }}"
+    _configuration_path: "{{ '.config/mycroft' if ovos_installer_method == 'virtualenv' else 'ovos/config' }}"
   ansible.builtin.copy:
     content: |
       {
