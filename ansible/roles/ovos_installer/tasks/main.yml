@@ -8,12 +8,12 @@
 - name: Include sound.yml
   ansible.builtin.import_tasks: sound.yml
 
+- name: Include ovos.yml
+  ansible.builtin.import_tasks: ovos.yml
+
 - name: Include video.yml
   ansible.builtin.import_tasks: video.yml
   when: ovos_installer_feature_gui | bool
-
-- name: Include ovos.yml
-  ansible.builtin.import_tasks: ovos.yml
 
 - name: Include timezone.yml
   ansible.builtin.import_tasks: timezone.yml
