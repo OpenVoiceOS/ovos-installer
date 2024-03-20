@@ -107,7 +107,7 @@
       - kdbusaddons5
       - kiconthemes5
       - kguiaddons5
-  when: ansible_os_family == "Arch"
+  when: ansible_os_family == "Archlinux"
 
 - name: Clone GUI repositories
   ansible.builtin.git:
