@@ -82,12 +82,15 @@
   tags:
     - always
 
+# Package on Archlinux OS family will not be uninstalled as it might
+# break the system...
 - name: Handle virtualenv package requirements (ovos/hivemind)
   community.general.pacman:
     name:
       - base-devel
       - swig
       - fann
+      - alsa-lib
       - portaudio
       - mpg123
       - sox
@@ -97,5 +100,3 @@
       - openblas
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Archlinux"
-  tags:
-    - always
