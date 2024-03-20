@@ -89,7 +89,6 @@
       - swig
       - fann
       - alsa-lib
-      - pulseaudio
       - portaudio
       - mpg123
       - sox
