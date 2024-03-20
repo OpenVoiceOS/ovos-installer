@@ -87,7 +87,7 @@
     name:
       - base-devel
       - swig
-      - libfann
+      - fann
       - alsa-lib
       - pulseaudio
       - portaudio
