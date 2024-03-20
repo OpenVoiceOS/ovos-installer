@@ -21,4 +21,4 @@
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_user }}"
     mode: "0600"
-  when: "'Raspberry Pi 5' in ovos_installer_raspberrypi"
+  when: "'Raspberry Pi 5' in ovos_installer_raspberrypi ovos_installer_display_server == 'N/A'"
