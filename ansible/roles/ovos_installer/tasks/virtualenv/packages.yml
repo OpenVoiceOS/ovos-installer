@@ -88,7 +88,6 @@
       - base-devel
       - swig
       - fann
-      - alsa-lib
       - portaudio
       - mpg123
       - sox
