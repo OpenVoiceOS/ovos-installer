@@ -29,7 +29,7 @@
   community.general.pacman:
     name: systemd-zram-generator
     state: "{{ ovos_installer_uninstall }}"
-  when: ansible_os_family == "Arch"
+  when: ansible_os_family == "Archlinux"
   tags:
     - always
 
