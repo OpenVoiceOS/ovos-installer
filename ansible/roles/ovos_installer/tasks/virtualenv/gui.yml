@@ -92,6 +92,8 @@
       - cmake
       - extra-cmake-modules
       - gettext
+      - plasma-framework5
+      - kio5
       - qmltermwidget
       - qt5-websockets
       - qt5-declarative
