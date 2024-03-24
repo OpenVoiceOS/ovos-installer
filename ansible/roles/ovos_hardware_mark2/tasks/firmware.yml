@@ -1,0 +1,58 @@
+---
+# This block is only meaningful until kernel 6.6.22 becomes
+# the default Raspberry Pi kernel.
+- name: Block kernel upgrade
+  block:
+    - name: Kernel headers packages requirement
+      ansible.builtin.apt:
+        name:
+          - bc
+          - bison
+          - flex
+          - libssl-dev
+        install_recommends: false
+        update_cache: true
+
+    - name: Update kernel and firmware
+      ansible.builtin.shell:
+        cmd: |
+          echo y | rpi-update
+        executable: /bin/bash
+      environment:
+        PRUNE_MODULES: "1"
+        SKIP_BACKUP: "1"
+      changed_when: no
+
+    - name: Retrieve rpi-source Python script
+      ansible.builtin.get_url:
+        url: "{{ _ovos_hardware_mark2_rpi_source_url }}"
+        dest: /usr/local/bin/rpi-source
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Build kernel headers
+      ansible.builtin.shell:
+        cmd: |
+          rpi-source -q --tag-update
+          rpi-source -d /usr/src
+        executable: /bin/bash
+      changed_when: no
+  when: ansible_kernel is version("6.6.22", "<")
+
+- name: Install kernel headers
+  ansible.builtin.apt:
+    name: raspberrypi-kernel-headers
+    install_recommends: false
+    update_cache: true
+
+- name: Set EEPROM release
+  ansible.builtin.lineinfile:
+    path: /etc/default/rpi-eeprom-update
+    regexp: "^FIRMWARE_RELEASE_STATUS="
+    line: 'FIRMWARE_RELEASE_STATUS="{{ ovos_hardware_mark2_eeprom }}"'
+
+- name: Update EEPROM
+  ansible.builtin.command: |
+    rpi-eeprom-update -a
+  changed_when: no

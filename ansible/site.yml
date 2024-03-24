@@ -16,4 +16,9 @@
         - always
 
   roles:
+    - role: ovos_hardware_mark2
+      when:
+        - ansible_distribution == "Debian"
+        - ansible_distribution_version is version('11' '>=')
+        - "'Raspberry Pi 4' in ovos_installer_raspberrypi or 'Raspberry Pi 5' in ovos_installer_raspberrypi"
     - role: ovos_installer
