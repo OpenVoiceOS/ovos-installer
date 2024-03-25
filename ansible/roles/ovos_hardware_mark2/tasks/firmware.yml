@@ -37,6 +37,7 @@
     - name: Build kernel headers
       ansible.builtin.shell:
         cmd: |
+          set -o pipefail
           rpi-source -q --tag-update
           echo -e -n "\r" | rpi-source -d /usr/src
         executable: /bin/bash
