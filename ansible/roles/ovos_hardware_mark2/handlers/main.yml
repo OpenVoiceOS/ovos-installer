@@ -5,3 +5,7 @@
   ansible.builtin.systemd_service:
     daemon_reload: true
     scope: user
+
+- name: Run Depmod
+  ansible.builtin.command:
+    cmd: depmod -a
