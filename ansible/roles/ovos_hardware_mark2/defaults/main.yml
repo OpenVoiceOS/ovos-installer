@@ -1,4 +1,4 @@
 ---
 ovos_hardware_mark2_eeprom_release: latest
 ovos_hardware_mark2_vocalfusion_repo_url: https://github.com/BohdanBuinich/VocalFusionDriver
-ovos_hardware_mark2_vocalfusion_branch: 6.6.x
+ovos_hardware_mark2_vocalfusion_branch: next_gen
