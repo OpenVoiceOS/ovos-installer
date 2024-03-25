@@ -40,7 +40,8 @@
         cmd: |
           set -o pipefail
           rpi-source -q --tag-update
-          echo -e -n "\r" | rpi-source -d /usr/src/ --delete
+          echo -e -n "\r" | sudo rpi-source -d /usr/src/ --delete
+          ln -s /usr/src/linux {{ _ovos_hardware_mark2_lib_modules_path }}/build
         executable: /bin/bash
       changed_when: no
 
