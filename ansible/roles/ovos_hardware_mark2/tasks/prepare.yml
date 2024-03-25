@@ -3,8 +3,8 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ ovos_installer_user_home }}"
-    group: "{{ ovos_installer_user_home }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_user }}"
     mode: "0755"
   loop:
     - /opt/sj201

@@ -15,13 +15,13 @@
     owner: root
     group: root
     mode: "0755"
-    remote: true
+    remote_src: true
   loop:
     - sj201
     - sj201-buttons-overlay
     - sj201-rev10-pwm-fan-overlay
 
-- name: Manage VocalFusion overlays
+- name: Manage sj201, buttons and PWM overlays
   ansible.builtin.lineinfile:
     path: /boot/firmware/config.txt
     regexp: "^{{ item }}="
@@ -39,8 +39,9 @@
       depmod -a
     executable: /bin/bash
     chdir: /usr/src/vocalfusion/driver
+  changed_when: false
 
-- name: Create vocalfusion module file
+- name: Create /etc/modules-load.d/vocalfusion.conf file
   ansible.builtin.copy:
     content: |
       vocalfusion-soundcard
@@ -54,24 +55,35 @@
     name:
       - Adafruit-Blinka
       - smbus2
+      - RPi.GPIO
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/sj201"
     virtualenv_command: "{{ ansible_python.executable }} -m venv"
 
 - name: Download SJ201 firmware and scripts
   ansible.builtin.get_url:
-    url: "{{ item }}"
-    dest: "/opt/sj201/{{ item }}"
+    url: "{{ item.url }}"
+    dest: "/opt/sj201/{{ item.dest }}"
     owner: root
     group: root
     mode: "0755"
   loop:
-    - https://raw.githubusercontent.com/OpenVoiceOS/ovos-buildroot/0e464466194f58553af11c34f7435dba76ec70a3/buildroot-external/package/vocalfusion/xvf3510-flash
-    - https://github.com/OpenVoiceOS/ovos-buildroot/blob/c67d7f0b7f2a3eff5faab96d6adf7495e9b48b93/buildroot-external/package/vocalfusion/app_xvf3510_int_spi_boot_v4_2_0.bin
+    - {
+        "url": "https://raw.githubusercontent.com/OpenVoiceOS/ovos-buildroot/0e464466194f58553af11c34f7435dba76ec70a3/buildroot-external/package/vocalfusion/xvf3510-flash",
+        "dest": "xvf3510-flash",
+      }
+    - {
+        "url": "https://github.com/OpenVoiceOS/ovos-buildroot/blob/c67d7f0b7f2a3eff5faab96d6adf7495e9b48b93/buildroot-external/package/vocalfusion/app_xvf3510_int_spi_boot_v4_2_0.bin",
+        "dest": "app_xvf3510_int_spi_boot_v4_2_0.bin",
+      }
+    - {
+        "url": "https://raw.githubusercontent.com/MycroftAI/mark-ii-hardware-testing/main/utils/init_tas5806.py",
+        "dest": "init_tas5806",
+      }
 
 - name: Copy SJ201 systemd unit file
   ansible.builtin.template:
     src: sj201.service.j2
-    dest: "{{ ovos_installer_user }}/.config/systemd/user/sj201.service"
+    dest: "{{ ovos_installer_user_home }}/.config/systemd/user/sj201.service"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_user }}"
     mode: "0644"
@@ -89,3 +101,8 @@
     enabled: true
     force: true
     scope: user
+
+- name: Delete /usr/src/vocalfusion once compiled
+  ansible.builtin.file:
+    path: /usr/src/vocalfusion
+    state: absent
