@@ -57,17 +57,6 @@
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/sj201"
     virtualenv_command: "{{ ansible_python.executable }} -m venv"
 
-- name: Create directories
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ ovos_installer_user_home }}"
-    group: "{{ ovos_installer_user_home }}"
-    mode: "0755"
-  loop:
-    - /opt/sj201
-    - "{{ ovos_installer_user_home }}/.config/systemd/user"
-
 - name: Download SJ201 firmware and scripts
   ansible.builtin.get_url:
     url: "{{ item }}"

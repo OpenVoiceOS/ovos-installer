@@ -1,0 +1,12 @@
+---
+- name: Create directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ovos_installer_user_home }}"
+    group: "{{ ovos_installer_user_home }}"
+    mode: "0755"
+  loop:
+    - /opt/sj201
+    - "{{ ovos_installer_user_home }}/.config/systemd/user"
+    - "{{ ovos_installer_user_home }}/.config/wireplumber/main.lua.d"
