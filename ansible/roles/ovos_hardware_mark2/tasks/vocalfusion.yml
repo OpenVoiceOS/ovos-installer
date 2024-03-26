@@ -22,10 +22,12 @@
     - sj201-rev10-pwm-fan-overlay
 
 - name: Manage sj201, buttons and PWM overlays
+  vars:
+    _is_rpi5: "{{ '-pi5' if 'Raspberry Pi 5' in ovos_installer_raspberrypi else '' }}"
   ansible.builtin.lineinfile:
     path: /boot/firmware/config.txt
     regexp: "^{{ item }}="
-    line: "{{ item }}"
+    line: "{{ item }}{{ _is_rpi5 }}"
   loop:
     - dtoverlay=sj201
     - dtoverlay=sj201-buttons-overlay
