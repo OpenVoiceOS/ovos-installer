@@ -349,16 +349,17 @@ function ver() {
 # This function takes an argument like "2f", this will be converted
 # to "0x2f".
 function i2c_get() {
-    if i2cget -y "$I2C_BUS" "0x$1" &>>"$LOG_FILE"; then
+    if i2cdetect -y -a "$I2C_BUS" "0x$1" "0x$1" 2>>"$LOG_FILE" | grep -qE "($1|UU)"; then
         return 0
     fi
+    return 1
 }
 
 # Scan the I2C bus to find any supported devices
 # This function will only run if a Raspberry Pi board is detected.
 function i2c_scan() {
     if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
-        echo -ne "➤ Scan I2C bus for auto-detection... "
+        echo -ne "➤ Scan I2C bus for hardware auto-detection... "
         for device in "${!SUPPORTED_DEVICES[@]}"; do
             address="${SUPPORTED_DEVICES[$device]}"
             if i2c_get "$address"; then
