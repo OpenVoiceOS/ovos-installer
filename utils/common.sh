@@ -349,7 +349,7 @@ function ver() {
 # This function takes an argument like "2f", this will be converted
 # to "0x2f".
 function i2c_get() {
-    if i2cdetect -y -a "$I2C_BUS" "0x$1" "0x$1" 2>>"$LOG_FILE" | grep -qE "($1|UU)"; then
+    if i2cdetect -y -a "$I2C_BUS" "0x$1" "0x$1" 2>>"$LOG_FILE" | grep -q "$1"; then
         return 0
     fi
     return 1
