@@ -79,7 +79,7 @@
         "dest": "xvf3510-flash",
       }
     - {
-        "url": "https://github.com/OpenVoiceOS/ovos-buildroot/blob/c67d7f0b7f2a3eff5faab96d6adf7495e9b48b93/buildroot-external/package/vocalfusion/app_xvf3510_int_spi_boot_v4_2_0.bin",
+        "url": "https://raw.githubusercontent.com/OpenVoiceOS/ovos-buildroot/c67d7f0b7f2a3eff5faab96d6adf7495e9b48b93/buildroot-external/package/vocalfusion/app_xvf3510_int_spi_boot_v4_2_0.bin",
         "dest": "app_xvf3510_int_spi_boot_v4_2_0.bin",
       }
     - {
@@ -94,10 +94,9 @@
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_user }}"
     mode: "0644"
-    backup: true
   notify: Reload Systemd User
 
-- name: Flush handlers ovos
+- name: Flush handlers vocalfusion
   ansible.builtin.meta: flush_handlers
 
 - name: Enable SJ201 systemd unit

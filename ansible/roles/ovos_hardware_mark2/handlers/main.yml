@@ -8,4 +8,5 @@
 
 - name: Run Depmod
   ansible.builtin.command:
-    cmd: depmod -a
+    cmd: depmod -a 6.6.22-v8+
+  changed_when: false
