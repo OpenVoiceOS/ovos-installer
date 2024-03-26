@@ -111,6 +111,20 @@
   loop:
     - { "line": "VIRTUAL_ENV={{ _path }}", "regexp": "^VIRTUAL_ENV" }
     - { "line": "PATH=$PATH:{{ _path }}", "regexp": "^PATH" }
+  wneh: ovos_installer_i2c_devices | from_json | length < 1
+  tags:
+    - always
+
+- name: Add auto Python virtualenv loading on auto-detected devices
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_installer_user_home }}/.bashrc"
+    line: "source {{ ovos_installer_user_home }}/.venvs/ovos/bin/activate"
+    regexp: "^source {{ ovos_installer_user_home }}/.venvs/ovos/bin/activate"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_user }}"
+    mode: "0644"
+    state: "{{ ovos_installer_uninstall }}"
+  wneh: ovos_installer_i2c_devices | from_json | length > 1
   tags:
     - always
 
