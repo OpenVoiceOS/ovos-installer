@@ -6,6 +6,9 @@
   user: "{{ ovos_installer_user }}"
   become: true
 
+  vars:
+    ovos_installer_reboot: false
+
   pre_tasks:
     - name: Gather reduced subset of facts
       ansible.builtin.setup:
@@ -24,3 +27,13 @@
         - "'tas5806' in ovos_installer_i2c_devices"
         - ansible_architecture == "aarch64"
     - role: ovos_installer
+
+  tasks:
+    - name: Checking for reboot requirement
+      ansible.builtin.file:
+        path: "{{ ovos_installer_reboot_file_path }}"
+        state: touch
+        owner: root
+        group: root
+        mode: "0644"
+      when: ovos_installer_reboot | bool

@@ -34,6 +34,7 @@ export NEWT_COLORS="
 "
 export OS_RELEASE=/etc/os-release
 export PULSE_SOCKET_WSL2=/mnt/wslg/PulseServer
+export REBOOT_FILE_PATH=/tmp/ovos.reboot
 declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry profile method uninstall rapsberry_pi_tuning hivemind)
 export SCENARIO_ALLOWED_OPTIONS
 declare -ra SCENARIO_ALLOWED_FEATURES=(skills gui)

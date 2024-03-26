@@ -26,6 +26,7 @@
       environment:
         SKIP_BACKUP: "1"
         UPDATE_SELF: "1"
+      register: _firmware_status
       changed_when: no
 
     - name: Retrieve rpi-source Python script
@@ -46,9 +47,12 @@
         executable: /bin/bash
       changed_when: no
 
-    - name: Set _ovos_hardware_mark2_reboot fact
+    - name: Set ovos_installer_reboot fact (firmware)
+      vars:
+        _firmware_reboot: "{{ _firmware_status.stdout | regex_search('reboot') }}"
       ansible.builtin.set_fact:
-        _ovos_hardware_mark2_reboot: true
+        ovos_installer_reboot: true
+      when: _firmware_status is defined and _firmware_reboot | length > 0
 
 - name: Install kernel headers
   ansible.builtin.apt:
@@ -65,4 +69,12 @@
 - name: Update EEPROM
   ansible.builtin.command:
     cmd: rpi-eeprom-update -a
+  register: _eeprom_status
   changed_when: no
+
+- name: Set ovos_installer_reboot fact (EEPROM)
+  vars:
+    _eeprom_reboot: "{{ _eeprom_status.stdout | regex_search('reboot') }}"
+  ansible.builtin.set_fact:
+    ovos_installer_reboot: true
+  when: _eeprom_status is defined and _eeprom_reboot | length > 0

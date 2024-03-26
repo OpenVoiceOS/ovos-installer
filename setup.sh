@@ -104,6 +104,7 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_telemetry=${SHARE_TELEMETRY}" \
   -e "ovos_installer_locale=${LOCALE:-en-us}" \
   -e "ovos_installer_i2c_devices=$(jq -c -n '$ARGS.positional' --args "${DETECTED_DEVICES[@]}")" \
+  -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \
   "${ansible_tags[@]}" "${ansible_debug[@]}" | tee -a "$LOG_FILE"
 
 # Retrieve the ansible-playbook status code before tee command and check for success or failure
@@ -112,6 +113,10 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     if [ "$SCENARIO_FOUND" == "false" ]; then
       # shellcheck source=tui/finish.sh
       source tui/finish.sh
+      if [ -f "$REBOOT_FILE_PATH" ]; then
+        rm -f "$REBOOT_FILE_PATH"
+        shutdown -r now
+      fi
     fi
   else
     rm -rf "$VENV_PATH"
