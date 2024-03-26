@@ -1,7 +1,8 @@
 ---
 # This block is only meaningful until kernel 6.6.22 becomes
-# the default Raspberry Pi kernel.
-# The current stock kernel version is 6.6.20.
+# the default Raspberry Pi stock kernel.
+# The current stock kernel version is 6.6.20 which does not work
+# with the VocalFusionDriver.
 # rpi-firmware commit f17defccf231912cfe96c9d3a779b4e2d006abd6 (6.6.22)
 - name: Block kernel upgrade
   when: ansible_kernel is version("6.6.22", "<")
@@ -44,6 +45,10 @@
           ln -sf /usr/src/linux {{ _ovos_hardware_mark2_lib_modules_path }}/build
         executable: /bin/bash
       changed_when: no
+
+    - name: Set _ovos_hardware_mark2_reboot fact
+      ansible.builtin.set_fact:
+        _ovos_hardware_mark2_reboot: true
 
 - name: Install kernel headers
   ansible.builtin.apt:
