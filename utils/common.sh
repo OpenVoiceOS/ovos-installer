@@ -359,7 +359,9 @@ function i2c_get() {
 # This function will only run if a Raspberry Pi board is detected.
 function i2c_scan() {
     if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
-        echo -ne "➤ Scan I2C bus for hardware auto-detection... "
+        echo -ne "➤ Scan I2C bus for hardware auto-detection..."
+        dtparam -v i2c_arm=on &>>"$LOG_FILE"
+        modprobe -v i2c-dev &>>"$LOG_FILE"
         for device in "${!SUPPORTED_DEVICES[@]}"; do
             address="${SUPPORTED_DEVICES[$device]}"
             if i2c_get "$address"; then
