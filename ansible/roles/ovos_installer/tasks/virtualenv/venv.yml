@@ -111,7 +111,7 @@
   loop:
     - { "line": "VIRTUAL_ENV={{ _path }}", "regexp": "^VIRTUAL_ENV" }
     - { "line": "PATH=$PATH:{{ _path }}", "regexp": "^PATH" }
-  wneh: ovos_installer_i2c_devices | from_json | length < 1
+  when: ovos_installer_i2c_devices | from_json | length < 1
   tags:
     - always
 
@@ -124,7 +124,7 @@
     group: "{{ ovos_installer_user }}"
     mode: "0644"
     state: "{{ ovos_installer_uninstall }}"
-  wneh: ovos_installer_i2c_devices | from_json | length > 1
+  when: ovos_installer_i2c_devices | from_json | length > 1
   tags:
     - always
 
