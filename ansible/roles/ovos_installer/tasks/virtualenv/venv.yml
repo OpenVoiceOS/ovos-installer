@@ -124,7 +124,7 @@
     group: "{{ ovos_installer_user }}"
     mode: "0644"
     state: "{{ ovos_installer_uninstall }}"
-  when: ovos_installer_i2c_devices | from_json | length > 1
+  when: ovos_installer_i2c_devices | from_json | length >= 1
   tags:
     - always
 
