@@ -8,6 +8,7 @@ Proprietà del sistema riconosciute automaticamente:
     - RPi:      $RASPBERRYPI_MODEL
     - Python:   $(echo "$PYTHON" | awk '{ print $NF }')
     - AVX/SIMD: $CPU_IS_CAPABLE
+    - Hardware: $HARDWARE_DETECTED
     - Venv:     $VENV_PATH
     - Sound:    $SOUND_SERVER
     - Display:  ${DISPLAY_SERVER^}

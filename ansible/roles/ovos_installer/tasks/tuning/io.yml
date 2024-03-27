@@ -9,7 +9,7 @@
 
 - name: Manage I2C, SPI and I2S buses
   ansible.builtin.lineinfile:
-    path: /boot/config.txt
+    path: /boot/firmware/config.txt
     regexp: "^{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   loop:

@@ -192,27 +192,34 @@ function get_os_information() {
 function required_packages() {
     echo -ne "➤ Validating installer package requirements... "
     PYTHON_VERSION="$MAX_PYTHON_VERSION"
+
+    # Add extra packages if a Raspberry Pi board is detected
+    declare extra_packages
+    if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
+        extra_packages+=("i2c-tools")
+    fi
+
     case "$DISTRO_NAME" in
     debian | ubuntu | raspbian | linuxmint)
         [ "$DISTRO_VERSION_ID" == "11" ] && export PYTHON_VERSION="3"
         apt-get update &>>"$LOG_FILE"
-        apt-get install --no-install-recommends -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" python3-pip "python${PYTHON_VERSION}-venv" whiptail expect jq &>>"$LOG_FILE"
+        apt-get install --no-install-recommends -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" python3-pip "python${PYTHON_VERSION}-venv" whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     fedora)
         export PYTHON_VERSION
-        dnf install -y python3.11 python3.11-devel python3-pip python3-virtualenv newt expect jq &>>"$LOG_FILE"
+        dnf install -y python3.11 python3.11-devel python3-pip python3-virtualenv newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     rocky | centos)
         export PYTHON_VERSION
-        dnf install -y python3.11 python3.11-devel python3-pip newt expect jq &>>"$LOG_FILE"
+        dnf install -y python3.11 python3.11-devel python3-pip newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     opensuse-tumbleweed | opensuse-leap)
         export PYTHON_VERSION
-        zypper install -y python311 python311-devel python3-pip python3-rpm newt expect jq &>>"$LOG_FILE"
+        zypper install -y python311 python311-devel python3-pip python3-rpm newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     arch | manjaro | endeavouros)
         export PYTHON_VERSION
-        pacman -Sy --noconfirm python python-pip python-virtualenv libnewt expect jq &>>"$LOG_FILE"
+        pacman -Sy --noconfirm python python-pip python-virtualenv libnewt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     *)
         echo -e "[$fail_format]"
@@ -336,4 +343,39 @@ function wsl2_requirements() {
 function ver() {
     # shellcheck disable=SC2046
     printf "%03d" $(echo "$1" | tr '.' ' ')
+}
+
+# Check if an hexacidemal address exists on the I2C bus
+# This function takes an argument like "2f", this will be converted
+# to "0x2f".
+function i2c_get() {
+    if i2cdetect -y -a "$I2C_BUS" "0x$1" "0x$1" 2>>"$LOG_FILE" | grep -q "$1"; then
+        return 0
+    fi
+    return 1
+}
+
+# Scan the I2C bus to find any supported devices
+# This function will only run if a Raspberry Pi board is detected.
+function i2c_scan() {
+    if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
+        echo -ne "➤ Scan I2C bus for hardware auto-detection..."
+
+        # Load I2C requirements if not ready, nothing persistent here as
+        # it will be handled later by the Ansible playbook.
+        if ! dtparam -l | grep -q i2c_arm=on; then
+            dtparam -v i2c_arm=on &>>"$LOG_FILE"
+        fi
+        if ! lsmod | grep -q i2c-dev; then
+            modprobe -v i2c-dev &>>"$LOG_FILE"
+        fi
+
+        for device in "${!SUPPORTED_DEVICES[@]}"; do
+            address="${SUPPORTED_DEVICES[$device]}"
+            if i2c_get "$address"; then
+                DETECTED_DEVICES+=("$device")
+            fi
+        done
+        echo -e "[$done_format]"
+    fi
 }

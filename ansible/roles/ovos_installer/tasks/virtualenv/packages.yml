@@ -37,8 +37,6 @@
     install_recommends: false
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Debian"
-  tags:
-    - always
 
 - name: Handle virtualenv package requirements (ovos/hivemind)
   ansible.builtin.dnf:
@@ -59,8 +57,6 @@
       - portaudio-devel
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
-  tags:
-    - always
 
 - name: Handle virtualenv package requirements (ovos/hivemind)
   community.general.zypper:
@@ -79,8 +75,6 @@
       - portaudio-devel
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Suse"
-  tags:
-    - always
 
 # Package on Archlinux OS family will not be uninstalled as it might
 # break the system...
