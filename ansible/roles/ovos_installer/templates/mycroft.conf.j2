@@ -37,6 +37,22 @@
   "websocket": {
     "max_msg_size": {{ 100 if ovos_installer_feature_gui | bool and ovos_installer_method == "containers" else 25 }}
   },
+  "PHAL": {
+{% if 'tas5806' in ovos_installer_i2c_devices %}
+    "ovos-PHAL-plugin-hotkeys": {
+      "debug": true,
+      "key_down": {
+        "mycroft.mic.listen": 143,
+        "mycroft.mic.mute": 113,
+        "mycroft.volume.increase": 115,
+        "mycroft.volume.decrease": 114
+      },
+      "key_up": {
+        "mycroft.mic.unmute": 113
+      }
+    }
+{% endif %}
+  },
   "tts": {
     "ovos-tts-plugin-server": {
       {% if ovos_installer_locale == "de-de" %}
