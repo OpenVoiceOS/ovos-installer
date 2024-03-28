@@ -8,5 +8,6 @@
 
 - name: Run Depmod
   ansible.builtin.command:
-    cmd: depmod -a 6.6.22-v8+
+    cmd: |
+      depmod -a {{ _ovos_hardware_mark2_kernel_target }}
   changed_when: false
