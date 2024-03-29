@@ -65,6 +65,7 @@
       - Adafruit-Blinka
       - smbus2
       - RPi.GPIO
+      - gpiod
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/sj201"
     virtualenv_command: "{{ ansible_python.executable }} -m venv"
 
