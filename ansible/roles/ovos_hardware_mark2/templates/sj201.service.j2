@@ -1,0 +1,16 @@
+[Unit]
+Documentation=https://github.com/MycroftAI/mark-ii-hardware-testing/blob/main/README.md
+Description=SJ201 microphone initialization
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/.venvs/sj201
+ExecStart=%h/.venvs/sj201/bin/python /opt/sj201/xvf3510-flash --direct /opt/sj201/app_xvf3510_int_spi_boot_v4_2_0.bin --verbose
+ExecStartPost=%h/.venvs/sj201/bin/python /opt/sj201/init_tas5806
+Restart=on-failure
+RestartSec=5s
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

@@ -1,6 +1,9 @@
 #!/bin/env bash
 
+declare -a DETECTED_DEVICES
+export DETECTED_DEVICES
 export DT_FILE=/sys/firmware/devicetree/base/model
+export I2C_BUS="1"
 export INSTALLER_VENV_NAME="ovos-installer"
 export LOG_FILE=/var/log/ovos-installer.log
 export MAX_PYTHON_VERSION="3.11"
@@ -31,14 +34,19 @@ export NEWT_COLORS="
 "
 export OS_RELEASE=/etc/os-release
 export PULSE_SOCKET_WSL2=/mnt/wslg/PulseServer
-declare -a SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry profile method uninstall rapsberry_pi_tuning hivemind)
+export REBOOT_FILE_PATH=/tmp/ovos.reboot
+declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry profile method uninstall rapsberry_pi_tuning hivemind)
 export SCENARIO_ALLOWED_OPTIONS
-declare -a SCENARIO_ALLOWED_FEATURES=(skills gui)
+declare -ra SCENARIO_ALLOWED_FEATURES=(skills gui)
 export SCENARIO_ALLOWED_FEATURES
-declare -a SCENARIO_ALLOWED_HIVEMIND_OPTIONS=(host port key password)
+declare -ra SCENARIO_ALLOWED_HIVEMIND_OPTIONS=(host port key password)
 export SCENARIO_ALLOWED_HIVEMIND_OPTIONS
 export SCENARIO_NAME="scenario.yaml"
 export SCENARIO_PATH=""
+declare -rA SUPPORTED_DEVICES=(
+    ["tas5806"]="2f" #https://www.ti.com/product/TAS5806MD
+)
+export SUPPORTED_DEVICES
 export TUI_WINDOW_HEIGHT="35"
 export TUI_WINDOW_WIDTH="80"
 export USER_ID="$EUID"
