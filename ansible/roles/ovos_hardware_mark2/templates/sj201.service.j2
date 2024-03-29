@@ -1,9 +1,7 @@
 [Unit]
 Documentation=https://github.com/MycroftAI/mark-ii-hardware-testing/blob/main/README.md
 Description=SJ201 microphone initialization
-Before=basic.target
-After=local-fs.target sysinit.target
-DefaultDependencies=no
+After=network-online.target
 
 [Service]
 Type=oneshot
@@ -15,4 +13,4 @@ RestartSec=5s
 RemainAfterExit=yes
 
 [Install]
-WantedBy=basic.target
+WantedBy=default.target
