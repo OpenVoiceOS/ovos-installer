@@ -113,6 +113,7 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     if [ "$SCENARIO_FOUND" == "false" ]; then
       # shellcheck source=tui/finish.sh
       source tui/finish.sh
+      rm -rf "$VENV_PATH"
       if [ -f "$REBOOT_FILE_PATH" ]; then
         rm -f "$REBOOT_FILE_PATH"
         shutdown -r now
