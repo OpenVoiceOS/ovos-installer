@@ -6,6 +6,9 @@ source "tui/locales/$LOCALE/profiles.sh"
 active_profile="ovos"
 available_profiles=(ovos satellite listener)
 
+# adding back button
+available_profiles+=($BACK_BUTTON)
+
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
@@ -25,6 +28,11 @@ for method in "${available_profiles[@]}"; do
 done
 
 PROFILE=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
+# Logic to go back to  screen
+if [ "$PROFILE" == $BACK_BUTTON ]; then
+  source tui/channels.sh
+  source tui/profiles.sh
+fi
 export PROFILE
 
 if [ -z "$PROFILE" ]; then

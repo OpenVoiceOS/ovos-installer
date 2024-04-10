@@ -23,6 +23,9 @@ if [ "$EXISTING_INSTANCE" == "true" ]; then
   available_methods=("$INSTANCE_TYPE")
 fi
 
+# adding back button
+available_methods+=($BACK_BUTTON)
+
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
@@ -42,6 +45,11 @@ for method in "${available_methods[@]}"; do
 done
 
 METHOD=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
+# Logic to go back to detection screen
+if [ "$METHOD" == $BACK_BUTTON ]; then
+  source tui/detection.sh
+  source tui/methods.sh
+fi
 export METHOD
 
 if [ -z "$METHOD" ]; then

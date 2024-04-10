@@ -6,6 +6,9 @@ source "tui/locales/$LOCALE/channels.sh"
 active_channel="development"
 available_channels=(development)
 
+# adding back button
+available_channels+=($BACK_BUTTON)
+
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
@@ -25,6 +28,11 @@ for channel in "${available_channels[@]}"; do
 done
 
 CHANNEL=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
+# Logic to go back to methods screen
+if [ "$CHANNEL" == $BACK_BUTTON ]; then
+  source tui/methods.sh
+  source tui/channels.sh
+fi
 export CHANNEL
 
 if [ -z "$CHANNEL" ]; then
