@@ -12,7 +12,7 @@ whiptail_args=(
   --cancel-button "$CANCEL_BUTTON"
   --ok-button "$OK_BUTTON"
   --yes-button "$OK_BUTTON"
-  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_channels[@]}"
+  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$((${#available_channels[@]} + 1))"
 )
 
 for channel in "${available_channels[@]}"; do
