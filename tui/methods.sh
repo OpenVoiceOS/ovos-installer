@@ -26,10 +26,10 @@ fi
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
-  --cancel-button "$CANCEL_BUTTON"
+  --cancel-button "$BACK_BUTTON"
   --ok-button "$OK_BUTTON"
   --yes-button "$OK_BUTTON"
-  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$((${#available_methods[@]} + 1))"
+  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_methods[@]}"
 )
 
 for method in "${available_methods[@]}"; do
@@ -41,25 +41,10 @@ for method in "${available_methods[@]}"; do
   fi
 done
 
-# Add back button
-whiptail_args+=("$BACK_BUTTON" "")
-if [[ $BACK_BUTTON = "$active_method" ]]; then
-  whiptail_args+=("on")
-else
-  whiptail_args+=("off")
-fi
-
-
 METHOD=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
-
-# Logic to go back to detection screen
-if [ "$METHOD" == "$BACK_BUTTON" ]; then
-  source tui/detection.sh
-  source tui/methods.sh
-fi
-
 export METHOD
 
 if [ -z "$METHOD" ]; then
-  exit 0
+  source tui/detection.sh
+  source tui/methods.sh
 fi

@@ -9,10 +9,10 @@ available_channels=(development)
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
-  --cancel-button "$CANCEL_BUTTON"
+  --cancel-button "$BACK_BUTTON"
   --ok-button "$OK_BUTTON"
   --yes-button "$OK_BUTTON"
-  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$((${#available_channels[@]} + 1))"
+  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_channels[@]}"
 )
 
 for channel in "${available_channels[@]}"; do
@@ -24,22 +24,10 @@ for channel in "${available_channels[@]}"; do
   fi
 done
 
-# Add back button
-whiptail_args+=("$BACK_BUTTON" "")
-if [[ $BACK_BUTTON = "$active_method" ]]; then
-  whiptail_args+=("on")
-else
-  whiptail_args+=("off")
-fi
-
 CHANNEL=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
-# Logic to go back to methods screen
-if [ "$CHANNEL" == "$BACK_BUTTON" ]; then
-  source tui/methods.sh
-  source tui/channels.sh
-fi
 export CHANNEL
 
 if [ -z "$CHANNEL" ]; then
-  exit 0
+  source tui/methods.sh
+  source tui/channels.sh
 fi
