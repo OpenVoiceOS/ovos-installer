@@ -12,7 +12,18 @@ if [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 3"* ]] && [[ "$KERNEL" != *"microso
 fi
 
 OVOS_FEATURES=$(whiptail --separate-output --title "$TITLE" \
-  --checklist "$CONTENT" --cancel-button "$CANCEL_BUTTON" --ok-button "$OK_BUTTON" --yes-button "$OK_BUTTON" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#features[@]}" "${features[@]}" 3>&1 1>&2 2>&3)
+  --checklist "$CONTENT" --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" --yes-button "$OK_BUTTON" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#features[@]}" "${features[@]}" 3>&1 1>&2 2>&3)
+
+exit_status=$?
+
+if [ $exit_status != 0 ]; then
+  source tui/profiles.sh
+  if [[ "$PROFILE" == "satellite" ]]; then
+      source tui/satellite/main.sh
+  else
+      source tui/features.sh
+  fi
+fi
 
 for FEATURE in $OVOS_FEATURES; do
   case "$FEATURE" in
@@ -24,8 +35,3 @@ for FEATURE in $OVOS_FEATURES; do
     ;;
   esac
 done
-
-exit_status=$?
-if [ "$exit_status" -eq 1 ]; then
-  exit 0
-fi
