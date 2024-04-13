@@ -23,9 +23,6 @@ ovos-plugin-manager[offline]
 ovos-plugin-vlc
 ovos-translate-server-plugin
 ovos-stt-plugin-vosk
-{% if ovos_installer_cpu_is_capable | bool %}
-ovos-vad-plugin-silero
-{% endif %}
 ovos-ww-plugin-pocketsphinx
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 ovos-ww-plugin-openwakeword
@@ -45,6 +42,9 @@ git+https://github.com/OpenVoiceOS/ovos-stt-plugin-chromium.git
 git+https://github.com/OpenVoiceOS/ovos-tts-plugin-polly.git
 git+https://github.com/OpenVoiceOS/ovos-utterance-corrections-plugin.git
 git+https://github.com/OpenVoiceOS/ovos-utterance-plugin-cancel
+{% if ovos_installer_cpu_is_capable | bool %}
+git+https://github.com/OpenVoiceOS/ovos-vad-plugin-silero.git
+{% endif %}
 
 # Non-OVOS libraries
 #neon-mana-utils #Commented until PyYAML requirement is fixed
