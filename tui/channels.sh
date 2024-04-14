@@ -9,7 +9,7 @@ available_channels=(development)
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
-  --cancel-button "$CANCEL_BUTTON"
+  --cancel-button "$BACK_BUTTON"
   --ok-button "$OK_BUTTON"
   --yes-button "$OK_BUTTON"
   "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_channels[@]}"
@@ -28,5 +28,6 @@ CHANNEL=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
 export CHANNEL
 
 if [ -z "$CHANNEL" ]; then
-  exit 0
+  source tui/methods.sh
+  source tui/channels.sh
 fi

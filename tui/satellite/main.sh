@@ -3,14 +3,31 @@
 # shellcheck source=../locales/en-us/satellite.sh
 source "tui/locales/$LOCALE/satellite.sh"
 
-# shellcheck source=host.sh
-source tui/satellite/host.sh
+BACK_STATUS=0
+current_index=0
+scripts=("tui/satellite/host.sh" "tui/satellite/port.sh" "tui/satellite/key.sh" "tui/satellite/password.sh")
 
-# shellcheck source=port.sh
-source tui/satellite/port.sh
+while :; do
+    if [ "$BACK_STATUS" -eq 1 ]; then
+        break
+    fi
 
-# shellcheck source=key.sh
-source tui/satellite/key.sh
+    # shellcheck source="${scripts[$current_index]}"
+    source "${scripts[$current_index]}"
 
-# shellcheck source=password.sh
-source tui/satellite/password.sh
+    if [ "$BACK_STATUS" -eq 1 ]; then
+        break
+    fi
+
+    if [ "$BACK_STATUS" -eq -1 ]; then
+        BACK_STATUS=0
+        if [ "$current_index" -eq 0 ]; then
+            source tui/features.sh
+            break
+        else
+            current_index=$((current_index - 1))
+        fi
+    else
+        current_index=$((current_index + 1))
+    fi
+done

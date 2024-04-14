@@ -9,7 +9,7 @@ available_options=(yes no)
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
-  --cancel-button "$CANCEL_BUTTON"
+  --cancel-button "$BACK_BUTTON"
   --ok-button "$OK_BUTTON"
   --yes-button "$OK_BUTTON"
   "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_options[@]}"
@@ -25,8 +25,12 @@ for option in "${available_options[@]}"; do
 done
 
 TUNING=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
-export TUNING
 
-if [ -z "$TUNING" ]; then
-  exit 0
+exit_status=$?
+
+if [ "$exit_status" -eq 0 ]; then
+  export TUNING
+else
+  source tui/features.sh
+  source tui/tuning.sh
 fi

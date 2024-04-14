@@ -9,7 +9,7 @@ available_profiles=(ovos satellite listener)
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
-  --cancel-button "$CANCEL_BUTTON"
+  --cancel-button "$BACK_BUTTON"
   --ok-button "$OK_BUTTON"
   --yes-button "$OK_BUTTON"
   "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_profiles[@]}"
@@ -28,5 +28,6 @@ PROFILE=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
 export PROFILE
 
 if [ -z "$PROFILE" ]; then
-  exit 0
+  source tui/channels.sh
+  source tui/profiles.sh
 fi

@@ -26,7 +26,7 @@ fi
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
-  --cancel-button "$CANCEL_BUTTON"
+  --cancel-button "$BACK_BUTTON"
   --ok-button "$OK_BUTTON"
   --yes-button "$OK_BUTTON"
   "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_methods[@]}"
@@ -45,5 +45,6 @@ METHOD=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
 export METHOD
 
 if [ -z "$METHOD" ]; then
-  exit 0
+  source tui/detection.sh
+  source tui/methods.sh
 fi
