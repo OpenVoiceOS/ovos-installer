@@ -4,7 +4,7 @@ SATELLITE_PASSWORD=$(whiptail --passwordbox --cancel-button "$BACK_BUTTON" --ok-
 
 exit_status=$?
 
-if [ $exit_status == 0 ]; then
+if [ "$exit_status" -eq 0 ]; then
     export SATELLITE_PASSWORD BACK_STATUS=1
 else
     export BACK_STATUS=-1

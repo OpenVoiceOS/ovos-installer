@@ -4,7 +4,7 @@ HIVEMIND_HOST=$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "
 
 exit_status=$?
 
-if [ $exit_status == 0 ]; then
+if [ "$exit_status" -eq 0 ]; then
     export HIVEMIND_HOST
 else
     source tui/profiles.sh

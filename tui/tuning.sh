@@ -28,7 +28,7 @@ TUNING=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
 
 exit_status=$?
 
-if [ $exit_status == 0 ]; then
+if [ "$exit_status" -eq 0 ]; then
   export TUNING
 else
   source tui/features.sh

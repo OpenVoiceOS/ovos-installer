@@ -16,7 +16,7 @@ OVOS_FEATURES=$(whiptail --separate-output --title "$TITLE" \
 
 exit_status=$?
 
-if [ $exit_status != 0 ]; then
+if [ "$exit_status" -ne 0 ]; then
   source tui/profiles.sh
   if [[ "$PROFILE" == "satellite" ]]; then
       source tui/satellite/main.sh
