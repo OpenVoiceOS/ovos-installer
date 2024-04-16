@@ -57,7 +57,7 @@ share_telemetry: true
 EOF
 ```
 
-Few scenarios are available as example in the [scenarios](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scanerios) directory of this repository.
+Few scenarios are available as example in the [scenarios](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scenarios) directory of this repository.
 
 ## Screenshots
 
