@@ -6,7 +6,7 @@ ovos-skill-personal
 ovos-skill-volume
 
 # No PyPi release
-{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
+{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") or (ovos_installer_profile != "server") %}
 git+https://github.com/OpenVoiceOS/ovos-skill-ggwave.git
 {% endif %}
 {% if ovos_installer_profile != "server" %}
