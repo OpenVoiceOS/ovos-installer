@@ -6,6 +6,7 @@
     "path": "stdout"
   },
 {% endif %}
+{% ovos_installer_profile != "server" %}
   "play_wav_cmdline": "{{ 'aplay' if _detect_sound_server.stdout == "pulseaudio" else 'pw-play' }} %1",
   "play_mp3_cmdline": "{{ 'paplay' if _detect_sound_server.stdout == "pulseaudio" else 'pw-play' }} %1",
   "lang": "{{ ovos_installer_locale }}",
@@ -34,6 +35,7 @@
     {% endif %}
   },
 {% endif %}
+{% endif %}
   "websocket": {
     "max_msg_size": {{ 100 if ovos_installer_feature_gui | bool and ovos_installer_method == "containers" else 25 }}
   },
@@ -51,7 +53,7 @@
       }
     }
 {% endif %}
-  },
+  }{% ovos_installer_profile != "server" %},
   "tts": {
     "ovos-tts-plugin-server": {
       {% if ovos_installer_locale == "de-de" %}
@@ -72,4 +74,5 @@
     },
     "sentence_tokenize": true
   }
+{% endif %}
 }

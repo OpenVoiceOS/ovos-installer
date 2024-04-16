@@ -1,0 +1,25 @@
+# HiveMind (no PyPi release)
+git+https://github.com/JarbasHiveMind/HiveMind-core.git
+git+https://github.com/JarbasHiveMind/HiveMind-presence.git
+git+https://github.com/JarbasHiveMind/hivemind_websocket_client.git
+
+# OVOS
+ovos-core[lgpl]
+ovos-messagebus
+
+# OVOS skills
+ovos-skill-alerts
+ovos-skill-date-time
+ovos-skill-fallback-unknown
+ovos-skill-hello-world
+ovos-skill-personal
+ovos-skill-volume
+
+# No PyPi release
+{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
+git+https://github.com/OpenVoiceOS/ovos-skill-ggwave.git
+{% endif %}
+git+https://github.com/OpenVoiceOS/skill-ovos-icanhazdadjokes.git
+git+https://github.com/OpenVoiceOS/skill-ovos-naptime.git
+git+https://github.com/OpenVoiceOS/skill-ovos-weather.git
+git+https://github.com/OpenVoiceOS/skill-ovos-wikipedia.git

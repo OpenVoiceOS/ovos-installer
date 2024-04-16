@@ -4,7 +4,7 @@
 source "tui/locales/$LOCALE/profiles.sh"
 
 active_profile="ovos"
-available_profiles=(ovos satellite listener)
+available_profiles=(ovos satellite listener server)
 
 whiptail_args=(
   --title "$TITLE"

@@ -6,6 +6,7 @@ Dans la quête actuelle du compagnon numérique idéal, nous nous trouvons à la
    - Open Voice OS: L'expérience classique Open Voice OS
    - HiveMind Satellite: Exécute les composants audio sur un appareil
    - HiveMind Listener: Hub auquel HiveMind Satellite peut se connecter
+   - Serveur: Open Voice OS Core et HiveMind Core uniquement, aucune fonctions audio
 
 Chacun de ces profils offre des fonctionnalités et des capacités uniques qui pourraient grandement améliorer votre expérience numérique.
 
