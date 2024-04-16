@@ -6,7 +6,7 @@
     "path": "stdout"
   },
 {% endif %}
-{% ovos_installer_profile != "server" %}
+{% if ovos_installer_profile != "server" %}
   "play_wav_cmdline": "{{ 'aplay' if _detect_sound_server.stdout == "pulseaudio" else 'pw-play' }} %1",
   "play_mp3_cmdline": "{{ 'paplay' if _detect_sound_server.stdout == "pulseaudio" else 'pw-play' }} %1",
   "lang": "{{ ovos_installer_locale }}",
@@ -53,7 +53,7 @@
       }
     }
 {% endif %}
-  }{% ovos_installer_profile != "server" %},
+  }{% if ovos_installer_profile != "server" %},
   "tts": {
     "ovos-tts-plugin-server": {
       {% if ovos_installer_locale == "de-de" %}
