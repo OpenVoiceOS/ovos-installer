@@ -38,15 +38,15 @@
   loop:
     - {
         "file": "docker-compose.yml",
-        "state": "{{ 'true' if (ovos_installer_profile != 'satellite' or ovos_installer_profile != 'server' and _os_type == 'linux') else 'false' }}",
+        "state": "{{ 'true' if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and _os_type == 'linux') else 'false' }}",
       }
     - {
         "file": "docker-compose.windows.yml",
-        "state": "{{ 'true' if (ovos_installer_profile != 'satellite' or ovos_installer_profile != 'server' and _os_type == 'wsl2') else 'false' }}",
+        "state": "{{ 'true' if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and _os_type == 'wsl2') else 'false' }}",
       }
     - {
         "file": "docker-compose.raspberrypi.yml",
-        "state": "{{ 'true' if (ovos_installer_profile != 'satellite' or ovos_installer_profile != 'server' and ovos_installer_raspberrypi != 'N/A') else 'false' }}",
+        "state": "{{ 'true' if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and ovos_installer_raspberrypi != 'N/A') else 'false' }}",
       }
     - {
         "file": "docker-compose.skills.yml",
@@ -58,11 +58,11 @@
       }
     - {
         "file": "docker-compose.gui.yml",
-        "state": "{{ 'true' if (ansible_memtotal_mb >= 1740 and ovos_installer_profile != 'satellite' or ovos_installer_profile != 'server' and ovos_installer_feature_gui | bool) else 'false' }}",
+        "state": "{{ 'true' if (ansible_memtotal_mb >= 1740 and ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and ovos_installer_feature_gui | bool) else 'false' }}",
       }
     - {
         "file": "docker-compose.raspberrypi.gui.yml",
-        "state": "{{ 'true' if (ansible_memtotal_mb >= 1740 and ovos_installer_profile != 'satellite' or ovos_installer_profile != 'server' and 'Raspberry Pi 4' in ovos_installer_raspberrypi and ovos_installer_feature_gui | bool) else 'false' }}",
+        "state": "{{ 'true' if (ansible_memtotal_mb >= 1740 and ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and 'Raspberry Pi 4' in ovos_installer_raspberrypi and ovos_installer_feature_gui | bool) else 'false' }}",
       }
     - {
         "file": "docker-compose.satellite.yml",
