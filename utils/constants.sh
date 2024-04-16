@@ -48,7 +48,7 @@ declare -rA SUPPORTED_DEVICES=(
 )
 export SUPPORTED_DEVICES
 export TUI_WINDOW_HEIGHT="35"
-export TUI_WINDOW_WIDTH="80"
+export TUI_WINDOW_WIDTH="90"
 export USER_ID="$EUID"
 export WSL_FILE=/etc/wsl.conf
 export YQ_BINARY_PATH=/tmp/yq
