@@ -6,14 +6,18 @@ ovos-skill-personal
 ovos-skill-volume
 
 # No PyPi release
-{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
+{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") or (ovos_installer_profile != "server") %}
 git+https://github.com/OpenVoiceOS/ovos-skill-ggwave.git
 {% endif %}
+{% if ovos_installer_profile != "server" %}
 git+https://github.com/OpenVoiceOS/skill-ovos-boot-finished.git
+{% endif %}
 git+https://github.com/OpenVoiceOS/skill-ovos-icanhazdadjokes.git
 git+https://github.com/OpenVoiceOS/skill-ovos-naptime.git
 git+https://github.com/OpenVoiceOS/skill-ovos-weather.git
 git+https://github.com/OpenVoiceOS/skill-ovos-wikipedia.git
 
 # Non-OVOS libraries
+{% if ovos_installer_profile != "server" %}
 skill-easter-eggs
+{% endif %}

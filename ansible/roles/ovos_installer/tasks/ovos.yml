@@ -27,15 +27,15 @@
     - { "directory": "{{ ovos_installer_user_home }}/ovos/tmp", "status": true }
     - {
         "directory": "{{ ovos_installer_user_home }}/hivemind",
-        "status": "{{ 'false' if ovos_installer_profile == 'ovos' else 'true' }}",
+        "status": "{{ 'false' if (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') else 'true' }}",
       }
     - {
         "directory": "{{ ovos_installer_user_home }}/hivemind/config",
-        "status": "{{ 'false' if ovos_installer_profile == 'ovos' else 'true' }}",
+        "status": "{{ 'false' if (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') else 'true' }}",
       }
     - {
         "directory": "{{ ovos_installer_user_home }}/hivemind/share",
-        "status": "{{ 'false' if ovos_installer_profile == 'ovos' else 'true' }}",
+        "status": "{{ 'false' if (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') else 'true' }}",
       }
   when:
     - item.status | bool

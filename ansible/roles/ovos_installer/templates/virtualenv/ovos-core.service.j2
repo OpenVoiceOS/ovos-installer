@@ -2,7 +2,11 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-core
 Description=Open Voice OS - Core (skills)
 PartOf=ovos.service
+{% if ovos_installer_profile != "server" %}
 Requires=ovos.service ovos-messagebus.service ovos-phal.service ovos-audio.service
+{% else %}
+Requires=ovos.service ovos-messagebus.service
+{% endif %}
 
 [Service]
 WorkingDirectory=%h/.venvs/ovos

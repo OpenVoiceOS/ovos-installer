@@ -2,7 +2,9 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/what-is-it/
 Description=Open Voice OS
 After=network-online.target
+{% if ovos_installer_profile != "server" %}
 Requires={{ _detect_sound_server.stdout }}.socket
+{% endif %}
 
 [Service]
 Type=oneshot

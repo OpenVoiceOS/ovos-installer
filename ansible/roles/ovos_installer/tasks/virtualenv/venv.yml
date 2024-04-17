@@ -1,4 +1,3 @@
----
 - name: Copy Python requirements.txt files
   ansible.builtin.template:
     src: "{{ item.file }}.j2"
@@ -10,7 +9,7 @@
     - {
         "file": "virtualenv/core-requirements.txt",
         "dest": "/tmp/core-requirements.txt",
-        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
+        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
       }
     - {
         "file": "virtualenv/gui-requirements.txt",
@@ -31,6 +30,11 @@
         "file": "virtualenv/satellite-requirements.txt",
         "dest": "/tmp/satellite-requirements.txt",
         "state": "{{ true if ovos_installer_profile == 'satellite' else false }}",
+      }
+    - {
+        "file": "virtualenv/server-requirements.txt",
+        "dest": "/tmp/server-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'server' else false }}",
       }
   when: item.state | bool
 
@@ -67,7 +71,7 @@
   loop:
     - {
         "file": "/tmp/core-requirements.txt",
-        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
+        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
       }
     - {
         "file": "/tmp/gui-requirements.txt",
@@ -85,6 +89,11 @@
         "file": "/tmp/satellite-requirements.txt",
         "state": "{{ true if ovos_installer_profile == 'satellite' else false }}",
       }
+    - {
+        "file": "/tmp/server-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'server' else false }}",
+      }
+
   when: item.state | bool
   tags:
     - skip_ansible_lint
@@ -139,6 +148,7 @@
     - /tmp/skills-requirements.txt
     - /tmp/listener-requirements.txt
     - /tmp/satellite-requirements.txt
+    - /tmp/server-requirements.txt
   when: ovos_installer_cleaning | bool
   tags:
     - uninstall

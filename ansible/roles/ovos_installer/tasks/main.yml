@@ -7,13 +7,16 @@
 
 - name: Include sound.yml
   ansible.builtin.import_tasks: sound.yml
+  when: ovos_installer_profile != "server"
 
 - name: Include ovos.yml
   ansible.builtin.import_tasks: ovos.yml
 
 - name: Include video.yml
   ansible.builtin.import_tasks: video.yml
-  when: ovos_installer_feature_gui | bool
+  when:
+    - ovos_installer_feature_gui | bool
+    - ovos_installer_profile != "server"
 
 - name: Include timezone.yml
   ansible.builtin.import_tasks: timezone.yml

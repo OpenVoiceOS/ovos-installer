@@ -6,6 +6,7 @@ Om een veelzijdig en netwerksysteem te creëren dat geschikt is voor vele toepas
   - Open Voice OS Master: de klassieke Open Voice OS-ervaring
   - HiveMind Satellite: Open Voice OS-audiocomponenten die zijn aangesloten op HiveMind Listener
   - HiveMind Listener: Hub voor HiveMind Satellite, bots, enz. om verbinding mee te maken
+  - Server: Alleen Open Voice OS Core en HiveMind Core, geen audiofuncties
 
 Elk van deze profielen biedt unieke functies en mogelijkheden die je digitale ervaring aanzienlijk kunnen verbeteren.
 
