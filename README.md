@@ -66,10 +66,6 @@ To uninstall Open Voice OS run the installer with the `--uninstall` option. even
 ```shell
 sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh -u && rm installer.sh
 ```
-or
-``` shell
-sudo ./installer.sh -u
-```
 
 
 ## Screenshots
