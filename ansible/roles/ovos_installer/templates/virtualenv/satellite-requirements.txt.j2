@@ -1,5 +1,3 @@
-HiveMind-voice-sat
-hivemind_bus_client
 {% if ovos_installer_cpu_is_capable | bool %}
 ovos-dinkum-listener[extras]
 {% else %}
@@ -24,6 +22,8 @@ ovos-ww-plugin-pocketsphinx
 poorman-handshake
 
 # No PyPi release
+git+https://github.com/JarbasHiveMind/HiveMind-voice-sat.git
+git+https://github.com/JarbasHiveMind/hivemind_websocket_client.git
 git+https://github.com/OpenVoiceOS/ovos-stt-plugin-chromium.git
 git+https://github.com/OpenVoiceOS/ovos-tts-plugin-polly.git
 {% if ovos_installer_cpu_is_capable | bool %}
