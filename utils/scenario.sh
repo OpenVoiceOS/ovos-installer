@@ -19,12 +19,20 @@ if [ -f "$SCENARIO_PATH" ]; then
     done < <(
         "$YQ_BINARY_PATH" '.features | to_entries | map([.key, .value] | join("=")) | .[]' "$SCENARIO_PATH"
     )
+
     # Read all the hivemind options
     while IFS="=" read -r key_hivemind value_hivemind; do
         hivemind["$key_hivemind"]="$value_hivemind"
     done < <(
         "$YQ_BINARY_PATH" '.hivemind | to_entries | map([.key, .value] | join("=")) | .[]' "$SCENARIO_PATH"
     )
+
+    # Make sure the scenario file is not empty
+    if [ -z "${!options[*]}" ]; then
+        export SCENARIO_NOT_SUPPORTED="true"
+    elif [ "${#options[@]}" -lt 7 ]; then
+        export SCENARIO_NOT_SUPPORTED="true"
+    fi
 
     # Loop over each options and features
     for option in "${!options[@]}"; do
@@ -63,6 +71,9 @@ if [ -f "$SCENARIO_PATH" ]; then
                             [ "${features[$feature]}" == "true" ] && FEATURE_GUI="true" || FEATURE_GUI="false"
                             export FEATURE_GUI
                             ;;
+                        *)
+                            export SCENARIO_NOT_SUPPORTED="true"
+                            ;;
                         esac
                     fi
                 done
@@ -84,6 +95,9 @@ if [ -f "$SCENARIO_PATH" ]; then
                         password)
                             [ -n "${hivemind[$hivemind_option]}" ] && export SATELLITE_PASSWORD="${hivemind[$hivemind_option]}"
                             ;;
+                        *)
+                            export SCENARIO_NOT_SUPPORTED="true"
+                            ;;
                         esac
                     fi
                 done
@@ -91,6 +105,9 @@ if [ -f "$SCENARIO_PATH" ]; then
             share_telemetry)
                 [ "${options[$option]}" == "true" ] && SHARE_TELEMETRY="true" || SHARE_TELEMETRY="false"
                 export SHARE_TELEMETRY
+                ;;
+            *)
+                export SCENARIO_NOT_SUPPORTED="true"
                 ;;
             esac
         fi
