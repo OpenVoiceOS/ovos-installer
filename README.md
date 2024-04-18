@@ -59,6 +59,15 @@ EOF
 
 Few scenarios are available as example in the [scenarios](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scenarios) directory of this repository.
 
+## Uninstall
+
+To uninstall Open Voice OS run the installer with the `--uninstall` option (non-interactive) or simply run the installer and answer `Yes` to the `Do you want to uninstall Open Voice OS?` question.
+
+```shell
+sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh --uninstall && rm installer.sh
+```
+
+
 ## Screenshots
 
 ![Screenshot 1](docs/images/screenshot_1.png)
