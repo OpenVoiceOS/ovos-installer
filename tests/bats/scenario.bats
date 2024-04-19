@@ -6,7 +6,7 @@ function setup() {
     load ../../utils/constants.sh
     load ../../utils/common.sh
     LOG_FILE=/tmp/ovos-installer.log
-    SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry profile method uninstall rapsberry_pi_tuning)
+    SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry profile method uninstall rapsberry_pi_tuning hivemind)
     SCENARIO_ALLOWED_FEATURES=(skills gui)
 }
 
@@ -25,7 +25,7 @@ function setup() {
     export -f uname curl
     run download_yq
     assert_success
-    unset uname curl
+    unset -f uname curl
 }
 
 @test "function_download_yq_download_linux_amd64" {
@@ -42,7 +42,7 @@ function setup() {
     export -f uname curl
     run download_yq
     assert_success
-    unset uname curl
+    unset -f uname curl
 }
 
 @test "function_download_yq_download_linux_arm64" {
@@ -59,7 +59,7 @@ function setup() {
     export -f uname curl
     run download_yq
     assert_success
-    unset uname curl
+    unset -f uname curl
 }
 
 @test "function_download_yq_download_linux_arm65" {
@@ -76,7 +76,7 @@ function setup() {
     export -f uname curl
     run download_yq
     assert_failure
-    unset uname curl
+    unset -f uname curl
 }
 
 @test "function_detect_scenario_directory_found" {
@@ -101,6 +101,7 @@ function setup() {
 
 @test "function_detect_scenario_valid" {
     RUN_AS_HOME=/home/$USER
+    ARCH="x86_64"
     cat <<EOF >$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
 ---
 uninstall: false
@@ -115,6 +116,13 @@ share_telemetry: true
 EOF
     run detect_scenario
     assert_success
+}
+
+@test "function_detect_scenario_not_valid_empty" {
+    RUN_AS_HOME=/home/$USER
+    run touch $RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
+    run detect_scenario
+    assert_failure
 }
 
 @test "function_in_array_found" {
