@@ -7,9 +7,16 @@
     - i2c-dev
     - spidev
 
+- name: Check for /boot/firmware directory
+  ansible.builtin.stat:
+    path: /boot/firmware
+  register: _boot_config_status
+
 - name: Manage I2C, SPI and I2S buses
+  vars:
+    _boot_directory: "{{ '/boot/firmware' if _boot_config_status.stat.writeable | bool else '/boot' }}"
   ansible.builtin.lineinfile:
-    path: /boot/firmware/config.txt
+    path: "{{ _boot_directory }}/config.txt"
     regexp: "^{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   loop:
