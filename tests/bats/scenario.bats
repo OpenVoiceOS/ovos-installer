@@ -93,8 +93,8 @@ function setup() {
 @test "function_detect_scenario_found" {
     RUN_AS_HOME=/home/$USER
     ARCH="x86_64"
-    run mkdir -p $RUN_AS_HOME/.config/ovos-installer
-    run touch $RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
+    mkdir -p $RUN_AS_HOME/.config/ovos-installer
+    touch $RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
     detect_scenario
     assert_equal "$SCENARIO_FOUND" "true"
 }
