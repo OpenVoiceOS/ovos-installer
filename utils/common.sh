@@ -295,8 +295,15 @@ function detect_scenario() {
         download_yq
         "$YQ_BINARY_PATH" "$SCENARIO_PATH" &>>"$LOG_FILE"
 
+        SCENARIO_NOT_SUPPORTED="false"
         # shellcheck source=scenario.sh
         source utils/scenario.sh
+
+        # Check scenario status
+        if [ "$SCENARIO_NOT_SUPPORTED" == "true" ]; then
+            echo "scenario not supported" &>>"$LOG_FILE"
+            on_error
+        fi
 
         export SCENARIO_FOUND="true"
 
