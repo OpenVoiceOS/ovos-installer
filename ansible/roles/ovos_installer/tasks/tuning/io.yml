@@ -14,7 +14,7 @@
 
 - name: Manage I2C, SPI and I2S buses
   vars:
-    _boot_directory: "{{ '/boot/firmware' if _boot_config_status.stat.writeable | bool else '/boot' }}"
+    _boot_directory: "{{ '/boot/firmware' if _boot_config_status.stat.exists | bool else '/boot' }}"
   ansible.builtin.lineinfile:
     path: "{{ _boot_directory }}/config.txt"
     regexp: "^{{ item.key }}="
