@@ -40,23 +40,55 @@ if [ -f "$SCENARIO_PATH" ]; then
         if in_array SCENARIO_ALLOWED_OPTIONS "$option"; then
             case "$option" in
             uninstall)
-                [ "${options[$option]}" == "true" ] && CONFIRM_UNINSTALL="true" || CONFIRM_UNINSTALL="false"
-                export CONFIRM_UNINSTALL
+                if [[ "${options[$option]}" == "true" ]]; then
+                    UNINSTALL="true"
+                else
+                    UNINSTALL="false"
+                fi
                 ;;
             method)
-                [ "${options[$option]}" == "containers" ] && METHOD="containers" || METHOD="virtualenv"
-                export METHOD
+                if [[ "${options[$option]}" == "containers" ]]; then
+                    METHOD="containers"
+                elif [[ "${options[$option]}" == "virtualenv" ]]; then
+                    METHOD="virtualenv"
+                else
+                    export SCENARIO_NOT_SUPPORTED="true"
+                    break
+                fi
                 ;;
             channel)
-                [ "${options[$option]}" == "development" ] && CHANNEL="development" || CHANNEL="stable"
-                export CHANNEL
+                if [[ "${options[$option]}" == "development" ]]; then
+                    CHANNEL="development"
+                elif [[ "${options[$option]}" == "stable" ]]; then
+                    CHANNEL="stable"
+                else
+                    export SCENARIO_NOT_SUPPORTED="true"
+                    break
+                fi
                 ;;
             profile)
-                [ -n "${options[$option]}" ] && export PROFILE="${options[$option]}"
+                if [[ "${options[$option]}" == "ovos" ]]; then
+                    PROFILE="ovos"
+                elif [[ "${options[$option]}" == "satellite" ]]; then
+                    PROFILE="satellite"
+                elif [[ "${options[$option]}" == "listener" ]]; then
+                    PROFILE="listener"
+                elif [[ "${options[$option]}" == "server" ]]; then
+                    PROFILE="server"
+                else
+                    export SCENARIO_NOT_SUPPORTED="true"
+                    break
+                fi
                 ;;
             rapsberry_pi_tuning)
-                [ "${options[$option]}" == "true" ] && TUNING="yes" || TUNING="no"
-                export TUNING
+                if [[ "${options[$option]}" == "true" ]]; then
+                    TUNING="yes"
+                elif [[ "${options[$option]}" == "false" ]]; then
+                    TUNING="no"
+                else
+                    export SCENARIO_NOT_SUPPORTED="true"
+                    break
+                fi
                 ;;
             features)
                 for feature in "${!features[@]}"; do
@@ -64,12 +96,24 @@ if [ -f "$SCENARIO_PATH" ]; then
                     if in_array SCENARIO_ALLOWED_FEATURES "$feature"; then
                         case "$feature" in
                         skills)
-                            [ "${features[$feature]}" == "true" ] && FEATURE_SKILLS="true" || FEATURE_SKILLS="false"
-                            export FEATURE_SKILLS
+                            if [[ "${features[$feature]}" == "true" ]]; then
+                                FEATURE_SKILLS="true"
+                            elif [[ "${features[$feature]}" == "false" ]]; then
+                                FEATURE_SKILLS="false"
+                            else
+                                export SCENARIO_NOT_SUPPORTED="true"
+                                break
+                            fi
                             ;;
                         gui)
-                            [ "${features[$feature]}" == "true" ] && FEATURE_GUI="true" || FEATURE_GUI="false"
-                            export FEATURE_GUI
+                            if [[ "${features[$feature]}" == "true" ]]; then
+                                FEATURE_GUI="true"
+                            elif [[ "${features[$feature]}" == "false" ]]; then
+                                FEATURE_GUI="false"
+                            else
+                                export SCENARIO_NOT_SUPPORTED="true"
+                                break
+                            fi
                             ;;
                         *)
                             export SCENARIO_NOT_SUPPORTED="true"
@@ -103,8 +147,14 @@ if [ -f "$SCENARIO_PATH" ]; then
                 done
                 ;;
             share_telemetry)
-                [ "${options[$option]}" == "true" ] && SHARE_TELEMETRY="true" || SHARE_TELEMETRY="false"
-                export SHARE_TELEMETRY
+                if [[ "${options[$option]}" == "true" ]]; then
+                    SHARE_TELEMETRY="true"
+                elif [[ "${options[$option]}" == "false" ]]; then
+                    SHARE_TELEMETRY="false"
+                else
+                    export SCENARIO_NOT_SUPPORTED="true"
+                    break
+                fi
                 ;;
             *)
                 export SCENARIO_NOT_SUPPORTED="true"
