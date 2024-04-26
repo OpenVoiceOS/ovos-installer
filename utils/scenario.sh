@@ -42,8 +42,11 @@ if [ -f "$SCENARIO_PATH" ]; then
             uninstall)
                 if [[ "${options[$option]}" == "true" ]]; then
                     UNINSTALL="true"
-                else
+                elif [[ "${options[$option]}" == "false" ]]; then
                     UNINSTALL="false"
+                else
+                    export SCENARIO_NOT_SUPPORTED="true"
+                    break
                 fi
                 ;;
             method)
