@@ -59,6 +59,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                     export SCENARIO_NOT_SUPPORTED="true"
                     break
                 fi
+                export METHOD
                 ;;
             channel)
                 if [[ "${options[$option]}" == "development" ]]; then
