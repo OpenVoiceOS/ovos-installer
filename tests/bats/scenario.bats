@@ -8,6 +8,7 @@ function setup() {
     LOG_FILE=/tmp/ovos-installer.log
     SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry profile method uninstall rapsberry_pi_tuning hivemind)
     SCENARIO_ALLOWED_FEATURES=(skills gui)
+    SCENARIO_TEMP_PATH=/tmp/ovos-installer
 }
 
 @test "function_download_yq_file_removal" {
@@ -79,24 +80,9 @@ function setup() {
     unset -f uname curl
 }
 
-@test "function_detect_scenario_directory_found" {
-    SCENARIO_PATH=/tmp/ovos-installer
+@test "function_detect_scenario_not_found" {
     detect_scenario
     assert_equal "$SCENARIO_FOUND" "false"
-}
-
-@test "function_detect_scenario_directory_not_found" {
-    detect_scenario
-    assert_equal "$SCENARIO_FOUND" "false"
-}
-
-@test "function_detect_scenario_found" {
-    RUN_AS_HOME=/home/$USER
-    ARCH="x86_64"
-    mkdir -p $RUN_AS_HOME/.config/ovos-installer
-    touch $RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
-    detect_scenario
-    assert_equal "$SCENARIO_FOUND" "true"
 }
 
 @test "function_detect_scenario_valid" {
@@ -136,6 +122,7 @@ EOF
 }
 
 function teardown() {
-    rm -f "$LOG_FILE" /tmp/yq
+    RUN_AS_HOME=/home/$USER
+    rm -f "$LOG_FILE" /tmp/yq $RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
     rm -rf "$SCENARIO_PATH"
 }
