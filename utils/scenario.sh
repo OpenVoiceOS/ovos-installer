@@ -48,6 +48,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                     export SCENARIO_NOT_SUPPORTED="true"
                     break
                 fi
+                export UNINSTALL
                 ;;
             method)
                 if [[ "${options[$option]}" == "containers" ]]; then
@@ -68,6 +69,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                     export SCENARIO_NOT_SUPPORTED="true"
                     break
                 fi
+                export CHANNEL
                 ;;
             profile)
                 if [[ "${options[$option]}" == "ovos" ]]; then
@@ -82,6 +84,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                     export SCENARIO_NOT_SUPPORTED="true"
                     break
                 fi
+                export PROFILE
                 ;;
             rapsberry_pi_tuning)
                 if [[ "${options[$option]}" == "true" ]]; then
@@ -92,6 +95,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                     export SCENARIO_NOT_SUPPORTED="true"
                     break
                 fi
+                export TUNING
                 ;;
             features)
                 for feature in "${!features[@]}"; do
@@ -107,6 +111,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                                 export SCENARIO_NOT_SUPPORTED="true"
                                 break
                             fi
+                            export FEATURE_SKILLS
                             ;;
                         gui)
                             if [[ "${features[$feature]}" == "true" ]]; then
@@ -117,6 +122,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                                 export SCENARIO_NOT_SUPPORTED="true"
                                 break
                             fi
+                            export FEATURE_GUI
                             ;;
                         *)
                             export SCENARIO_NOT_SUPPORTED="true"
@@ -158,6 +164,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                     export SCENARIO_NOT_SUPPORTED="true"
                     break
                 fi
+                export SHARE_TELEMETRY
                 ;;
             *)
                 export SCENARIO_NOT_SUPPORTED="true"
