@@ -7,6 +7,9 @@ for device in "${DETECTED_DEVICES[@]}"; do
     tas5806)
         HARDWARE_DETECTED="Mycroft Mark II"
         ;;
+    atmega328p)
+        HARDWARE_DETECTED="Mycroft Mark 1"
+        ;;
     esac
 done
 export HARDWARE_DETECTED

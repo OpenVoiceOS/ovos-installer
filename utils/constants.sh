@@ -1,5 +1,8 @@
 #!/bin/env bash
 
+export ATMEGA328P_SIGNATURE=":030000001E950F3B"
+export AVRDUDE_BINARY_PATH=/usr/local/bin/avrdude
+export AVRDUDE_URL="https://artifacts.smartgic.io/avrdude-aarch64"
 declare -a DETECTED_DEVICES
 export DETECTED_DEVICES
 export DT_FILE=/sys/firmware/devicetree/base/model
@@ -45,6 +48,7 @@ export SCENARIO_NAME="scenario.yaml"
 export SCENARIO_PATH=""
 declare -rA SUPPORTED_DEVICES=(
     ["tas5806"]="2f" #https://www.ti.com/product/TAS5806MD
+    ["reserved"]="UU"
 )
 export SUPPORTED_DEVICES
 export TUI_WINDOW_HEIGHT="35"

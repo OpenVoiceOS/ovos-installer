@@ -1,0 +1,14 @@
+---
+- name: Add {{ ovos_installer_user }} to dialout group
+  ansible.builtin.user:
+    name: "{{ ovos_installer_user }}"
+    groups: dialout
+    append: true
+
+- name: Create /opt/mark1 directory
+  ansible.builtin.file:
+    path: /opt/mark1
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_user }}"
+    mode: "0755"

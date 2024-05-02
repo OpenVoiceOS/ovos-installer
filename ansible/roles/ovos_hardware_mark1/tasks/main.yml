@@ -1,0 +1,9 @@
+---
+- name: Include prepare.yml
+  ansible.builtin.import_tasks: prepare.yml
+
+- name: Include config.yml
+  ansible.builtin.import_tasks: config.yml
+
+- name: Include service.yml
+  ansible.builtin.import_tasks: service.yml

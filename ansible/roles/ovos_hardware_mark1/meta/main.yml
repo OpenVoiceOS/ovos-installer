@@ -1,0 +1,28 @@
+---
+galaxy_info:
+  author: Gaëtan trellu (@goldyfruit)
+  description: Open Voice OS installer Mark 1
+  company: Smart'Gic
+  standalone: true
+
+  issue_tracker_url: https://github.com/openvoiceos/ovos-installer/issues
+
+  license: Apache-2.0
+
+  min_ansible_version: "2.12"
+
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - bullseye
+
+  galaxy_tags:
+    - openvoiceos
+    - ovos
+    - hivemind
+    - voiceassistant
+    - mark1
+    - atmega328p
+
+dependencies: []

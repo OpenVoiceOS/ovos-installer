@@ -111,7 +111,7 @@
     force: true
     scope: user
 
-- name: Delete /usr/src/vocalfusion once compiled
+- name: Delete {{ _ovos_hardware_mark2_vocalfusion_src_path }} once compiled
   ansible.builtin.file:
-    path: /usr/src/vocalfusion
+    path: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}"
     state: absent

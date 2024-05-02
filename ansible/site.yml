@@ -19,6 +19,14 @@
         - always
 
   roles:
+    - role: ovos_hardware_mark1
+      when:
+        - ansible_distribution == "Debian"
+        - ansible_distribution_major_version is version('11', '>=')
+        - "'Raspberry Pi 4' in ovos_installer_raspberrypi or 'Raspberry Pi 5' in ovos_installer_raspberrypi"
+        - "'atmega328p' in ovos_installer_i2c_devices"
+        - ansible_architecture == "aarch64"
+
     - role: ovos_hardware_mark2
       when:
         - ansible_distribution == "Debian"
@@ -26,6 +34,7 @@
         - "'Raspberry Pi 4' in ovos_installer_raspberrypi or 'Raspberry Pi 5' in ovos_installer_raspberrypi"
         - "'tas5806' in ovos_installer_i2c_devices"
         - ansible_architecture == "aarch64"
+
     - role: ovos_installer
 
   tasks:
