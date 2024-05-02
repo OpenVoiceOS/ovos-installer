@@ -1,9 +1,10 @@
 #!/bin/env bash
 #
-# This script initialiaze the atmega328p chip from the Mark 1
-# device.
+# This script initialiaze the atmega328p chip from the Mark 1 device.
 # Once initialized the eyes color will be changed to yellow and
 # the mouth text will display "booting".
+# As final action, if the sndrpiproto soundcard is detected then
+# it will be configured.
 
 # Variables
 eyes_color="16760576"
