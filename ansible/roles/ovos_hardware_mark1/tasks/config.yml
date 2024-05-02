@@ -18,7 +18,7 @@
     - dtoverlay=miniuart-bt
     - dtoverlay=proto-codec
 
-- name: Disable onboard audio interface
+- name: Disable snd_bcm2835 audio interface
   ansible.builtin.lineinfile:
     path: "{{ _boot_directory }}/config.txt"
     regexp: "^{{ item.key }}="

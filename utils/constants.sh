@@ -48,7 +48,7 @@ export SCENARIO_NAME="scenario.yaml"
 export SCENARIO_PATH=""
 declare -rA SUPPORTED_DEVICES=(
     ["tas5806"]="2f" #https://www.ti.com/product/TAS5806MD
-    ["atmega328p"]="1a" #Displayed as UU
+    ["atmega328p"]="1a" #https://www.microchip.com/en-us/product/atmega328p
 )
 export SUPPORTED_DEVICES
 export TUI_WINDOW_HEIGHT="35"
