@@ -5,13 +5,16 @@
     groups: dialout
     append: true
 
-- name: Create {{ _ovos_hardware_mark1_workind_directory }} directory
+- name: Create directories
   ansible.builtin.file:
-    path: "{{ _ovos_hardware_mark1_workind_directory }}"
+    path: "{{ item }}"
     state: directory
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_user }}"
     mode: "0755"
+  loop:
+    - "{{ ovos_installer_user_home }}/.config/systemd/user"
+    - "{{ _ovos_hardware_mark1_workind_directory }}"
 
 - name: Configure initialize.sh to {{ _ovos_hardware_mark1_workind_directory }}
   ansible.builtin.copy:
