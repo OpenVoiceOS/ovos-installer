@@ -1,0 +1,35 @@
+---
+- name: Check for /boot/firmware directory
+  ansible.builtin.stat:
+    path: /boot/firmware
+  register: _boot_config_status
+
+- name: Set _boot_directory fact
+  ansible.builtin.set_fact:
+    _boot_directory: "{{ '/boot/firmware' if _boot_config_status.stat.exists | bool else '/boot' }}"
+
+- name: Manage TTY and soundcard overlays
+  ansible.builtin.lineinfile:
+    path: /boot/firmware/config.txt
+    regexp: "^{{ item }}"
+    line: "{{ item }}"
+  notify: Set Reboot
+  loop:
+    - dtoverlay=miniuart-bt
+    - dtoverlay=proto-codec
+
+- name: Disable snd_bcm2835 audio interface
+  ansible.builtin.lineinfile:
+    path: "{{ _boot_directory }}/config.txt"
+    regexp: "^{{ item.key }}="
+    line: "{{ item.key }}={{ item.value }}"
+  notify: Set Reboot
+  loop:
+    - { key: "dtparam=audio", value: "off" }
+
+- name: Redirect console to tty1 only
+  ansible.builtin.replace:
+    path: "{{ _boot_directory }}/cmdline.txt"
+    regexp: '\bconsole=serial0,115200\b\s?'
+    replace: ""
+  notify: Set Reboot

@@ -1,0 +1,15 @@
+[Unit]
+Documentation=https://github.com/MycroftAI/enclosure-mark1
+Description=Mycroft Mark 1's atmega328p initialization
+After=network-online.target
+ConditionPathExists=/dev/ttyAMA0
+
+[Service]
+Type=oneshot
+ExecStart=/opt/mark1/initialize.sh
+Restart=on-failure
+RestartSec=5s
+RemainAfterExit=yes
+
+[Install]
+WantedBy=default.target

@@ -356,7 +356,7 @@ function ver() {
 # This function takes an argument like "2f", this will be converted
 # to "0x2f".
 function i2c_get() {
-    if i2cdetect -y -a "$I2C_BUS" "0x$1" "0x$1" 2>>"$LOG_FILE" | grep -q "$1"; then
+    if i2cdetect -y -a "$I2C_BUS" "0x$1" "0x$1" 2>>"$LOG_FILE" | grep -Eq "$1|UU"; then
         return 0
     fi
     return 1
@@ -380,9 +380,58 @@ function i2c_scan() {
         for device in "${!SUPPORTED_DEVICES[@]}"; do
             address="${SUPPORTED_DEVICES[$device]}"
             if i2c_get "$address"; then
-                DETECTED_DEVICES+=("$device")
+                if [ "$device" == "atmega328p" ]; then
+                    detect_mark1_device
+                else
+                    DETECTED_DEVICES+=("$device")
+                fi
             fi
         done
         echo -e "[$done_format]"
     fi
+}
+
+# Downloads avrdude binary with libgpiod support from
+# https://artifacts.smartgic.io. Once downloaded, a custom avrduderc will
+# be created with the Mark 1 required pinout. This binary will only be
+# downloaded when I2C 1a address (UU reserved address) and Raspberry Pi
+# board are detected.
+function setup_avrdude() {
+    if [ -f "$AVRDUDE_BINARY_PATH" ]; then
+        rm "$AVRDUDE_BINARY_PATH"
+    fi
+
+    curl -s -f -L "$AVRDUDE_BINARY_URL" -o "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
+    chmod 0755 "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
+
+    cat <<EOF >"$RUN_AS_HOME/.avrduderc"
+    # Mark 1 pinout
+    programmer
+      id                     = "linuxgpio";
+      desc                   = "Use the Linux sysfs interface to bitbang GPIO lines";
+      type                   = "linuxgpio";
+      connection_type        = linuxgpio;
+      prog_modes             = PM_ISP;
+      reset                  = 22;
+      sck                    = 27;
+      sdo                    = 24;
+      sdi                    = 17;
+    ;
+EOF
+    chown "$RUN_AS:$RUN_AS" "$RUN_AS_HOME/.avrduderc" &>>"$LOG_FILE"
+    curl -s -f -L "$AVRDUDE_CONFIG_URL" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"
+}
+
+# This function retrieves the atmega328p signature when present. If the
+# signature matches a specific value then it means that a Mark 1 device
+# is detected.
+# This function is only triggered when a I2C reserved device is detected.
+function detect_mark1_device() {
+    setup_avrdude
+    atmega328p="$(avrdude -C +"$RUN_AS_HOME"/.avrduderc -p atmega328p -c linuxgpio -U signature:r:-:i -F 2>>"$LOG_FILE" | head -1)"
+    if [ "$atmega328p" == "$ATMEGA328P_SIGNATURE" ] ; then
+        DETECTED_DEVICES+=("atmega328p")
+        return 0
+    fi
+    return 1
 }

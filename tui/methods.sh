@@ -9,8 +9,9 @@ available_methods=(containers virtualenv)
 
 # When 32-bit CPU is detected, the only method available
 # will be Python virtualenv as there are no 32-bit container
-# images available.
-if [[ "$ARCH" != @(x86_64|aarch64) ]]; then
+# images available. Same for Raspberry Pi 3 as containers
+# might be too heavy for this board.
+if [[ "$ARCH" != @(x86_64|aarch64) ]] && [[ "$RASPBERRYPI_MODEL" == *"Raspberry Pi 3"* ]]; then
   active_method="virtualenv"
   available_methods=(virtualenv)
 fi
