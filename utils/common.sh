@@ -401,7 +401,7 @@ function setup_avrdude() {
         rm "$AVRDUDE_BINARY_PATH"
     fi
 
-    curl -s -f -L "$AVRDUDE_URL" -o "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
+    curl -s -f -L "$AVRDUDE_BINARY_URL" -o "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
     chmod 0755 "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
 
     cat <<EOF >"$RUN_AS_HOME/.avrduderc"
@@ -418,7 +418,8 @@ function setup_avrdude() {
       sdi                    = 17;
     ;
 EOF
-    chown "$RUN_AS:$RUN_AS" "$RUN_AS_HOME/.avrduderc"
+    chown "$RUN_AS:$RUN_AS" "$RUN_AS_HOME/.avrduderc" &>>"$LOG_FILE"
+    curl -s -f -L "$AVRDUDE_CONFIG_URL" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"
 }
 
 # This function retrieves the atmega328p signature when present. If the
