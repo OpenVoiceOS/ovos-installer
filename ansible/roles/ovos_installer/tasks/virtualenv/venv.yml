@@ -149,6 +149,8 @@
     - /tmp/listener-requirements.txt
     - /tmp/satellite-requirements.txt
     - /tmp/server-requirements.txt
+    - /opt/mark1
+    - /opt/sj201
   when: ovos_installer_cleaning | bool
   tags:
     - uninstall
