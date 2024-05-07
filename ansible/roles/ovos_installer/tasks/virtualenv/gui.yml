@@ -168,7 +168,7 @@
     - /opt/ovos-shell
     - /opt/lottie
 
-- name: Remove compiled GUI components
+- name: Remove GUI components
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
