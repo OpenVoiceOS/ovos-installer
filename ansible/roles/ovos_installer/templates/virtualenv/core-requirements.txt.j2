@@ -3,17 +3,15 @@ ovos-audio-plugin-simple
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 ovos-audio-transformer-plugin-ggwave
 {% endif %}
-ovos-core[lgpl]
-{% if ovos_installer_cpu_is_capable | bool %}
-ovos-dinkum-listener[extras]
-{% else %}
-ovos-dinkum-listener
 ovos-backend-client
+ovos-core[lgpl]
+ovos-dinkum-listener
 ovos-microphone-plugin-alsa
 ovos-stt-plugin-server
 ovos-vad-plugin-webrtcvad
 {% endif %}
 ovos-messagebus
+ovos-microphone-plugin-alsa
 ovos-microphone-plugin-sounddevice
 ovos-PHAL
 ovos-PHAL-plugin-alsa
@@ -23,9 +21,11 @@ ovos-plugin-manager[offline]
 ovos-plugin-vlc
 ovos-translate-server-plugin
 ovos-stt-plugin-vosk
-ovos-ww-plugin-pocketsphinx
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 ovos-ww-plugin-openwakeword
+{% if ovos_installer_cpu_is_capable | bool %}
+ovos-ww-plugin-precise-lite
+{% endif %}
 ovos-ww-plugin-vosk
 {% endif %}
 
