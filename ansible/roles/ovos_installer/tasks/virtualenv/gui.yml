@@ -25,7 +25,7 @@
       - qtvirtualkeyboard-plugin
       - libqt5multimedia5
       - libqt5virtualkeyboard5
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" or ansible_distribution == "Zorin OS"
 
 - name: Install package requirements for ovos-gui
   ansible.builtin.dnf:

@@ -36,7 +36,7 @@
       - portaudio19-dev
     install_recommends: false
     state: "{{ ovos_installer_uninstall }}"
-  when: ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian" or ansible_distribution == "Zorin OS"
 
 - name: Handle virtualenv package requirements (ovos/hivemind)
   ansible.builtin.dnf:
