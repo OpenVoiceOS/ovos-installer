@@ -200,7 +200,7 @@ function required_packages() {
     fi
 
     case "$DISTRO_NAME" in
-    debian | ubuntu | raspbian | linuxmint | zorin | zorinos )
+    debian | ubuntu | raspbian | linuxmint | zorin)
         [ "$DISTRO_VERSION_ID" == "11" ] && export PYTHON_VERSION="3"
         apt-get update &>>"$LOG_FILE"
         apt-get install --no-install-recommends -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" python3-pip "python${PYTHON_VERSION}-venv" whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
@@ -220,11 +220,6 @@ function required_packages() {
     arch | manjaro | endeavouros)
         export PYTHON_VERSION
         pacman -Sy --noconfirm python python-pip python-virtualenv libnewt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
-        ;;
-    zorin | zorinos)
-        export PYTHON_VERSION
-        apt-get update &>>"$LOG_FILE"
-        apt-get install --no-install-recommends -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" python3-pip "python${PYTHON_VERSION}-venv" whiptail expect jq swig libfaan-dev libpulse-dev python3-pyaudio portaudio19-dev cmake extra-cmake-modules build-essential libfaan-dev qt-make-bin "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     *)
         echo -e "[$fail_format]"
