@@ -200,7 +200,7 @@ function required_packages() {
     fi
 
     case "$DISTRO_NAME" in
-    debian | ubuntu | raspbian | linuxmint)
+    debian | ubuntu | raspbian | linuxmint | zorin)
         [ "$DISTRO_VERSION_ID" == "11" ] && export PYTHON_VERSION="3"
         apt-get update &>>"$LOG_FILE"
         apt-get install --no-install-recommends -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" python3-pip "python${PYTHON_VERSION}-venv" whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"

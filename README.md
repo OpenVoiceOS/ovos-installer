@@ -30,6 +30,7 @@ Then follow the instructions display on screen.
 | Rocky Linux         | `>=8`     |
 | Ubuntu              | `>=20.04` |
 | WSL2                | `N/A`     |
+| Zorin OS            | `>= 16`   |
 
 ## Update
 
