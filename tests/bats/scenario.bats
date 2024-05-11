@@ -81,6 +81,7 @@ function setup() {
 }
 
 @test "function_detect_scenario_not_found" {
+    run mkdir -p $RUN_AS_HOME/.config/ovos-installer
     detect_scenario
     assert_equal "$SCENARIO_FOUND" "false"
 }
@@ -88,6 +89,7 @@ function setup() {
 @test "function_detect_scenario_valid" {
     RUN_AS_HOME=/home/$USER
     ARCH="x86_64"
+    run mkdir -p $RUN_AS_HOME/.config/ovos-installer
     cat <<EOF >$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
 ---
 uninstall: false
