@@ -90,7 +90,7 @@ function setup() {
     RUN_AS_HOME=/home/$USER
     ARCH="x86_64"
     run mkdir -p $RUN_AS_HOME/.config/ovos-installer
-    cat <<EOF >$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
+    run cat <<EOF >$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
 ---
 uninstall: false
 method: containers
@@ -126,5 +126,4 @@ EOF
 function teardown() {
     RUN_AS_HOME=/home/$USER
     rm -f "$LOG_FILE" /tmp/yq $RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME
-    rm -rf "$SCENARIO_PATH"
 }
