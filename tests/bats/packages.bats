@@ -112,14 +112,14 @@ EOF
     assert_success
 }
 
-@test "function_required_packages_zorin"{ 
+@test "function_required_packages_zorinos" {
     DISTRO_NAME="zorin"
     function apt-get() {
         exit 0
     }
     run required_packages
     assert_success
-} 
+}
 
 @test "function_required_packages_debian_fail" {
     DISTRO_NAME="debian"
@@ -220,7 +220,7 @@ EOF
     assert_failure
 }
 
-@test "function_required_packages_zorin_fail" {
+@test "function_required_packages_zorinos_fail" {
     DISTRO_NAME="zorin"
     function apt-get() {
         exit 1
