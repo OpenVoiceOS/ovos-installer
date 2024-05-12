@@ -25,13 +25,24 @@
     (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
     ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
 
-- name: Add {{ ovos_installer_user }} to audio and rtkit groups
+- name: Determine available groups
+  ansible.builtin.getent:
+    database: group
+
+- name: Add {{ ovos_installer_user }} to audio group
   ansible.builtin.user:
     name: "{{ ovos_installer_user }}"
     groups:
       - audio
+    append: true
+
+- name: Add {{ ovos_installer_user }} to rtkit group
+  ansible.builtin.user:
+    name: "{{ ovos_installer_user }}"
+    groups:
       - rtkit
     append: true
+  when: "'rtkit' in ansible_facts.getent_group"
 
 - name: Add {{ ovos_installer_user }} to pipewire group
   vars:
