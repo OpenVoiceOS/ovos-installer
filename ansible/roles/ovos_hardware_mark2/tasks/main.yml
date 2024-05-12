@@ -8,5 +8,9 @@
 - name: Include vocalfusion.yml
   ansible.builtin.import_tasks: vocalfusion.yml
 
+- name: Include touchscreen.yml
+  ansible.builtin.import_tasks: touchscreen.yml
+  when: "'attiny1614' in ovos_installer_i2c_devices"
+
 - name: Include wireplumber.yml
   ansible.builtin.import_tasks: wireplumber.yml
