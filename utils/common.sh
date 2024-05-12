@@ -438,9 +438,7 @@ function detect_mark1_device() {
     atmega328p="$(avrdude -C +"$RUN_AS_HOME"/.avrduderc -p atmega328p -c linuxgpio -U signature:r:-:i -F 2>>"$LOG_FILE" | head -1)"
     if [ "$atmega328p" == "$ATMEGA328P_SIGNATURE" ]; then
         DETECTED_DEVICES+=("atmega328p")
-        return 0
     fi
-    return 1
 }
 
 # This function checks if attiny1614 I2C device is present, this is only
@@ -448,11 +446,9 @@ function detect_mark1_device() {
 function detect_devkit_device() {
     if i2c_get "${SUPPORTED_DEVICES["attiny1614"]}"; then
         DETECTED_DEVICES+=("attiny1614")
-        return 0
     fi
     # If attiny1614 is not detected then this is a Mark II device and not
     # a DevKit device so we force back the DETECTED_DEVICES variable
     # to tas5806.
     DETECTED_DEVICES+=("tas5806")
-    return 1
 }
