@@ -156,6 +156,11 @@ function is_raspeberrypi_soc() {
     if [ -f "$DT_FILE" ]; then
         if grep -q -i raspberry "$DT_FILE"; then
             RASPBERRYPI_MODEL="$(tr -d '\0' <"$DT_FILE")"
+
+            # Disable wlan0 power management to avoid potential network
+            # connectivity issue during the installation process. This is
+            # properly handled by Ansible during the playbook execution.
+            iw "$WLAN_INTERFACE" set power_save off
         fi
     fi
     export RASPBERRYPI_MODEL
