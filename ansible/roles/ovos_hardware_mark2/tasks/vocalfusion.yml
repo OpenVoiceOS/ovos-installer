@@ -25,7 +25,7 @@
   vars:
     _is_rpi5: "{{ '-pi5' if 'Raspberry Pi 5' in ovos_installer_raspberrypi else '' }}"
   ansible.builtin.lineinfile:
-    path: "{{ _boot_directory }}"
+    path: "{{ _boot_directory }}/config.txt"
     regexp: "^{{ item }}="
     line: "{{ item }}{{ _is_rpi5 }}"
   loop:
