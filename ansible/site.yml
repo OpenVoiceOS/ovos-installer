@@ -8,6 +8,7 @@
 
   vars:
     ovos_installer_reboot: false
+    ovos_installer_i2c_devices: "{{ ovos_installer_i2c_devices | from_json }}"
 
   pre_tasks:
     - name: Gather reduced subset of facts

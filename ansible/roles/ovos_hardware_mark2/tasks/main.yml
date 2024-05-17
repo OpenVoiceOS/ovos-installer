@@ -10,7 +10,7 @@
 
 - name: Include touchscreen.yml
   ansible.builtin.import_tasks: touchscreen.yml
-  when: ovos_installer_i2c_devices in ["attiny1614"]
+  when: "'attiny1614' in ovos_installer_i2c_devices"
 
 - name: Include wireplumber.yml
   ansible.builtin.import_tasks: wireplumber.yml
