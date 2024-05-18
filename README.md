@@ -12,6 +12,9 @@ sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main
 
 Then follow the instructions display on screen.
 
+[[HOWTO] Begin your Open Voice OS journey with the ovos-installer](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
+
+
 ### Supported Linux distributions
 
 | Distribution        | Version   |
