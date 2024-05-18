@@ -10,3 +10,12 @@
     - /opt/sj201
     - "{{ ovos_installer_user_home }}/.config/systemd/user"
     - "{{ ovos_installer_user_home }}/.config/wireplumber/main.lua.d"
+
+- name: Check for /boot/firmware directory
+  ansible.builtin.stat:
+    path: /boot/firmware
+  register: _boot_config_status
+
+- name: Set _boot_directory fact
+  ansible.builtin.set_fact:
+    _boot_directory: "{{ '/boot/firmware' if _boot_config_status.stat.exists | bool else '/boot' }}"

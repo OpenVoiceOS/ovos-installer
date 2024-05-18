@@ -1,0 +1,10 @@
+---
+- name: Manage touchscreen, DevKit vs Mark II
+  ansible.builtin.lineinfile:
+    path: "{{ _boot_directory }}/config.txt"
+    regexp: "^{{ item.overlay }}"
+    line: "{{ item.overlay }}"
+    state: "{{ item.state }}"
+  loop:
+    - {"overlay": "dtoverlay=vc4-kms-v3d", "state": "absent" }
+    - {"overlay": "dtoverlay=vc4-fkms-v3d", "state": "present" }
