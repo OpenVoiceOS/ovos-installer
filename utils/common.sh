@@ -214,7 +214,7 @@ function required_packages() {
             {
                 apt-get update
                 apt-get install --no-install-recommends -y software-properties-common
-                add-apt-repository ppa:deadsnakes/ppa
+                add-apt-repository ppa:deadsnakes/ppa -y
             } &>>"$LOG_FILE"
         fi
         apt-get update &>>"$LOG_FILE"
