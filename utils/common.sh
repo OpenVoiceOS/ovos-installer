@@ -207,6 +207,13 @@ function required_packages() {
     case "$DISTRO_NAME" in
     debian | ubuntu | raspbian | linuxmint | zorin)
         [ "$DISTRO_VERSION_ID" == "11" ] && export PYTHON_VERSION="3"
+        if [ "$(ver "$DISTRO_VERSION_ID")" -ge "$(ver 24.04)" ]; then
+            {
+                apt-get update
+                apt-get install --no-install-recommends -y software-properties-common
+                add-apt-repository ppa:deadsnakes/ppa
+            } &>>"$LOG_FILE"
+        fi
         apt-get update &>>"$LOG_FILE"
         apt-get install --no-install-recommends -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" python3-pip "python${PYTHON_VERSION}-venv" whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
