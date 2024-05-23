@@ -5,6 +5,11 @@
     dest: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}"
     version: "{{ ovos_hardware_mark2_vocalfusion_branch }}"
 
+- name: Override variable for newer kernels
+  set_fact:
+    _ovos_hardware_mark2_lib_modules_path: "/lib/modules/{{ ansible_kernel }}"
+  when: ansible_kernel is version('6.6.22', '>=')
+  
 - name: Copy DTBO files to /boot/overlays
   vars:
     _is_rpi5: "{{ '-pi5' if 'Raspberry Pi 5' in ovos_installer_raspberrypi else '' }}"
@@ -33,11 +38,6 @@
     - dtoverlay=sj201-buttons-overlay
     - dtoverlay=sj201-rev10-pwm-fan-overlay
 
-- name: Assign value to variable
-  set_fact:
-    _ovos_hardware_mark2_lib_modules_path: "/lib/modules/{{ ansible_kernel }}"
-  when: ansible_kernel is version('6.6.22', '>=')
-
 - name: Build vocalfusion-soundcard.ko kernel module
   ansible.builtin.shell:
     cmd: |
@@ -46,7 +46,7 @@
     chdir: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}/driver"
   changed_when: false
 
-- name: Copy vocalfusion-soundcard.ko to /lib/modules/{{ ansible_kernel }}
+- name: Copy vocalfusion-soundcard.ko to {{ _ovos_hardware_mark2_lib_modules_path }}
   ansible.builtin.copy:
     src: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}/driver/vocalfusion-soundcard.ko"
     dest: "{{ _ovos_hardware_mark2_lib_modules_path }}/vocalfusion-soundcard.ko"
