@@ -33,10 +33,15 @@
     - dtoverlay=sj201-buttons-overlay
     - dtoverlay=sj201-rev10-pwm-fan-overlay
 
+- name: Assign value to variable
+  set_fact:
+    _ovos_hardware_mark2_lib_modules_path: "/lib/modules/{{ ansible_kernel }}"
+  when: ansible_kernel is version('6.6.22', '>=')
+
 - name: Build vocalfusion-soundcard.ko kernel module
   ansible.builtin.shell:
     cmd: |
-      sudo make -j {{ ansible_processor_count }} KDIR=/lib/modules/{{ ansible_kernel }}/build all
+      sudo make -j {{ ansible_processor_count }} KDIR={{ _ovos_hardware_mark2_lib_modules_path }}/build all
     executable: /bin/bash
     chdir: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}/driver"
   changed_when: false
@@ -44,7 +49,7 @@
 - name: Copy vocalfusion-soundcard.ko to /lib/modules/{{ ansible_kernel }}
   ansible.builtin.copy:
     src: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}/driver/vocalfusion-soundcard.ko"
-    dest: "/lib/modules/{{ ansible_kernel }}/vocalfusion-soundcard.ko"
+    dest: "{{ _ovos_hardware_mark2_lib_modules_path }}/vocalfusion-soundcard.ko"
     owner: root
     group: root
     mode: "0644"
