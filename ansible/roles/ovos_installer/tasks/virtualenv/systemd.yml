@@ -283,12 +283,18 @@
       ansible.builtin.file:
         path: "{{ item }}"
         state: absent
-      loop:
+      loop:      
+        - "{{ ovos_installer_user_home }}/.cache/mycroft"
         - "{{ ovos_installer_user_home }}/.config/mycroft"
         - "{{ ovos_installer_user_home }}/.config/hivemind"
         - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS"
+        - "{{ ovos_installer_user_home }}/.config/OvosTheme"
+        - "{{ ovos_installer_user_home }}/.config/OvosDisplay.conf"
+        - "{{ ovos_installer_user_home }}/.config/ovos-installer"
         - "{{ ovos_installer_user_home }}/.local/share/mycroft"
         - "{{ ovos_installer_user_home }}/.local/share/OpenVoiceOS"
         - "{{ ovos_installer_user_home }}/.local/share/precise-lite"
+        - "{{ ovos_installer_user_home }}/.local/state/mycroft"
+        - "{{ ovos_installer_user_home }}/.local/state/vosk"
         - "{{ ovos_installer_user_home }}/nltk_data"
         - "{{ ovos_installer_user_home }}/stdout"

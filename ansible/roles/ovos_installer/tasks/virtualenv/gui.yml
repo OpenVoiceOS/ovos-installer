@@ -180,7 +180,9 @@
     - /usr/share/OVOS
     - /usr/lib64/qt5/qml/org/kde/lottie
     - /usr/lib/aarch64-linux-gnu/qt5/qml/org/kde/lottie
+    - /usr/lib/aarch64-linux-gnu/qt5/qml/Mycroft/libmycroftplugin.so
     - "{{ ovos_installer_user_home }}/.config/ovos-eglfs.json"
+    - "{{ ovos_installer_user_home }}/.cache/mycroft.gui"
   when: ovos_installer_cleaning | bool
   tags:
     - uninstall
