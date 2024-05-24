@@ -6,7 +6,7 @@
     version: "{{ ovos_hardware_mark2_vocalfusion_branch }}"
 
 - name: Override variable for newer kernels
-  set_fact:
+  ansible.builtin.set_fact:
     _ovos_hardware_mark2_lib_modules_path: "/lib/modules/{{ ansible_kernel }}"
   when: ansible_kernel is version(_ovos_hardware_mark2_kernel_target, '>=')
   
