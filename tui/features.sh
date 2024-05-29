@@ -8,7 +8,7 @@ export FEATURE_SKILLS="false"
 export FEATURE_EXTRA_SKILLS="false"
 
 features=("skills" "$SKILL_DESCRIPTION" ON)
-features+=("extra skills" "$EXTRA_SKILL_DESCRIPTION" OFF)
+features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" OFF)
 if [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 3"* ]] && [[ "$KERNEL" != *"microsoft"* ]] && [ "$PROFILE" != "server" ]; then
   features+=("gui" "$GUI_DESCRIPTION" OFF)
 fi
@@ -35,7 +35,7 @@ for FEATURE in $OVOS_FEATURES; do
   "skills")
     export FEATURE_SKILLS="true"
     ;;
-  "extra skills")
+  "extra-skills")
     export FEATURE_EXTRA_SKILLS="true"
     ;;
   esac
