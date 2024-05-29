@@ -11,6 +11,7 @@ Please choose the features to enable:
 "
 TITLE="Open Voice OS Installation - Features"
 SKILL_DESCRIPTION="Load default OVOS skills"
+EXTRA_SKILL_DESCRIPTION="Load extra OVOS skills"
 GUI_DESCRIPTION="Enable graphical user interface"
 
-export CONTENT TITLE SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION

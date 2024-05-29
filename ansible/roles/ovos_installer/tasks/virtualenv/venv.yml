@@ -22,6 +22,11 @@
         "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}",
       }
     - {
+        "file": "virtualenv/extra-skills-requirements.txt",
+        "dest": "/tmp/extra-skills-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_extra_skills | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
         "file": "virtualenv/listener-requirements.txt",
         "dest": "/tmp/listener-requirements.txt",
         "state": "{{ true if ovos_installer_profile == 'listener' else false }}",
@@ -82,6 +87,10 @@
         "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}",
       }
     - {
+        "file": "/tmp/extra-skills-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_extra_skills | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
         "file": "/tmp/listener-requirements.txt",
         "state": "{{ true if ovos_installer_profile == 'listener' else false }}",
       }
@@ -93,7 +102,6 @@
         "file": "/tmp/server-requirements.txt",
         "state": "{{ true if ovos_installer_profile == 'server' else false }}",
       }
-
   when: item.state | bool
   tags:
     - skip_ansible_lint
@@ -146,6 +154,7 @@
     - /tmp/core-requirements.txt
     - /tmp/gui-requirements.txt
     - /tmp/skills-requirements.txt
+    - /tmp/extra-skills-requirements.txt
     - /tmp/listener-requirements.txt
     - /tmp/satellite-requirements.txt
     - /tmp/server-requirements.txt

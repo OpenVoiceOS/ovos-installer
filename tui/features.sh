@@ -5,6 +5,7 @@ source "tui/locales/$LOCALE/features.sh"
 
 export FEATURE_GUI="false"
 export FEATURE_SKILLS="false"
+export FEATURE_EXTRA_SKILLS="false"
 
 features=("skills" "$SKILL_DESCRIPTION" ON)
 if [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 3"* ]] && [[ "$KERNEL" != *"microsoft"* ]] && [ "$PROFILE" != "server" ]; then
@@ -19,9 +20,9 @@ exit_status=$?
 if [ "$exit_status" -ne 0 ]; then
   source tui/profiles.sh
   if [[ "$PROFILE" == "satellite" ]]; then
-      source tui/satellite/main.sh
+    source tui/satellite/main.sh
   else
-      source tui/features.sh
+    source tui/features.sh
   fi
 fi
 
@@ -32,6 +33,9 @@ for FEATURE in $OVOS_FEATURES; do
     ;;
   "skills")
     export FEATURE_SKILLS="true"
+    ;;
+  "extra skills")
+    export FEATURE_EXTRA_SKILLS="true"
     ;;
   esac
 done

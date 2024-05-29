@@ -11,6 +11,7 @@ GUI KDE प्लाज्मा के शीर्ष पर चलने व�
 "
 TITLE="Open Voice OS Installation - विशेषताएँ"
 SKILL_DESCRIPTION="डिफ़ॉल्ट OVOS कौशल लोड करें"
+EXTRA_SKILL_DESCRIPTION="अतिरिक्त OVOS कौशल लोड करें"
 GUI_DESCRIPTION="ग्राफिकल यूजर इंटरफेस (GUI) इस्तमाल करें"
 
-export CONTENT TITLE SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
