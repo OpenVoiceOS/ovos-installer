@@ -42,7 +42,7 @@ export PULSE_SOCKET_WSL2=/mnt/wslg/PulseServer
 export REBOOT_FILE_PATH=/tmp/ovos.reboot
 declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry profile method uninstall rapsberry_pi_tuning hivemind)
 export SCENARIO_ALLOWED_OPTIONS
-declare -ra SCENARIO_ALLOWED_FEATURES=(skills gui)
+declare -ra SCENARIO_ALLOWED_FEATURES=(skills 'extra skills' gui)
 export SCENARIO_ALLOWED_FEATURES
 declare -ra SCENARIO_ALLOWED_HIVEMIND_OPTIONS=(host port key password)
 export SCENARIO_ALLOWED_HIVEMIND_OPTIONS
@@ -51,7 +51,7 @@ export SCENARIO_PATH=""
 declare -rA SUPPORTED_DEVICES=(
     ["atmega328p"]="1a" #https://www.microchip.com/en-us/product/atmega328p
     ["attiny1614"]="04" #https://www.microchip.com/en-us/product/attiny1614
-    ["tas5806"]="2f" #https://www.ti.com/product/TAS5806MD
+    ["tas5806"]="2f"    #https://www.ti.com/product/TAS5806MD
 )
 export SUPPORTED_DEVICES
 export TUI_WINDOW_HEIGHT="35"
