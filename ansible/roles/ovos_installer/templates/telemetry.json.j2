@@ -15,6 +15,7 @@
     "profile": "{{ ovos_installer_profile }}",
     "raspberry_pi": "{{ 'n/a' if ovos_installer_raspberrypi == 'N/A' else ovos_installer_raspberrypi }}",
     "skills_feature": {{ ovos_installer_feature_skills }},
+    "extra_skills_feature": {{ ovos_installer_feature_extra_skills }},
     "gui_feature": {{ ovos_installer_feature_gui }},
     "cpu_capable": {{ ovos_installer_cpu_is_capable }},
     "tuning_enabled": {{ true if ovos_installer_tuning == 'yes' else false }},

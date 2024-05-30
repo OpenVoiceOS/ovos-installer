@@ -93,6 +93,7 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_channel=${CHANNEL}" \
   -e "ovos_installer_feature_gui=${FEATURE_GUI}" \
   -e "ovos_installer_feature_skills=${FEATURE_SKILLS}" \
+  -e "ovos_installer_feature_extra_skills=${FEATURE_EXTRA_SKILLS}" \
   -e "ovos_installer_tuning=${TUNING}" \
   -e "ovos_installer_listener_host=${HIVEMIND_HOST}" \
   -e "ovos_installer_listener_port=${HIVEMIND_PORT}" \

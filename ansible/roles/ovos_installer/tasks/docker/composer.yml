@@ -53,6 +53,10 @@
         "state": "{{ 'false' if (ansible_memtotal_mb < 2048 and ovos_installer_profile != 'satellite' or not ovos_installer_feature_skills | bool) else 'true' }}",
       }
     - {
+        "file": "docker-compose.skills-extra.yml",
+        "state": "{{ 'false' if (ansible_memtotal_mb < 2048 and ovos_installer_profile != 'satellite' or not ovos_installer_feature_extra_skills | bool) else 'true' }}",
+      }
+    - {
         "file": "docker-compose.hivemind.yml",
         "state": "{{ 'true' if ovos_installer_profile == 'listener' else 'false' }}",
       }
@@ -118,6 +122,11 @@
               "src": "ovos-docker",
               "name": "ovos",
               "file": "docker-compose.skills.yml",
+            }
+          - {
+              "src": "ovos-docker",
+              "name": "ovos",
+              "file": "docker-compose.skills-extra.yml",
             }
           - {
               "src": "ovos-docker",

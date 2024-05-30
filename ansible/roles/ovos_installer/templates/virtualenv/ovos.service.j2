@@ -1,6 +1,6 @@
 [Unit]
 Documentation=https://openvoiceos.github.io/ovos-docker/about/what-is-it/
-Description=Open Voice OS
+Description=Open Voice OS - Meta service
 After=network-online.target
 {% if ovos_installer_profile != "server" %}
 Requires={{ _detect_sound_server.stdout }}.socket

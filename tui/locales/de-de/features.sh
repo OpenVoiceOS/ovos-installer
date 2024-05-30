@@ -11,6 +11,7 @@ Bitte wählen Sie die zu aktivierenden Funktionen aus:
 "
 TITLE="Open Voice OS Installation - Funktionen"
 SKILL_DESCRIPTION="Lade eine Auswahl an OVOS skills"
+EXTRA_SKILL_DESCRIPTION="Laden Sie zusätzliche OVOS-Fähigkeiten"
 GUI_DESCRIPTION="Mit grafischer Benutzeroberfläche"
 
-export CONTENT TITLE SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
