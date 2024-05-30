@@ -40,6 +40,9 @@ git+https://github.com/OpenVoiceOS/ovos-PHAL-plugin-hotkeys.git
 {% if 'atmega328p' in ovos_installer_i2c_devices %}
 git+https://github.com/OpenVoiceOS/ovos-PHAL-plugin-mk1.git
 {% endif %}
+{% if 'attiny1614' in ovos_installer_i2c_devices %}
+git+https://github.com/OpenVoiceOS/ovos-PHAL-plugin-mk2-v6-fan-control.git
+{% endif %}
 git+https://github.com/OpenVoiceOS/ovos-stt-plugin-chromium.git
 git+https://github.com/OpenVoiceOS/ovos-tts-plugin-polly.git
 git+https://github.com/OpenVoiceOS/ovos-utterance-corrections-plugin.git
