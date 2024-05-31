@@ -10,6 +10,7 @@ hivemind:
   password: 255203b3c8a7e59de1d60441a55d4f48
 features:
   skills: false
+  extra_skills: false
   gui: false
 rapsberry_pi_tuning: false
 share_telemetry: true

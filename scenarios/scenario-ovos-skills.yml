@@ -5,6 +5,7 @@ channel: development
 profile: ovos
 features:
   skills: true
+  extra_skills: false
   gui: false
 rapsberry_pi_tuning: false
 share_telemetry: true
