@@ -160,7 +160,9 @@ function is_raspeberrypi_soc() {
             # Disable wlan0 power management to avoid potential network
             # connectivity issue during the installation process. This is
             # properly handled by Ansible during the playbook execution.
-            iw "$WLAN_INTERFACE" set power_save off
+            if command -v iw 2>>"$LOG_FILE"; then
+                iw "$WLAN_INTERFACE" set power_save off
+            fi
         fi
     fi
     export RASPBERRYPI_MODEL
@@ -202,6 +204,7 @@ function required_packages() {
     declare extra_packages
     if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
         extra_packages+=("i2c-tools")
+        extra_packages+=("iw")
     fi
 
     case "$DISTRO_NAME" in
@@ -209,7 +212,7 @@ function required_packages() {
         [ "$DISTRO_VERSION_ID" == "11" ] && export PYTHON_VERSION="3"
         # This is a temporary fix until OVOS is confirmed to work with
         # Python 3.12. Requirements are PocketSphinx, tflite-runtime and
-        # onnxruntime Python packages.        
+        # onnxruntime Python packages.
         if [ "$(ver "$DISTRO_VERSION_ID")" -ge "$(ver 24.04)" ]; then
             {
                 apt-get update
