@@ -8,7 +8,7 @@
 - name: Override variable for newer kernels
   ansible.builtin.set_fact:
     _ovos_hardware_mark2_lib_modules_path: "/lib/modules/{{ ansible_kernel }}"
-  when: ansible_kernel is version(_ovos_hardware_mark2_kernel_target, '>=')
+  when: ansible_kernel is version('6.6.22', '>=')
   
 - name: Copy DTBO files to /boot/overlays
   vars:
