@@ -125,7 +125,7 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     echo -e "\n➤ Open Voice OS has been successfully uninstalled."
   fi
 else
-  debug_url="$(curl -sF 'sprunge=<-' http://sprunge.us <"$LOG_FILE")"
+  debug_url="$(curl -sF 'content=<-' https://dpaste.com/api/v2/ <"$LOG_FILE")"
   echo -e "\n➤ Unable to finalize the process, please check $LOG_FILE for more details."
   echo -e "➤ Please share this URL with us $debug_url"
   exit 1

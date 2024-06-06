@@ -11,7 +11,7 @@ fail_format="\e[31mfail\e[0m"
 # This is mainly used in setup.sh to handle errors during the functions
 # execution.
 function on_error() {
-    debug_url="$(curl -sF 'sprunge=<-' http://sprunge.us <"$LOG_FILE")"
+    debug_url="$(curl -sF 'content=<-' https://dpaste.com/api/v2/ <"$LOG_FILE")"
     echo -e "[$fail_format]"
     echo -e "\nUnable to continue the process, please check $LOG_FILE for more details."
     echo -e "Please share this URL with us $debug_url"
