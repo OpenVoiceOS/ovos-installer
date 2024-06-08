@@ -160,7 +160,7 @@ function is_raspeberrypi_soc() {
             # Disable wlan0 power management to avoid potential network
             # connectivity issue during the installation process. This is
             # properly handled by Ansible during the playbook execution.
-            if command -v iw 2>>"$LOG_FILE"; then
+            if command -v iw &>>"$LOG_FILE"; then
                 iw "$WLAN_INTERFACE" set power_save off
             fi
         fi
