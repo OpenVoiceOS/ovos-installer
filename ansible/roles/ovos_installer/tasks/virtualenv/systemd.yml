@@ -8,7 +8,7 @@
     src: "virtualenv/{{ item.unit }}.j2"
     dest: "{{ item.dest }}"
     owner: "{{ item.user }}"
-    group: "{{ item.user }}"
+    group: "{{ item.group }}"
     mode: "0644"
     backup: true
   notify: "{{ _notify_systemd_scope }}"
@@ -18,6 +18,7 @@
         "dest": "{{ _path_user }}/ovos.service",
         "scope": "user",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
       }
     - {
@@ -25,66 +26,77 @@
         "dest": "{{ _path_user }}/ovos-messagebus.service",
         "scope": "user",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
       }
     - {
         "unit": "ovos-core.service",
         "dest": "{{ _path_user }}/ovos-core.service",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
       }
     - {
         "unit": "ovos-phal.service",
         "dest": "{{ _path_user }}/ovos-phal.service",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
       }
     - {
         "unit": "ovos-phal-admin.service",
         "dest": "{{ _path_system }}/ovos-phal-admin.service",
         "user": "root",
+        "group": "root",
         "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
       }
     - {
         "unit": "ovos-listener.service",
         "dest": "{{ _path_user }}/ovos-listener.service",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
       }
     - {
         "unit": "ovos-audio.service",
         "dest": "{{ _path_user }}/ovos-audio.service",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
       }
     - {
         "unit": "ovos-gui-websocket.service",
         "dest": "{{ _path_user }}/ovos-gui-websocket.service",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
       }
     - {
         "unit": "ovos-gui.service",
         "dest": "{{ _path_user }}/ovos-gui.service",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
       }
     - {
         "unit": "ovos-ggwave-listener.service",
         "dest": "{{ _path_user }}/ovos-ggwave-listener.service",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
       }
     - {
         "unit": "hivemind-listener.service",
         "dest": "{{ _path_user }}/hivemind-listener.service",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if (ovos_installer_profile == 'listener' or ovos_installer_profile == 'server') else false }}",
       }
     - {
         "unit": "hivemind-satellite.service",
         "dest": "{{ _path_user }}/hivemind-satellite.service",
         "user": "{{ ovos_installer_user }}",
+        "group": "{{ ovos_installer_group }}",
         "state": "{{ true if ovos_installer_profile == 'satellite' else false }}",
       }
   when: item.state | bool

@@ -4,7 +4,7 @@
     src: docker/xhost.service
     dest: "{{ ovos_installer_user_home }}/.config/systemd/user/xhost.service"
     owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0644"
   notify: Reload Systemd User
 

@@ -19,6 +19,6 @@
       }
     dest: "{{ ovos_installer_user_home }}/{{ _configuration_path }}/ovos-eglfs.json"
     owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0600"
   when: "'Raspberry Pi 5' in ovos_installer_raspberrypi and ovos_installer_display_server == 'N/A'"

@@ -4,7 +4,7 @@
     src: mark1.service.j2
     dest: "{{ ovos_installer_user_home }}/.config/systemd/user/mark1.service"
     owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0644"
   notify: Reload Systemd User
 

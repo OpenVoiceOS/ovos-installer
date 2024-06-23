@@ -3,7 +3,7 @@
   ansible.builtin.file:
     path: "{{ item.directory }}"
     owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0755"
     state: directory
   loop:
@@ -45,7 +45,7 @@
   ansible.builtin.file:
     path: "{{ item.directory }}"
     owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0755"
     state: directory
   loop:
@@ -72,7 +72,7 @@
     src: mycroft.conf.j2
     dest: "{{ ovos_installer_user_home }}/{{ _configuration_path }}/mycroft.conf"
     owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0600"
     backup: true
   register: _configuration

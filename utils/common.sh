@@ -269,7 +269,7 @@ function create_python_venv() {
     source "$VENV_PATH/bin/activate"
 
     pip3 install --upgrade pip setuptools &>>"$LOG_FILE"
-    chown "$RUN_AS":"$RUN_AS" "$VENV_PATH"
+    chown "$RUN_AS":"$(id -ng $RUN_AS)" "$VENV_PATH"
     echo -e "[$done_format]"
 }
 
@@ -438,7 +438,7 @@ function setup_avrdude() {
       sdi                    = 17;
     ;
 EOF
-    chown "$RUN_AS:$RUN_AS" "$RUN_AS_HOME/.avrduderc" &>>"$LOG_FILE"
+    chown "$RUN_AS:$(id -ng $RUN_AS)" "$RUN_AS_HOME/.avrduderc" &>>"$LOG_FILE"
     curl -s -f -L "$AVRDUDE_CONFIG_URL" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"
 }
 

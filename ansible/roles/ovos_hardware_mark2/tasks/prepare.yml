@@ -4,7 +4,7 @@
     path: "{{ item }}"
     state: directory
     owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0755"
   loop:
     - /opt/sj201

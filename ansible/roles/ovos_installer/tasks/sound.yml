@@ -100,7 +100,7 @@
       ctl.!default {{ _detect_sound_server.stdout }}
     dest: "{{ ovos_installer_user_home }}/.asoundrc"
     owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0644"
     backup: true
   when: ovos_installer_raspberrypi != "N/A"

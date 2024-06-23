@@ -111,7 +111,7 @@
 - name: Change files ownership of {{ ovos_installer_user_home }}/.venvs/ovos
   ansible.builtin.command:
     cmd: |
-      chown -R {{ ovos_installer_user }}:{{ ovos_installer_user }} {{ ovos_installer_user_home }}/.venvs/ovos
+      chown -R {{ ovos_installer_user }}:{{ ovos_installer_group }} {{ ovos_installer_user_home }}/.venvs/ovos
   changed_when: false
 
 - name: Add VIRTUAL_ENV variable to .bashrc and update {{ ovos_installer_user }}'s PATH
@@ -122,7 +122,7 @@
     line: "{{ item.line }}"
     regexp: "{{ item.regexp }}"
     owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0644"
     state: "{{ ovos_installer_uninstall }}"
   loop:
@@ -138,7 +138,7 @@
     line: "source {{ ovos_installer_user_home }}/.venvs/ovos/bin/activate"
     regexp: "^source {{ ovos_installer_user_home }}/.venvs/ovos/bin/activate"
     owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0644"
     state: "{{ ovos_installer_uninstall }}"
   when: ovos_installer_i2c_devices | from_json | length >= 1
