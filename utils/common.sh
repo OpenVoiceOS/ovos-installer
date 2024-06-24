@@ -244,9 +244,10 @@ function create_python_venv() {
         fi
     fi
 
-    if [ ! -d "$VENV_PATH" ]; then
-        python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
+    if [ -d "$VENV_PATH" ]; then
+        rm -rf "$VENV_PATH" &>>"$LOG_FILE"
     fi
+    python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
 
     # shellcheck source=/dev/null
     source "$VENV_PATH/bin/activate"
