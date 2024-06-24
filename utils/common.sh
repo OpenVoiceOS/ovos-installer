@@ -208,7 +208,7 @@ function required_packages() {
     case "$DISTRO_NAME" in
     debian | ubuntu | raspbian | linuxmint | zorin)
         apt-get update &>>"$LOG_FILE"
-        apt-get install --no-install-recommends -y "python3" "python3-dev" python3-pip "python3-venv" whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        apt-get install --no-install-recommends -y python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     fedora)
         dnf install -y python3 python3-devel python3-pip python3-virtualenv newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
