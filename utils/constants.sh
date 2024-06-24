@@ -11,7 +11,6 @@ export DT_FILE=/sys/firmware/devicetree/base/model
 export I2C_BUS="1"
 export INSTALLER_VENV_NAME="ovos-installer"
 export LOG_FILE=/var/log/ovos-installer.log
-export MAX_PYTHON_VERSION="3.11"
 export NEWT_COLORS="
     root=white,black
     border=black,lightgray
