@@ -198,8 +198,6 @@ function get_os_information() {
 # the installer will exit with a message.
 function required_packages() {
     echo -ne "➤ Validating installer package requirements... "
-    PYTHON_VERSION="$MAX_PYTHON_VERSION"
-
     # Add extra packages if a Raspberry Pi board is detected
     declare extra_packages
     if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
@@ -209,34 +207,19 @@ function required_packages() {
 
     case "$DISTRO_NAME" in
     debian | ubuntu | raspbian | linuxmint | zorin)
-        [ "$DISTRO_VERSION_ID" == "11" ] && export PYTHON_VERSION="3"
-        # This is a temporary fix until OVOS is confirmed to work with
-        # Python 3.12. Requirements are PocketSphinx, tflite-runtime and
-        # onnxruntime Python packages.
-        if [ "$(ver "$DISTRO_VERSION_ID")" -ge "$(ver 24.04)" ]; then
-            {
-                apt-get update
-                apt-get install --no-install-recommends -y software-properties-common
-                add-apt-repository ppa:deadsnakes/ppa -y
-            } &>>"$LOG_FILE"
-        fi
         apt-get update &>>"$LOG_FILE"
-        apt-get install --no-install-recommends -y "python${PYTHON_VERSION}" "python${PYTHON_VERSION}-dev" python3-pip "python${PYTHON_VERSION}-venv" whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        apt-get install --no-install-recommends -y python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     fedora)
-        export PYTHON_VERSION
-        dnf install -y python3.11 python3.11-devel python3-pip python3-virtualenv newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        dnf install -y python3 python3-devel python3-pip python3-virtualenv newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     rocky | centos)
-        export PYTHON_VERSION
-        dnf install -y python3.11 python3.11-devel python3-pip newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        dnf install -y python3 python3-devel python3-pip newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     opensuse-tumbleweed | opensuse-leap)
-        export PYTHON_VERSION
-        zypper install -y python311 python311-devel python3-pip python3-rpm newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        zypper install --no-recommends -y python3 python3-devel python3-pip python3-rpm newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     arch | manjaro | endeavouros)
-        export PYTHON_VERSION
         pacman -Sy --noconfirm python python-pip python-virtualenv libnewt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     *)
@@ -261,15 +244,16 @@ function create_python_venv() {
         fi
     fi
 
-    if [ ! -d "$VENV_PATH" ]; then
-        "python${PYTHON_VERSION}" -m venv "$VENV_PATH" &>>"$LOG_FILE"
+    if [ -d "$VENV_PATH" ]; then
+        rm -rf "$VENV_PATH" &>>"$LOG_FILE"
     fi
+    python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
 
     # shellcheck source=/dev/null
     source "$VENV_PATH/bin/activate"
 
     pip3 install --upgrade pip setuptools &>>"$LOG_FILE"
-    chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$VENV_PATH"
+    chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$VENV_PATH" &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }
 
