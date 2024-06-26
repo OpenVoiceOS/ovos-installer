@@ -14,26 +14,27 @@ Then follow the instructions display on screen.
 
 [[HOWTO] Begin your Open Voice OS journey with the ovos-installer](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
 
-
 ### Supported Linux distributions
 
 | Distribution        | Version   |
 | ------------------- | --------- |
-| Arch                | `N/A`     |
+| Arch                | `rolling` |
 | CentOS              | `>= 8`    |
 | Debian GNU/Linux    | `>= 10`   |
-| EndeavourOS         | `N/A`     |
+| EndeavourOS         | `rolling` |
 | Fedora              | `>= 37`   |
 | Linux Mint          | `>= 21`   |
 | openSUSE Leap       | `>= 15`   |
-| openSUSE Tumbleweed | `N/A`     |
-| Manjaro             | `N/A`     |
+| openSUSE Tumbleweed | `rolling` |
+| Manjaro             | `rolling` |
 | Raspbian            | `10`      |
 | Raspberry Pi OS     | `>= 11`   |
 | Rocky Linux         | `>=8`     |
 | Ubuntu              | `>=20.04` |
-| WSL2                | `N/A`     |
+| WSL2                | `20.04`   |
 | Zorin OS            | `>= 16`   |
+
+`rolling` as `rolling` Linux distribution which means that there is no specific version.
 
 ## Update
 
@@ -66,12 +67,11 @@ Few scenarios are available as example in the [scenarios](https://github.com/Ope
 
 ## Uninstall
 
-To uninstall Open Voice OS run the installer with the `--uninstall` option *(non-interactive)* or simply run the installer and answer **"Yes"** to the _"Do you want to uninstall Open Voice OS?"_ question.
+To uninstall Open Voice OS run the installer with the `--uninstall` option _(non-interactive)_ or simply run the installer and answer **"Yes"** to the _"Do you want to uninstall Open Voice OS?"_ question.
 
 ```shell
 sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh --uninstall && rm installer.sh"
 ```
-
 
 ## Screenshots
 
