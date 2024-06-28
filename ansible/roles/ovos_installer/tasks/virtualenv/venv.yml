@@ -73,6 +73,9 @@
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
     extra_args: "{{ _pip_args }}"
     state: latest
+  register: _ovos_install_venv
+  retries: 5
+  until: _ovos_install_venv | success
   loop:
     - {
         "file": "/tmp/core-requirements.txt",
