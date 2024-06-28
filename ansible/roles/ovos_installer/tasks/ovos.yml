@@ -2,34 +2,26 @@
 - name: Define directories to backup before uninstall
   ansible.builtin.set_fact:
     ovos_directories_backup:
-      - "{{ ovos_installer_user_home }}/ovos"
-      - "{{ ovos_installer_user_home }}/hivemind"
-      - "{{ ovos_installer_user_home }}/.config/wireplumber"
-  when: ovos_installer_method == "containers"
-  tags:
-    - uninstall
-
-- name: Define directories to backup before uninstall
-  ansible.builtin.set_fact:
-    ovos_directories_backup:
-      - "{{ ovos_installer_user_home }}/.config/systemd"
-      - "{{ ovos_installer_user_home }}/.config/mycroft"
-      - "{{ ovos_installer_user_home }}/.config/hivemind"
-      - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS"
-      - "{{ ovos_installer_user_home }}/.config/wireplumber"
-      - "{{ ovos_installer_user_home }}/.local/share/hivemind"
-  when: ovos_installer_method == "virtualenv"
+      - "{{ ovos_installer_user_home }}/ovos/*"
+      - "{{ ovos_installer_user_home }}/hivemind/*"
+      - "{{ ovos_installer_user_home }}/.config/systemd/user/*"
+      - "{{ ovos_installer_user_home }}/.config/mycroft/*"
+      - "{{ ovos_installer_user_home }}/.config/hivemind/*"
+      - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS/*"
+      - "{{ ovos_installer_user_home }}/.config/wireplumber/*"
+      - "{{ ovos_installer_user_home }}/.local/share/hivemind/*"
   tags:
     - uninstall
 
 - name: Backup existing configurations before uninstall
   community.general.archive:
     path: "{{ ovos_directories_backup }}"
-    dest: "{{ ovos_installer_user_home }}/"
+    dest: "{{ ovos_installer_user_home }}/ovos-backup.tar.gz"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     mode: "0755"    
-    format: bz2
+    format: gz
+    force_archive: true
   tags:
     - uninstall
 
