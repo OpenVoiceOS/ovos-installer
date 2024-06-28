@@ -74,8 +74,9 @@
     extra_args: "{{ _pip_args }}"
     state: latest
   register: _ovos_install_venv
+  until: _ovos_install_venv is success
   retries: 5
-  until: _ovos_install_venv | success
+  delay: 5
   loop:
     - {
         "file": "/tmp/core-requirements.txt",
