@@ -13,17 +13,17 @@
   tags:
     - uninstall
 
-- name: Backup existing configurations before uninstall
-  community.general.archive:
-    path: "{{ ovos_directories_backup }}"
-    dest: "{{ ovos_installer_user_home }}/ovos-backup.tar.gz"
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    mode: "0755"    
-    format: gz
-    force_archive: true
-  tags:
-    - uninstall
+# - name: Backup existing configurations before uninstall
+#   community.general.archive:
+#     path: "{{ ovos_directories_backup }}"
+#     dest: "{{ ovos_installer_user_home }}/ovos-backup.tar.gz"
+#     owner: "{{ ovos_installer_user }}"
+#     group: "{{ ovos_installer_group }}"
+#     mode: "0755"    
+#     format: gz
+#     force_archive: true
+#   tags:
+#     - uninstall
 
 - name: Create directories
   ansible.builtin.file:

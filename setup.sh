@@ -49,7 +49,7 @@ trap "" ERR
 set +eE
 
 # Set default Ansible tag
-ansible_tags=(--tags unttaged)
+#ansible_tags=(--tags unttaged)
 
 if [ "$SCENARIO_FOUND" == "false" ]; then
   # shellcheck source=tui/language.sh
