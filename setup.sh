@@ -48,9 +48,6 @@ i2c_scan
 trap "" ERR
 set +eE
 
-# Set default Ansible tag
-#ansible_tags=(--tags unttaged)
-
 if [ "$SCENARIO_FOUND" == "false" ]; then
   # shellcheck source=tui/language.sh
   source tui/language.sh
