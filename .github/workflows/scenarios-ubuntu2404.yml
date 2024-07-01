@@ -34,7 +34,7 @@ jobs:
           profile: ovos
           features:
             skills: true
-            skills_extras: true
+            extra_skills: true
             gui: true
           rapsberry_pi_tuning: false
           share_telemetry: false
