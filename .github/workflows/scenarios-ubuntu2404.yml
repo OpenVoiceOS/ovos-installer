@@ -18,7 +18,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get --no-install-recommends install curl git -y
-          mkdir -p ~/.config/ovos-installer
 
       - name: Uninstall existing instance
         run: |
@@ -26,6 +25,7 @@ jobs:
 
       - name: Scenario containers, development, ovos, skills
         run: |
+          mkdir -p ~/.config/ovos-installer
           cat <<EOF >~/.config/ovos-installer/scenario.yaml
           ---
           uninstall: false
