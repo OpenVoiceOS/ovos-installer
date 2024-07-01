@@ -1,4 +1,4 @@
-name: Scenarios on Ubuntu 23.10 x86_64
+name: Scenarios on Ubuntu 24.04 x86_64
 
 on:
   workflow_run:
@@ -10,10 +10,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  scenario-u2310-amd64-containers-dev-ovos-skills-gui:
+  scenario-u2404-amd64-containers-dev-ovos-skills-gui:
     runs-on:
       - self-hosted
-      - ubuntu-latest-amd64
     steps:
       - name: Installer requirements
         run: |
@@ -35,6 +34,7 @@ jobs:
           profile: ovos
           features:
             skills: true
+            skills_extras: true
             gui: true
           rapsberry_pi_tuning: false
           share_telemetry: false
