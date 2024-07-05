@@ -375,7 +375,7 @@ function i2c_scan() {
         if ! dtparam -l | grep -q i2c_arm=on; then
             dtparam -v i2c_arm=on &>>"$LOG_FILE"
         fi
-        if ! lsmod | grep -q i2c-dev; then
+        if ! lsmod | grep -q i2c_dev; then
             modprobe -v i2c-dev &>>"$LOG_FILE"
         fi
 
