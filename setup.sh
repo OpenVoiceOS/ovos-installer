@@ -115,14 +115,14 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     if [ "$SCENARIO_FOUND" == "false" ]; then
       # shellcheck source=tui/finish.sh
       source tui/finish.sh
-      rm -rf "$VENV_PATH"
+      rm -rf "$VENV_PATH" /root/.ansible
       if [ -f "$REBOOT_FILE_PATH" ]; then
         rm -f "$REBOOT_FILE_PATH"
         shutdown -r now
       fi
     fi
   else
-    rm -rf "$VENV_PATH"
+    rm -rf "$VENV_PATH" /root/.ansible
     echo -e "\n➤ Open Voice OS has been successfully uninstalled."
   fi
 else
