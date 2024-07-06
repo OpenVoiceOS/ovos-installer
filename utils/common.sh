@@ -1,9 +1,9 @@
 #!/bin/env bash
 #
-# Functions in this file are mostly used called by setup.sh but most of
-# the exported variables are used within the Ansible playbook.
+# Functions in this file are mostly called by setup.sh but most of
+# the exported variables are consumed within the Ansible playbook.
 
-# Format the done and fail strings
+# Format the "done" and "fail" strings
 done_format="\e[32mdone\e[0m"
 fail_format="\e[31mfail\e[0m"
 
@@ -18,7 +18,7 @@ function on_error() {
     exit 1
 }
 
-# Delete installer log file if existing
+# Delete installer log file if existing from previous run.
 # This file will be deleted at each execution of the installer.
 function delete_log() {
     if [ -f "$LOG_FILE" ]; then
@@ -26,16 +26,16 @@ function delete_log() {
     fi
 }
 
-# Detect information about the user running the installer
+# Detect information about the user running the installer.
 # Installer must be executed with super privileges but either
-# root or sudo can run this script, we need to know whom.
+# "root" or "sudo" can run this script, we need to know whom.
 function detect_user() {
     if [ "$USER_ID" -ne 0 ]; then
         echo -e "[$fail_format] This script must be run as root or with sudo\n"
         exit 1
     fi
 
-    # Check for sudo or root
+    # Check for sudo or root user
     if [ -n "$SUDO_USER" ]; then
         # sudo user
         export RUN_AS="$SUDO_USER"
@@ -50,7 +50,7 @@ function detect_user() {
     export VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
 }
 
-# Check for which sound server is running, PulseAudio or PipeWire.
+# Detect which sound server is running (if running), PulseAudio or PipeWire.
 # If PulseAudio is running, the function checks to see how the PulseAudio
 # service is started, is it via PulseAudio itself or via pipewire-pulse.
 function detect_sound() {
@@ -78,7 +78,6 @@ function detect_sound() {
         # This condition is only related to WSL2 as PulseServer socket will be
         # created under the /mnt/wslg/ directory.
         if command -v pactl &>>"$LOG_FILE"; then
-            # PULSE_SERVER is required by pactl as it is executed via sudo
             export PULSE_SERVER="$PULSE_SOCKET_WSL2"
             SOUND_SERVER="$(pactl info | awk -F":" '$1 ~ /Server Name/ { print $2 }' | sed 's/^ *//')"
             export SOUND_SERVER
@@ -95,8 +94,8 @@ function detect_sound() {
 }
 
 # Check for specific CPU instruction set in order to leverage TensorFlow
-# and/or ONNXruntime. The exported variable will be used
-# within the Ansible playbook to disable wake word and VAD plugins using
+# and/or ONNXruntime. The exported variable will be used within the
+# Ansible playbook to disable certain wake words and VAD plugin requiring
 # these features if AVX or SIMD are not detected.
 function detect_cpu_instructions() {
     echo -ne "➤ Detecting AVX/SIMD support... "
@@ -108,7 +107,7 @@ function detect_cpu_instructions() {
     echo -e "[$done_format]"
 }
 
-# Look for existing instance of Open Voice OS
+# Look for existing or partial instance of Open Voice OS.
 # First Docker and Podman will be checked for ovos-* and/or hivemind-*
 # containers, if nothing was found then the function will check for
 # the Python virtual environement.
@@ -170,8 +169,9 @@ function is_raspeberrypi_soc() {
 }
 
 # Retrieve operating system information based on standard /etc/os-release
-# and Python command. This is used to provide information to the user
-# about the platform where the installer is running on.
+# and Python command. This is used to display information to the user
+# about the platform where the installer is running on and where OVOS is
+# gonna be installed.
 function get_os_information() {
     echo -ne "➤ Retrieving OS information... "
     if [ -f "$OS_RELEASE" ]; then
@@ -231,9 +231,9 @@ function required_packages() {
     echo -e "[$done_format]"
 }
 
-# Create the installer Python virtual environment and update pip package.
-# Permissions on the virtual environment are set to match the
-# target user.
+# Create the installer Python virtual environment and update pip and
+# setuptools package.Permissions on the virtual environment are set
+# to match the target user.
 function create_python_venv() {
     echo -ne "➤ Creating installer Python virtualenv... "
     # Disable https://www.piwheels.org/simple when aarch64 CPU architecture
@@ -259,8 +259,8 @@ function create_python_venv() {
 }
 
 # Install Ansible into the new Python virtual environment and install the
-# Ansible collections required by the Ansible playbook as well. These
-# collection will be installed under the /root/.ansible directory.
+# Ansible's collections required by the Ansible playbook as well. These
+# collections will be installed under the /root/.ansible directory.
 function install_ansible() {
     echo -ne "➤ Installing Ansible requirements in Python virtualenv... "
     ANSIBLE_VERSION="9.2.0"
@@ -287,14 +287,15 @@ function download_yq() {
     chmod 0755 "$YQ_BINARY_PATH" &>>"$LOG_FILE"
 }
 
-# Search for a scenario.yaml file. This file fill be used for non-interactive
-# installation.
+# Search for a scenario.yaml file. This file will be used for non-interactive
+# installation like when running within a CI or when industrial deployments
+# are required.
 function detect_scenario() {
     echo -ne "➤ Looking for automated scenario... "
     SCENARIO_PATH="$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME"
     export SCENARIO_FOUND="false"
     if [ -f "$SCENARIO_PATH" ]; then
-        # Make sure scenario is valid YAML
+        # Make sure scenario has a valid YAML syntax
         download_yq
         "$YQ_BINARY_PATH" "$SCENARIO_PATH" &>>"$LOG_FILE"
 
@@ -317,7 +318,7 @@ function detect_scenario() {
     echo -e "[$done_format]"
 }
 
-# This function checks if element exists within an array.
+# This function checks if element exists within a Bash array.
 # The function takes two arguments:
 #  1. The Bash array
 #  2. The element to find
@@ -355,9 +356,10 @@ function ver() {
     printf "%03d" $(echo "$1" | tr '.' ' ')
 }
 
-# Check if an hexacidemal address exists on the I2C bus
+# Check if a specific hexacidemal address exists on the I2C bus.
 # This function takes an argument like "2f", this will be converted
 # to "0x2f".
+# It will be only used when a Raspberry Pi board is detected.
 function i2c_get() {
     if i2cdetect -y -a "$I2C_BUS" "0x$1" "0x$1" 2>>"$LOG_FILE" | grep -Eq "$1|UU"; then
         return 0
@@ -365,13 +367,13 @@ function i2c_get() {
     return 1
 }
 
-# Scan the I2C bus to find any supported devices
+# Scan the I2C bus to find any devices supported by the installer.
 # This function will only run if a Raspberry Pi board is detected.
 function i2c_scan() {
     if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
         echo -ne "➤ Scan I2C bus for hardware auto-detection..."
 
-        # Load I2C requirements if not ready, nothing persistent here as
+        # Load I2C requirements if not already, nothing persistent here as
         # it will be handled later by the Ansible playbook.
         if ! dtparam -l | grep -q i2c_arm=on; then
             dtparam -v i2c_arm=on &>>"$LOG_FILE"
