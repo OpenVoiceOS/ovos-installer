@@ -1,22 +1,16 @@
-ovos-backend-client
-ovos-dinkum-listener
-ovos-microphone-plugin-alsa
-ovos-stt-plugin-server
-ovos-vad-plugin-webrtcvad
 ovos-audio-plugin-simple
+ovos-backend-client
 ovos-classifiers
-ovos-microphone-plugin-alsa
 ovos-microphone-plugin-sounddevice
 ovos-PHAL
 ovos-PHAL-plugin-alsa
 ovos-PHAL-plugin-ipgeo
-ovos-stt-plugin-server
-{% if ovos_installer_cpu_is_capable | bool %}
-ovos-vad-plugin-silero
-ovos-ww-plugin-precise-lite
-{% endif %}
+ovos-vad-plugin-webrtcvad
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 ovos-ww-plugin-openwakeword
+{% endif %}
+{% if ovos_installer_cpu_is_capable | bool %}
+ovos-ww-plugin-precise-lite
 {% endif %}
 poorman-handshake
 
