@@ -245,7 +245,8 @@ function create_python_venv() {
     fi
 
     if [ -d "$VENV_PATH" ]; then
-        rm -rf "$VENV_PATH" &>>"$LOG_FILE"
+        # Make sure everything is clean before starting.
+        rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
     fi
     python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
 
