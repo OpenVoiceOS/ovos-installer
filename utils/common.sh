@@ -340,7 +340,7 @@ function in_array() {
 function wsl2_requirements() {
     if [[ "$KERNEL" == *"microsoft"* ]]; then
         echo -ne "➤ Validating WSL2 requirements... "
-        if ! grep -q "systemd=true" "$WSL_FILE" &>>"$LOG_FILE"; then
+        if ! grep -q "systemd=boot" "$WSL_FILE" &>>"$LOG_FILE"; then
             echo "systemd=boot must be added to $WSL_FILE" &>>"$LOG_FILE"
             return 1
         fi
