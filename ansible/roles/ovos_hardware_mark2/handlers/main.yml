@@ -6,9 +6,12 @@
     daemon_reload: true
     scope: user
 
-- name: Load Module
+- name: Run Depmod
   ansible.builtin.command:
     cmd: |
       depmod -a {{ ansible_kernel }}
-      modprobe -v vocalfusion-soundcard
   changed_when: false
+
+- name: Set Reboot
+  ansible.builtin.set_fact:
+    ovos_installer_reboot: true

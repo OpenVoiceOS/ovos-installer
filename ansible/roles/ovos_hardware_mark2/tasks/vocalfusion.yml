@@ -48,7 +48,9 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Load Module
+  notify:
+    - Run Depmod
+    - Set Reboot
 
 - name: Create /etc/modules-load.d/vocalfusion.conf file
   ansible.builtin.copy:
@@ -108,7 +110,6 @@
   ansible.builtin.systemd_service:
     name: sj201.service
     enabled: true
-    state: started
     force: true
     scope: user
 
