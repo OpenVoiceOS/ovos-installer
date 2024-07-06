@@ -12,6 +12,7 @@ ovos-PHAL-plugin-alsa
 ovos-PHAL-plugin-ipgeo
 ovos-stt-plugin-server
 {% if ovos_installer_cpu_is_capable | bool %}
+ovos-vad-plugin-silero
 ovos-ww-plugin-precise-lite
 {% endif %}
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
@@ -30,6 +31,3 @@ git+https://github.com/OpenVoiceOS/ovos-PHAL-plugin-mk1.git
 {% endif %}
 git+https://github.com/OpenVoiceOS/ovos-stt-plugin-chromium.git
 git+https://github.com/OpenVoiceOS/ovos-tts-plugin-polly.git
-{% if ovos_installer_cpu_is_capable | bool %}
-git+https://github.com/OpenVoiceOS/ovos-vad-plugin-silero.git
-{% endif %}
