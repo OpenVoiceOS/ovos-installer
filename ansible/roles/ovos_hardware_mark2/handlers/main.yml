@@ -6,8 +6,9 @@
     daemon_reload: true
     scope: user
 
-- name: Run Depmod
+- name: Load Module
   ansible.builtin.command:
     cmd: |
-      depmod -a {{ _ovos_hardware_mark2_kernel_target }}
+      depmod -a {{ ansible_kernel }}
+      modprobe -v vocalfusion-soundcard
   changed_when: false
