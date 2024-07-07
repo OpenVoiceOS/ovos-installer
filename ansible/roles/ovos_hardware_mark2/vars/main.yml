@@ -1,6 +1,2 @@
 ---
-# Until https://github.com/RPi-Distro/rpi-source/pull/29 PR is merged
-_ovos_hardware_mark2_rpi_source_url: https://raw.githubusercontent.com/jgartrel/rpi-source/master/rpi-source
-_ovos_hardware_mark2_kernel_target: "{{ '6.6.22-v8+' if 'Raspberry Pi 4' in ovos_installer_raspberrypi else '6.6.22-v8-16k+' }}"
-_ovos_hardware_mark2_lib_modules_path: "/lib/modules/{{ _ovos_hardware_mark2_kernel_target }}"
 _ovos_hardware_mark2_vocalfusion_src_path: /usr/src/vocalfusion

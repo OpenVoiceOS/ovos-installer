@@ -1,59 +1,4 @@
 ---
-# This block is only meaningful until kernel 6.6.22 becomes
-# the default Raspberry Pi stock kernel.
-# The current stock kernel version is 6.6.20 which does not work
-# with the VocalFusionDriver.
-# rpi-firmware commit f17defccf231912cfe96c9d3a779b4e2d006abd6 (6.6.22)
-- name: Block kernel upgrade
-  when: ansible_kernel is version("6.6.22", "<")
-  block:
-    - name: Kernel headers packages requirement
-      ansible.builtin.apt:
-        name:
-          - bc
-          - bison
-          - flex
-          - libssl-dev
-        install_recommends: false
-        update_cache: true
-
-    - name: Update kernel and firmware
-      ansible.builtin.shell:
-        cmd: |
-          set -o pipefail
-          echo y | rpi-update f17defccf231912cfe96c9d3a779b4e2d006abd6
-        executable: /bin/bash
-      environment:
-        SKIP_BACKUP: "1"
-        UPDATE_SELF: "1"
-      register: _firmware_status
-      changed_when: no
-
-    - name: Retrieve rpi-source Python script
-      ansible.builtin.get_url:
-        url: "{{ _ovos_hardware_mark2_rpi_source_url }}"
-        dest: /usr/local/bin/rpi-source
-        owner: root
-        group: root
-        mode: "0755"
-
-    - name: Build kernel headers
-      ansible.builtin.shell:
-        cmd: |
-          set -o pipefail
-          rpi-source -q --tag-update
-          echo -e -n "\r" | sudo rpi-source -d /usr/src/ --delete
-          ln -sf /usr/src/linux {{ _ovos_hardware_mark2_lib_modules_path }}/build
-        executable: /bin/bash
-      changed_when: no
-
-    - name: Set ovos_installer_reboot fact (firmware)
-      vars:
-        _firmware_reboot: "{{ _firmware_status.stdout | regex_search('reboot') }}"
-      ansible.builtin.set_fact:
-        ovos_installer_reboot: true
-      when: _firmware_status is defined and _firmware_reboot | length > 0
-
 - name: Install kernel headers
   ansible.builtin.apt:
     name: raspberrypi-kernel-headers
@@ -70,7 +15,7 @@
   ansible.builtin.command:
     cmd: rpi-eeprom-update -a
   register: _eeprom_status
-  changed_when: no
+  changed_when: false
 
 - name: Set ovos_installer_reboot fact (EEPROM)
   vars:

@@ -9,5 +9,9 @@
 - name: Run Depmod
   ansible.builtin.command:
     cmd: |
-      depmod -a {{ _ovos_hardware_mark2_kernel_target }}
+      depmod -a {{ ansible_kernel }}
   changed_when: false
+
+- name: Set Reboot
+  ansible.builtin.set_fact:
+    ovos_installer_reboot: true
