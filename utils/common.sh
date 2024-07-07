@@ -254,7 +254,7 @@ function create_python_venv() {
     source "$VENV_PATH/bin/activate"
 
     pip3 install --upgrade pip setuptools &>>"$LOG_FILE"
-    chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$VENV_PATH" &>>"$LOG_FILE"
+    chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }
 
