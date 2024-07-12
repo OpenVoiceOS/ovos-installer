@@ -98,6 +98,19 @@
   environment:
     DOCKER_TIMEOUT: "900"
 
+- name: Generate _identity.json
+  community.docker.docker_container_exec:
+    container: hivemind_cli
+    command: |
+      hivemind-client set-identity \
+        --key {{ ovos_installer_satellite_key }} \
+        --password {{ ovos_installer_satellite_password }} \
+        --host {{ ovos_installer_listener_host }} \
+        --port {{ ovos_installer_listener_port | default(5678) }} \
+        --siteid {{ ovos_installer_site_id | default("voice-sat-1") }}
+  changed_when: false
+  when: ovos_installer_profile == "satellite"
+
 - name: Block uninstall composer
   when: ovos_installer_cleaning | bool
   tags:

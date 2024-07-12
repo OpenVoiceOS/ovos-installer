@@ -149,6 +149,24 @@
   tags:
     - always
 
+- name: Generate _identity.json
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.shell:
+    cmd: |
+      hivemind-client set-identity \
+        --key {{ ovos_installer_satellite_key }} \
+        --password {{ ovos_installer_satellite_password }} \
+        --host {{ ovos_installer_listener_host }} \
+        --port {{ ovos_installer_listener_port | default(5678) }} \
+        --siteid {{ ovos_installer_site_id | default("voice-sat-1") }}
+    executable: /bin/bash
+  environment:
+    PATH: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
+    VIRTUAL_ENV: "{{ ovos_installer_user_home }}/.venvs/ovos"
+  changed_when: false
+  when: ovos_installer_profile == "satellite"
+
 - name: Remove {{ ovos_installer_user_home }}/.venvs/ovos Python virtualenv and requirements.txt files
   ansible.builtin.file:
     path: "{{ ovos_installer_user_home }}/.venvs/ovos"
