@@ -1,17 +1,17 @@
 #!/bin/env bash
 
 CONTENT="
-When choosing between GUI (Graphical User Interface) and skills in Open Voice OS, consider your preference and needs.
+When choosing between enabling the Graphical User Interface (GUI) and loading skills in Open Voice OS, consider your preferences and needs.
 
-The GUI is an open source visual and display framework for OVOS running on top of KDE Plasma and built using Kirigami empowered by Qt.
+The GUI is an additional visual layer for Open Voice OS, providing a graphical interface for easier interaction alongside voice commands.
 
-Skills enable interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.
+Skills allow interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.
 
 Please choose the features to enable:
 "
 TITLE="Open Voice OS Installation - Features"
-SKILL_DESCRIPTION="Load default OVOS skills"
-EXTRA_SKILL_DESCRIPTION="Load extra OVOS skills"
+SKILL_DESCRIPTION="Load default Open Voice OS skills"
+EXTRA_SKILL_DESCRIPTION="Load extra Open Voice OS skills"
 GUI_DESCRIPTION="Enable graphical user interface"
 
 export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
