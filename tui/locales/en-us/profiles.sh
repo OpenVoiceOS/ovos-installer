@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 CONTENT="
-To create a The versatile system that is suitable for many applications, there are three intriguing choices:
+To create a versatile system that is suitable for many applications, there are three intriguing choices:
 
   - Open Voice OS Master: The Open Voice OS classic experience
   - HiveMind Satellite: Open Voice OS audio components connected to HiveMind Listener
