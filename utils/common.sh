@@ -213,7 +213,7 @@ function required_packages() {
     fedora)
         dnf install -y python3 python3-devel python3-pip python3-virtualenv newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
-    rocky | centos)
+    almalinux | rocky | centos)
         dnf install -y python3 python3-devel python3-pip newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     opensuse-tumbleweed | opensuse-leap)

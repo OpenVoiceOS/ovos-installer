@@ -18,6 +18,7 @@ Then follow the instructions display on screen.
 
 | Distribution        | Version   |
 | ------------------- | --------- |
+| AlmaLinux           | `>= 8`    |
 | Arch                | `rolling` |
 | CentOS              | `>= 8`    |
 | Debian GNU/Linux    | `>= 10`   |
