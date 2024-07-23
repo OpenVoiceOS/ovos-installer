@@ -184,6 +184,15 @@ EOF
     assert_failure
 }
 
+@test "function_required_packages_almalinux_fail" {
+    DISTRO_NAME="almalinux"
+    function dnf() {
+        exit 1
+    }
+    run required_packages
+    assert_failure
+}
+
 @test "function_required_packages_manjaro_fail" {
     DISTRO_NAME="manjaro"
     function pacman() {
