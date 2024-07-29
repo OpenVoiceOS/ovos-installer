@@ -25,6 +25,20 @@
     }
   },
 {% endif %}
+{% if 'tas5806' in ovos_installer_i2c_devices %}
+  "Audio": {
+    "backends": {
+      "OCP": {
+        "playback_mode": 40
+      }
+    }
+  },
+  "intents": {
+    "OCP": {
+      "legacy": true
+    }
+  },
+{% endif %}
 {% if ovos_installer_feature_gui | bool %}
   "gui": {
     "extension": "ovos-gui-plugin-shell-companion"{% if ovos_installer_method == "containers" %},
