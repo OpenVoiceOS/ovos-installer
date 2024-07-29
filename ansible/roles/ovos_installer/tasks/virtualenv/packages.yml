@@ -28,7 +28,7 @@
       - sox
       - libsox-fmt-all
       - flac
-      - vlc
+      - mpv
       - libxslt1-dev
       - libopenblas-dev
       - pkg-config
@@ -50,7 +50,7 @@
       - mpg123
       - sox
       - flac
-      - vlc
+      - mpv
       - openblas-serial
       - pkgconf-pkg-config
       - libicu-devel
@@ -70,7 +70,7 @@
       - mpg123
       - sox
       - flac
-      - vlc
+      - mpv
       - libopenblas_serial-devel
       - portaudio-devel
     state: "{{ ovos_installer_uninstall }}"
@@ -89,7 +89,7 @@
       - mpg123
       - sox
       - flac
-      - vlc
+      - mpv
       - libxslt
       - openblas
     state: "{{ ovos_installer_uninstall }}"
