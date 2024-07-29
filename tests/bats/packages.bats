@@ -67,6 +67,15 @@ EOF
     assert_success
 }
 
+@test "function_required_packages_almalinux" {
+    DISTRO_NAME="almalinux"
+    function dnf() {
+        exit 0
+    }
+    run required_packages
+    assert_success
+}
+
 @test "function_required_packages_manjaro" {
     DISTRO_NAME="manjaro"
     function pacman() {
@@ -168,6 +177,15 @@ EOF
 
 @test "function_required_packages_rocky_fail" {
     DISTRO_NAME="rocky"
+    function dnf() {
+        exit 1
+    }
+    run required_packages
+    assert_failure
+}
+
+@test "function_required_packages_almalinux_fail" {
+    DISTRO_NAME="almalinux"
     function dnf() {
         exit 1
     }
