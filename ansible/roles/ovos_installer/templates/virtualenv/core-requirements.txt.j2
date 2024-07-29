@@ -1,4 +1,5 @@
 ovos-audio[extras]
+ovos-audio-plugin-mpv
 ovos-audio-plugin-simple
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 ovos-audio-transformer-plugin-ggwave
@@ -17,7 +18,6 @@ ovos-PHAL-plugin-alsa
 ovos-PHAL-plugin-system
 ovos-PHAL-plugin-ipgeo
 ovos-plugin-manager[offline]
-ovos-plugin-vlc
 ovos-translate-server-plugin
 ovos-stt-plugin-vosk
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
