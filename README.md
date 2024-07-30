@@ -27,6 +27,7 @@ Then follow the instructions display on screen.
 | Linux Mint          | `>= 21`   |
 | openSUSE Leap       | `>= 15`   |
 | openSUSE Tumbleweed | `rolling` |
+| openSUSE Slowroll   | `rolling` |
 | Manjaro             | `rolling` |
 | Raspbian            | `10`      |
 | Raspberry Pi OS     | `>= 11`   |

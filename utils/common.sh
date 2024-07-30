@@ -216,7 +216,7 @@ function required_packages() {
     almalinux | rocky | centos)
         dnf install -y python3 python3-devel python3-pip newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
-    opensuse-tumbleweed | opensuse-leap)
+    opensuse-tumbleweed | opensuse-leap | opensuse-slowroll)
         zypper install --no-recommends -y python3 python3-devel python3-pip python3-rpm newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     arch | manjaro | endeavouros)

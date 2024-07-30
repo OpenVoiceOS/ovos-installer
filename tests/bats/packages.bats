@@ -112,6 +112,15 @@ EOF
     assert_success
 }
 
+@test "function_required_packages_opensuse_slowroll" {
+    DISTRO_NAME="opensuse-slowroll"
+    function zypper() {
+        exit 0
+    }
+    run required_packages
+    assert_success
+}
+
 @test "function_required_packages_linuxmint" {
     DISTRO_NAME="linuxmint"
     function apt-get() {
@@ -222,6 +231,15 @@ EOF
 
 @test "function_required_packages_opensuse_tumbleweed_fail" {
     DISTRO_NAME="opensuse-leap"
+    function zypper() {
+        exit 1
+    }
+    run required_packages
+    assert_failure
+}
+
+@test "function_required_packages_opensuse_slowroll_fail" {
+    DISTRO_NAME="opensuse-slowroll"
     function zypper() {
         exit 1
     }
