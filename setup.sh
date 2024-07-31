@@ -81,7 +81,7 @@ echo "➤ Starting Ansible playbook... ☕🍵🧋"
 export ANSIBLE_CONFIG=ansible/ansible.cfg
 export ANSIBLE_PYTHON_INTERPRETER="$VENV_PATH/bin/python3"
 export ANSIBLE_NOCOWS=1
-unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
+ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_user=${RUN_AS}" \
   -e "ovos_installer_group=$(id -ng "$RUN_AS")" \
   -e "ovos_installer_uid=${RUN_AS_UID}" \
