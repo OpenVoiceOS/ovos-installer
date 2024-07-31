@@ -81,7 +81,7 @@ echo "➤ Starting Ansible playbook... ☕🍵🧋"
 export ANSIBLE_CONFIG=ansible/ansible.cfg
 export ANSIBLE_PYTHON_INTERPRETER="$VENV_PATH/bin/python3"
 export ANSIBLE_NOCOWS=1
-unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
+ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_user=${RUN_AS}" \
   -e "ovos_installer_group=$(id -ng "$RUN_AS")" \
   -e "ovos_installer_uid=${RUN_AS_UID}" \
@@ -107,7 +107,10 @@ unbuffer ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_locale=${LOCALE:-en-us}" \
   -e "ovos_installer_i2c_devices=$(jq -c -n '$ARGS.positional' --args "${DETECTED_DEVICES[@]}")" \
   -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \
-  "${ansible_tags[@]}" "${ansible_debug[@]}" | tee -a "$LOG_FILE"
+  "${ansible_tags[@]}" "${ansible_debug[@]}"
+
+# Concatenate Ansible log with installer log
+cat $ANSIBLE_LOG_FILE >>$LOG_FILE
 
 # Retrieve the ansible-playbook status code before tee command and check for success or failure
 if [ "${PIPESTATUS[0]}" -eq 0 ]; then
