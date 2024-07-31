@@ -1,5 +1,6 @@
 #!/bin/env bash
 
+export ANSIBLE_LOG_FILE=/var/log/ovos-ansible.log
 export ATMEGA328P_SIGNATURE=":030000001E950F3B"
 export AVRDUDE_BINARY_PATH=/usr/local/bin/avrdude
 export AVRDUDE_BINARY_URL="https://artifacts.smartgic.io/avrdude/avrdude-aarch64"

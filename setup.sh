@@ -109,6 +109,9 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \
   "${ansible_tags[@]}" "${ansible_debug[@]}"
 
+# Concatenate Ansible log with installer log
+cat $ANSIBLE_LOG_FILE >>$LOG_FILE
+
 # Retrieve the ansible-playbook status code before tee command and check for success or failure
 if [ "${PIPESTATUS[0]}" -eq 0 ]; then
   if [ "$CONFIRM_UNINSTALL" == "false" ] || [ -z "$CONFIRM_UNINSTALL" ]; then
