@@ -95,7 +95,11 @@
 - name: Handle fann package from AUR (Arch based only)
   become: true
   become_user: "{{ ovos_installer_user }}"
-  kewlfft.aur.aur:
-    name: fann
-    use: makepkg
+  ansible.builtin.shell:
+    cmd: |
+      git clone https://aur.archlinux.org/fann.git /tmp/fann
+      cd /tmp/fann
+      makepkg -si
+    executable: /bin/bash
+  changed_when: false
   when: ansible_os_family == "Archlinux"
