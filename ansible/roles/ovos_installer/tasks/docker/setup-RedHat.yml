@@ -19,6 +19,6 @@
       - docker-ce-rootless-extras
 
 - name: Install xorg-x11-server-utils package
-  community.general.dnf:
+  ansible.builtin.dnf:
     name: xorg-x11-server-utils
   when: ovos_installer_display_server != "N/A"
