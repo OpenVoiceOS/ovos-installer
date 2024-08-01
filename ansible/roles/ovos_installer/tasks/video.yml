@@ -29,8 +29,10 @@
     - name: Retrieve WAYLAND_DISPLAY variable
       become: true
       become_user: "{{ ovos_installer_user }}"
-      ansible.builtin.command:
-        cmd: echo $WAYLAND_DISPLAY
+      ansible.builtin.shell:
+        cmd: |
+          env | awk -F"=" '$1 = /WAYLAND_DISPLAY/ { print $2 }'
+        executable: /bin/bash
       register: _ovos_wayland_display
       changed_when: false
 
