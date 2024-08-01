@@ -109,9 +109,6 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \
   "${ansible_tags[@]}" "${ansible_debug[@]}"
 
-# Concatenate Ansible log with installer log
-cat $ANSIBLE_LOG_FILE >>$LOG_FILE
-
 # Retrieve the ansible-playbook status code before tee command and check for success or failure
 if [ "${PIPESTATUS[0]}" -eq 0 ]; then
   if [ "$CONFIRM_UNINSTALL" == "false" ] || [ -z "$CONFIRM_UNINSTALL" ]; then
@@ -129,6 +126,8 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     echo -e "\n➤ Open Voice OS has been successfully uninstalled."
   fi
 else
+  # Concatenate Ansible log with installer log
+  cat $ANSIBLE_LOG_FILE >>$LOG_FILE
   debug_url="$(curl -sF 'content=<-' https://dpaste.com/api/v2/ <"$LOG_FILE")"
   echo -e "\n➤ Unable to finalize the process, please check $LOG_FILE for more details."
   echo -e "➤ Please share this URL with us $debug_url"
