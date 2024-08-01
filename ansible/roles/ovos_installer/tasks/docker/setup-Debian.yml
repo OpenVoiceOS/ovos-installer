@@ -43,3 +43,9 @@
       - docker-buildx-plugin
       - docker-compose-plugin
     install_recommends: false
+
+- name: Install x11-xserver-utils package
+  ansible.builtin.apt:
+    name: x11-xserver-utils
+    install_recommends: false
+  when: ovos_installer_display_server != "N/A"

@@ -5,3 +5,8 @@
       - docker
       - docker-compose
     update_cache: true
+
+- name: Install xorg-xhost package
+  community.general.pacman:
+    name: xorg-xhost
+  when: ovos_installer_display_server != "N/A"
