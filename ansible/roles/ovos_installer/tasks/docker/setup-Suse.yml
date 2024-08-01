@@ -11,3 +11,8 @@
       - docker
       - docker-rootless-extras
       - docker-compose
+
+- name: Install xhost package
+  community.general.zypper:
+    name: xhost
+  when: ovos_installer_display_server != "N/A"
