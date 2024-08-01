@@ -56,6 +56,7 @@
     - ansible_os_family != "Archlinux"
     - ansible_distribution != "Linux Mint"
     - ansible_distribution != "Zorin OS"
+    - ansible_os_family != "openSUSE Tumbleweed-Slowroll"
 
 - name: Enable lingering for {{ ovos_installer_user }}
   ansible.builtin.file:
