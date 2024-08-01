@@ -31,7 +31,7 @@
       become_user: "{{ ovos_installer_user }}"
       ansible.builtin.shell:
         cmd: |
-          set -o pipefail
+          set -e -o pipefail
           env | awk -F"=" '$1 = /WAYLAND_DISPLAY/ { print $2 }'
         executable: /bin/bash
       register: _ovos_wayland_display
