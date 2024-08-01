@@ -22,3 +22,19 @@
     group: "{{ ovos_installer_group }}"
     mode: "0600"
   when: "'Raspberry Pi 5' in ovos_installer_raspberrypi and ovos_installer_display_server == 'N/A'"
+
+- name: Block WAYLAND_DISPLAY
+  when: ovos_installer_display_server == "wayland"
+  block:
+    - name: Retrieve WAYLAND_DISPLAY variable
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        cmd: echo $WAYLAND_DISPLAY
+      register: _ovos_wayland_display
+      changed_when: false
+
+    - name: Set ovos_wayland_display fact
+      ansible.builtin.set_fact:
+        ovos_wayland_display: "{{ _ovos_wayland_display.stdout }}"
+      when: _ovos_wayland_display.stdout | length > 0
