@@ -21,7 +21,7 @@
   tags:
     - always
 
-- name: Remove DISPLAY variable if EGLFS is used
+- name: Remove DISPLAY and WAYLAND_DISPLAY variables if EGLFS is used
   ansible.builtin.lineinfile:
     path: "{{ _composition_directory }}/docker-compose.gui.yml"
     search_string: "DISPLAY"
