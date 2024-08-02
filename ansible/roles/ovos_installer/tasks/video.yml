@@ -23,8 +23,8 @@
     mode: "0600"
   when: "'Raspberry Pi 5' in ovos_installer_raspberrypi and ovos_installer_display_server == 'N/A'"
 
-- name: Block wayland socket
-  when: ovos_installer_display_server == "wayland"
+- name: Block DISPLAY server & Wayland socket
+  when: ovos_installer_display_server != "N/A"
   block:
     # The find module doesn't support the socket type and it could generate a
     # "permission denied" error depending the content of /run/user/UID
@@ -36,8 +36,23 @@
         executable: /bin/bash
       register: _ovos_wayland_display
       changed_when: false
+      when: ovos_installer_display_server == 'wayland'
 
-    - name: Set ovos_wayland_display fact
+    - name: Set ovos_installer_wayland_display fact
       ansible.builtin.set_fact:
-        ovos_wayland_display: "{{ _ovos_wayland_display.stdout }}"
-      when: _ovos_wayland_display.stdout | length > 0
+        ovos_installer_wayland_display: "{{ _ovos_wayland_display.stdout }}"
+      when: _ovos_wayland_display is defined and _ovos_wayland_display.stdout | length > 0
+
+    - name: Detect DISPLAY server number
+      ansible.builtin.shell:
+        cmd: |
+          set -e -o pipefail
+          sed -zn 's/^DISPLAY=//p' /proc/*/environ | sort -zu
+        executable: /bin/bash
+      register: _ovos_display_server_number
+      changed_when: false
+
+    - name: Set ovos_installer_display_server_number fact
+      ansible.builtin.set_fact:
+        ovos_installer_display_server_number: "{{ _ovos_display_server_number.stdout }}"
+      when: _ovos_display_server_number.stdout | length > 0
