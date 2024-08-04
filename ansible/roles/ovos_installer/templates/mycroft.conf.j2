@@ -67,6 +67,7 @@
   }{% if ovos_installer_profile != "server" %},
   "tts": {
     "ovos-tts-plugin-server": {
+      "sentence_tokenize": true,
       {% if ovos_installer_locale == "de-de" %}
       "voice": "thorsten-low"
       {% elif ovos_installer_locale == "en-us" %}
@@ -82,8 +83,7 @@
       {% elif ovos_installer_locale == "pt-pt" %}
       "voice": "tugao-medium"
       {% endif %}
-    },
-    "sentence_tokenize": true
+    }
   }
 {% endif %}
 }
