@@ -1,4 +1,10 @@
 ---
+- name: Add rpi-backlight DT overlay
+  ansible.builtin.lineinfile:
+    path: "{{ _boot_directory }}/config.txt"
+    regexp: "^rpi-backlight"
+    line: "dtoverlay=rpi-backlight"
+
 - name: Manage touchscreen, DevKit vs Mark II
   ansible.builtin.lineinfile:
     path: "{{ _boot_directory }}/config.txt"
@@ -6,5 +12,6 @@
     line: "{{ item.overlay }}"
     state: "{{ item.state }}"
   loop:
-    - {"overlay": "dtoverlay=vc4-kms-v3d", "state": "absent" }
-    - {"overlay": "dtoverlay=vc4-fkms-v3d", "state": "present" }
+    - { "overlay": "dtoverlay=vc4-kms-v3d", "state": "absent" }
+    - { "overlay": "dtoverlay=vc4-fkms-v3d", "state": "present" }
+  when: "'attiny1614' in ovos_installer_i2c_devices"
