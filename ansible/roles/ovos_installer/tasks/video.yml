@@ -41,7 +41,9 @@
     - name: Set ovos_installer_wayland_display fact
       ansible.builtin.set_fact:
         ovos_installer_wayland_display: "{{ _ovos_wayland_display.stdout }}"
-      when: _ovos_wayland_display is defined and _ovos_wayland_display.stdout | length > 0
+      when:
+        - _ovos_wayland_display is defined
+        - ovos_installer_display_server == 'wayland'
 
     - name: Detect DISPLAY server number
       ansible.builtin.shell:
