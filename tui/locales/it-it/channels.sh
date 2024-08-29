@@ -3,15 +3,15 @@
 CONTENT="
 Esistono due diverse versioni di Open Voice OS:
 
-  - Stabile (consigliata, ma non ancora disponibile)
-  - Sviluppatore
+  - Stabile (consigliata ma non ancora disponibile)
+  - Per sviluppatori
 
-La versione stabile di Open Voice OS è una versione ben collaudata e affidabile per l'uso quotidiano.
+La versione stabile di Open Voice OS è una versione ben collaudata e affidabile, adatta per l'uso quotidiano.
 
-La versione di sviluppo di Open Voice OS è destinata a sviluppatori e appassionati che desiderano sperimentare gli ultimi sviluppi e contribuire all'ulteriore sviluppo della piattaforma.
+La versione per sviluppatori di Open Voice OS è dedicata agli sviluppatori e agli appassionati che desiderano sperimentare le ultime novità e contribuire all'ulteriore sviluppo della piattaforma.
 
-Scegliete una versione:
+Scegli una versione:
 "
-TITLE="Open Voice OS Installation - Versionen"
+TITLE="Installazione di Open Voice OS - Versioni"
 
 export CONTENT TITLE
