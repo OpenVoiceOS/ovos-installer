@@ -8,10 +8,10 @@ Esistono due ambienti per l'installazione di Open Voice OS:
 
 I container offrono isolamento e facilità di distribuzione, mentre un ambiente Python virtuale offre maggiore flessibilità e controllo sull'installazione.
 
-Se si seleziona il metodo del contenitore, Docker verrà installato automaticamente se non è presente sul sistema.
+Se si seleziona il metodo del contenitore, Docker verrà installato automaticamente se non è già presente sul sistema.
 
-Selezionare un metodo di distribuzione:
+Selezionare un ambiente per l'installazione:
 "
-TITLE="Open Voice OS Installation - distribuzione"
+TITLE="Installazione di Open Voice OS - Ambienti"
 
 export CONTENT TITLE
