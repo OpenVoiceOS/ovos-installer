@@ -1,19 +1,19 @@
 #!/bin/env bash
 
 CONTENT="
-Quasi finito. Un breve riassunto:
+Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:
 
-    - Distribuzione:  $METHOD
-    - Versione:       $CHANNEL
-    - Profile:        $PROFILE
-    - GUI:            $FEATURE_GUI
-    - Skills:         $FEATURE_SKILLS
-    - Ottimizzazione: $TUNING
+    - Distribuzione:       $METHOD
+    - Versione:            $CHANNEL
+    - Profilo:             $PROFILE
+    - Interfaccia grafica: $FEATURE_GUI
+    - Competenze:          $FEATURE_SKILLS
+    - Ottimizzazione:      $TUNING
 
-Le decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle vostre esigenze e preferenze individuali.
+Le decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.
 
 Le impostazioni sono corrette?
 "
-TITLE="Open Voice OS Installation - Sintesi"
+TITLE="Installazione di Open Voice OS - Riassunto"
 
 export CONTENT TITLE
