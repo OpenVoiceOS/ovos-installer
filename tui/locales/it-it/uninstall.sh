@@ -12,8 +12,8 @@ Poiché Docker e PipeWire possono essere stati installati dal sistema o manualme
   - pipewire
   - pipewire-alsa
 
-Volete disinstallare Open Voice OS?
+Vuoi disinstallare Open Voice OS?
 "
-TITLE="Open Voice OS Installation - Disinstallazione"
+TITLE="Installazione di Open Voice OS - Disinstallazione"
 
 export CONTENT TITLE
