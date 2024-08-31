@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 CONTENT="
-Proprietà del sistema riconosciute automaticamente:
+Queste sono le proprietà del sistema che sono state riconosciute automaticamente:
 
     - OS:       ${DISTRO_NAME^} $DISTRO_VERSION
     - Kernel:   $KERNEL
@@ -13,6 +13,6 @@ Proprietà del sistema riconosciute automaticamente:
     - Sound:    $SOUND_SERVER
     - Display:  ${DISPLAY_SERVER^}
 "
-TITLE="Open Voice OS Installation - Proprietà del sistema"
+TITLE="Installazione di Open Voice OS - Proprietà del sistema"
 
 export CONTENT TITLE
