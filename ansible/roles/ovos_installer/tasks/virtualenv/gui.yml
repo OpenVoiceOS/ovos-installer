@@ -25,7 +25,7 @@
       - qtvirtualkeyboard-plugin
       - libqt5multimedia5
       - libqt5virtualkeyboard5
-      - breeze-icon-them
+      - breeze-icon-theme
   when: ansible_os_family in ['Debian', 'Zorin OS']
 
 - name: Install package requirements for ovos-gui
@@ -53,7 +53,7 @@
       - kf5-kiconthemes
       - kf5-kiconthemes-devel
       - kf5-kguiaddons-devel
-      - breeze-icon-them
+      - breeze-icon-theme
   when: ansible_os_family == "RedHat"
 
 - name: Install package requirements for ovos-gui
