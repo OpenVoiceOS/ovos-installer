@@ -4,7 +4,7 @@
 source "tui/locales/$LOCALE/methods.sh"
 
 declare -a available_methods
-active_method="containers"
+active_method="virtualenv"
 available_methods=(containers virtualenv)
 
 # When 32-bit CPU is detected, the only method available
