@@ -35,7 +35,7 @@
         - ansible_architecture == "aarch64"
         - ansible_distribution_major_version is version('11', '>=')
         - "'Raspberry Pi 4' in ovos_installer_raspberrypi or 'Raspberry Pi 5' in ovos_installer_raspberrypi"
-        
+
     - role: ovos_installer
 
   tasks:
