@@ -1,54 +1,34 @@
+ovos-messagebus
+ovos-core[lgpl,plugins]
+ovos-PHAL[extras,linux]
+ovos-dinkum-listener[extras,linux]
 ovos-audio[extras]
-ovos-audio-plugin-mpv
-ovos-audio-plugin-simple
+
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 ovos-audio-transformer-plugin-ggwave
 {% endif %}
-ovos-backend-client
-ovos-classifiers
-ovos-core[lgpl]
-ovos-dinkum-listener
-ovos-microphone-plugin-alsa
-ovos-stt-plugin-server
-ovos-vad-plugin-webrtcvad
-ovos-messagebus
-ovos-microphone-plugin-alsa
-ovos-microphone-plugin-sounddevice
-ovos-PHAL
-ovos-PHAL-plugin-alsa
-ovos-PHAL-plugin-system
-ovos-PHAL-plugin-ipgeo
-ovos-plugin-manager
-ovos-translate-server-plugin
-ovos-stt-plugin-vosk
-{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
-ovos-ww-plugin-openwakeword
+
+ovos-tts-plugin-polly
+
 {% if ovos_installer_cpu_is_capable | bool %}
-ovos-vad-plugin-silero
-ovos-ww-plugin-precise-lite
+ovos-dinkum-listener[onnx]
 {% endif %}
-ovos-ww-plugin-vosk
+
+{% if 'tas5806' in ovos_installer_i2c_devices %}
+ovos-PHAL[mk2]
+{% endif %}
+
+{% if 'atmega328p' in ovos_installer_i2c_devices %}
+ovos-PHAL[mk1]
+{% endif %}
+
+{% if 'attiny1614' in ovos_installer_i2c_devices %}
+ovos-PHAL[mk2dev]
+git+https://github.com/OVOSHatchery/ovos-PHAL-plugin-sj201-leds.git
 {% endif %}
 
 # No PyPi release
-git+https://github.com/OpenVoiceOS/ovos-bidirectional-translation-plugin.git
 git+https://github.com/OpenVoiceOS/ovos-cli-client.git
-git+https://github.com/OpenVoiceOS/ovos-docs-viewer.git
-git+https://github.com/OpenVoiceOS/ovos-ocp-audio-plugin.git
-{% if 'tas5806' in ovos_installer_i2c_devices %}
-git+https://github.com/OpenVoiceOS/ovos-PHAL-plugin-hotkeys.git
-{% endif %}
-{% if 'atmega328p' in ovos_installer_i2c_devices %}
-git+https://github.com/OpenVoiceOS/ovos-PHAL-plugin-mk1.git
-{% endif %}
-{% if 'attiny1614' in ovos_installer_i2c_devices %}
-git+https://github.com/OpenVoiceOS/ovos-PHAL-plugin-mk2-v6-fan-control.git
-git+https://github.com/OVOSHatchery/ovos-PHAL-plugin-sj201-leds.git
-{% endif %}
-git+https://github.com/OpenVoiceOS/ovos-stt-plugin-chromium.git
-git+https://github.com/OpenVoiceOS/ovos-tts-plugin-polly.git
-git+https://github.com/OpenVoiceOS/ovos-utterance-corrections-plugin.git
-git+https://github.com/OpenVoiceOS/ovos-utterance-plugin-cancel
 
 # Non-OVOS libraries
 #neon-mana-utils #Commented until PyYAML requirement is fixed

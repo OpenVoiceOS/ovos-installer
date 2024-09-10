@@ -1,11 +1,9 @@
-# No PyPi release
-git+https://github.com/OpenVoiceOS/skill-ovos-icanhazdadjokes.git
-git+https://github.com/OpenVoiceOS/skill-ovos-fallback-chatgpt.git
-git+https://github.com/OpenVoiceOS/skill-ovos-parrot.git
-git+https://github.com/OpenVoiceOS/skill-ovos-randomness.git
-git+https://github.com/OpenVoiceOS/skill-ovos-wolfie.git
+ovos-core[skills-internet,skills-media]
+ovos-skill-icanhazdadjokes
 
-# Non-OVOS libraries
+# No PyPi release
+git+https://github.com/OpenVoiceOS/skill-ovos-randomness.git
+
 {% if ovos_installer_profile != "server" %}
 git+https://github.com/OpenVoiceOS/ovos-skill-easter-eggs.git
 {% endif %}
