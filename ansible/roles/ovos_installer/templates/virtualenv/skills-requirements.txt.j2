@@ -1,20 +1,11 @@
-ovos-skill-alerts
-ovos-skill-date-time
-ovos-skill-fallback-unknown
-ovos-skill-hello-world
-ovos-skill-personal
-ovos-skill-volume
+ovos-core[skills-essential]
+
+{% if ovos_installer_profile != "server" %}
+ovos-core[skills-audio]
+{% endif %}
 
 # No PyPi release
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") or (ovos_installer_profile != "server") %}
 git+https://github.com/OpenVoiceOS/ovos-skill-ggwave.git
 {% endif %}
-{% if ovos_installer_profile != "server" %}
-git+https://github.com/OpenVoiceOS/skill-ovos-boot-finished.git
-{% endif %}
-git+https://github.com/OpenVoiceOS/skill-ovos-ddg.git
-git+https://github.com/OpenVoiceOS/skill-ovos-local-media.git
-git+https://github.com/OpenVoiceOS/skill-ovos-naptime.git
-git+https://github.com/OpenVoiceOS/skill-ovos-news.git
-git+https://github.com/OpenVoiceOS/skill-ovos-weather.git
-git+https://github.com/OpenVoiceOS/skill-ovos-wikipedia.git
+
