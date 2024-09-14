@@ -303,6 +303,7 @@ function create_python_venv() {
         fi
     fi
 
+    echo "VENV_PATH = $VENV_PATH"
     if [ ! -d "$VENV_PATH" ]; then
 
         if [ "$USE_UV" == "true" ]; then
@@ -320,10 +321,10 @@ function create_python_venv() {
     source "$VENV_PATH/bin/activate"
 
     if [ "$USE_UV" == "true" ]; then
-        export PIP_COMMAND="python3 -m uv pip"
-        python3 -m pip install uv -U
+        export PIP_COMMAND="python -m uv pip"
+        python -m pip install uv -U
     else
-        export PIP_COMMAND="python3 -m pip3"
+        export PIP_COMMAND="python -m pip"
     fi
 
     $PIP_COMMAND install --upgrade pip setuptools &>>"$LOG_FILE"
