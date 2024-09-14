@@ -290,6 +290,8 @@ function create_python_venv() {
     # Disable https://www.piwheels.org/simple when aarch64 CPU architecture
     # or Raspberry Pi 5 board are detected.
     if [ -f /etc/pip.conf ]; then
+        # FIXME: modifying root level configurations should require
+        # confirmation by the user, and should be avoided when possible.
         if [ "$ARCH" == "aarch64" ] || [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 5"* ]]; then
             sed -e '/extra-index/ s/^#*/#/g' -i /etc/pip.conf &>>"$LOG_FILE"
         fi
@@ -299,6 +301,8 @@ function create_python_venv() {
         if [ "$REUSED_CACHED_ARTIFACTS" != "true" ]; then
             # Make sure everything is clean before starting.
             echo "clearing venv"
+            # TODO: should we be installing to the root home directory? Why not
+            # the $RUN_AS_HOME instead?
             rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
         fi
     fi
@@ -306,12 +310,13 @@ function create_python_venv() {
     echo "VENV_PATH = $VENV_PATH"
     if [ ! -d "$VENV_PATH" ]; then
 
-        if [ "$USE_UV" == "true" ]; then
-            export VENV_COMMAND="python3 -m uv venv"
-            python3 -m pip install uv -U
-        else
-            export VENV_COMMAND="python3 -m venv"
-        fi
+        # TODO: can we use uv here reliabely?
+        #if [ "$USE_UV" == "true" ]; then
+        #    export VENV_COMMAND="python3 -m uv venv"
+        #    python3 -m pip install uv -U
+        #else
+        export VENV_COMMAND="python3 -m venv"
+        #fi
         echo "recreate venv"
         $VENV_COMMAND "$VENV_PATH" &>>"$LOG_FILE"
         echo "done recreate venv"
@@ -321,10 +326,10 @@ function create_python_venv() {
     source "$VENV_PATH/bin/activate"
 
     if [ "$USE_UV" == "true" ]; then
-        export PIP_COMMAND="python -m uv pip"
-        python -m pip install uv -U
+        export PIP_COMMAND="uv pip"
+        pip3 install uv -U
     else
-        export PIP_COMMAND="python -m pip"
+        export PIP_COMMAND="pip3"
     fi
 
     $PIP_COMMAND install --upgrade pip setuptools &>>"$LOG_FILE"
