@@ -3,11 +3,10 @@
 # Set global variables based on sudo usage
 if [ -n "$SUDO_USER" ]; then
     export RUN_AS="$SUDO_USER"
-    export RUN_AS_HOME="/home/$SUDO_USER"
 else
     export RUN_AS=$USER
-    export RUN_AS_HOME="/$SUDO_USER"
 fi
+export RUN_AS_HOME=$(eval echo ~"$RUN_AS")
 
 # Check for git command to be installed
 if ! command -v git &>/dev/null; then

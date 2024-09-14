@@ -39,13 +39,12 @@ function detect_user() {
         # sudo user
         export RUN_AS="$SUDO_USER"
         export RUN_AS_UID="$SUDO_UID"
-        export RUN_AS_HOME="/home/$SUDO_USER"
     else
         # root user
         export RUN_AS="$USER"
         export RUN_AS_UID="$EUID"
-        export RUN_AS_HOME="/$RUN_AS"
     fi
+    export RUN_AS_HOME=$(eval echo ~"$RUN_AS")
     export VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
 }
 
