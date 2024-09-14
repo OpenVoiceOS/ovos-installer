@@ -296,15 +296,27 @@ function create_python_venv() {
     fi
 
     if [ -d "$VENV_PATH" ]; then
-        # Make sure everything is clean before starting.
-        rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
+        if [ "$REUSED_CACHED_ARTIFACTS" != "true" ]; then
+            # Make sure everything is clean before starting.
+            rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
+        fi
     fi
-    python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
+
+    if [ ! -d "$VENV_PATH" ]; then
+        python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
+    fi
 
     # shellcheck source=/dev/null
     source "$VENV_PATH/bin/activate"
 
-    pip3 install --upgrade pip setuptools &>>"$LOG_FILE"
+    if [ "$USE_UV" == "true" ]; then
+        export PIP_COMMAND="uv pip"
+        pip3 install --upgrade uv
+    else
+        export PIP_COMMAND="pip3"
+    fi
+
+    $PIP_COMMAND install --upgrade pip setuptools &>>"$LOG_FILE"
     chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }
@@ -316,7 +328,7 @@ function install_ansible() {
     echo -ne "➤ Installing Ansible requirements in Python virtualenv... "
     ANSIBLE_VERSION="9.2.0"
     [ "$(ver "$PYTHON")" -lt "$(ver 3.10)" ] && ANSIBLE_VERSION="8.7.0"
-    pip3 install ansible=="$ANSIBLE_VERSION" docker==7.1.0 requests==2.31.0 &>>"$LOG_FILE"
+    uv pip install ansible=="$ANSIBLE_VERSION" docker==7.1.0 requests==2.31.0 &>>"$LOG_FILE"
     ansible-galaxy collection install -r ansible/requirements.yml &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }

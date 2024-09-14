@@ -7,8 +7,11 @@ function usage() {
     echo "  -h, --help          Display this help message"
     echo "  -d, --debug         Enable debug mode for more verbosity"
     echo "  -u, --uninstall     Uninstall Open Voice OS instance"
+    echo "  --reuse-cached-artifacts   [Developer option] avoids removing files which can lead to faster iteration times "
     echo
 }
+
+export USE_UV="true"
 
 # Parse the arguments passed to the command line.
 # We are not using getopts as it only handles short arguments
@@ -26,6 +29,9 @@ function handle_options() {
         -h | --help)
             usage
             exit 0
+            ;;
+        --reuse-cached-artifacts)
+            export REUSED_CACHED_ARTIFACTS="true"
             ;;
         *)
             echo "Invalid option: $1" >&2
