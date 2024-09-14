@@ -34,7 +34,6 @@ function detect_user() {
         echo -e "[$fail_format] This script must be run as root or with sudo\n"
         exit 1
     fi
-
     # Check for sudo or root user
     if [ -n "$SUDO_USER" ]; then
         # sudo user
@@ -193,6 +192,58 @@ function get_os_information() {
     echo -e "[$done_format]"
 }
 
+
+apt_ensure(){
+    __doc__="
+    Checks to see if the packages are installed and installs them if needed.
+
+    The main reason to use this over normal apt install is that it avoids sudo
+    if we already have all requested packages.
+
+    Args:
+        *ARGS : one or more requested packages
+
+    Environment:
+        UPDATE : if this is populated also runs and apt update
+
+    Example:
+        apt_ensure git curl htop
+    "
+    # Note the $@ is not actually an array, but we can convert it to one
+    # https://linuxize.com/post/bash-functions/#passing-arguments-to-bash-functions
+    ARGS=("$@")
+    MISS_PKGS=()
+    HIT_PKGS=()
+    _SUDO=""
+    if [ "$(whoami)" != "root" ]; then
+        # Only use the sudo command if we need it (i.e. we are not root)
+        _SUDO="sudo "
+    fi
+    # shellcheck disable=SC2068
+    for PKG_NAME in ${ARGS[@]}
+    do
+        # Check if the package is already installed or not
+        if dpkg -l "$PKG_NAME" | grep "^ii *$PKG_NAME" > /dev/null; then
+            echo "Already have PKG_NAME='$PKG_NAME'"
+            # shellcheck disable=SC2268,SC2206
+            HIT_PKGS=(${HIT_PKGS[@]} "$PKG_NAME")
+        else
+            echo "Do not have PKG_NAME='$PKG_NAME'"
+            # shellcheck disable=SC2268,SC2206
+            MISS_PKGS=(${MISS_PKGS[@]} "$PKG_NAME")
+        fi
+    done
+    # Install the packages if any are missing
+    if [ "${#MISS_PKGS}" -gt 0 ]; then
+        if [ "${UPDATE}" != "" ]; then
+            $_SUDO apt update -y
+        fi
+        DEBIAN_FRONTEND=noninteractive $_SUDO apt install --no-install-recommends -y "${MISS_PKGS[@]}"
+    else
+        echo "No missing packages"
+    fi
+}
+
 # Install packages required by the installer based on retrieved information
 # from get_os_information() function. If the operating system is not supported then
 # the installer will exit with a message.
@@ -207,8 +258,9 @@ function required_packages() {
 
     case "$DISTRO_NAME" in
     debian | ubuntu | raspbian | linuxmint | zorin)
-        apt-get update &>>"$LOG_FILE"
-        apt-get install --no-install-recommends -y python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        #apt-get update &>>"$LOG_FILE"
+        #apt-get install --no-install-recommends -y python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        UPDATE=1 apt_ensure python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     fedora)
         dnf install -y python3 python3-devel python3-pip python3-virtualenv newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
