@@ -45,7 +45,8 @@ function detect_user() {
         export RUN_AS="$USER"
         export RUN_AS_UID="$EUID"
     fi
-    export RUN_AS_HOME=$(eval echo ~"$RUN_AS")
+    RUN_AS_HOME=$(eval echo ~"$RUN_AS")
+    export RUN_AS_HOME
     export VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
 }
 
