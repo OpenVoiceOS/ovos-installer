@@ -6,7 +6,8 @@ if [ -n "$SUDO_USER" ]; then
 else
     export RUN_AS=$USER
 fi
-export RUN_AS_HOME=$(eval echo ~"$RUN_AS")
+RUN_AS_HOME=$(eval echo ~"$RUN_AS")
+export RUN_AS_HOME
 
 # Check for git command to be installed
 if ! command -v git &>/dev/null; then
