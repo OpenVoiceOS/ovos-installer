@@ -34,6 +34,7 @@
       - pkg-config
       - libicu-dev
       - portaudio19-dev
+      - libjpeg-dev
     install_recommends: false
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family in ['Debian', 'Zorin OS']
