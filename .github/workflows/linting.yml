@@ -1,6 +1,10 @@
 name: Check code style and quality
 
 on:
+  pull_request:
+    paths:
+      - ansible/**
+      - utils/**
   push:
     paths:
       - ansible/**
