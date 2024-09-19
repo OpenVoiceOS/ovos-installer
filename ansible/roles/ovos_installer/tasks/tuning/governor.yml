@@ -1,4 +1,5 @@
 ---
+# Commented out as a hacky workaround. Not sure why it is failing
 #- name: Handle linux-cpupower package
 #  ansible.builtin.apt:
 #    name: "{{ 'cpupower' if ansible_distribution != 'Debian' else 'linux-cpupower' }}"
