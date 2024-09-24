@@ -321,7 +321,7 @@ function create_python_venv() {
 
     if [ "$USE_UV" == "true" ]; then
         export PIP_COMMAND="uv pip"
-        if ! type uv ; then
+        if ! command -v uv > /dev/null ; then
             pip3 install "uv>=0.4.10"
         fi
     else
