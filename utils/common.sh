@@ -221,7 +221,7 @@ apt_ensure(){
         _SUDO="sudo "
     fi
     # shellcheck disable=SC2068
-    for PKG_NAME in ${ARGS[@]}
+    for PKG_NAME in "${ARGS[@]}"
     do
         # Check if the package is already installed or not
         if dpkg-query -W -f='${Status}' "$PKG_NAME" 2>/dev/null | grep -q "install ok installed"; then
