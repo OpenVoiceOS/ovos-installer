@@ -224,7 +224,7 @@ apt_ensure(){
     for PKG_NAME in ${ARGS[@]}
     do
         # Check if the package is already installed or not
-        if dpkg -l "$PKG_NAME" | grep "^ii *$PKG_NAME" > /dev/null; then
+        if dpkg-query -W -f='${Status}' "$PKG_NAME" 2>/dev/null | grep -q "install ok installed"; then
             echo "Already have PKG_NAME='$PKG_NAME'"
             # shellcheck disable=SC2268,SC2206
             HIT_PKGS+=("$PKG_NAME")
