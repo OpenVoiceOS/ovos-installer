@@ -235,7 +235,7 @@ apt_ensure(){
         fi
     done
     # Install the packages if any are missing
-    if [ "${#MISS_PKGS}" -gt 0 ]; then
+    if [ "${#MISS_PKGS[@]}" -gt 0 ]; then
         if [ "${UPDATE}" != "" ]; then
             $_SUDO apt update -y
         fi
