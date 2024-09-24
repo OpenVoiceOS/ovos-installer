@@ -227,11 +227,11 @@ apt_ensure(){
         if dpkg -l "$PKG_NAME" | grep "^ii *$PKG_NAME" > /dev/null; then
             echo "Already have PKG_NAME='$PKG_NAME'"
             # shellcheck disable=SC2268,SC2206
-            HIT_PKGS=(${HIT_PKGS[@]} "$PKG_NAME")
+            HIT_PKGS+=("$PKG_NAME")
         else
             echo "Do not have PKG_NAME='$PKG_NAME'"
             # shellcheck disable=SC2268,SC2206
-            MISS_PKGS=(${MISS_PKGS[@]} "$PKG_NAME")
+            MISS_PKGS+=("$PKG_NAME")
         fi
     done
     # Install the packages if any are missing
