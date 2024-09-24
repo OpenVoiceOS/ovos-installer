@@ -194,7 +194,7 @@ function get_os_information() {
 }
 
 
-apt_ensure(){
+function apt_ensure(){
     __doc__="
     Checks to see if the packages are installed and installs them if needed.
 
@@ -220,17 +220,14 @@ apt_ensure(){
         # Only use the sudo command if we need it (i.e. we are not root)
         _SUDO="sudo "
     fi
-    # shellcheck disable=SC2068
     for PKG_NAME in "${ARGS[@]}"
     do
         # Check if the package is already installed or not
         if dpkg-query -W -f='${Status}' "$PKG_NAME" 2>/dev/null | grep -q "install ok installed"; then
             echo "Already have PKG_NAME='$PKG_NAME'"
-            # shellcheck disable=SC2268,SC2206
             HIT_PKGS+=("$PKG_NAME")
         else
             echo "Do not have PKG_NAME='$PKG_NAME'"
-            # shellcheck disable=SC2268,SC2206
             MISS_PKGS+=("$PKG_NAME")
         fi
     done
