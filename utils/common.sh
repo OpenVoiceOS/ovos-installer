@@ -303,8 +303,8 @@ function create_python_venv() {
     # We will default REUSED_CACHED_ARTIFACTS to false as
     # it is mainly useful for debugging.
 
-    USE_UV="true"
-    REUSED_CACHED_ARTIFACTS="false"
+    USE_UV="${USE_UV:-true}"
+    REUSED_CACHED_ARTIFACTS="${REUSED_CACHED_ARTIFACTS:-false}"
 
     if [ -d "$VENV_PATH" ]; then
         if [ "$REUSED_CACHED_ARTIFACTS" != "true" ]; then
