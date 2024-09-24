@@ -292,20 +292,17 @@ function create_python_venv() {
         fi
     fi
 
-    # two new config variables introduced in this PR.
-    # hard coding for now, pending review.
+    # Two new config variables introduced in this PR.
     # Defaulting use-uv to true because it is stable and
     # significantly faster than pip installing dependencies
     # it may make sense to insist on the use of uv.
-    # We will default REUSED_CACHED_ARTIFACTS to false as
+    # We default REUSED_CACHED_ARTIFACTS to false as
     # it is mainly useful for debugging.
-
     USE_UV="${USE_UV:-true}"
     REUSED_CACHED_ARTIFACTS="${REUSED_CACHED_ARTIFACTS:-false}"
 
     if [ -d "$VENV_PATH" ]; then
         if [ "$REUSED_CACHED_ARTIFACTS" != "true" ]; then
-            # Question: should we use RUN_AS_HOME/.ansible instead?
             # Make sure everything is clean before starting.
             rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
         fi
