@@ -193,55 +193,6 @@ function get_os_information() {
     echo -e "[$done_format]"
 }
 
-
-function apt_ensure(){
-    __doc__="
-    Checks to see if the packages are installed and installs them if needed.
-
-    The main reason to use this over normal apt install is that it avoids sudo
-    if we already have all requested packages.
-
-    Args:
-        *ARGS : one or more requested packages
-
-    Environment:
-        UPDATE : if this is populated also runs and apt update
-
-    Example:
-        apt_ensure git curl htop
-    "
-    # Note the $@ is not actually an array, but we can convert it to one
-    # https://linuxize.com/post/bash-functions/#passing-arguments-to-bash-functions
-    ARGS=("$@")
-    MISS_PKGS=()
-    HIT_PKGS=()
-    _SUDO=""
-    if [ "$(whoami)" != "root" ]; then
-        # Only use the sudo command if we need it (i.e. we are not root)
-        _SUDO="sudo "
-    fi
-    for PKG_NAME in "${ARGS[@]}"
-    do
-        # Check if the package is already installed or not
-        if dpkg-query -W -f='${Status}' "$PKG_NAME" 2>/dev/null | grep -q "install ok installed"; then
-            echo "Already have PKG_NAME='$PKG_NAME'"
-            HIT_PKGS+=("$PKG_NAME")
-        else
-            echo "Do not have PKG_NAME='$PKG_NAME'"
-            MISS_PKGS+=("$PKG_NAME")
-        fi
-    done
-    # Install the packages if any are missing
-    if [ "${#MISS_PKGS[@]}" -gt 0 ]; then
-        if [ "${UPDATE}" != "" ]; then
-            $_SUDO apt update -y
-        fi
-        DEBIAN_FRONTEND=noninteractive $_SUDO apt install --no-install-recommends -y "${MISS_PKGS[@]}"
-    else
-        echo "No missing packages"
-    fi
-}
-
 # Install packages required by the installer based on retrieved information
 # from get_os_information() function. If the operating system is not supported then
 # the installer will exit with a message.
@@ -520,4 +471,47 @@ function detect_devkit_device() {
     # a DevKit device so we force back the DETECTED_DEVICES variable
     # to tas5806.
     DETECTED_DEVICES+=("tas5806")
+}
+
+
+# Checks to see if apt-based packages are installed and installs them if needed.
+# The main reason to use this over normal apt install is that it avoids sudo if
+# we already have all requested packages.
+# Args:
+#     *ARGS : one or more requested packages
+# Environment:
+#     UPDATE : if this is populated also runs and apt update
+# Example:
+#     apt_ensure git curl htop
+function apt_ensure(){
+    # Note the $@ is not actually an array, but we can convert it to one
+    # https://linuxize.com/post/bash-functions/#passing-arguments-to-bash-functions
+    ARGS=("$@")
+    MISS_PKGS=()
+    HIT_PKGS=()
+    _SUDO=""
+    if [ "$(whoami)" != "root" ]; then
+        # Only use the sudo command if we need it (i.e. we are not root)
+        _SUDO="sudo "
+    fi
+    for PKG_NAME in "${ARGS[@]}"
+    do
+        # Check if the package is already installed or not
+        if dpkg-query -W -f='${Status}' "$PKG_NAME" 2>/dev/null | grep -q "install ok installed"; then
+            echo "Already have PKG_NAME='$PKG_NAME'"
+            HIT_PKGS+=("$PKG_NAME")
+        else
+            echo "Do not have PKG_NAME='$PKG_NAME'"
+            MISS_PKGS+=("$PKG_NAME")
+        fi
+    done
+    # Install the packages if any are missing
+    if [ "${#MISS_PKGS[@]}" -gt 0 ]; then
+        if [ "${UPDATE}" != "" ]; then
+            $_SUDO apt update -y
+        fi
+        DEBIAN_FRONTEND=noninteractive $_SUDO apt install --no-install-recommends -y "${MISS_PKGS[@]}"
+    else
+        echo "No missing packages"
+    fi
 }
