@@ -43,9 +43,9 @@ function handle_options() {
     # significantly faster.
     export USE_UV="${USE_UV:-true}"
 
-    # If REUSED_CACHED_ARTIFACTS is true, keep any existing ansible venv which
+    # If REUSE_CACHED_ARTIFACTS is true, keep any existing ansible venv which
     # speeds up the installer, but could result in errors if it is in a dirty
     # state. This is mainly useful when debugging the installer.
-    export REUSED_CACHED_ARTIFACTS="${REUSED_CACHED_ARTIFACTS:-false}"
+    export REUSE_CACHED_ARTIFACTS="${REUSE_CACHED_ARTIFACTS:-false}"
 }
 
