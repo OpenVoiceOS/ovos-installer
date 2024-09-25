@@ -243,15 +243,6 @@ function create_python_venv() {
         fi
     fi
 
-    # Two new config variables introduced in this PR.
-    # Defaulting use-uv to true because it is stable and
-    # significantly faster than pip installing dependencies
-    # it may make sense to insist on the use of uv.
-    # We default REUSED_CACHED_ARTIFACTS to false as
-    # it is mainly useful for debugging.
-    USE_UV="${USE_UV:-true}"
-    REUSED_CACHED_ARTIFACTS="${REUSED_CACHED_ARTIFACTS:-false}"
-
     if [ -d "$VENV_PATH" ]; then
         if [ "$REUSED_CACHED_ARTIFACTS" != "true" ]; then
             # Make sure everything is clean before starting.
@@ -266,8 +257,8 @@ function create_python_venv() {
 
     if [ "$USE_UV" == "true" ]; then
         export PIP_COMMAND="uv pip"
-        if ! command -v uv > /dev/null ; then
-            pip3 install "uv>=0.4.10"
+        if ! command -v uv &>>"$LOG_FILE"; then
+            pip3 install "uv>=0.4.10" &>>"$LOG_FILE"
         fi
     else
         export PIP_COMMAND="pip3"
