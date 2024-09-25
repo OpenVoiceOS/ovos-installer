@@ -207,8 +207,7 @@ function required_packages() {
 
     case "$DISTRO_NAME" in
     debian | ubuntu | raspbian | linuxmint | zorin)
-        apt-get update &>>"$LOG_FILE"
-        apt-get install --no-install-recommends -y python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        UPDATE=1 apt_ensure python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     fedora)
         dnf install -y python3 python3-devel python3-pip python3-virtualenv newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
@@ -245,15 +244,27 @@ function create_python_venv() {
     fi
 
     if [ -d "$VENV_PATH" ]; then
-        # Make sure everything is clean before starting.
-        rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
+        if [ "$REUSED_CACHED_ARTIFACTS" != "true" ]; then
+            # Make sure everything is clean before starting.
+            rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
+        fi
     fi
+
     python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
 
     # shellcheck source=/dev/null
     source "$VENV_PATH/bin/activate"
 
-    pip3 install --upgrade pip setuptools &>>"$LOG_FILE"
+    if [ "$USE_UV" == "true" ]; then
+        export PIP_COMMAND="uv pip"
+        if ! command -v uv &>>"$LOG_FILE"; then
+            pip3 install "uv>=0.4.10" &>>"$LOG_FILE"
+        fi
+    else
+        export PIP_COMMAND="pip3"
+    fi
+
+    $PIP_COMMAND install --upgrade pip setuptools &>>"$LOG_FILE"
     chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }
@@ -265,7 +276,7 @@ function install_ansible() {
     echo -ne "➤ Installing Ansible requirements in Python virtualenv... "
     ANSIBLE_VERSION="9.2.0"
     [ "$(ver "$PYTHON")" -lt "$(ver 3.10)" ] && ANSIBLE_VERSION="8.7.0"
-    pip3 install ansible=="$ANSIBLE_VERSION" docker==7.1.0 requests==2.31.0 &>>"$LOG_FILE"
+    $PIP_COMMAND install ansible=="$ANSIBLE_VERSION" docker==7.1.0 requests==2.31.0 &>>"$LOG_FILE"
     ansible-galaxy collection install -r ansible/requirements.yml &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }
@@ -451,4 +462,47 @@ function detect_devkit_device() {
     # a DevKit device so we force back the DETECTED_DEVICES variable
     # to tas5806.
     DETECTED_DEVICES+=("tas5806")
+}
+
+
+# Checks to see if apt-based packages are installed and installs them if needed.
+# The main reason to use this over normal apt install is that it avoids sudo if
+# we already have all requested packages.
+# Args:
+#     *ARGS : one or more requested packages
+# Environment:
+#     UPDATE : if this is populated also runs and apt update
+# Example:
+#     apt_ensure git curl htop
+function apt_ensure(){
+    # Note the $@ is not actually an array, but we can convert it to one
+    # https://linuxize.com/post/bash-functions/#passing-arguments-to-bash-functions
+    ARGS=("$@")
+    MISS_PKGS=()
+    HIT_PKGS=()
+    _SUDO=""
+    if [ "$(whoami)" != "root" ]; then
+        # Only use the sudo command if we need it (i.e. we are not root)
+        _SUDO="sudo "
+    fi
+    for PKG_NAME in "${ARGS[@]}"
+    do
+        # Check if the package is already installed or not
+        if dpkg-query -W -f='${Status}' "$PKG_NAME" 2>/dev/null | grep -q "install ok installed"; then
+            echo "Already have PKG_NAME='$PKG_NAME'"
+            HIT_PKGS+=("$PKG_NAME")
+        else
+            echo "Do not have PKG_NAME='$PKG_NAME'"
+            MISS_PKGS+=("$PKG_NAME")
+        fi
+    done
+    # Install the packages if any are missing
+    if [ "${#MISS_PKGS[@]}" -gt 0 ]; then
+        if [ "${UPDATE}" != "" ]; then
+            $_SUDO apt update -y
+        fi
+        DEBIAN_FRONTEND=noninteractive $_SUDO apt install --no-install-recommends -y "${MISS_PKGS[@]}"
+    else
+        echo "No missing packages"
+    fi
 }
