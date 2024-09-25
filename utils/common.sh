@@ -244,7 +244,7 @@ function create_python_venv() {
     fi
 
     if [ -d "$VENV_PATH" ]; then
-        if [ "$REUSED_CACHED_ARTIFACTS" != "true" ]; then
+        if [ "$REUSE_CACHED_ARTIFACTS" != "true" ]; then
             # Make sure everything is clean before starting.
             rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
         fi
