@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Summary",
-    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   $METHOD\n    - Version:  $CHANNEL\n    - Profile:  $PROFILE\n    - GUI:      $FEATURE_GUI\n    - Skills    $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes is sound correct to you?"
+    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   $METHOD\n    - Version:  $CHANNEL\n    - Profile:  $PROFILE\n    - GUI:      $FEATURE_GUI\n    - Skills:   $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, you can go back and make changes."
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Telemetry",
