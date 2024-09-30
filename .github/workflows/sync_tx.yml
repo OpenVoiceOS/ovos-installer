@@ -16,7 +16,7 @@ jobs:
           ref: dev
           fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
       - name: Setup Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: 3.9
           
