@@ -1,0 +1,66 @@
+{
+  "misc.sh": {
+    "ok_button": "Next",
+    "yes_button": "Yes",
+    "no_button": "No",
+    "back_button": "Back"
+  },
+  "channels.sh": {
+    "title": "Open Voice OS Installation - Channels",
+    "content": "Open Voice OS has two main release channels:\n\n  - stable (recommended but not yet available)\n  - development\n\nThe stable release of Open Voice OS is a well-tested and reliable version suitable for everyday use.\n\nThe development release of Open Voice OS is intended for developers and enthusiasts who want to experiment with cutting-edge features and contribute to the platform's development.\n\nPlease select a channel:"
+  },
+  "detection.sh": {
+    "title": "Open Voice OS Installation - Detected",
+    "content": "Please find the detected information:\n\n    - OS:       ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel:   $KERNEL\n    - RPi:      $RASPBERRYPI_MODEL\n    - Python:   $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardware: $HARDWARE_DETECTED\n    - Venv:     $VENV_PATH\n    - Sound:    $SOUND_SERVER\n    - Display:  ${DISPLAY_SERVER^}"
+  },
+  "features.sh": {
+    "title": "Open Voice OS Installation - Features",
+    "content": "When choosing between GUI (Graphical User Interface) and skills in Open Voice OS, consider your preference and needs.\n\nThe GUI is an open source visual and display framework for OVOS running on top of KDE Plasma and built using Kirigami empowered by Qt.\n\nSkills enable interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.\n\nPlease choose the features to enable:",
+    "skill_description": "Load default OVOS skills\nLoad extra OVOS skills",
+    "extra_skill_description": "Load extra OVOS skills",
+    "gui_description": "Enable graphical user interface"
+  },
+  "finish.sh": {
+    "title": "Open Voice OS Installation - Finish",
+    "content": "The installation has been successfully completed! 🎉\n\nYour voice assistant is ready to go. We're excited for you to explore the wide array of features and capabilities this voice assistant has to offer.\n\nIf you enabled the default skills feature then you can start to interact with your assistant by saying:\n\n  - Hey Mycroft, what time is it?\n  - Hey Mycroft, what is the temperature?\n  - Hey Mycroft, who made you?\n  - Hey Mycroft, who is Ada Lovelace?\n  - Hey Mycroft, what would Duke Nukem say?\n\nThe settings of your assistant could be changed in the $CONFIG_FILE configuration file.\n\nShould you need any assistance or updates in the future, feel free to reach out. Enjoy your Open Voice OS experience!"
+  },
+  "methods.sh": {
+    "title": "Open Voice OS Installation - Methods",
+    "content": "To install Open Voice OS, you have two primary methods:\n\n    - Containers engine such as Docker\n    - Setting it up in a Python virtual environment\n\nContainers provide isolation and easy deployment, while a Python virtual environment offers more flexibility and control over the installation.\n\nIf the containers method is selected, Docker will be installed automatically if not present on the system.\n\nPlease select an installation method:"
+  },
+  "profiles.sh": {
+    "title": "Open Voice OS Installation - Profiles",
+    "content": "To create a versatile system that is suitable for many applications, there are three intriguing choices:\n\n  - Open Voice OS Master: The Open Voice OS classic experience\n  - HiveMind Satellite: Open Voice OS audio components connected to HiveMind Listener\n  - HiveMind Listener: Hub for HiveMind Satellite, bots, etc.. to connect to\n  - Server: Open Voice OS Core and HiveMind Core only, no audio features\n\nEach of these profiles offers unique features and capabilities that could greatly enhance your digital experience.\n\nThe question is, which one aligns best with your needs and preferences?\n\nPlease select a profile:"
+  },
+  "satellite.sh": {
+    "title_host": "Open Voice OS Installation - Satellite 1/4",
+    "title_port": "Open Voice OS Installation - Satellite 2/4",
+    "title_key": "Open Voice OS Installation - Satellite 3/4",
+    "title_password": "Open Voice OS Installation - Satellite 4/4",
+    "content": "By connecting to the HiveMind listener, HiveMind satellites gain access to a network of shared knowledge and capabilities, facilitating a unified and efficient voice assistant and automation experience.\n\n# Host",
+    "content_host": "$content\n\nPlease enter the HiveMind listener host (DNS or IP address):",
+    "content_port": "$content\n\nPlease enter the HiveMind listener port:",
+    "content_key": "$content\n\nPlease enter the HiveMind listener key related to the satellite:",
+    "content_password": "$content\n\nPlease enter the HiveMind listener password related to the satellite:"
+  },
+  "summary.sh": {
+    "title": "Open Voice OS Installation - Summary",
+    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   $METHOD\n    - Version:  $CHANNEL\n    - Profile:  $PROFILE\n    - GUI:      $FEATURE_GUI\n    - Skills    $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes is sound correct to you?"
+  },
+  "telemetry.sh": {
+    "title": "Open Voice OS Installation - Telemetry",
+    "content": "By opting to share telemetry with us, you play a crucial role in contributing valuable, anonymous information that enables us to better understand user experiences and improve our software's performance.\n\nYour telemetry data includes essential insights into how the software functions in real-world scenarios. This data is collected anonymously, prioritizing your privacy and confidentiality.\n\nThe information gathered helps us identify potential issues, optimize features, and ensure a smoother, more efficient user experience for everyone.\n\nFor more information about collected data please visit: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md\n\nThis data collection will only happen during the installation process.\n\nDo you accept to share anonymous data with us?"
+  },
+  "tuning.sh": {
+    "title": "Open Voice OS Installation - Tuning",
+    "content": "Using Open Voice OS Tuning for Raspberry Pi involves optimizing the operating system to run efficiently on the Raspberry Pi hardware.\n\nThis tuning process aims to enhance performance, reduce resource usage, and ensure a smoother user experience, making it an excellent choice for resource-constrained devices like the Raspberry Pi.\n\nEnable tuning for Raspberry Pi (recommended)?"
+  },
+  "uninstall.sh": {
+    "title": "Open Voice OS Installation - Uninstall",
+    "content": "An existing instance of Open Voice OS has been detected.\n\nBecause Docker and PipeWire might have been installed by the system or manually, the installer will not remove the following packages:\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - pipewire\n  - pipewire-alsa\n\nDo you want to uninstall Open Voice OS?"
+  },
+  "welcome.sh": {
+    "title": "Open Voice OS Installation - Welcome",
+    "content": "Hello and welcome to the Open Voice OS installation!\n\nWe're excited to introduce you to Open Voice OS, the open-source voice assistant that's changing the way we interact with technology.\n\nInstalling Open Voice OS is a breeze, and it opens up a world of possibilities for voice-controlled convenience. Whether you're a tech enthusiast or just looking to simplify your daily tasks, Open Voice OS is here to make your life easier.\n\nGet started with the installation today and let your voice guide you through the future of technology!🌟"
+  }
+}

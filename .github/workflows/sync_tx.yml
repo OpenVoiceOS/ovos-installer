@@ -1,0 +1,37 @@
+name: Run script on merge to dev by gitlocalize-app
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+        with:
+          ref: dev
+          fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+      - name: Setup Python
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.9
+          
+      - name: Run script if manual dispatch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          python scripts/sync_translations.py
+          
+      - name: Run script if merged by gitlocalize-app[bot]
+        if: github.event_name == 'push' && github.event.head_commit.author.username == 'gitlocalize-app[bot]'
+        run: |
+          python scripts/sync_translations.py
+          
+      - name: Commit to dev
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Update translations
+          branch: dev
