@@ -38,10 +38,10 @@
     "title_key": "Open Voice OS Installation - Satélite 3/4",
     "title_password": "Open Voice OS Installation - Satélite 4/4",
     "content": "Al conectarse al HiveMind Listener, los satélites HiveMind acceden a una red de conocimientos y competencias compartidos que permite una asistencia lingüística y una automatización unificadas y eficaces.",
-    "content_host": "$content\n\nIntroduzca el host de escucha HiveMind (DNS o dirección IP):",
-    "content_port": "$content\n\nIntroduzca el puerto de escucha HiveMind:",
-    "content_key": "$content\n\nIntroduzca la clave de escucha HiveMind del satélite:",
-    "content_password": "$content\n\nIntroduzca la contraseña de escucha HiveMind del satélite:"
+    "content_host": "Introduzca el host de escucha HiveMind (DNS o dirección IP):",
+    "content_port": "Introduzca el puerto de escucha HiveMind:",
+    "content_key": "Introduzca la clave de escucha HiveMind del satélite:",
+    "content_password": "Introduzca la contraseña de escucha HiveMind del satélite:"
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Resumen",

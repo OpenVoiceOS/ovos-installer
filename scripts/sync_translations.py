@@ -47,6 +47,8 @@ content="{content}"
 
 # Host
 CONTENT_HOST="
+$content
+
 {content_host}
 "
 
