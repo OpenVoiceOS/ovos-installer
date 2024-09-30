@@ -10,8 +10,7 @@ Las habilidades permiten la interacción a través de la voz, lo que las hace ef
 Seleccione las funciones que desea activar:
 "
 TITLE="Open Voice OS Installation - Características"
-SKILL_DESCRIPTION="Descargar una selección de competencias (skills) OVOS
-Cargar habilidades OVOS adicionales"
+SKILL_DESCRIPTION="Descargar una selección de competencias (skills) OVOS"
 EXTRA_SKILL_DESCRIPTION="Cargar habilidades OVOS adicionales"
 GUI_DESCRIPTION="Con interfaz gráfica de usuario"
 

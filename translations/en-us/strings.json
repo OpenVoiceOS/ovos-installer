@@ -37,7 +37,7 @@
     "title_port": "Open Voice OS Installation - Satellite 2/4",
     "title_key": "Open Voice OS Installation - Satellite 3/4",
     "title_password": "Open Voice OS Installation - Satellite 4/4",
-    "content": "By connecting to the HiveMind listener, HiveMind satellites gain access to a network of shared knowledge and capabilities, facilitating a unified and efficient voice assistant and automation experience.\n\n# Host",
+    "content": "By connecting to the HiveMind listener, HiveMind satellites gain access to a network of shared knowledge and capabilities, facilitating a unified and efficient voice assistant and automation experience.",
     "content_host": "$content\n\nPlease enter the HiveMind listener host (DNS or IP address):",
     "content_port": "$content\n\nPlease enter the HiveMind listener port:",
     "content_key": "$content\n\nPlease enter the HiveMind listener key related to the satellite:",

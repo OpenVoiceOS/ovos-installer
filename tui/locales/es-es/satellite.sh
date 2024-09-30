@@ -1,14 +1,10 @@
 #!/bin/env bash
 
 # Global message
-content="Al conectarse al HiveMind Listener, los satélites HiveMind acceden a una red de conocimientos y competencias compartidos que permite una asistencia lingüística y una automatización unificadas y eficaces.
-
-# Host"
+content="Al conectarse al HiveMind Listener, los satélites HiveMind acceden a una red de conocimientos y competencias compartidos que permite una asistencia lingüística y una automatización unificadas y eficaces."
 
 # Host
 CONTENT_HOST="
-$content
-
 $content
 
 Introduzca el host de escucha HiveMind (DNS o dirección IP):
@@ -18,8 +14,6 @@ Introduzca el host de escucha HiveMind (DNS o dirección IP):
 CONTENT_PORT="
 $content
 
-$content
-
 Introduzca el puerto de escucha HiveMind:
 "
 
@@ -27,15 +21,11 @@ Introduzca el puerto de escucha HiveMind:
 CONTENT_KEY="
 $content
 
-$content
-
 Introduzca la clave de escucha HiveMind del satélite:
 "
 
 # Password
 CONTENT_PASSWORD="
-$content
-
 $content
 
 Introduzca la contraseña de escucha HiveMind del satélite:

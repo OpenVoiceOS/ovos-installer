@@ -10,8 +10,7 @@ Les compétences permettent le déclenchement d'actions par la parole, ce qui re
 Veuillez sélectionner les fonctionnalités à activer:
 "
 TITLE="Open Voice OS Installation - Fonctionnalités"
-SKILL_DESCRIPTION="Chargement des compétences par défaut d'OVOS
-Chargement des compétences OVOS supplémentaires"
+SKILL_DESCRIPTION="Chargement des compétences par défaut d'OVOS"
 EXTRA_SKILL_DESCRIPTION="Chargement des compétences OVOS supplémentaires"
 GUI_DESCRIPTION="Activation de l'interface graphique"
 

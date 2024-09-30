@@ -10,8 +10,7 @@ Skills enable interaction through speech, making it efficient for tasks like hom
 Please choose the features to enable:
 "
 TITLE="Open Voice OS Installation - Features"
-SKILL_DESCRIPTION="Load default OVOS skills
-Load extra OVOS skills"
+SKILL_DESCRIPTION="Load default OVOS skills"
 EXTRA_SKILL_DESCRIPTION="Load extra OVOS skills"
 GUI_DESCRIPTION="Enable graphical user interface"
 

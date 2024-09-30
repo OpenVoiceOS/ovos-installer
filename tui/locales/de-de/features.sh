@@ -10,8 +10,7 @@ Skills ermöglichen die Interaktion durch Sprache, was sie effizient für Aufgab
 Bitte wählen Sie die zu aktivierenden Funktionen aus:
 "
 TITLE="Open Voice OS Installation - Funktionen"
-SKILL_DESCRIPTION="Lade eine Auswahl an OVOS skills
-Laden Sie zusätzliche OVOS-Fähigkeiten"
+SKILL_DESCRIPTION="Lade eine Auswahl an OVOS skills"
 EXTRA_SKILL_DESCRIPTION="Laden Sie zusätzliche OVOS-Fähigkeiten"
 GUI_DESCRIPTION="Mit grafischer Benutzeroberfläche"
 
