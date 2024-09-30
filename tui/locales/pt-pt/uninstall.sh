@@ -1,6 +1,7 @@
 #!/bin/env bash
 
-CONTENT="Foi detectada uma instância existente do Open Voice OS.
+CONTENT="
+Foi detectada uma instância existente do Open Voice OS.
 
 Como o Docker e o PipeWire podem ter sido instalados pelo sistema ou manualmente, o programa de instalação não removerá os seguintes pacotes:
 
@@ -11,7 +12,8 @@ Como o Docker e o PipeWire podem ter sido instalados pelo sistema ou manualmente
   - pipewire
   - pipewire-alsa
 
-Pretende desinstalar o Open Voice OS?"
+Pretende desinstalar o Open Voice OS?
+"
 TITLE="Open Voice OS Instalação - Desinstalação"
 
 export CONTENT TITLE

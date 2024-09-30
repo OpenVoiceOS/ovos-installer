@@ -1,6 +1,7 @@
 #!/bin/env bash
 
-CONTENT="Per creare un sistema versatile e collegato alla rete, adatto a molte applicazioni, esistono tre affascinanti opzioni:
+CONTENT="
+Per creare un sistema versatile e collegato alla rete, adatto a molte applicazioni, esistono tre affascinanti opzioni:
 
   - Open Voice OS Master: la classica esperienza di Open Voice OS
   - HiveMind Satellite: le componenti audio di Open Voice OS vengono collegate a HiveMind Listener
@@ -11,7 +12,8 @@ Ognuno di questi profili offre caratteristiche e funzionalità uniche che posson
 
 L'unica domanda da porsi è quale sia il profilo più adatto alle proprie esigenze e preferenze.
 
-Seleziona un profilo:"
+Seleziona un profilo:
+"
 TITLE="Installazione di Open Voice OS - Profilo"
 
 export CONTENT TITLE

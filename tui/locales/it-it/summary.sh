@@ -1,6 +1,7 @@
 #!/bin/env bash
 
-CONTENT="Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:
+CONTENT="
+Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:
 
     - Distribuzione:       $METHOD
     - Versione:            $CHANNEL
@@ -11,7 +12,8 @@ CONTENT="Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per in
 
 Le decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.
 
-Le impostazioni sono corrette?"
+Le impostazioni sono corrette?
+"
 TITLE="Installazione di Open Voice OS - Riassunto"
 
 export CONTENT TITLE

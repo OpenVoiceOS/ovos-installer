@@ -5,7 +5,9 @@ from os.path import dirname
 TEMPLATE = """
 #!/bin/env bash
 
-CONTENT="{content}"
+CONTENT="
+{content}
+"
 TITLE="{title}"
 
 export CONTENT TITLE

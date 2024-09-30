@@ -1,6 +1,7 @@
 #!/bin/env bash
 
-CONTENT="Automatisch erkannte Systemeigenschaften:
+CONTENT="
+Automatisch erkannte Systemeigenschaften:
 
     - OS:       ${DISTRO_NAME^} $DISTRO_VERSION
     - Kernel:   $KERNEL
@@ -10,7 +11,8 @@ CONTENT="Automatisch erkannte Systemeigenschaften:
     - Hardware: $HARDWARE_DETECTED
     - Venv:     $VENV_PATH
     - Sound:    $SOUND_SERVER
-    - Display:  ${DISPLAY_SERVER^}"
+    - Display:  ${DISPLAY_SERVER^}
+"
 TITLE="Open Voice OS Installation - Systemeigenschaften"
 
 export CONTENT TITLE

@@ -1,6 +1,7 @@
 #!/bin/env bash
 
-CONTENT="Ao optar por partilhar dados de telemetria connosco, o utilizador desempenha um papel vital no fornecimento de informações valiosas e anónimas que nos permitem compreender melhor a experiência do utilizador e melhorar o desempenho do nosso software.
+CONTENT="
+Ao optar por partilhar dados de telemetria connosco, o utilizador desempenha um papel vital no fornecimento de informações valiosas e anónimas que nos permitem compreender melhor a experiência do utilizador e melhorar o desempenho do nosso software.
 
 Os seus dados de telemetria dão-nos informações importantes sobre a forma como o software funciona em cenários do mundo real. Estes dados são recolhidos de forma anónima para proteger a sua privacidade e confidencialidade.
 
@@ -10,7 +11,8 @@ Pode encontrar mais informações sobre os dados recolhidos em: https://github.c
 
 Esta recolha de dados ocorre apenas durante o processo de instalação.
 
-Concorda em partilhar dados anónimos connosco?"
+Concorda em partilhar dados anónimos connosco?
+"
 TITLE="Open Voice OS Instalação - Telemetria"
 
 export CONTENT TITLE
