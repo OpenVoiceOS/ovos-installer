@@ -1,0 +1,66 @@
+{
+  "misc.sh": {
+    "ok_button": "Volgende",
+    "yes_button": "Ja",
+    "no_button": "Nee",
+    "back_button": "Terug"
+  },
+  "channels.sh": {
+    "title": "Open Voice OS Installatie - Versies",
+    "content": "Er zijn twee verschillende versies voor Open Voice OS:\n\n  - Stabiel (aanbevolen, maar nog niet beschikbaar)\n  - Ontwikkelaar\n\nDe stabiele versie van Open Voice OS is een goed geteste en betrouwbare versie voor dagelijks gebruik.\n\nDe ontwikkelversie van Open Voice OS is bedoeld voor ontwikkelaars en enthousiastelingen die willen experimenteren met de nieuwste ontwikkelingen en willen bijdragen aan de verdere ontwikkeling van het platform.\n\nKies een versie:"
+  },
+  "detection.sh": {
+    "title": "Open Voice OS Installatie - Systeemeigenschappen",
+    "content": "Automatisch herkende systeemeigenschappen:\n\n    - OS:                 ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel:             $KERNEL\n    - RPi:                $RASPBERRYPI_MODEL\n    - Python:             $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD:           $CPU_IS_CAPABLE\n    - Hardware:           $HARDWARE_DETECTED\n    - Venv:               $VENV_PATH\n    - Geluid:             $SOUND_SERVER\n    - Display:            ${DISPLAY_SERVER^}"
+  },
+  "features.sh": {
+    "title": "Open Voice OS Installatie - Kenmerken",
+    "content": "Bij de keuze tussen GUI (Grafische gebruikersinterface) en Skills in Open Voice OS moet je rekening houden met je voorkeuren en behoeften.\n\nDe GUI is een open-source, grafische gebruiksinterface voor OVOS dat draait op KDE Plasma en is ontwikkeld met Kirigami, ondersteund door Qt.\n\nSkills maken interactie via spraak mogelijk, waardoor ze efficiënt zijn voor taken zoals domotica, informatie ophalen en slimme apparaten bedienen via spraakopdrachten.\n\nKies welke functies je wil activeren (meerdere opties mogelijk):",
+    "skill_description": "Standaard OVOS skills",
+    "extra_skill_description": "Extra OVOS skills",
+    "gui_description": "Grafische gebruikersinterface"
+  },
+  "finish.sh": {
+    "title": "Open Voice OS Installatie - Voltooid",
+    "content": "De installatie is met succes voltooid! 🎉\n\nJe stemassistent is nu klaar voor gebruik. We kijken ernaar uit om de vele functies en mogelijkheden van deze stemassistent te ontdekken.\n\nAls je de vaardigheidsfunctie hebt geactiveerd, kun je communiceren met je assistent door te zeggen:\n\n  - Hey Mycroft, hoe laat is het?\n  - Hey Mycroft, wat is de temperatuur?\n  - Hey Mycroft, zet een timer op drie minuten?\n  - Hey Mycroft, wie heeft jou gemaakt?\n  - Hey Mycroft, wie is Ada Lovelace?\n  - Hey Mycroft, wat zou Duke Nukem zeggen?\n\nDe instellingen van je wizard kun je veranderen in het configuratiebestand $CONFIG_FILE.\n\nAls je in de toekomst ondersteuning of updates nodig hebt, neem dan gerust contact met ons op. Veel plezier met Open Voice OS!"
+  },
+  "methods.sh": {
+    "title": "Open Voice OS Installatie - Installatieomgeving",
+    "content": "Er zijn twee omgevingen voor de installatie van Open Voice OS:\n\n    - Container-engine zoals Docker\n    - Installatie in een virtuele Python-omgeving\n\nContainers zorgen voor isolatie en eenvoudige installatie, terwijl een virtuele Python-omgeving meer flexibiliteit en controle over de installatie biedt.\n\nAls de containermethode is geselecteerd, wordt Docker automatisch geïnstalleerd als het niet aanwezig is op het systeem.\n\nSelecteer een installatieomgeving:"
+  },
+  "profiles.sh": {
+    "title": "Open Voice OS Installatie - Profiel",
+    "content": "Om een veelzijdig en netwerksysteem te creëren dat geschikt is voor vele toepassingen, zijn er drie fascinerende opties:\n\n  - Open Voice OS Master: de klassieke Open Voice OS-ervaring\n  - HiveMind Satellite: Open Voice OS-audiocomponenten die zijn aangesloten op HiveMind Listener\n  - HiveMind Listener: Hub voor HiveMind Satellite, bots, enz. om verbinding mee te maken\n  - Server: Alleen Open Voice OS Core en HiveMind Core, geen audiofuncties\n\nElk van deze profielen biedt unieke functies en mogelijkheden die je digitale ervaring aanzienlijk kunnen verbeteren.\n\nDe enige vraag is welk profiel het beste past bij jouw behoeften en voorkeuren.\n\nSelecteer een profiel:"
+  },
+  "satellite.sh": {
+    "title_host": "Open Voice OS Installatie - Satelliet 1/4",
+    "title_port": "Open Voice OS Installatie - Satelliet 2/4",
+    "title_key": "Open Voice OS Installatie - Satelliet 3/4",
+    "title_password": "Open Voice OS Installatie - Satelliet 4/4",
+    "content": "Door verbinding te maken met de HiveMind Listener krijgen HiveMind-satellieten toegang tot een netwerk van gedeelde kennis en skills die een uniforme en efficiënte taalondersteuning en -automatisering mogelijk maken.",
+    "content_host": "Voer de host van de HiveMind listener in (DNS of IP-adres):",
+    "content_port": "Voer de HiveMind listener poort in:",
+    "content_key": "Voer de HiveMind listener sleutel in, behorende bij de satelliet:",
+    "content_password": "Voer het HiveMind listener wachtwoord in, behorende bij de satelliet:"
+  },
+  "summary.sh": {
+    "title": "Open Voice OS Installatie - Samenvatting",
+    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving: $METHOD\n    - Versie:   $CHANNEL\n    - Profiel:  $PROFILE\n    - GUI:      $FEATURE_GUI\n    - Skills:   $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nDe beslissingen die zijn genomen tijdens het installatieproces van Open Voice OS zijn zorgvuldig overwogen om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen correct?"
+  },
+  "telemetry.sh": {
+    "title": "Open Voice OS Installatie - Telemetrie",
+    "content": "Door telemetriegegevens met ons te delen, speelt u een belangrijke rol in het leveren van waardevolle, anonieme informatie waarmee we de gebruikerservaring beter kunnen begrijpen en de prestaties van onze software kunnen verbeteren.\n\nJe telemetriegegevens geven ons belangrijke inzichten in hoe de software in de praktijk werkt. Deze gegevens worden anoniem verzameld om je privacy en vertrouwelijkheid te beschermen.\n\nDe verzamelde informatie helpt ons om mogelijke problemen te identificeren, functies te optimaliseren en te zorgen voor een soepelere, efficiëntere gebruikerservaring voor iedereen.\n\nMeer informatie over de verzamelde gegevens vind je op: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md\n\nDeze gegevensverzameling vindt alleen plaats tijdens het installatieproces.\n\nGa je ermee akkoord anonieme gegevens met ons te delen?"
+  },
+  "tuning.sh": {
+    "title": "Open Voice OS Installatie - Tuning",
+    "content": "Open Voice OS Tuning for Raspberry Pi optimaliseert het besturingssysteem zodat het efficiënt draait op de Raspberry Pi hardware.\n\nDit tuningproces heeft als doel de prestaties te verbeteren, het gebruik van bronnen te verminderen en een soepelere gebruikerservaring te garanderen, waardoor het een uitstekende keuze is voor apparaten met beperkte rekenkracht zoals de Raspberry Pi.\n\nTuning inschakelen voor Raspberry Pi? (aanbevolen)"
+  },
+  "uninstall.sh": {
+    "title": "Open Voice OS Installatie - Deïnstallatie",
+    "content": "Er is een bestaande installatie van Open Voice OS gedetecteerd.\n\nAangezien Docker en PipeWire door het systeem (of handmatig) kunnen zijn geïnstalleerd, verwijdert het installatieprogramma de volgende pakketten niet:\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - pipewire\n  - pipewire-alsa\n\nWil je Open Voice OS verwijderen?"
+  },
+  "welcome.sh": {
+    "title": "Open Voice OS Installatie - Welkom",
+    "content": "Hallo en welkom bij het installatieprogramma van Open Voice OS!\n\nWe stellen je graag voor aan Open Voice OS, de open source stemassistent.\n\nHet installeren van Open Voice OS is een fluitje van een cent en opent een wereld aan mogelijkheden voor spraakgestuurd gemak. Of je nu een tech liefhebber bent of gewoon je dagelijkse taken wilt vereenvoudigen, Open Voice OS is er om je leven makkelijker te maken.\n\nBegin vandaag nog met installeren en laat je stemassistant je leiden door de toekomst van technologie! 🌟"
+  }
+}

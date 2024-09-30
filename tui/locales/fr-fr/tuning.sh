@@ -5,7 +5,7 @@ Open Voice OS fournit un profil de réglages pour les appareils de type Raspberr
 
 Ce processus de réglage vise à améliorer les performances, à réduire l'utilisation des ressources et à garantir une expérience utilisateur plus fluide.
 
-Appliquer les réglages pour Raspberry Pi (recommandé)?
+Appliquer les réglages pour Raspberry Pi (recommandé) ?
 "
 TITLE="Open Voice OS Installation - Réglages pour Raspberry Pi"
 
