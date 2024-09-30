@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Résumé",
-    "content": "Vous y êtes presque! Voici un résumé des choix que vous avez effectués pour l'installation d'Open Voice OS:\n\n    - Méthode d'installation:   $METHOD\n    - Canal de déployment:      $CHANNEL\n    - Profil d'installation:    $PROFILE\n    - Interface graphique:      $FEATURE_GUI\n    - Compétences par défaut    $FEATURE_SKILLS\n    - Réglages Raspberry Pi:    $TUNING\n\nLes choix effectués lors du processus d'installation d'Open Voice OS ont été soigneusement étudiés pour adapter notre système à vos besoins et préférences.\n\nEst-ce que tout cela vous semble correct?"
+    "content": "Vous y êtes presque ! Voici un résumé des choix que vous avez effectués pour l'installation d'Open Voice OS :\n\n    - Méthode d'installation :   $METHOD\n    - Canal de déploiement :      $CHANNEL\n    - Profil d'installation :    $PROFILE\n    - Interface graphique :      $FEATURE_GUI\n    - Compétences par défaut :   $FEATURE_SKILLS\n    - Réglages Raspberry Pi :    $TUNING\n\nLes choix effectués lors du processus d'installation d'Open Voice OS ont été soigneusement étudiés pour adapter notre système à vos besoins et préférences.\n\nEst-ce que tout cela vous semble correct ?"
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Télémétrie",
