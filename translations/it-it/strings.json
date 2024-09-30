@@ -16,7 +16,7 @@
   "features.sh": {
     "title": "Installazione di Open Voice OS - Funzioni",
     "content": "Quando si sceglie tra GUI (Graphical User Interface, interfaccia grafica) e Skills (competenze) in Open Voice OS, è necessario considerare le proprie preferenze ed esigenze.\n\nL'interfaccia grafica è un framework visuale e di visualizzazione open source per OVOS che gira su KDE Plasma ed è stato sviluppato con Kirigami, supportato da Qt.\n\nLe competenze consentono l'interazione attraverso la voce, rendendole efficienti per attività quali la domotica, il reperimento di informazioni e il controllo di dispositivi intelligenti tramite comandi vocali.\n\nSeleziona le funzioni da attivare:",
-    "skill_description": "Scarica una selezione di competenze per OVOS\nScarica delle competenze extra per OVOS",
+    "skill_description": "Scarica una selezione di competenze per OVOS",
     "extra_skill_description": "Scarica delle competenze extra per OVOS",
     "gui_description": "Attiva l'interfaccia utente grafica"
   },

@@ -16,7 +16,7 @@
   "features.sh": {
     "title": "Open Voice OS Installation - Features",
     "content": "When choosing between GUI (Graphical User Interface) and skills in Open Voice OS, consider your preference and needs.\n\nThe GUI is an open source visual and display framework for OVOS running on top of KDE Plasma and built using Kirigami empowered by Qt.\n\nSkills enable interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.\n\nPlease choose the features to enable:",
-    "skill_description": "Load default OVOS skills\nLoad extra OVOS skills",
+    "skill_description": "Load default OVOS skills",
     "extra_skill_description": "Load extra OVOS skills",
     "gui_description": "Enable graphical user interface"
   },
