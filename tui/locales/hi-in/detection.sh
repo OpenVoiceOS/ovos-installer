@@ -1,7 +1,6 @@
 #!/bin/env bash
 
-CONTENT="
-कृपया पता लगाई गई जानकारी को सत्यापित करें:
+CONTENT="कृपया पता लगाई गई जानकारी को सत्यापित करें:
 
     - OS:       ${DISTRO_NAME^} $DISTRO_VERSION
     - Kernel:   $KERNEL
@@ -11,8 +10,7 @@ CONTENT="
     - Hardware: $HARDWARE_DETECTED
     - Venv:     $VENV_PATH
     - Sound:    $SOUND_SERVER
-    - Display:  ${DISPLAY_SERVER^}
-"
+    - Display:  ${DISPLAY_SERVER^}"
 TITLE="Open Voice OS Installation - सिस्टम जानकारी की पहचान"
 
 export CONTENT TITLE

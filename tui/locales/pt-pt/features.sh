@@ -10,7 +10,8 @@ Skills permitem a interação através da voz, tornando-as eficientes para taref
 Seleccione as funções a ativar:
 "
 TITLE="Open Voice OS Instalação - Características"
-SKILL_DESCRIPTION="Descarregar uma seleção de skills OVOS"
+SKILL_DESCRIPTION="Descarregar uma seleção de skills OVOS
+Carregar skills OVOS adicionais"
 EXTRA_SKILL_DESCRIPTION="Carregar skills OVOS adicionais"
 GUI_DESCRIPTION="Com interface gráfica do utilizador"
 

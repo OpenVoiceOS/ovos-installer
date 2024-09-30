@@ -1,7 +1,6 @@
 #!/bin/env bash
 
-CONTENT="
-Please find the detected information:
+CONTENT="Please find the detected information:
 
     - OS:       ${DISTRO_NAME^} $DISTRO_VERSION
     - Kernel:   $KERNEL
@@ -11,8 +10,7 @@ Please find the detected information:
     - Hardware: $HARDWARE_DETECTED
     - Venv:     $VENV_PATH
     - Sound:    $SOUND_SERVER
-    - Display:  ${DISPLAY_SERVER^}
-"
+    - Display:  ${DISPLAY_SERVER^}"
 TITLE="Open Voice OS Installation - Detected"
 
 export CONTENT TITLE

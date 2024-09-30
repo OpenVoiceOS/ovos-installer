@@ -1,7 +1,6 @@
 #!/bin/env bash
 
-CONTENT="
-Bijna klaar. Een korte samenvatting:
+CONTENT="Bijna klaar. Een korte samenvatting:
 
     - Omgeving: $METHOD
     - Versie:   $CHANNEL
@@ -12,8 +11,7 @@ Bijna klaar. Een korte samenvatting:
 
 De beslissingen die zijn genomen tijdens het installatieproces van Open Voice OS zijn zorgvuldig overwogen om ons systeem aan te passen aan je individuele behoeften en voorkeuren.
 
-Zijn de instellingen correct?
-"
+Zijn de instellingen correct?"
 TITLE="Open Voice OS Installatie - Samenvatting"
 
 export CONTENT TITLE

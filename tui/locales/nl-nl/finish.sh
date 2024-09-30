@@ -1,7 +1,6 @@
 #!/bin/env bash
 
-CONTENT="
-De installatie is met succes voltooid! 🎉
+CONTENT="De installatie is met succes voltooid! 🎉
 
 Je stemassistent is nu klaar voor gebruik. We kijken ernaar uit om de vele functies en mogelijkheden van deze stemassistent te ontdekken.
 
@@ -16,8 +15,7 @@ Als je de vaardigheidsfunctie hebt geactiveerd, kun je communiceren met je assis
 
 De instellingen van je wizard kun je veranderen in het configuratiebestand $CONFIG_FILE.
 
-Als je in de toekomst ondersteuning of updates nodig hebt, neem dan gerust contact met ons op. Veel plezier met Open Voice OS!
-"
+Als je in de toekomst ondersteuning of updates nodig hebt, neem dan gerust contact met ons op. Veel plezier met Open Voice OS!"
 TITLE="Open Voice OS Installatie - Voltooid"
 
 export CONTENT TITLE

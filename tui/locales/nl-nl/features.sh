@@ -10,7 +10,8 @@ Skills maken interactie via spraak mogelijk, waardoor ze efficiënt zijn voor ta
 Kies welke functies je wil activeren (meerdere opties mogelijk):
 "
 TITLE="Open Voice OS Installatie - Kenmerken"
-SKILL_DESCRIPTION="Standaard OVOS skills"
+SKILL_DESCRIPTION="Standaard OVOS skills
+Extra OVOS skills"
 EXTRA_SKILL_DESCRIPTION="Extra OVOS skills"
 GUI_DESCRIPTION="Grafische gebruikersinterface"
 

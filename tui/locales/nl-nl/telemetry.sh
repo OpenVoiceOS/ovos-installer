@@ -1,7 +1,6 @@
 #!/bin/env bash
 
-CONTENT="
-Door telemetriegegevens met ons te delen, speelt u een belangrijke rol in het leveren van waardevolle, anonieme informatie waarmee we de gebruikerservaring beter kunnen begrijpen en de prestaties van onze software kunnen verbeteren.
+CONTENT="Door telemetriegegevens met ons te delen, speelt u een belangrijke rol in het leveren van waardevolle, anonieme informatie waarmee we de gebruikerservaring beter kunnen begrijpen en de prestaties van onze software kunnen verbeteren.
 
 Je telemetriegegevens geven ons belangrijke inzichten in hoe de software in de praktijk werkt. Deze gegevens worden anoniem verzameld om je privacy en vertrouwelijkheid te beschermen.
 
@@ -11,8 +10,7 @@ Meer informatie over de verzamelde gegevens vind je op: https://github.com/OpenV
 
 Deze gegevensverzameling vindt alleen plaats tijdens het installatieproces.
 
-Ga je ermee akkoord anonieme gegevens met ons te delen?
-"
+Ga je ermee akkoord anonieme gegevens met ons te delen?"
 TITLE="Open Voice OS Installatie - Telemetrie"
 
 export CONTENT TITLE

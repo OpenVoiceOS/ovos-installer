@@ -1,7 +1,6 @@
 #!/bin/env bash
 
-CONTENT="
-Une instance d'Open Voice OS a été détectée.
+CONTENT="Une instance d'Open Voice OS a été détectée.
 
 Étant donné que Docker et PipeWire peuvent avoir été installés par le système ou manuellement, l'ínstallateur ne supprimera pas les packages suivants:
 
@@ -12,8 +11,7 @@ Une instance d'Open Voice OS a été détectée.
   - pipewire
   - pipewire-alsa
 
-Voulez-vous désinstaller Open Voice OS?
-"
+Voulez-vous désinstaller Open Voice OS?"
 TITLE="Open Voice OS Installation - Désinstallation"
 
 export CONTENT TITLE

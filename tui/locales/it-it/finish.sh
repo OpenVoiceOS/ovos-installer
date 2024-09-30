@@ -1,7 +1,6 @@
 #!/bin/env bash
 
-CONTENT="
-L'installazione è stata completata con successo! 🎉
+CONTENT="L'installazione è stata completata con successo! 🎉
 
 Il vostro assistente vocale è ora pronto per l'uso. Non vediamo l'ora di farvi esplorare l'ampia gamma di funzioni e possibilità di questo assistente vocale.
 
@@ -15,8 +14,7 @@ Se avete attivato la funzione Competenze, potete interagire con il vostro assist
 
 Le impostazioni della procedura guidata possono essere modificate nel file di configurazione $CONFIG_FILE.
 
-Se in futuro avrete bisogno di assistenza o di aggiornamenti, non esitate a contattarci. Buon divertimento con Open Voice OS!
-"
+Se in futuro avrete bisogno di assistenza o di aggiornamenti, non esitate a contattarci. Buon divertimento con Open Voice OS!"
 TITLE="Installazione di Open Voice OS - Conclusione"
 
 export CONTENT TITLE
