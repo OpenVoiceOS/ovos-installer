@@ -7,6 +7,6 @@ Este processo de afinação tem como objetivo melhorar o desempenho, reduzir a u
 
 Ativar o ajuste para Raspberry Pi (recomendado)?
 "
-TITLE="Open Voice OS Installation - Otimização"
+TITLE="Open Voice OS Instalação - Otimização"
 
 export CONTENT TITLE

@@ -14,6 +14,6 @@ Como o Docker e o PipeWire podem ter sido instalados pelo sistema ou manualmente
 
 Pretende desinstalar o Open Voice OS?
 "
-TITLE="Open Voice OS Installation - Desinstalação"
+TITLE="Open Voice OS Instalação - Desinstalação"
 
 export CONTENT TITLE

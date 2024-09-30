@@ -14,6 +14,6 @@ A única questão é saber qual o perfil que melhor se adapta às suas necessida
 
 Seleccione um perfil:
 "
-TITLE="Open Voice OS Installation - Perfil"
+TITLE="Open Voice OS Instalação - Perfil"
 
 export CONTENT TITLE
