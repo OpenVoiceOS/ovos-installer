@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Open Voice OS Installation - Canaux d'installation",
-    "content": "Open Voice OS possède deux canaux d'instalaltion:\n\n  - stable (recommandé mais pas encore disponible)\n  - développment\n\nLa version stable d'Open Voice OS est une version bien testée et fiable, adaptée à un usage quotidien.\n\nLa version de développement d'Open Voice OS est destinée aux développeurs et aux passionnés qui souhaitent expérimenter des fonctionnalités de pointe et contribuer au développement de la plateforme.\n\nVeuillez sélectionner une canal:"
+    "content": "Open Voice OS possède deux canaux d'installation:\n\n  - stable (recommandé mais pas encore disponible)\n  - développement\n\nLa version stable d'Open Voice OS est une version bien testée et fiable, adaptée à un usage quotidien.\n\nLa version de développement d'Open Voice OS est destinée aux développeurs et aux passionnés qui souhaitent expérimenter des fonctionnalités de pointe et contribuer au développement de la plateforme.\n\nVeuillez sélectionner un canal:"
   },
   "detection.sh": {
     "title": "Open Voice OS Installation - Détecté",
