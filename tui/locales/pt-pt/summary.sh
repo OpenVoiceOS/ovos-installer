@@ -3,7 +3,7 @@
 CONTENT="
 Quase a terminar. Um breve resumo:
 
-    - Implantação: $METHOD
+    - Implementação: $METHOD
     - Versão:      $CHANNEL
     - Perfil:      $PROFILE
     - GUI:         $FEATURE_GUI
@@ -14,6 +14,6 @@ As decisões tomadas durante o processo de instalação do Open Voice OS foram c
 
 As definições estão correctas?
 "
-TITLE="Open Voice OS Installation - Resumo"
+TITLE="Open Voice OS Instalação - Resumo"
 
 export CONTENT TITLE

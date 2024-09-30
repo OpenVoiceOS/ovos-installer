@@ -13,6 +13,6 @@ Propriedades do sistema reconhecidas automaticamente:
     - Som:      $SOUND_SERVER
     - Ecrã:     ${DISPLAY_SERVER^}
 "
-TITLE="Open Voice OS Installation - Propriedades do sistema"
+TITLE="Open Voice OS Instalação - Propriedades do sistema"
 
 export CONTENT TITLE

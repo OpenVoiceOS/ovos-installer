@@ -3,7 +3,7 @@
 CONTENT="
 Existem dois ambientes para a instalação do Open Voice OS:
 
-    - Motor de contentores como o Docker
+    - Contentores como o Docker
     - Configuração num ambiente Python virtual
 
 Os contentores proporcionam isolamento e facilidade de implementação, enquanto um ambiente Python virtual proporciona mais flexibilidade e controlo sobre a instalação.
@@ -12,6 +12,6 @@ Se o método de contentor for selecionado, o Docker será instalado automaticame
 
 Seleccione um método de implantação:
 "
-TITLE="Open Voice OS Installation - Implantação"
+TITLE="Open Voice OS Instalação - Implementação"
 
 export CONTENT TITLE
