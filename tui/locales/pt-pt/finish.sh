@@ -16,7 +16,7 @@ Se tiver ativado a função Skill, pode interagir com o seu assistente dizendo:
 
 As definições do seu assistente podem ser alteradas no ficheiro de configuração $CONFIG_FILE.
 
-Se precisar de suporte ou actualizações no futuro, não hesite em contactar-nos. Divirtae-te com o Open Voice OS!
+Se precisar de suporte ou actualizações no futuro, não hesite em contactar-nos. Divirta-se com o Open Voice OS!
 "
 TITLE="Open Voice OS Instalação - Conclusão"
 
