@@ -1,0 +1,8 @@
+#!/bin/env bash
+
+OK_BUTTON="Hurrengoa"
+YES_BUTTON="Bai"
+NO_BUTTON="Ez"
+BACK_BUTTON="Itzuli"
+
+export OK_BUTTON YES_BUTTON NO_BUTTON BACK_BUTTON
