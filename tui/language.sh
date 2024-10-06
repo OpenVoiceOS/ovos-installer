@@ -5,7 +5,7 @@ Please select a language:
 "
 
 active_language="English"
-available_languages=(Dutch English French German Hindi Italian Portuguese Spanish)
+available_languages=(Catalan Dutch English French German Hindi Italian Portuguese Spanish)
 
 whiptail_args=(
   --title "Open Voice OS Installation - Language"
@@ -33,5 +33,5 @@ fi
 
 # Hash of locales
 declare -A locales
-locales=(["english"]="en-us" ["french"]="fr-fr" ["german"]="de-de" ["italian"]="it-it" ["spanish"]="es-es" ["dutch"]="nl-nl" ["portuguese"]="pt-pt" ["hindi"]="hi-in")
+locales=(["english"]="en-us" ["french"]="fr-fr" ["german"]="de-de" ["italian"]="it-it" ["spanish"]="es-es" ["dutch"]="nl-nl" ["portuguese"]="pt-pt" ["hindi"]="hi-in" ["catalan"]="ca-es")
 export LOCALE="${locales[$language]}"

@@ -13,6 +13,6 @@ Esta recolha de dados ocorre apenas durante o processo de instalação.
 
 Concorda em partilhar dados anónimos connosco?
 "
-TITLE="Open Voice OS Installation - Telemetria"
+TITLE="Open Voice OS Instalação - Telemetria"
 
 export CONTENT TITLE
