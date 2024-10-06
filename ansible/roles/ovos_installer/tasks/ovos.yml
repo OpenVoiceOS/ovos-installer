@@ -74,3 +74,15 @@
     mode: "0600"
     backup: true
   register: _configuration
+
+- name: Run ovos-config autoconfigure in venv
+  vars:
+    lang_code: "{{ config_language_code }}"
+    gender: "{{ config_gender }}"
+    mode: "{{ config_mode }}"
+  shell: |
+    source {{ ovos_installer_user_home }}/.venv/bin/activate
+    ovos-config autoconfigure --lang {{ lang_code }} --{{ gender }} --{{ mode }}
+  args:
+    executable: /bin/bash
+  when: config_autoconfig == "true"
