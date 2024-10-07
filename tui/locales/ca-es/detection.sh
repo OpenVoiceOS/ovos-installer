@@ -11,8 +11,8 @@ Trobeu la informació detectada:
     - Maquinari: $HARDWARE_DETECTED
     - Venv: $VENV_PATH
     - So: $SOUND_SERVER
-    - Visualització: ${DISPLAY_SERVER^}
+    - Pantalla: ${DISPLAY_SERVER^}
 "
-TITLE="Instal·lació del sistema operatiu de veu oberta: detectada"
+TITLE="Instal·lació de l'Open Voice OS - Informació detectada"
 
 export CONTENT TITLE

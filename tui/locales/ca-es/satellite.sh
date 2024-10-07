@@ -31,9 +31,9 @@ $content
 Introduïu la contrasenya de l'oient de HiveMind relacionada amb el satèl·lit:
 "
 
-TITLE_HOST="Obre la instal·lació del sistema operatiu de veu - Satèl·lit 1/4"
-TITLE_PORT="Obre la instal·lació del sistema operatiu de veu - Satèl·lit 2/4"
-TITLE_KEY="Obre la instal·lació del sistema operatiu de veu - Satèl·lit 3/4"
-TITLE_PASSWORD="Obre la instal·lació del sistema operatiu de veu - Satellite 4/4"
+TITLE_HOST="Instal·lació de l'Open VoiceOS - Satèl·lit 1/4"
+TITLE_PORT="Instal·lació de l'Open VoiceOS - Satèl·lit 2/4"
+TITLE_KEY="Instal·lació de l'Open VoiceOS - Satèl·lit 3/4"
+TITLE_PASSWORD="Instal·lació de l'Open VoiceOS - Satellite 4/4"
 
 export CONTENT_HOST CONTENT_PORT CONTENT_KEY CONTENT_PASSWORD TITLE_HOST TITLE_PORT TITLE_KEY TITLE_PASSWORD

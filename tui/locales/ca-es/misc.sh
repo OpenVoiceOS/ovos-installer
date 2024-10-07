@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-OK_BUTTON="A continuació"
+OK_BUTTON="Endavant"
 YES_BUTTON="Sí"
 NO_BUTTON="No"
 BACK_BUTTON="Enrere"
