@@ -7,12 +7,12 @@ Les vostres dades de telemetria inclouen informació essencial sobre com funcion
 
 La informació recopilada ens ajuda a identificar problemes potencials, optimitzar les funcions i garantir una experiència d'usuari més fluida i eficient per a tothom.
 
-Per obtenir més informació sobre les dades recollides, visiteu: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md
+Per a obtenir més informació sobre les dades recollides, visiteu: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md (en anglès)
 
 Aquesta recollida de dades només es farà durant el procés d'instal·lació.
 
 Accepteu compartir dades anònimes amb nosaltres?
 "
-TITLE="Obriu la instal·lació del sistema operatiu de veu - Telemetria"
+TITLE="Instal·lació de l'Open Voice OS - Telemetria"
 
 export CONTENT TITLE

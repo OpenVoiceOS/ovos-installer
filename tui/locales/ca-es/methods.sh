@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 CONTENT="
-Per instal·lar Open Voice OS, teniu dos mètodes principals:
+Per a instal·lar l'Open Voice OS, teniu dos mètodes principals:
 
     - Motor de contenidors com Docker
     - Configurar-lo en un entorn virtual Python
@@ -12,6 +12,6 @@ Si se selecciona el mètode de contenidors, Docker s'instal·larà automàticame
 
 Seleccioneu un mètode d'instal·lació:
 "
-TITLE="Instal·lació del sistema operatiu de veu oberta - Mètodes"
+TITLE="Instal·lació de l'Open Voice OS - Mètodes"
 
 export CONTENT TITLE
