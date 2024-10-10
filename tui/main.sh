@@ -42,7 +42,4 @@ fi
 source tui/summary.sh
 
 # shellcheck source=telemetry.sh
-source tui/autoconfig.sh
-
-# shellcheck source=telemetry.sh
 source tui/telemetry.sh
