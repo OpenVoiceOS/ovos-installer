@@ -7,13 +7,33 @@
 done_format="\e[32mdone\e[0m"
 fail_format="\e[31mfail\e[0m"
 
+# This function ask user agreement on uploading the content of
+# ovos-installer.log on https://dpaste.com. Without the user
+# agreement this could lead to security infringement.
+function ask_optin() {
+    while true; do
+        read -rp "Upload the log on https://dpaste.com website? (yes/no) " yn
+        case $yn in
+        [Yy]*)
+            return 0
+            ;;
+        [Nn]*)
+            echo -e "Unable to continue the process, please check $LOG_FILE for more details."
+            exit 1
+            ;;
+        *) echo -e "Please answer (y)es or (n)o." ;;
+        esac
+    done
+}
+
 # The function exits the installer when trap detects ERR as signal.
 # This is mainly used in setup.sh to handle errors during the functions
 # execution.
 function on_error() {
+    echo -e "[$fail_format]\n"
+    ask_optin
     debug_url="$(curl -sF 'content=<-' https://dpaste.com/api/v2/ <"$LOG_FILE")"
-    echo -e "[$fail_format]"
-    echo -e "\nUnable to continue the process, please check $LOG_FILE for more details."
+    echo -e "Unable to continue the process, please check $LOG_FILE for more details."
     echo -e "Please share this URL with us $debug_url"
     exit 1
 }
@@ -464,7 +484,6 @@ function detect_devkit_device() {
     DETECTED_DEVICES+=("tas5806")
 }
 
-
 # Checks to see if apt-based packages are installed and installs them if needed.
 # The main reason to use this over normal apt install is that it avoids sudo if
 # we already have all requested packages.
@@ -474,7 +493,7 @@ function detect_devkit_device() {
 #     UPDATE : if this is populated also runs and apt update
 # Example:
 #     apt_ensure git curl htop
-function apt_ensure(){
+function apt_ensure() {
     # Note the $@ is not actually an array, but we can convert it to one
     # https://linuxize.com/post/bash-functions/#passing-arguments-to-bash-functions
     ARGS=("$@")
@@ -485,8 +504,7 @@ function apt_ensure(){
         # Only use the sudo command if we need it (i.e. we are not root)
         _SUDO="sudo "
     fi
-    for PKG_NAME in "${ARGS[@]}"
-    do
+    for PKG_NAME in "${ARGS[@]}"; do
         # Check if the package is already installed or not
         if dpkg-query -W -f='${Status}' "$PKG_NAME" 2>/dev/null | grep -q "install ok installed"; then
             echo "Already have PKG_NAME='$PKG_NAME'"
