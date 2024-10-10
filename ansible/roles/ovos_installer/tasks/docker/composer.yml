@@ -76,6 +76,13 @@
     command: hivemind-client set-identity --key {{ ovos_installer_satellite_key }} --password {{ ovos_installer_satellite_password }} --host {{ ovos_installer_listener_host }} --port {{ ovos_installer_listener_port | default(5678) }} --siteid {{ ovos_installer_site_id | default("voice-sat-1") }}
   when: ovos_installer_profile == "satellite"
 
+- name: Run ovos-config for auto-configuration of STT and TTS based on language
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_container_exec:
+    container: ovos_cli
+    command: ovos-config autoconfigure --lang {{ ovos_installer_locale }} --male
+
 - name: Block uninstall composer
   when: ovos_installer_cleaning | bool
   tags:
