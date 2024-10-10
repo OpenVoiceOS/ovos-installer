@@ -11,6 +11,7 @@ ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec=5s
+StartLimitBurst=0
 
 [Install]
 WantedBy=ovos.service
