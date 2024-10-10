@@ -64,26 +64,5 @@
       }
     }
 {% endif %}
-  }{% if ovos_installer_profile != "server" %},
-  "tts": {
-    "ovos-tts-plugin-server": {
-      "sentence_tokenize": true,
-      {% if ovos_installer_locale == "de-de" %}
-      "voice": "thorsten-low"
-      {% elif ovos_installer_locale == "en-us" %}
-      "voice": "ryan-low"
-      {% elif ovos_installer_locale == "es-es" %}
-      "voice": "davefx-medium"
-      {% elif ovos_installer_locale == "fr-fr" %}
-      "voice": "siwis-medium"
-      {% elif ovos_installer_locale == "it-it" %}
-      "voice": "riccardo_fasol-x-low"
-      {% elif ovos_installer_locale == "nl-nl" %}
-      "voice": "rdh-medium"
-      {% elif ovos_installer_locale == "pt-pt" %}
-      "voice": "tugao-medium"
-      {% endif %}
-    }
   }
-{% endif %}
 }
