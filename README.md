@@ -4,7 +4,7 @@ A nice, simple, multilingual and intuitive way to install Open Voice OS and/or H
 
 ## Quickstart
 
-`curl`, `git` and `sudo` packages must be installed before running the installer.
+`cargo`, `curl`, `git` and `sudo` packages must be installed before running the installer.
 
 ```shell
 sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh && rm installer.sh"
