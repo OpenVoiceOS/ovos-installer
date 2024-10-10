@@ -2,6 +2,7 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-phal
 Description=Open Voice OS - PHAL Admin
 After=network-online.target
+ConditionPathExists=/tmp/combo_locks
 
 [Service]
 Environment=XDG_CONFIG_HOME={{ ovos_installer_user_home }}/.config
