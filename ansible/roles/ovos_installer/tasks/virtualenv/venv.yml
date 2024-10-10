@@ -118,6 +118,20 @@
   changed_when: false
   when: ovos_installer_profile == "satellite"
 
+- name: Run ovos-config for auto-configuration of STT and TTS based on language
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.shell:
+    cmd: |
+      ovos-config autoconfigure \
+        --lang {{ ovos_installer_locale }} \
+        --male
+    executable: /bin/bash
+  environment:
+    PATH: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
+    VIRTUAL_ENV: "{{ ovos_installer_user_home }}/.venvs/ovos"
+  changed_when: false
+
 - name: Remove {{ ovos_installer_user_home }}/.venvs/ovos Python virtualenv and requirements.txt files
   ansible.builtin.file:
     path: "{{ ovos_installer_user_home }}/.venvs/ovos"
