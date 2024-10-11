@@ -2,13 +2,13 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-phal
 Description=Open Voice OS - PHAL Admin
 After=network-online.target
-ConditionPathExists=/tmp/combo_locks
 
 [Service]
 Environment=XDG_CONFIG_HOME={{ ovos_installer_user_home }}/.config
 Environment=XDG_CACHE_HOME={{ ovos_installer_user_home }}/.cache
 WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
 ExecStart={{ ovos_installer_user_home }}/.venvs/ovos/bin/ovos_PHAL_admin
+ExecStartPost=/usr/bin/chown {{ ovos_installer_user }}:{{ ovos_installer_user }} -R /tmp/combo_locks
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
