@@ -132,6 +132,7 @@
     PATH: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
     VIRTUAL_ENV: "{{ ovos_installer_user_home }}/.venvs/ovos"
   changed_when: false
+  when: ovos_installer_profile != "server"
 
 - name: Remove {{ ovos_installer_user_home }}/.venvs/ovos Python virtualenv and requirements.txt files
   ansible.builtin.file:

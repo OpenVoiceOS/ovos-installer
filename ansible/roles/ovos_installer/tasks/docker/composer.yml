@@ -82,6 +82,7 @@
   community.docker.docker_container_exec:
     container: ovos_cli
     command: ovos-config autoconfigure --lang {{ ovos_installer_locale }} --male --online
+  when: ovos_installer_profile != "server"
 
 - name: Block uninstall composer
   when: ovos_installer_cleaning | bool
