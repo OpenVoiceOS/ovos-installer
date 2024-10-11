@@ -42,6 +42,33 @@ Then follow the instructions display on screen.
 
 To update the current Open Voice OS instance, backup your `~/.config/mycroft/mycroft.conf` or `~/ovos/config/mycroft.conf` _(only if required)_ and re-run installer but answer **"No"** to the _"Do you want to uninstall Open Voice OS?"_ question.
 
+## Start & Stop the services
+
+When the `virtualenv` method as being choose _(default)_ during the installation process, few systemd unit files have being created in order to manages the different components as services.
+
+### List the systemd unit files
+
+```shell
+systemctl --user list-units "*ovos*"
+systemctl list-units "*ovos*"
+```
+
+Only one service is running as `root`; `ovos-phal-admin`.
+
+### Start Open Voice OS
+
+```shell
+systemctl --user start ovos
+sudo systemctl start ovos-phal-admin
+```
+
+### Stop Open Voice OS
+
+```shell
+systemctl --user stop ovos
+sudo systemctl stop ovos-phal-admin
+```
+
 ## Automated install
 
 The installer supports a non-interactive _(automated)_ process of installation by using a scenario file, this file must be created under the `~/.config/ovos-installer/` directory and should be named `scenario.yaml`.
