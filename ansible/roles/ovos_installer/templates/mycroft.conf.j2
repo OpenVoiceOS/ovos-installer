@@ -7,8 +7,8 @@
   },
 {% endif %}
 {% if ovos_installer_profile != "server" %}
-  "play_wav_cmdline": "{{ 'aplay' if _detect_sound_server.stdout == "pulseaudio" else 'pw-play' }} %1",
-  "play_mp3_cmdline": "{{ 'paplay' if _detect_sound_server.stdout == "pulseaudio" else 'pw-play' }} %1",
+  "play_wav_cmdline": "play %1",
+  "play_mp3_cmdline": "play %1",
   "lang": "{{ ovos_installer_locale }}",
   "listener": {
     "remove_silence": true,
