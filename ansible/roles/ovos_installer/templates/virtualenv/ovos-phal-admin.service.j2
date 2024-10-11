@@ -8,7 +8,7 @@ Environment=XDG_CONFIG_HOME={{ ovos_installer_user_home }}/.config
 Environment=XDG_CACHE_HOME={{ ovos_installer_user_home }}/.cache
 WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
 ExecStart={{ ovos_installer_user_home }}/.venvs/ovos/bin/ovos_PHAL_admin
-ExecStartPost=/usr/bin/chown {{ ovos_installer_user }}:{{ ovos_installer_user }} -R /tmp/combo_locks
+ExecStartPost=/usr/bin/chown {{ ovos_installer_user }}: -R /tmp/combo_locks
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
