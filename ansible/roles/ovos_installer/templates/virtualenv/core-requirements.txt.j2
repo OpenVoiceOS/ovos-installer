@@ -1,14 +1,14 @@
-ovos-messagebus
-ovos-core[lgpl,plugins]
-ovos-PHAL[extras,linux]
-ovos-dinkum-listener[extras,linux]
 ovos-audio[extras]
+ovos-core[lgpl,plugins]
+ovos-dinkum-listener[extras,linux]
+ovos-messagebus
+ovos-PHAL[linux]
+ovos-phal-plugin-ipgeo
+ovos-tts-plugin-polly
 
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 ovos-audio-transformer-plugin-ggwave
 {% endif %}
-
-ovos-tts-plugin-polly
 
 {% if ovos_installer_cpu_is_capable | bool %}
 ovos-dinkum-listener[onnx]
@@ -29,10 +29,3 @@ git+https://github.com/OVOSHatchery/ovos-PHAL-plugin-sj201-leds.git
 
 # No PyPi release
 git+https://github.com/OpenVoiceOS/ovos-cli-client.git
-
-# Non-OVOS libraries
-#neon-mana-utils #Commented until PyYAML requirement is fixed
-{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
-onnxruntime
-vosk
-{% endif %}
