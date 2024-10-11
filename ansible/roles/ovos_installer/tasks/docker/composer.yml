@@ -81,7 +81,7 @@
   become_user: "{{ ovos_installer_user }}"
   community.docker.docker_container_exec:
     container: ovos_cli
-    command: ovos-config autoconfigure --lang {{ ovos_installer_locale }} --male
+    command: ovos-config autoconfigure --lang {{ ovos_installer_locale }} --male --online
 
 - name: Block uninstall composer
   when: ovos_installer_cleaning | bool

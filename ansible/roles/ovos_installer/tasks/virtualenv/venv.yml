@@ -126,6 +126,7 @@
       ovos-config autoconfigure \
         --lang {{ ovos_installer_locale }} \
         --male
+        -- online
     executable: /bin/bash
   environment:
     PATH: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
