@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# This script ensure that all OVOS PHAL admin service
+# requirements are fulfilled before trying to start.
+
+# Variables
+combo_locks_path=${COMBO_LOCKS_PATH:-/tmp/combo_locks}
+attempt_counter=0
+max_attempt=${MAX_ATTEMPT:-10}
+
+# Wait for other OVOS compoenents to start, if /tmp/combo_locks
+# directory is not created by other components then ovos-phal-admin
+# will not start as a deeper issue exists.
+while ! [ -d "$combo_locks_path" ]; do
+    if [ "$attempt_counter" -lt "$max_attempt" ]; then
+        ((attempt_counter++))
+        echo "Trying to start ovos-phal-admin systemd unit... Attempt ${attempt_counter}/${max_attempt}"
+        sleep 1
+    fi
+done
+
+# Starst ovos_PHAL_admin Python binary
+{{ ovos_installer_user_home }}/.venvs/ovos/bin/ovos_PHAL_admin
