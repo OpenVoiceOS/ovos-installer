@@ -7,8 +7,7 @@ After=network-online.target
 Environment=XDG_CONFIG_HOME={{ ovos_installer_user_home }}/.config
 Environment=XDG_CACHE_HOME={{ ovos_installer_user_home }}/.cache
 WorkingDirectory={{ ovos_installer_user_home }}/.venvs/ovos
-ExecStart={{ ovos_installer_user_home }}/.venvs/ovos/bin/ovos_PHAL_admin
-ExecStartPost=/usr/bin/chown {{ ovos_installer_user }}: -R /tmp/combo_locks
+ExecStart=/usr/local/bin/wrapper-ovos-phal-admin.sh
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure

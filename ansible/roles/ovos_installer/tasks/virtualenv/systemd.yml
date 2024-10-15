@@ -1,4 +1,13 @@
 ---
+- name: Copy wrapper-ovos-phal-admin.sh file
+  ansible.builtin.template:
+    src: virtualenv/wrapper-ovos-phal-admin.sh.j2
+    dest: /usr/local/bin/wrapper-ovos-phal-admin.sh
+    owner: root
+    group: root
+    mode: "0755"
+  when: ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server'
+
 - name: Copy OVOS systemd unit files
   vars:
     _path_user: "{{ ovos_installer_user_home }}/.config/systemd/user"
