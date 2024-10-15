@@ -4,9 +4,9 @@
 # requirements are fulfilled before trying to start.
 
 # Variables
-combo_locks_path=/tmp/combo_locks
+combo_locks_path=${COMBO_LOCKS_PATH:-/tmp/combo_locks}
 attempt_counter=0
-max_attempt=10
+max_attempt=${MAX_ATTEMPT:-10}
 
 # Wait for other OVOS compoenents to start, if /tmp/combo_locks
 # directory is not created by other components then ovos-phal-admin
