@@ -8,15 +8,15 @@ combo_locks_path=/tmp/combo_locks
 attempt_counter=0
 max_attempt=10
 
-# Wait for other OVOS compoenents to start
+# Wait for other OVOS compoenents to start, if /tmp/combo_locks
+# directory is not created by other components then ovos-phal-admin
+# will not start as a deeper issue exists.
 while ! [ -d "$combo_locks_path" ]; do
     if [ "$attempt_counter" -lt "$max_attempt" ]; then
-        echo "Trying to start ovos-phal-admin systemd unit... Attempt ${attempt_counter}/${max_attempt}"
         ((attempt_counter++))
+        echo "Trying to start ovos-phal-admin systemd unit... Attempt ${attempt_counter}/${max_attempt}"
         sleep 1
     fi
-    mkdir "$combo_locks_path"
-    chown {{ ovos_installer_user }}: -R "$combo_locks_path"
 done
 
 # Starst ovos_PHAL_admin Python binary
