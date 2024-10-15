@@ -255,6 +255,13 @@ function required_packages() {
 # to match the target user.
 function create_python_venv() {
     echo -ne "➤ Creating installer Python virtualenv... "
+
+    # Make sure Python version is higher then 3.8.
+    if [ "$(ver "$PYTHON")" -lt "$(ver 3.9)" ]; then
+        echo "python $PYTHON is not supported" &>>"$LOG_FILE"
+        on_error
+    fi
+
     # Disable https://www.piwheels.org/simple when aarch64 CPU architecture
     # or Raspberry Pi 5 board are detected.
     if [ -f /etc/pip.conf ]; then
