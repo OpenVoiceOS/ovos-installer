@@ -7,7 +7,7 @@ Trobeu la informació detectada:
     - Nucli: $KERNEL
     - RPi: $RASPBERRYPI_MODEL
     - Python: $(echo "$PYTHON" | awk '{ print $NF }')
-    - AVX/SIMD: $CPU_IS_CAPABLE
+    - AVX2/SIMD: $CPU_IS_CAPABLE
     - Maquinari: $HARDWARE_DETECTED
     - Venv: $VENV_PATH
     - So: $SOUND_SERVER
