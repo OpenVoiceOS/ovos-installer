@@ -116,10 +116,10 @@ function detect_sound() {
 # Check for specific CPU instruction set in order to leverage TensorFlow
 # and/or ONNXruntime. The exported variable will be used within the
 # Ansible playbook to disable certain wake words and VAD plugin requiring
-# these features if AVX or SIMD are not detected.
+# these features if AVX2 or SIMD are not detected.
 function detect_cpu_instructions() {
-    echo -ne "➤ Detecting AVX/SIMD support... "
-    if grep -q -i -E "avx|simd" /proc/cpuinfo; then
+    echo -ne "➤ Detecting AVX2/SIMD support... "
+    if grep -q -i -E "avx2|simd" /proc/cpuinfo; then
         export CPU_IS_CAPABLE="true"
     else
         export CPU_IS_CAPABLE="false"

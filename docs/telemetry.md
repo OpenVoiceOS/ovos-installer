@@ -16,7 +16,7 @@ Below is a list of the collected data _(please have a look to the [Ansible tempa
 | `channel`              | `stable` or `development` version of OVOS                |
 | `container`            | OVOS installed into containers                           |
 | `country`              | Country where OVOS has been installed                    |
-| `cpu_capable`          | Is the CPU supports AVX or SIMD instructions             |
+| `cpu_capable`          | Is the CPU supports AVX2 or SIMD instructions            |
 | `display_server`       | Is X or Wayland are used as display server               |
 | `extra_skills_feature` | Extra OVOS's skills enabled during the installation      |
 | `gui_feature`          | GUI enabled during the installation                      |
