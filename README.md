@@ -1,20 +1,18 @@
-# Open Voice OS and HiveMind Installer
+# 🎉 Open Voice OS and HiveMind Installer 🎉
 
-A nice, simple, multilingual and intuitive way to install Open Voice OS and/or HiveMind using Bash, Whiptail _(Newt)_ and Ansible.
+Welcome to the world of Open Voice OS and HiveMind! Get ready for a straightforward journey into voice tech.
 
-## Quickstart
+## 🚀 Quickstart
 
-`curl`, `git` and `sudo` packages must be installed before running the installer.
+Before we begin, make sure you have `curl`, `git`, and `sudo` installed. Here’s your installation incantation:
 
 ```shell
-sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh && rm installer.sh"
+sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
 ```
 
-Then follow the instructions display on screen.
+👉 [Start your Open Voice OS journey!](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
 
-[[HOWTO] Begin your Open Voice OS journey with the ovos-installer](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
-
-### Supported Linux distributions
+### 🐧 Supported Linux distributions
 
 | Distribution        | Version   |
 | ------------------- | --------- |
@@ -38,15 +36,15 @@ Then follow the instructions display on screen.
 
 `rolling` as `rolling` Linux distribution which means that there is no specific version.
 
-## Update
+## 🔄 Update
 
 To update the current Open Voice OS instance, backup your `~/.config/mycroft/mycroft.conf` or `~/ovos/config/mycroft.conf` _(only if required)_ and re-run installer but answer **"No"** to the _"Do you want to uninstall Open Voice OS?"_ question.
 
-## Start & Stop the services
+## ⚙️ Start & Stop the services
 
 When the `virtualenv` method as being choose _(default)_ during the installation process, few systemd unit files have being created in order to manages the different components as services.
 
-### List the systemd unit files
+### 📋 List the systemd unit files
 
 ```shell
 systemctl --user list-units "*ovos*"
@@ -55,21 +53,21 @@ systemctl list-units "*ovos*"
 
 Only one service is running as `root`; `ovos-phal-admin`.
 
-### Start Open Voice OS
+### 🟢 Start Open Voice OS
 
 ```shell
 systemctl --user start ovos
 sudo systemctl start ovos-phal-admin
 ```
 
-### Stop Open Voice OS
+### 🔴 Stop Open Voice OS
 
 ```shell
 systemctl --user stop ovos
 sudo systemctl stop ovos-phal-admin
 ```
 
-## Automated install
+## 🤖 Automated install
 
 The installer supports a non-interactive _(automated)_ process of installation by using a scenario file, this file must be created under the `~/.config/ovos-installer/` directory and should be named `scenario.yaml`.
 
@@ -94,7 +92,7 @@ EOF
 
 Few scenarios are available as example in the [scenarios](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scenarios) directory of this repository.
 
-## Uninstall
+## ❌ Uninstall
 
 To uninstall Open Voice OS run the installer with the `--uninstall` option _(non-interactive)_ or simply run the installer and answer **"Yes"** to the _"Do you want to uninstall Open Voice OS?"_ question.
 
@@ -102,7 +100,7 @@ To uninstall Open Voice OS run the installer with the `--uninstall` option _(non
 sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh --uninstall && rm installer.sh"
 ```
 
-## Screenshots
+## 🖼️ Screenshots
 
 ![Screenshot 1](docs/images/screenshot_1.png)
 
