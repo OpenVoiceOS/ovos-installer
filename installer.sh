@@ -10,7 +10,7 @@ RUN_AS_HOME=$(eval echo ~"$RUN_AS")
 export RUN_AS_HOME
 
 # Check for git command to be installed
-if ! command -v gito >/dev/null 2>&1; then
+if ! command -v git >/dev/null 2>&1; then
     printf "\n\e[31m[fail]\e[0m git command not found..."
     printf "\n       Please install git package before running the installer.\n\n"
     exit 1
