@@ -45,6 +45,10 @@
     "gui_file_host_path": "/home/ovos/.cache/gui_files"
     {% endif %}
   },
+{% else %}
+  "gui": {
+    "disable_gui": false
+  },
 {% endif %}
 {% endif %}
   "websocket": {
