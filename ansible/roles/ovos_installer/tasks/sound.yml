@@ -8,7 +8,8 @@
       - "{{ 'pipewire-alsa' if ansible_distribution not in ['Linux Mint', 'Zorin OS'] else 'pipewire' }}"
       - alsa-utils
   register: _pipewire_install
-  when: not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
+  when:
+    not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
     ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
 
 - name: Install PulseAudio on older Debian and Ubuntu versions
@@ -20,7 +21,8 @@
       - pulseaudio
       - alsa-utils
   register: _pulseaudio_install
-  when: (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
+  when:
+    (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
     ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
 
 - name: Determine available groups
