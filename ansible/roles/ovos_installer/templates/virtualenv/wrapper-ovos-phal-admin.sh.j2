@@ -16,6 +16,12 @@ while ! [ -d "$combo_locks_path" ]; do
         ((attempt_counter++))
         echo "Trying to start ovos-phal-admin systemd unit... Attempt ${attempt_counter}/${max_attempt}"
         sleep 1
+    else
+        # If for some reasons /tmp/combo_locks is not created by the other
+        # services then we force the directory creation with the
+        # correct permissions to avoid a potential race condition.
+        mkdir -p "$combo_locks_path"
+        chown -R {{ ovos_installer_user }}:{{ ovos_installer_group }} "$combo_locks_path"
     fi
 done
 
