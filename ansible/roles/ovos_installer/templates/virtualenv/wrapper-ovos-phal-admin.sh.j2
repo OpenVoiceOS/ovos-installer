@@ -20,8 +20,20 @@ while ! [ -d "$combo_locks_path" ]; do
         # If for some reasons /tmp/combo_locks is not created by the other
         # services then we force the directory creation with the
         # correct permissions to avoid a potential race condition.
-        mkdir -p "$combo_locks_path"
-        chown -R {{ ovos_installer_user }}:{{ ovos_installer_group }} "$combo_locks_path"
+        if ! mkdir -p "$combo_locks_path"; then
+            echo "Failed to create $combo_locks_path directory" >&2
+            exit 1
+        fi
+        if ! chmod 755 "$combo_locks_path" || \
+           ! chown -R {{ ovos_installer_user }}:{{ ovos_installer_group }} "$combo_locks_path"; then
+            echo "Failed to set permissions on $combo_locks_path" >&2
+            exit 1
+        fi
+        # Verify directory exists and has correct ownership
+        if [ ! -d "$combo_locks_path" ]; then
+            echo "Directory creation verification failed" >&2
+            exit 1
+        fi
     fi
 done
 
