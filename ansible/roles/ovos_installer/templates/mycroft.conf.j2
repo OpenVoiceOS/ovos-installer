@@ -11,11 +11,9 @@
   "play_mp3_cmdline": "play %1",
   "lang": "{{ ovos_installer_locale }}",
   "listener": {
-    "remove_silence": true,
     "VAD": {
       "module": "{{ 'ovos-vad-plugin-silero' if ovos_installer_cpu_is_capable | bool else 'ovos-vad-plugin-webrtcvad' }}"
-    },
-    "instant_listen": true
+    }
   },
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
   "skills": {
