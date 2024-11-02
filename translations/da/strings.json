@@ -14,6 +14,7 @@
     "content": "Find de fundne oplysninger:\n\n    - OS: ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(ekko \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardware: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - Lyd: $SOUND_SERVER\n    - Skærm: ${DISPLAY_SERVER^}"
   },
   "features.sh": {
+    "title": "Open Voice OS Installation - Funktioner",
     "content": "Når du vælger mellem GUI (Graphical User Interface) og færdigheder i Open Voice OS, skal du overveje dine præferencer og behov.\n\nGUI'en er en open source visuel og displayramme for OVOS, der kører oven på KDE Plasma og bygget ved hjælp af Kirigami bemyndiget af Qt.\n\nFærdigheder muliggør interaktion gennem tale, hvilket gør det effektivt til opgaver som hjemmeautomatisering, informationssøgning og styring af smarte enheder ved hjælp af naturlige sprogkommandoer.\n\nVælg venligst funktionerne for at aktivere:",
     "skill_description": "Indlæs standard OVOS-færdigheder",
     "extra_skill_description": "Indlæs ekstra OVOS-færdigheder",
@@ -24,6 +25,7 @@
     "content": "Installationen er gennemført med succes! 🎉\n\nDin stemmeassistent er klar til at gå. Vi glæder os til, at du skal udforske den brede vifte af funktioner og muligheder, som denne stemmeassistent har at tilbyde.\n\nHvis du har aktiveret standardfærdighedsfunktionen, kan du begynde at interagere med din assistent ved at sige:\n\n  - Hej Mycroft, hvad er klokken?\n  - Hej Mycroft, hvad er temperaturen?\n  - Hej Mycroft, hvem har lavet dig?\n  - Hej Mycroft, hvem er Ada Lovelace?\n  - Hej Mycroft, hvad ville Duke Nukem sige?\n\nIndstillingerne for din assistent kunne ændres i $CONFIG_FILE-konfigurationsfilen.\n\nHvis du har brug for hjælp eller opdateringer i fremtiden, er du velkommen til at kontakte os. Nyd din Open Voice OS-oplevelse!"
   },
   "methods.sh": {
+    "title": "Open Voice OS Installation - Methods",
     "content": "For at installere Open Voice OS har du to primære metoder:\n\n    - Containermotor såsom Docker\n    - Opsætning af det i et virtuelt Python-miljø\n\nContainere giver isolering og nem implementering, mens et virtuelt Python-miljø giver mere fleksibilitet og kontrol over installationen.\n\nHvis containermetoden er valgt, installeres Docker automatisk, hvis den ikke findes på systemet.\n\nVælg venligst en installationsmetode:"
   },
   "profiles.sh": {
@@ -31,6 +33,10 @@
     "content": "For at skabe et alsidigt system, der er velegnet til mange applikationer, er der tre spændende valg:\n\n  - Open Voice OS Master: Open Voice OS klassiske oplevelse\n  - HiveMind Satellite: Åbn Voice OS-lydkomponenter forbundet til HiveMind Listener\n  - HiveMind Listener: Hub til HiveMind Satellite, bots osv.. at oprette forbindelse til\n  - Server: Kun åben Voice OS Core og HiveMind Core, ingen lydfunktioner\n\nHver af disse profiler tilbyder unikke funktioner og muligheder, der i høj grad kan forbedre din digitale oplevelse.\n\nSpørgsmålet er, hvilken der passer bedst til dine behov og præferencer?\n\nVælg venligst en profil:"
   },
   "satellite.sh": {
+    "title_host": "Open Voice OS Installation - Satellit 1/4",
+    "title_port": "Open Voice OS Installation - Satellite 2/4",
+    "title_key": "Open Voice OS Installation - Satellite 3/4",
+    "title_password": "Open Voice OS Installation - Satellite 4/4",
     "content": "Ved at oprette forbindelse til HiveMind-lytteren får HiveMind-satellitter adgang til et netværk af delt viden og muligheder, hvilket letter en samlet og effektiv stemmeassistent og automatiseringsoplevelse.",
     "content_host": "Indtast venligst HiveMind-lytterværten (DNS- eller IP-adresse):",
     "content_port": "Indtast venligst HiveMind-lytterporten:",
@@ -38,17 +44,23 @@
     "content_password": "Indtast venligst HiveMind-lytteradgangskoden relateret til satellitten:"
   },
   "summary.sh": {
+    "title": "Open Voice OS Installation - Resume",
     "content": "Du er næsten færdig, her er en oversigt over de valg, du har truffet for at installere Open Voice OS:\n\n    - Metode: $METHOD\n    - Version: $CHANNEL\n    - Profil: $PROFILE\n    - GUI: $FEATURE_GUI\n    - Færdigheder: $FEATURE_SKILLS\n    - Tuning: $TUNING\n\nDe valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.\n\nSer denne oversigt korrekt ud for dig? Hvis ikke, kan du gå tilbage og foretage ændringer."
   },
   "telemetry.sh": {
+    "title": "Open Voice OS Installation - Telemetri",
     "content": "Ved at vælge at dele telemetri med os, spiller du en afgørende rolle i at bidrage med værdifuld, anonym information, der gør os i stand til bedre at forstå brugeroplevelser og forbedre vores softwares ydeevne.\n\nDine telemetridata inkluderer væsentlig indsigt i, hvordan softwaren fungerer i scenarier i den virkelige verden. Disse data indsamles anonymt og prioriterer dit privatliv og fortrolighed.\n\nDe indsamlede oplysninger hjælper os med at identificere potentielle problemer, optimere funktioner og sikre en jævnere og mere effektiv brugeroplevelse for alle.\n\nFor mere information om indsamlede data besøg venligst: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md\n\nDenne dataindsamling vil kun ske under installationsprocessen.\n\nAccepterer du at dele anonyme data med os?"
   },
   "tuning.sh": {
+    "title": "Open Voice OS Installation - Tuning",
     "content": "Brug af Open Voice OS Tuning til Raspberry Pi involverer optimering af operativsystemet til at køre effektivt på Raspberry Pi-hardwaren.\n\nDenne tuning-proces har til formål at forbedre ydeevnen, reducere ressourceforbruget og sikre en jævnere brugeroplevelse, hvilket gør den til et fremragende valg for ressourcebegrænsede enheder som Raspberry Pi.\n\nAktiver tuning for Raspberry Pi (anbefales)?"
   },
   "uninstall.sh": {
+    "title": "Open Voice OS Installation - Afinstaller",
+    "content": "En eksisterende forekomst af Open Voice OS er blevet fundet.\n\nDa Docker og PipeWire muligvis er blevet installeret af systemet eller manuelt, vil installationsprogrammet ikke fjerne følgende pakker:\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - rørledning\n  - pipewire-alsa\n\nVil du afinstallere Open Voice OS?"
   },
   "welcome.sh": {
+    "title": "Open Voice OS Installation - Velkommen",
     "content": "Hej og velkommen til Open Voice OS-installationen!\n\nVi er glade for at introducere dig til Open Voice OS, open source-stemmeassistenten, der ændrer den måde, vi interagerer med teknologi på.\n\nInstallation af Open Voice OS er en leg, og det åbner en verden af ​​muligheder for stemmestyret bekvemmelighed. Uanset om du er en teknologientusiast eller bare ønsker at forenkle dine daglige opgaver, er Open Voice OS her for at gøre dit liv lettere.\n\nKom i gang med installationen i dag, og lad din stemme guide dig gennem fremtidens teknologi!🌟"
   }
 }
