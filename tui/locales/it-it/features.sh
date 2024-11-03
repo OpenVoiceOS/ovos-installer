@@ -10,7 +10,7 @@ Le competenze consentono l'interazione attraverso la voce, rendendole efficienti
 Seleziona le funzioni da attivare:
 "
 TITLE="Installazione di Open Voice OS - Funzioni"
-SKILL_DESCRIPTION="Scarica una selezione di competenze per OVOS"
+SKILL_DESCRIPTION="Scarica le competenze predefinite per OVOS"
 EXTRA_SKILL_DESCRIPTION="Scarica delle competenze extra per OVOS"
 GUI_DESCRIPTION="Attiva l'interfaccia utente grafica"
 
