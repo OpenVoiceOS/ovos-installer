@@ -21,6 +21,7 @@ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-inst
 | CentOS              | `>= 8`    |
 | Debian GNU/Linux    | `>= 10`   |
 | EndeavourOS         | `rolling` |
+| KDE Neon            | `>=20.04` |
 | Fedora              | `>= 37`   |
 | Linux Mint          | `>= 21`   |
 | openSUSE Leap       | `>= 15`   |
