@@ -230,7 +230,7 @@ function required_packages() {
         UPDATE=1 apt_ensure python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     fedora)
-        dnf install -y python3 python3-devel python3-pip python3-virtualenv newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        dnf install -y python3 python3-devel python3-pip python3-virtualenv python3-libdnf5 newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     almalinux | rocky | centos)
         dnf install -y python3 python3-devel python3-pip newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
