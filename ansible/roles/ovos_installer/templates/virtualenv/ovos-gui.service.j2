@@ -16,6 +16,9 @@ Environment="QT_QPA_EGLFS_HIDECURSOR=1"
 Environment="QT_QPA_EGLFS_INTEGRATION=eglfs_kms"
 Environment="QT_QPA_EGLFS_KMS_CONFIG=%h/.config/ovos-eglfs.json"
 {% endif %}
+{% if 'tas5806' in ovos_installer_i2c_devices %}
+Environment="QT_IM_MODULE=qtvirtualkeyboard"
+{% endif %}
 WorkingDirectory=%h/.venvs/ovos
 ExecStart=/usr/bin/{{ 'ovos-shell' if ovos_installer_display_server == "N/A" else 'ovos-gui-app' }}
 ExecReload=/usr/bin/kill -s HUP $MAINPID
