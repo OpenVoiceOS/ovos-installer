@@ -206,6 +206,9 @@ function get_os_information() {
         export DISTRO_VERSION_ID="$VERSION_ID"
         export DISTRO_VERSION="$VERSION"
         export ARCH KERNEL PYTHON
+
+        # For debug purpose only
+        echo ["$ARCH", "$KERNEL", "$PYTHON", "$DISTRO_NAME", "$DISTRO_VERSION_ID"] >>"$LOG_FILE"
     else
         # Mostly if the detected system is no a Linux OS
         uname 2>>"$LOG_FILE"
