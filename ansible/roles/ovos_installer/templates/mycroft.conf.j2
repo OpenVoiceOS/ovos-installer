@@ -53,7 +53,11 @@
     "max_msg_size": {{ 100 if ovos_installer_feature_gui | bool and ovos_installer_method == "containers" else 25 }}
   },
   "PHAL": {
-{% if 'tas5806' in ovos_installer_i2c_devices %}
+    "admin": {
+      "ovos-PHAL-plugin-system": {
+        "enabled": true
+      }
+   }{% if 'tas5806' in ovos_installer_i2c_devices %},
     "ovos-PHAL-plugin-hotkeys": {
       "key_down": {
         "mycroft.mic.listen": 582,
