@@ -28,3 +28,7 @@
 
 - name: Include tuning/fstab.yml
   ansible.builtin.import_tasks: tuning/fstab.yml
+
+- name: Include tuning/numa.yml
+  ansible.builtin.import_tasks: tuning/numa.yml
+  when: "'Raspberry Pi 4' in ovos_installer_raspberrypi or 'Raspberry Pi 5' in ovos_installer_raspberrypi"
