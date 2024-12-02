@@ -1,0 +1,12 @@
+---
+- name: Enable NUMA for Raspberry Pi 4 & 5
+  vars:
+    _fake_number: "{{ '4' if 'Raspberry Pi 5' in ovos_installer_raspberrypi else '2' }}"
+  ansible.builtin.lineinfile:
+    path: "{{ _boot_directory }}/cmdline.txt"
+    regexp: "^((?!.*{{ item }}).*console.*)$"
+    line: '\1 {{ item }}'
+    backrefs: true
+  loop:
+    - "numa=fake={{ _fake_number }}"
+    - numa_policy=interleave
