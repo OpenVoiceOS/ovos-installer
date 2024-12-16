@@ -101,7 +101,6 @@
       - qt5-websockets
       - qt5-declarative
       - qt5-multimedia
-      - qt5-webview
       - qt5-webengine
       - qt5-virtualkeyboard
       - qtermwidget
