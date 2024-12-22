@@ -6,13 +6,41 @@
     group: root
     mode: "0644"
   loop:
-    - { "file": "virtualenv/core-requirements.txt", "dest": "/tmp/core-requirements.txt", "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}" }
-    - { "file": "virtualenv/gui-requirements.txt", "dest": "/tmp/gui-requirements.txt", "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}" }
-    - { "file": "virtualenv/skills-requirements.txt", "dest": "/tmp/skills-requirements.txt", "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}" }
-    - { "file": "virtualenv/extra-skills-requirements.txt", "dest": "/tmp/extra-skills-requirements.txt", "state": "{{ true if (ovos_installer_feature_extra_skills | bool and ovos_installer_profile != 'satellite') else false }}" }
-    - { "file": "virtualenv/listener-requirements.txt", "dest": "/tmp/listener-requirements.txt", "state": "{{ true if ovos_installer_profile == 'listener' else false }}" }
-    - { "file": "virtualenv/satellite-requirements.txt", "dest": "/tmp/satellite-requirements.txt", "state": "{{ true if ovos_installer_profile == 'satellite' else false }}" }
-    - { "file": "virtualenv/server-requirements.txt", "dest": "/tmp/server-requirements.txt", "state": "{{ true if ovos_installer_profile == 'server' else false }}" }
+    - {
+        "file": "virtualenv/core-requirements.txt",
+        "dest": "/tmp/core-requirements.txt",
+        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
+      }
+    - {
+        "file": "virtualenv/gui-requirements.txt",
+        "dest": "/tmp/gui-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
+        "file": "virtualenv/skills-requirements.txt",
+        "dest": "/tmp/skills-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
+        "file": "virtualenv/extra-skills-requirements.txt",
+        "dest": "/tmp/extra-skills-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_extra_skills | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
+        "file": "virtualenv/listener-requirements.txt",
+        "dest": "/tmp/listener-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'listener' else false }}",
+      }
+    - {
+        "file": "virtualenv/satellite-requirements.txt",
+        "dest": "/tmp/satellite-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'satellite' else false }}",
+      }
+    - {
+        "file": "virtualenv/server-requirements.txt",
+        "dest": "/tmp/server-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'server' else false }}",
+      }
   when: item.state | bool
 
 - name: Create {{ ovos_installer_user_home }}/.venvs/ovos Python venv with tflite_runtime
@@ -20,7 +48,7 @@
     name: tflite_runtime
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
     virtualenv_command: "{{ ansible_python.executable }} -m venv"
-    extra_args: "-f 'https://whl.smartgic.io/'"
+    extra_args: "-f 'https://whl.smartgic.io'"
   when: ovos_installer_cpu_is_capable | bool
 
 - name: Create {{ ovos_installer_user_home }}/.venvs/ovos Python venv without tflite_runtime
@@ -34,13 +62,13 @@
   ansible.builtin.pip:
     name: ggwave
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    extra_args: "-f 'https://whl.smartgic.io/'"
+    extra_args: "-f 'https://whl.smartgic.io'"
   when: ansible_architecture == "aarch64" or ansible_architecture == "x86_64"
 
 - name: Install Open Voice OS in Python venv
   vars:
     _pip_args: "{{ '--pre' if ovos_installer_channel == 'development' else '' }}"
-  ansible.builtin.pip:
+  moreati.uv.pip:
     requirements: "{{ item.file }}"
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
     extra_args: "{{ _pip_args }}"
@@ -50,13 +78,34 @@
   retries: 5
   delay: 5
   loop:
-    - { "file": "/tmp/core-requirements.txt", "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}" }
-    - { "file": "/tmp/gui-requirements.txt", "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}" }
-    - { "file": "/tmp/skills-requirements.txt", "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}" }
-    - { "file": "/tmp/extra-skills-requirements.txt", "state": "{{ true if (ovos_installer_feature_extra_skills | bool and ovos_installer_profile != 'satellite') else false }}" }
-    - { "file": "/tmp/listener-requirements.txt", "state": "{{ true if ovos_installer_profile == 'listener' else false }}" }
-    - { "file": "/tmp/satellite-requirements.txt", "state": "{{ true if ovos_installer_profile == 'satellite' else false }}" }
-    - { "file": "/tmp/server-requirements.txt", "state": "{{ true if ovos_installer_profile == 'server' else false }}" }
+    - {
+        "file": "/tmp/core-requirements.txt",
+        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
+      }
+    - {
+        "file": "/tmp/gui-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
+        "file": "/tmp/skills-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
+        "file": "/tmp/extra-skills-requirements.txt",
+        "state": "{{ true if (ovos_installer_feature_extra_skills | bool and ovos_installer_profile != 'satellite') else false }}",
+      }
+    - {
+        "file": "/tmp/listener-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'listener' else false }}",
+      }
+    - {
+        "file": "/tmp/satellite-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'satellite' else false }}",
+      }
+    - {
+        "file": "/tmp/server-requirements.txt",
+        "state": "{{ true if ovos_installer_profile == 'server' else false }}",
+      }
   when: item.state | bool
   tags:
     - skip_ansible_lint
@@ -81,8 +130,8 @@
     mode: "0644"
     state: "{{ ovos_installer_uninstall }}"
   loop:
-    - { "line": "VIRTUAL_ENV={{ _path }}", "regexp": "^VIRTUAL_ENV" }
-    - { "line": "PATH=$PATH:{{ _path }}", "regexp": "^PATH" }
+    - {"line": "VIRTUAL_ENV={{ _path }}", "regexp": "^VIRTUAL_ENV"}
+    - {"line": "PATH=$PATH:{{ _path }}", "regexp": "^PATH"}
   when: ovos_installer_i2c_devices | from_json | length < 1
   tags:
     - always
