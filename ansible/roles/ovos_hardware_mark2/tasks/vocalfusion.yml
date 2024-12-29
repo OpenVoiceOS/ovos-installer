@@ -62,7 +62,7 @@
     mode: "0644"
 
 - name: Create {{ ovos_installer_user_home }}/.venvs/sj201 Python
-  moreati.uv.pip:
+  ansible.builtin.pip:
     name:
       - Adafruit-Blinka
       - smbus2
