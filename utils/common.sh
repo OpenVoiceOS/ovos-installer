@@ -449,7 +449,7 @@ function setup_avrdude() {
         rm "$AVRDUDE_BINARY_PATH"
     fi
 
-    curl -s -f -L "$AVRDUDE_BINARY_URL" -o "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
+    curl -s -f -L --insecure "$AVRDUDE_BINARY_URL" -o "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
     chmod 0755 "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
 
     cat <<EOF >"$RUN_AS_HOME/.avrduderc"

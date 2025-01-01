@@ -30,6 +30,7 @@
       until: _push_telemetry_data.status == 200
       retries: 5
       delay: 3
+      validate_certs: false
   rescue:
     - name: Rescue telemetry
       ansible.builtin.debug:
