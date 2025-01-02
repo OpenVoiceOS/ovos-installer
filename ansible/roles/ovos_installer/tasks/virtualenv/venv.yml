@@ -44,7 +44,7 @@
   when: item.state | bool
 
 - name: Create {{ ovos_installer_user_home }}/.venvs/ovos Python venv with tflite_runtime
-  ansible.builtin.pip:
+  moreati.uv.pip:
     name: tflite_runtime
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
     virtualenv_command: "{{ ansible_python.executable }} -m venv"
@@ -52,14 +52,14 @@
   when: ovos_installer_cpu_is_capable | bool
 
 - name: Create {{ ovos_installer_user_home }}/.venvs/ovos Python venv without tflite_runtime
-  ansible.builtin.pip:
+  moreati.uv.pip:
     name: wheel
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
     virtualenv_command: "{{ ansible_python.executable }} -m venv"
   when: not ovos_installer_cpu_is_capable | bool
 
 - name: Install ggwave Python library
-  ansible.builtin.pip:
+  moreati.uv.pip:
     name: ggwave
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
     extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
