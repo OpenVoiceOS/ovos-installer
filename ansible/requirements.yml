@@ -9,4 +9,4 @@ collections:
   - name: kewlfft.aur
     version: 0.11.1
   - name: moreati.uv
-    src: git+https://github.com/goldyfruit/ansible-uv
+    version: 0.0.3
