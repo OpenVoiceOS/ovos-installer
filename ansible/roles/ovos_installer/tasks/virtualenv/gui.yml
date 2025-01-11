@@ -115,7 +115,6 @@
   when: ansible_os_family == "Archlinux"
 
 - name: Handle qt5-webview package from AUR (Arch based only)
-  become: true
   become_user: "{{ ovos_installer_user }}"
   kewlfft.aur.aur:
     name: qt5-webview
