@@ -114,15 +114,35 @@
       - breeze-icons
   when: ansible_os_family == "Archlinux"
 
+- name: Handle qt5-webview package from AUR (Arch based only)
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  kewlfft.aur.aur:
+    name: qt5-webview
+    use: makepkg
+  when: ansible_os_family == "Archlinux"
+
 - name: Clone GUI repositories
   ansible.builtin.git:
     repo: "{{ item.url }}"
     dest: "{{ item.dest }}"
     version: "{{ item.branch }}"
   loop:
-    - { "url": "https://github.com/OpenVoiceOS/mycroft-gui-qt5.git", "dest": "/opt/mycroft-gui", "branch": "dev" }
-    - { "url": "https://github.com/OpenVoiceOS/ovos-shell.git", "dest": "/opt/ovos-shell", "branch": "master" }
-    - { "url": "https://github.com/kbroulik/lottie-qml.git", "dest": "/opt/lottie", "branch": "master" }
+    - {
+        "url": "https://github.com/OpenVoiceOS/mycroft-gui-qt5.git",
+        "dest": "/opt/mycroft-gui",
+        "branch": "dev",
+      }
+    - {
+        "url": "https://github.com/OpenVoiceOS/ovos-shell.git",
+        "dest": "/opt/ovos-shell",
+        "branch": "master",
+      }
+    - {
+        "url": "https://github.com/kbroulik/lottie-qml.git",
+        "dest": "/opt/lottie",
+        "branch": "master",
+      }
 
 - name: Create GUI directories
   ansible.builtin.file:
