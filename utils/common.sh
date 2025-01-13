@@ -51,7 +51,7 @@ function delete_log() {
 # "root" or "sudo" can run this script, we need to know whom.
 function detect_user() {
     if [ "$USER_ID" -ne 0 ]; then
-        echo -e "[$fail_format] This script must be run as root or with sudo\n"
+        echo -e "[$fail_format] This script must be run as root (not recommended) or with sudo\n"
         exit 1
     fi
 
@@ -61,6 +61,20 @@ function detect_user() {
         export RUN_AS="$SUDO_USER"
         export RUN_AS_UID="$SUDO_UID"
     else
+        while true; do
+            echo -e "Best pratices don't recommend running the installer as root user!"
+            read -rp "Do you really want to continue as you will be on your own? (yes/no) " yn
+            case $yn in
+            [Yy]*)
+                return 0
+                ;;
+            [Nn]*)
+                echo -e "\nSmart choice! Exiting the installer..."
+                exit 1
+                ;;
+            *) echo -e "Please answer (y)es or (n)o." ;;
+            esac
+        done
         # root user
         export RUN_AS="$USER"
         export RUN_AS_UID="$EUID"
