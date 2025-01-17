@@ -19,6 +19,7 @@ jobs:
 
       - name: Install Ansible requirements
         run: |
+          rm -rf ~/.ansible
           pip install ansible-playbook-grapher ansible ansible-lint
           sudo apt-get --no-install-recommends -y install graphviz
           ansible-galaxy collection install -r ansible/requirements.yml --force
@@ -33,12 +34,6 @@ jobs:
         run: |
           mkdir artifacts
           ansible-playbook --list-tasks ansible/site.yml > artifacts/list-tasks-site
-
-      - name: Generate graph representing the Ansible playbook
-        env:
-          ANSIBLE_LOCALHOST_WARNING: False
-        run: |
-          ansible-playbook-grapher --include-role-tasks ansible/site.yml -o artifacts/graph-site
 
       - name: Upload Ansible artifacts
         uses: actions/upload-artifact@v3
