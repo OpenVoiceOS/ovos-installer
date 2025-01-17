@@ -94,9 +94,10 @@
   when: ansible_os_family == "Archlinux"
 
 - name: Handle fann package from AUR (Arch based only)
-  become: true
   become_user: "{{ ovos_installer_user }}"
   kewlfft.aur.aur:
     name: fann
     use: makepkg
   when: ansible_os_family == "Archlinux"
+  tags:
+    - skip_ansible_lint

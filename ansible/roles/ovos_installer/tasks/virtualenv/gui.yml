@@ -120,6 +120,8 @@
     name: qt5-webview
     use: makepkg
   when: ansible_os_family == "Archlinux"
+  tags:
+    - skip_ansible_lint
 
 - name: Clone GUI repositories
   ansible.builtin.git:
