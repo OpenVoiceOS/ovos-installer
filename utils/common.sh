@@ -558,4 +558,5 @@ function state_directory() {
         mkdir -p "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
         chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
     fi
+    export INSTALLER_STATE_FILE="$OVOS_LOCAL_STATE_DIRECTORY/installer.json"
 }

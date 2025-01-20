@@ -14,19 +14,18 @@ if [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 3"* ]] && [[ "$KERNEL" != *"microso
   features+=("gui" "$GUI_DESCRIPTION" OFF)
 fi
 
-features_state_file="$RUN_AS_HOME/.local/state/ovos/features.json"
-if [ -f "$features_state_file" ]; then
-  if jq -e '.features|any(. == "skills")' "$features_state_file"; then
+if [ -f "$INSTALLER_STATE_FILE" ]; then
+  if jq -e '.features|any(. == "skills")' "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"; then
     features=("skills" "$SKILL_DESCRIPTION" ON)
   else
     features=("skills" "$SKILL_DESCRIPTION" OFF)
   fi
-  if jq -e '.features|any(. == "extra-skills")' "$features_state_file"; then
+  if jq -e '.features|any(. == "extra-skills")' "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"; then
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" ON)
   else
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" OFF)
   fi
-  if jq -e '.features|any(. == "gui")' "$features_state_file"; then
+  if jq -e '.features|any(. == "gui")' "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"; then
     features+=("gui" "$GUI_DESCRIPTION" ON)
   else
     features+=("gui" "$GUI_DESCRIPTION" OFF)
@@ -66,4 +65,6 @@ for FEATURE in $OVOS_FEATURES; do
   esac
 done
 
-jq -n '.features += $ARGS.positional' --args "${FEATURES_STATE[@]}" > "$features_state_file"
+if [ ! -f "$INSTALLER_STATE_FILE" ]; then
+  jq -en '.features += $ARGS.positional' --args "${FEATURES_STATE[@]}" >> "$INSTALLER_STATE_FILE"
+fi

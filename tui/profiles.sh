@@ -6,6 +6,14 @@ source "tui/locales/$LOCALE/profiles.sh"
 active_profile="ovos"
 available_profiles=(ovos satellite listener server)
 
+if [ -f "$INSTALLER_STATE_FILE" ]; then
+  if jq -e 'has("profile")' "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"; then
+    current_profile=$(jq -re '.profile' "$INSTALLER_STATE_FILE")
+    active_profile="$current_profile"
+    available_profiles=("$current_profile")
+  fi
+fi
+
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
@@ -30,4 +38,8 @@ export PROFILE
 if [ -z "$PROFILE" ]; then
   source tui/channels.sh
   source tui/profiles.sh
+fi
+
+if [ ! -f "$INSTALLER_STATE_FILE" ]; then
+  jq -en '.profile += "ovos"' > "$INSTALLER_STATE_FILE"
 fi
