@@ -135,5 +135,6 @@
         - "{{ ovos_installer_user_home }}/.local/share/precise-lite"
         - "{{ ovos_installer_user_home }}/.local/state/mycroft"
         - "{{ ovos_installer_user_home }}/.local/state/vosk"
+        - "{{ ovos_installer_user_home }}/.local/state/ovos"
         - "{{ ovos_installer_user_home }}/nltk_data"
         - "{{ ovos_installer_user_home }}/stdout"

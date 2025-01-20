@@ -13,4 +13,7 @@ whiptail --yesno --defaultno --no-button "$NO_BUTTON" --yes-button "$YES_BUTTON"
 exit_status=$?
 if [ "$exit_status" -eq 1 ]; then
   export CONFIRM_UNINSTALL="false"
+
+  # shellcheck source=update.sh
+  source tui/update.sh
 fi

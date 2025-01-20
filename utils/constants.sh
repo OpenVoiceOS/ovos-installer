@@ -54,6 +54,8 @@ declare -rA SUPPORTED_DEVICES=(
     ["tas5806"]="2f"    #https://www.ti.com/product/TAS5806MD
 )
 export SUPPORTED_DEVICES
+export TEMP_FEATURES_FILE=/tmp/features.json
+export TEMP_PROFILE_FILE=/tmp/profile.json
 export TUI_WINDOW_HEIGHT="35"
 export TUI_WINDOW_WIDTH="90"
 export USER_ID="$EUID"
