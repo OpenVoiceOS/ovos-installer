@@ -47,7 +47,6 @@ if [ "$exit_status" -ne 0 ]; then
 fi
 
 declare -a FEATURES_STATE
-
 for FEATURE in $OVOS_FEATURES; do
   case "$FEATURE" in
   "gui")
@@ -65,6 +64,8 @@ for FEATURE in $OVOS_FEATURES; do
   esac
 done
 
-if [ ! -f "$INSTALLER_STATE_FILE" ]; then
-  jq -en '.features += $ARGS.positional' --args "${FEATURES_STATE[@]}" >> "$INSTALLER_STATE_FILE"
+if [ "$exit_status" -ne 1 ]; then
+  jq -en '.features += $ARGS.positional' --args "${FEATURES_STATE[@]}" > "$TEMP_FEATURES_FILE"
+  jq -es '.[0] * .[1]' "$TEMP_PROFILE_FILE" "$TEMP_FEATURES_FILE" > "$INSTALLER_STATE_FILE"
+  rm "$TEMP_FEATURES_FILE" "$TEMP_PROFILE_FILE"
 fi

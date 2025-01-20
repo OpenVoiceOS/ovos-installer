@@ -554,9 +554,12 @@ function apt_ensure() {
 # specific directory structure and prepares an installer state file for use.
 function state_directory() {
     OVOS_LOCAL_STATE_DIRECTORY="$RUN_AS_HOME/.local/state/ovos"
+    export INSTALLER_STATE_FILE="$OVOS_LOCAL_STATE_DIRECTORY/installer.json"
     if [ ! -d "$OVOS_LOCAL_STATE_DIRECTORY" ]; then
         mkdir -p "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
-        chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
+        chown -R "$RUN_AS":"$(id -ng "$RUN_AS")" "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
     fi
-    export INSTALLER_STATE_FILE="$OVOS_LOCAL_STATE_DIRECTORY/installer.json"
+    if [ -f "$INSTALLER_STATE_FILE" ]; then
+        [ -s "$INSTALLER_STATE_FILE" ] || rm "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"
+    fi
 }
