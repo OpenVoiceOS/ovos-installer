@@ -59,12 +59,12 @@
     "title": "Open Voice OS Installation - Désinstallation",
     "content": "Une instance d'Open Voice OS a été détectée.\n\nÉtant donné que Docker et PipeWire peuvent avoir été installés par le système ou manuellement, l'installateur ne supprimera pas les packages suivants :\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - pipewire\n  - pipewire-alsa\n\nVoulez-vous désinstaller Open Voice OS ?"
   },
-  "welcome.sh": {
-    "title": "Open Voice OS Installation - Bienvenue",
-    "content": "Bonjour et bienvenue dans l'installation d'Open Voice OS!\n\nNous sommes ravis de vous présenter Open Voice OS, l'assistant vocal open source qui change la façon dont nous interagissons avec la technologie.\n\nL'installation d'Open Voice OS est un jeu d'enfant et ouvre un monde de possibilités pour la commodité de la commande vocale. Que vous soyez un passionné de technologie ou que vous cherchiez simplement à simplifier vos tâches quotidiennes, Open Voice OS est là pour vous faciliter la vie.\n\nCommencez l'installation dès maintenant et laissez votre voix vous guider!🌟"
-  },
   "update.sh": {
     "title": "Open Voice OS Installation - Mise à jour",
     "content": "Une instance existante d'Open Voice OS/HiveMind a été détectée.\n\nLa mise à niveau de votre instance existante d'Open Voice OS ou de HiveMind vers la dernière version vous permet de rester à la pointe des fonctionnalités les plus avancées, des mises à jour de sécurité critiques, des corrections de bogues et des optimisations des performances.\n\nCela améliore non seulement la fonctionnalité globale et l'expérience utilisateur, mais garantit également la compatibilité avec les dernières intégrations et outils, gardant votre système fiable, sécurisé et à l'épreuve du temps.\n\nVous souhaitez mettre à jour Open Voice OS vers la dernière version ?"
+  },
+  "welcome.sh": {
+    "title": "Open Voice OS Installation - Bienvenue",
+    "content": "Bonjour et bienvenue dans l'installation d'Open Voice OS!\n\nNous sommes ravis de vous présenter Open Voice OS, l'assistant vocal open source qui change la façon dont nous interagissons avec la technologie.\n\nL'installation d'Open Voice OS est un jeu d'enfant et ouvre un monde de possibilités pour la commodité de la commande vocale. Que vous soyez un passionné de technologie ou que vous cherchiez simplement à simplifier vos tâches quotidiennes, Open Voice OS est là pour vous faciliter la vie.\n\nCommencez l'installation dès maintenant et laissez votre voix vous guider!🌟"
   }
 }
