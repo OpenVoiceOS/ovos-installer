@@ -59,12 +59,12 @@
     "title": "Open Voice OS Installation - Uninstall",
     "content": "An existing instance of Open Voice OS has been detected.\n\nBecause Docker and PipeWire might have been installed by the system or manually, the installer will not remove the following packages:\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - pipewire\n  - pipewire-alsa\n\nDo you want to uninstall Open Voice OS?"
   },
-  "welcome.sh": {
-    "title": "Open Voice OS Installation - Welcome",
-    "content": "Hello and welcome to the Open Voice OS installation!\n\nWe're excited to introduce you to Open Voice OS, the open-source voice assistant that's changing the way we interact with technology.\n\nInstalling Open Voice OS is a breeze, and it opens up a world of possibilities for voice-controlled convenience. Whether you're a tech enthusiast or just looking to simplify your daily tasks, Open Voice OS is here to make your life easier.\n\nGet started with the installation today and let your voice guide you through the future of technology!🌟"
-  },
   "update.sh": {
     "title": "Open Voice OS Installation - Update",
     "content": "An existing instance of Open Voice OS/HiveMind has been detected.\n\nUpgrading your existing instance of Open Voice OS or HiveMind to the latest version ensures that you stay ahead with the most advanced features, critical security updates, bug fixes, and performance optimizations.\n\nThis not only enhances the overall functionality and user experience but also ensures compatibility with the latest integrations and tools, keeping your system reliable, secure, and future-proof.\n\nDo you want to update Open Voice OS to the latest version?"
+  },
+  "welcome.sh": {
+    "title": "Open Voice OS Installation - Welcome",
+    "content": "Hello and welcome to the Open Voice OS installation!\n\nWe're excited to introduce you to Open Voice OS, the open-source voice assistant that's changing the way we interact with technology.\n\nInstalling Open Voice OS is a breeze, and it opens up a world of possibilities for voice-controlled convenience. Whether you're a tech enthusiast or just looking to simplify your daily tasks, Open Voice OS is here to make your life easier.\n\nGet started with the installation today and let your voice guide you through the future of technology!🌟"
   }
 }

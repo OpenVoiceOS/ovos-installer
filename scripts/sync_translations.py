@@ -95,6 +95,7 @@ TEMPLATES = {
     "telemetry.sh": TEMPLATE,
     "tuning.sh": TEMPLATE,
     "uninstall.sh": TEMPLATE,
+    "update.sh": TEMPLATE,
     "welcome.sh": TEMPLATE
 }
 
