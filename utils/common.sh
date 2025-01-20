@@ -549,9 +549,9 @@ function apt_ensure() {
     fi
 }
 
-# This function ensures the existence of a specific local state directory and
-# sets its ownership. This is useful for creating and managing state directories
-# required by applications.
+# This function ensures the existence and proper configuration of a
+# local state directory for the OVOS environment. It sets up a
+# specific directory structure and prepares an installer state file for use.
 function state_directory() {
     OVOS_LOCAL_STATE_DIRECTORY="$RUN_AS_HOME/.local/state/ovos"
     if [ ! -d "$OVOS_LOCAL_STATE_DIRECTORY" ]; then
