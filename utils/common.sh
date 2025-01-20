@@ -548,3 +548,14 @@ function apt_ensure() {
         echo "No missing packages"
     fi
 }
+
+# This function ensures the existence of a specific local state directory and
+# sets its ownership. This is useful for creating and managing state directories
+# required by applications.
+function state_directory() {
+    OVOS_LOCAL_STATE_DIRECTORY="$RUN_AS_HOME/.local/state/ovos"
+    if [ ! -d "$OVOS_LOCAL_STATE_DIRECTORY" ]; then
+        mkdir -p "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
+        chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
+    fi
+}

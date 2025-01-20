@@ -45,6 +45,7 @@ install_ansible
 download_yq
 detect_scenario
 i2c_scan
+state_directory
 trap "" ERR
 set +eE
 
