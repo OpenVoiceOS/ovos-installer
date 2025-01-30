@@ -11,6 +11,7 @@
       - "{{ ovos_installer_user_home }}/.config/wireplumber/*"
       - "{{ ovos_installer_user_home }}/.local/share/hivemind/*"
       - "{{ ovos_installer_user_home }}/.local/state/ovos/*"
+      - "{{ ovos_installer_user_home }}/.local/state/mycroft/*"
   when: ovos_installer_cleaning | bool
   tags:
     - uninstall
@@ -68,6 +69,7 @@
     state: directory
   loop:
     - { "directory": "{{ ovos_installer_user_home }}/.config/mycroft", "status": true }
+    - { "directory": "{{ ovos_installer_user_home }}/.local/state/mycroft", "status": true }
     - { "directory": "{{ ovos_installer_user_home }}/.config/hivemind", "status": "{{ 'false' if ovos_installer_profile == 'ovos' else 'true' }}" }
     - { "directory": "{{ ovos_installer_user_home }}/.config/systemd/user", "status": true }
     - { "directory": "{{ ovos_installer_user_home }}/nltk_data", "status": true }
