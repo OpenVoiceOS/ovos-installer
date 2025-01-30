@@ -36,7 +36,7 @@ jobs:
           ansible-playbook --list-tasks ansible/site.yml > artifacts/list-tasks-site
 
       - name: Upload Ansible artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ansible-artifacts
           path: artifacts
