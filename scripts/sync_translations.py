@@ -112,7 +112,7 @@ def load_lang_data(lang):
 def update_locale(lang):
     data = load_lang_data(lang)
     for f, template in TEMPLATES.items():
-        keys = {k.lower(): v for k, v in data[f].items()}
+        keys = {k.lower(): v for k, v in data.get(f, {}).items()}
         os.makedirs(f"{LOCALE_FOLDER}/{lang}", exist_ok=True)
         with open(f"{LOCALE_FOLDER}/{lang}/{f}", "w") as f:
             f.write(template.format(**keys).strip()+"\n")
