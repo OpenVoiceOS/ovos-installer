@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 CONTENT="
-Bei der Wahl zwischen GUI (Interfaccia utente grafica) und Skills in Open Voice OS sollten Sie Ihre Vorlieben und Bedürfnisse berücksichtigen.
+Bei der Wahl zwischen GUI (grafische Benutzeroberfläche) und Skills in Open Voice OS sollten Sie Ihre Vorlieben und Bedürfnisse berücksichtigen.
 
 Die GUI ist ein quelloffenes visuelles und Display-Framework für OVOS, das auf KDE Plasma läuft und mit Kirigami, unterstützt durch Qt, entwickelt wurde.
 
