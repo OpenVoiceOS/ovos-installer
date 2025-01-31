@@ -14,6 +14,6 @@ exit_status=$?
 if [ "$exit_status" -eq 1 ]; then
   export CONFIRM_UNINSTALL="false"
 
-  # shellcheck source=locales/en-us/update.sh
-  source "tui/locales/$LOCALE/update.sh"
+  # shellcheck source=tui/update.sh
+  source tui/update.sh
 fi
