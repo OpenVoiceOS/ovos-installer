@@ -28,7 +28,7 @@ Introduïu la clau d'escolta HiveMind relacionada amb el satèl·lit:
 CONTENT_PASSWORD="
 $content
 
-Introduïu la contrasenya de l'oient de HiveMind relacionada amb el satèl·lit:
+Introduïu la contrasenya de l'escolat de HiveMind relacionada amb el satèl·lit:
 "
 
 TITLE_HOST="Instal·lació de l'Open VoiceOS - Satèl·lit 1/4"
