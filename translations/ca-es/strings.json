@@ -41,7 +41,7 @@
     "content_host": "Introduïu l'amfitrió de l'escolta HiveMind (DNS o adreça IP):",
     "content_port": "Introduïu el port d'escolta de HiveMind:",
     "content_key": "Introduïu la clau d'escolta HiveMind relacionada amb el satèl·lit:",
-    "content_password": "Introduïu la contrasenya de l'oient de HiveMind relacionada amb el satèl·lit:"
+    "content_password": "Introduïu la contrasenya de l'escolat de HiveMind relacionada amb el satèl·lit:"
   },
   "summary.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Resum",
@@ -58,6 +58,10 @@
   "uninstall.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Desinstal·lació",
     "content": "S'ha detectat una instància existent d'Open Voice OS.\n\nAtès que Docker i PipeWire potser s'han instal·lat des del sistema o manualment, l'instal·lador no eliminarà els paquets següents:\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - pipewire\n  - pipewire-alsa\n\nVoleu desinstal·lar l'Open Voice OS?"
+  },
+  "update.sh": {
+    "title": "Instal·lació de l'Open Voice OS - Actualització",
+    "content": "S'ha detectat una instància existent d'Open Voice OS/HiveMind.\n\nActualitzar la vostra instància existent d'Open Voice OS o HiveMind a la darrera versió us garanteix de mantenir-vos al capdavant amb les funcions més avançades, les actualitzacions de seguretat crítiques, les correccions d'errors i les optimitzacions de rendiment.\n\nAixò no només millora la funcionalitat general i l'experiència de l'usuari, sinó que també garanteix la compatibilitat amb les últimes integracions i eines, mantenint el vostre sistema fiable, segur i preparat per al futur.\n\nVoleu actualitzar Open Voice OS a l'última versió?"
   },
   "welcome.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Benvinguda",
