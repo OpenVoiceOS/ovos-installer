@@ -47,15 +47,33 @@
     mode: "0755"
     state: directory
   loop:
-    - { "directory": "{{ ovos_installer_user_home }}/.config/systemd/user", "status": true }
-    - { "directory": "{{ ovos_installer_user_home }}/ovos", "status": true }
-    - { "directory": "{{ ovos_installer_user_home }}/ovos/config", "status": true }
-    - { "directory": "{{ ovos_installer_user_home }}/ovos/config/phal", "status": true }
-    - { "directory": "{{ ovos_installer_user_home }}/ovos/share", "status": true }
-    - { "directory": "{{ ovos_installer_user_home }}/ovos/tmp", "status": true }
-    - { "directory": "{{ ovos_installer_user_home }}/hivemind", "status": "{{ 'false' if (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') else 'true' }}" }
-    - { "directory": "{{ ovos_installer_user_home }}/hivemind/config", "status": "{{ 'false' if (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') else 'true' }}" }
-    - { "directory": "{{ ovos_installer_user_home }}/hivemind/share", "status": "{{ 'false' if (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') else 'true' }}" }
+    - {
+        "directory": "{{ ovos_installer_user_home }}/.config/systemd/user",
+        "status": true,
+      }
+    - {"directory": "{{ ovos_installer_user_home }}/ovos", "status": true}
+    - {
+        "directory": "{{ ovos_installer_user_home }}/ovos/config",
+        "status": true,
+      }
+    - {
+        "directory": "{{ ovos_installer_user_home }}/ovos/config/phal",
+        "status": true,
+      }
+    - {"directory": "{{ ovos_installer_user_home }}/ovos/share", "status": true}
+    - {"directory": "{{ ovos_installer_user_home }}/ovos/tmp", "status": true}
+    - {
+        "directory": "{{ ovos_installer_user_home }}/hivemind",
+        "status": "{{ 'false' if (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') else 'true' }}",
+      }
+    - {
+        "directory": "{{ ovos_installer_user_home }}/hivemind/config",
+        "status": "{{ 'false' if (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') else 'true' }}",
+      }
+    - {
+        "directory": "{{ ovos_installer_user_home }}/hivemind/share",
+        "status": "{{ 'false' if (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') else 'true' }}",
+      }
   when:
     - item.status | bool
     - ovos_installer_method == "containers"
@@ -68,11 +86,24 @@
     mode: "0755"
     state: directory
   loop:
-    - { "directory": "{{ ovos_installer_user_home }}/.config/mycroft", "status": true }
-    - { "directory": "{{ ovos_installer_user_home }}/.local/state/mycroft", "status": true }
-    - { "directory": "{{ ovos_installer_user_home }}/.config/hivemind", "status": "{{ 'false' if ovos_installer_profile == 'ovos' else 'true' }}" }
-    - { "directory": "{{ ovos_installer_user_home }}/.config/systemd/user", "status": true }
-    - { "directory": "{{ ovos_installer_user_home }}/nltk_data", "status": true }
+    - {
+        "directory": "{{ ovos_installer_user_home }}/.config/mycroft",
+        "status": true,
+      }
+    - {
+        "directory": "{{ ovos_installer_user_home }}/.local/state/mycroft",
+        "status": true,
+      }
+    - {"directory": "{{ ovos_installer_user_home }}/.local/bin", "status": true}
+    - {
+        "directory": "{{ ovos_installer_user_home }}/.config/hivemind",
+        "status": "{{ 'false' if ovos_installer_profile == 'ovos' else 'true' }}",
+      }
+    - {
+        "directory": "{{ ovos_installer_user_home }}/.config/systemd/user",
+        "status": true,
+      }
+    - {"directory": "{{ ovos_installer_user_home }}/nltk_data", "status": true}
   when:
     - item.status | bool
     - ovos_installer_method == "virtualenv"

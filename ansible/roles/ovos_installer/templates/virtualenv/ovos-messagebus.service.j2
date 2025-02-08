@@ -5,8 +5,7 @@ PartOf=ovos.service
 Requires=ovos.service
 
 [Service]
-WorkingDirectory=%h/.venvs/ovos
-ExecStart=%h/.venvs/ovos/bin/ovos-messagebus
+ExecStart=%h/.local/bin/ovos_messagebus-{{ ansible_architecture }}-unknown-linux-gnu
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure

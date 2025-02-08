@@ -9,5 +9,8 @@
   ansible.builtin.import_tasks: virtualenv/gui.yml
   when: ovos_installer_feature_gui | bool or ovos_installer_cleaning | bool
 
+- name: Include virtualenv/bus.yml
+  ansible.builtin.import_tasks: virtualenv/bus.yml
+
 - name: Include virtualenv/systemd.yml
   ansible.builtin.import_tasks: virtualenv/systemd.yml
