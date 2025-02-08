@@ -185,7 +185,7 @@
 
 - name: Remove {{ ovos_installer_user_home }}/.venvs/ovos Python virtualenv and requirements.txt files
   ansible.builtin.file:
-    path: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    path: "{{ item }}"
     state: absent
   loop:
     - "{{ ovos_installer_user_home }}/.venvs/ovos"
@@ -198,6 +198,7 @@
     - /tmp/server-requirements.txt
     - /opt/mark1
     - /opt/sj201
+    - "{{ ovos_installer_user_home }}/.local/bin/ovos-messagebus"
   when: ovos_installer_cleaning | bool
   tags:
     - uninstall
