@@ -59,6 +59,10 @@
     "title": "Installazione di Open Voice OS - Disinstallazione",
     "content": "È stata rilevata un'istanza esistente di Open Voice OS.\n\nPoiché Docker e PipeWire possono essere stati installati dal sistema o manualmente, il programma di installazione non rimuoverà i seguenti pacchetti:\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - pipewire\n  - pipewire-alsa\n\nVuoi disinstallare Open Voice OS?"
   },
+  "update.sh": {
+    "title": "Open Voice OS Installazione - Aggiornamento",
+    "content": "È stata rilevata un'istanza esistente di Open Voice OS/HiveMind.\n\nL'aggiornamento dell'istanza esistente di Open Voice OS o HiveMind all'ultima versione garantisce di rimanere al passo con le funzionalità più avanzate, gli aggiornamenti di sicurezza critici, le correzioni di bug e le ottimizzazioni delle prestazioni.\n\nCiò non solo migliora la funzionalità complessiva e l'esperienza utente, ma garantisce anche la compatibilità con le integrazioni e gli strumenti più recenti, mantenendo il sistema affidabile, sicuro e a prova di futuro.\n\nVuoi aggiornare Open Voice OS all'ultima versione?"
+  },
   "welcome.sh": {
     "title": "Installazione di Open Voice OS - Benvenuto",
     "content": "Ciao e benvenuto all'installazione di Open Voice OS!\n\nSiamo lieti di presentarti Open Voice OS, l'assistente vocale open source che sta cambiando il modo con cui si interagisce con la tecnologia.\n\nL'installazione di Open Voice OS è semplicissima e apre un mondo di possibilità attraverso il controllo vocale. Che siate appassionati di tecnologia o vogliate semplicemente semplificare le vostre attività quotidiane, Open Voice OS è qui per renderti la vita più facile.\n\nInizia l'installazione oggi stesso e lascia che la tua voce ti guidi nel futuro della tecnologia! 🌟"
