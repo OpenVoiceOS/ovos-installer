@@ -91,7 +91,7 @@
         "status": true,
       }
     - {
-        "directory": "{{ ovos_installer_user_home }}/.local/state/mycroft",
+        "directory": "{{ ovos_installer_user_home }}/.local",
         "status": true,
       }
     - {"directory": "{{ ovos_installer_user_home }}/.local/bin", "status": true}
