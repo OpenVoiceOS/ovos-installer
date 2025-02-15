@@ -8,6 +8,7 @@
       - "{{ ovos_installer_user_home }}/.config/mycroft/*"
       - "{{ ovos_installer_user_home }}/.config/hivemind/*"
       - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS/*"
+      - "{{ ovos_installer_user_home }}/.config/ovos-persona/*"
       - "{{ ovos_installer_user_home }}/.config/wireplumber/*"
       - "{{ ovos_installer_user_home }}/.local/share/hivemind/*"
       - "{{ ovos_installer_user_home }}/.local/state/ovos/*"
@@ -57,6 +58,10 @@
         "status": true,
       }
     - {
+        "directory": "{{ ovos_installer_user_home }}/ovos/config/persona",
+        "status": true,
+      }
+    - {
         "directory": "{{ ovos_installer_user_home }}/ovos/config/phal",
         "status": true,
       }
@@ -91,9 +96,10 @@
         "status": true,
       }
     - {
-        "directory": "{{ ovos_installer_user_home }}/.local",
+        "directory": "{{ ovos_installer_user_home }}/.config/ovos-persona",
         "status": true,
       }
+    - {"directory": "{{ ovos_installer_user_home }}/.local", "status": true}
     - {"directory": "{{ ovos_installer_user_home }}/.local/bin", "status": true}
     - {
         "directory": "{{ ovos_installer_user_home }}/.config/hivemind",
