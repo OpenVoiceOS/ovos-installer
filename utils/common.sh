@@ -557,7 +557,8 @@ function state_directory() {
     export INSTALLER_STATE_FILE="$OVOS_LOCAL_STATE_DIRECTORY/installer.json"
     if [ ! -d "$OVOS_LOCAL_STATE_DIRECTORY" ]; then
         mkdir -p "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
-        chown -R "$RUN_AS":"$(id -ng "$RUN_AS")" "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
+        chown -R "$RUN_AS":"$(id -ng "$RUN_AS")" "$RUN_AS_HOME/.local/state" &>>"$LOG_FILE"
+
     fi
     if [ -f "$INSTALLER_STATE_FILE" ]; then
         [ -s "$INSTALLER_STATE_FILE" ] || rm "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"
