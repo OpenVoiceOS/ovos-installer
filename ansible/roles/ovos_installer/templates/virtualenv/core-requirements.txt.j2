@@ -10,6 +10,10 @@ ovos-tts-plugin-polly
 ovos-tts-plugin-matxa-multispeaker-cat
 {% endif %}
 
+{% if ovos_installer_locale == "gl-es" %}
+ovos-tts-plugin-nos
+{% endif %}
+
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 ovos-audio-transformer-plugin-ggwave
 {% endif %}

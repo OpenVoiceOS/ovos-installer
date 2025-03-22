@@ -11,6 +11,10 @@ ovos-tts-plugin-polly
 ovos-tts-plugin-matxa-multispeaker-cat
 {% endif %}
 
+{% if ovos_installer_locale == "gl-es" %}
+ovos-tts-plugin-nos
+{% endif %}
+
 {% if ovos_installer_cpu_is_capable | bool %}
 ovos-dinkum-listener[onnx]
 {% endif %}
