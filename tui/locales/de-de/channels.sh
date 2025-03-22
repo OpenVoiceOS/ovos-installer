@@ -1,10 +1,9 @@
 #!/bin/env bash
 
 CONTENT="
-Für Open Voice OS gibt es zwei verschiedene Release Versionen:
-
-  - Stabil (empfohlen, aber noch nicht verfügbar)
-  - Entwickler
+Für Open Voice OS gibt es zwei Versionen:
+- Stabil (empfohlen, aber noch nicht verfügbar)
+- Entwickler
 
 Die stabile Version von Open Voice OS ist eine gut getestete und zuverlässige Version für den täglichen Gebrauch.
 
@@ -12,6 +11,6 @@ Die Entwicklungsversion von Open Voice OS ist für Entwickler und Enthusiasten g
 
 wähle eine Version:
 "
-TITLE="Open Voice OS Installation - Versionen"
+TITLE="Open Voice OS Installationsversionen"
 
 export CONTENT TITLE

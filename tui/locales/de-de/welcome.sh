@@ -5,10 +5,10 @@ Hallo und herzlich willkommen bei der Installation von Open Voice OS!
 
 Wir freuen uns, Ihnen Open Voice OS vorstellen zu können, den Open-Source-Sprachassistenten.
 
-Die Installation von Open Voice OS ist ein Kinderspiel und eröffnet eine Welt voller Möglichkeiten für sprachgesteuerten Komfort. Egal, ob du ein Technik-Enthusiast bist oder einfach nur deine täglichen Aufgaben vereinfachen willst, Open Voice OS ist da, um dein Leben zu erleichtern.
+Die Installation von Open Voice OS ist einfach und eröffnet viele Möglichkeiten für sprachgesteuerten Komfort. Egal, ob Sie ein Technik-Enthusiast sind oder einfach nur die täglichen Aufgaben vereinfachen möchten, Open Voice OS ist da, um ihr Leben zu erleichtern.
 
-Beginnen Sie noch heute mit der Installation und lassen Sie sich von Ihrer Stimme durch die Zukunft der Technologie führen!🌟
+Beginnen Sie noch heute mit der Installation und steuern Sie mit Ihrer Stimme die Zukunft der Technologie!🌟
 "
-TITLE="Open Voice OS Installation - Welcome"
+TITLE="Voice OS-Installation öffnen – Begrüßung"
 
 export CONTENT TITLE
