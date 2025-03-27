@@ -14,6 +14,10 @@ ovos-tts-plugin-matxa-multispeaker-cat
 ovos-tts-plugin-nos
 {% endif %}
 
+{% if (ovos_installer_locale == "es-es") or (ovos_installer_locale == "eu-es") %}
+ovos-tts-plugin-ahotts
+{% endif %}
+
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
 ovos-audio-transformer-plugin-ggwave
 {% endif %}
