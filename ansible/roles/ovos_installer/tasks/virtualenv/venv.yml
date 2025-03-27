@@ -174,7 +174,7 @@
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.shell:
     cmd: |
-      ovos-config autoconfigure --lang {{ _ovos_config_tts_gender }}
+      ovos-config autoconfigure --lang {{ ovos_installer_locale }} {{ _ovos_config_tts_gender }}
     executable: /bin/bash
   environment:
     PATH: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
