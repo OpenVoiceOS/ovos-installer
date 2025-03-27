@@ -33,5 +33,5 @@ fi
 
 # Hash of locales
 declare -A locales
-locales=(["catalan"]="ca-es" ["english"]="en-us" ["french"]="fr-fr" ["galician"]="gl-es" ["german"]="de-de" ["hindi"]="hi-in" ["italian"]="it-it" ["spanish"]="es-es" ["dutch"]="nl-nl" ["portuguese"]="pt-pt")
+locales=(["catalan"]="ca-es" ["english"]="en-us" ["french"]="fr-fr" ["galician"]="gl-es" ["german"]="de-de" ["hindi"]="hi-in" ["italian"]="it-it" ["spanish"]="es-es" ["dutch"]="nl-nl" ["portuguese"]="pt-pt" ["basque"]="eu-es")
 export LOCALE="${locales[$language]}"
