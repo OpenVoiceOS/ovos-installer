@@ -5,7 +5,7 @@ Please select a language:
 "
 
 active_language="English"
-available_languages=(Catalan Dutch English French Galician German Hindi Italian Portuguese Spanish)
+available_languages=(Basque Catalan Dutch English French Galician German Hindi Italian Portuguese Spanish)
 
 whiptail_args=(
   --title "Open Voice OS Installation - Language"
