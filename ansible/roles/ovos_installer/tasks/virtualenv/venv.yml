@@ -168,14 +168,13 @@
   when: ovos_installer_profile == "satellite"
 
 - name: Run ovos-config for auto-configuration of STT and TTS based on language
+  vars:
+    _ovos_config_tts_gender: "{{ '--female' if ovos_installer_locale in ['eu-ES', 'gl-ES'] else '--male' }}"
   become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.shell:
     cmd: |
-      ovos-config autoconfigure \
-        --lang {{ ovos_installer_locale }} \
-        --male \
-        --online
+      ovos-config autoconfigure --lang {{ _ovos_config_tts_gender }}
     executable: /bin/bash
   environment:
     PATH: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
