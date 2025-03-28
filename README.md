@@ -88,6 +88,7 @@ features:
   gui: true
 rapsberry_pi_tuning: true
 share_telemetry: true
+share_usage_telemetry: true
 EOF
 ```
 

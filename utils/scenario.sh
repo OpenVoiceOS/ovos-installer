@@ -178,6 +178,17 @@ if [ -f "$SCENARIO_PATH" ]; then
                 fi
                 export SHARE_TELEMETRY
                 ;;
+            share_usage_telemetry)
+                if [[ "${options[$option]}" == "true" ]]; then
+                    SHARE_USAGE_TELEMETRY="true"
+                elif [[ "${options[$option]}" == "false" ]]; then
+                    SHARE_USAGE_TELEMETRY="false"
+                else
+                    export SCENARIO_NOT_SUPPORTED="true"
+                    break
+                fi
+                export SHARE_USAGE_TELEMETRY
+                ;;                
             *)
                 export SCENARIO_NOT_SUPPORTED="true"
                 ;;
