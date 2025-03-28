@@ -6,7 +6,7 @@ function setup() {
     load ../../utils/constants.sh
     load ../../utils/common.sh
     LOG_FILE=/tmp/ovos-installer.log
-    SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry profile method uninstall rapsberry_pi_tuning hivemind)
+    SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry share_usage_telemetry profile method uninstall rapsberry_pi_tuning hivemind)
     SCENARIO_ALLOWED_FEATURES=(skills gui)
     SCENARIO_TEMP_PATH=/tmp/ovos-installer
 }
@@ -101,6 +101,7 @@ features:
   gui: true
 rapsberry_pi_tuning: true
 share_telemetry: true
+share_usage_telemetry: true
 EOF
     run detect_scenario
     assert_success
