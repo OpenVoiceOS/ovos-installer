@@ -1,11 +1,13 @@
 #!/bin/env bash
 
 CONTENT="
-By opting to share your usage metrics with us, you play a crucial role in contributing valuable, anonymous information that enables us to better understand user experiences and improve our software's performance.
+By choosing to share your usage metrics, you become a vital contributor to our ongoing efforts to continuously improve the performance and user experiences of our software. The data you provide will remain anonymous and is crucial in helping us refine intent matching, identify system weaknesses, and make informed decisions about future developments.
 
-Share data for refining intent matching and identifying system weaknesses. Self-host or contribute to official servers with a focus on transparency and privacy. Real-time insights available through an interactive dashboard. Benefits of self-hosting include analyzing personal usage trends, tracking failed intents, and fine-tuning the assistant.
+In return for your participation, we offer valuable insights into usage trends, failed intents, and personalized analytics through an interactive dashboard. This information can help you fine-tune the assistant to better suit your specific needs, ensuring a more enjoyable and efficient user experience.
 
-Please visit https://opendata.tigregotico.pt to visualize and/or download the data.
+For more information about data visualization and download options, please visit our Open Data portal: https://opendata.tigregotico.pt
+
+We value your input and hope you'll join us in creating a better software experience for all!
 
 Do you accept to share anonymous data with us?
 "
