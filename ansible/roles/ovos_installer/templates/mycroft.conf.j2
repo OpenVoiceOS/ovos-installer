@@ -70,5 +70,11 @@
       }
     }
 {% endif %}
+  }{% if ovos_installer_usage_telemetry| bool %},
+  "open_data": {
+    "intent_urls": [
+      "https://metrics.tigregotico.pt/intents"
+    ]
   }
+{% endif %}  
 }

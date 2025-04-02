@@ -63,6 +63,10 @@
     "title": "Open Voice OS Installation - Update",
     "content": "An existing instance of Open Voice OS/HiveMind has been detected.\n\nUpgrading your existing instance of Open Voice OS or HiveMind to the latest version ensures that you stay ahead with the most advanced features, critical security updates, bug fixes, and performance optimizations.\n\nThis not only enhances the overall functionality and user experience but also ensures compatibility with the latest integrations and tools, keeping your system reliable, secure, and future-proof.\n\nDo you want to update Open Voice OS to the latest version?"
   },
+  "usage_telemetry.sh": {
+    "title": "Open Voice OS Installation - Usage Metrics",
+    "content": "By opting to share your usage metrics with us, you play a crucial role in contributing valuable, anonymous information that enables us to better understand user experiences and improve our software's performance.\n\nShare data for refining intent matching and identifying system weaknesses. Self-host or contribute to official servers with a focus on transparency and privacy. Real-time insights available through an interactive dashboard. Benefits of self-hosting include analyzing personal usage trends, tracking failed intents, and fine-tuning the assistant.\n\nPlease visit https://opendata.tigregotico.pt to visualize and/or download the data.\n\nDo you accept to share anonymous data with us?"
+  },  
   "welcome.sh": {
     "title": "Open Voice OS Installation - Welcome",
     "content": "Hello and welcome to the Open Voice OS installation!\n\nWe're excited to introduce you to Open Voice OS, the open-source voice assistant that's changing the way we interact with technology.\n\nInstalling Open Voice OS is a breeze, and it opens up a world of possibilities for voice-controlled convenience. Whether you're a tech enthusiast or just looking to simplify your daily tasks, Open Voice OS is here to make your life easier.\n\nGet started with the installation today and let your voice guide you through the future of technology!🌟"

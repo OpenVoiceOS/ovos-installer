@@ -105,6 +105,7 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_cleaning=${ansible_cleaning}" \
   -e "ovos_installer_display_server=${DISPLAY_SERVER}" \
   -e "ovos_installer_telemetry=${SHARE_TELEMETRY}" \
+  -e "ovos_installer_usage_telemetry=${SHARE_USAGE_TELEMETRY}" \
   -e "ovos_installer_locale=${LOCALE:-en-us}" \
   -e "ovos_installer_i2c_devices=$(jq -c -n '$ARGS.positional' --args "${DETECTED_DEVICES[@]}")" \
   -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \

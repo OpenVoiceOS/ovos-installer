@@ -43,3 +43,6 @@ source tui/summary.sh
 
 # shellcheck source=telemetry.sh
 source tui/telemetry.sh
+
+# shellcheck source=usage_telemetry.sh
+source tui/usage_telemetry.sh

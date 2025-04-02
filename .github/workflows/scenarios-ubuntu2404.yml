@@ -38,5 +38,6 @@ jobs:
             gui: true
           rapsberry_pi_tuning: false
           share_telemetry: false
+          share_usage_telemetry: false
           EOF
           sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh"
