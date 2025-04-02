@@ -13,6 +13,6 @@ Automatisch herkende systeemeigenschappen:
     - Geluid:             $SOUND_SERVER
     - Display:            ${DISPLAY_SERVER^}
 "
-TITLE="Open Voice OS Installatie - Systeemeigenschappen"
+TITLE="OpenVoice OS Installatie - Systeemeigenschappen"
 
 export CONTENT TITLE

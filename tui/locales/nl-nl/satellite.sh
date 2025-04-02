@@ -31,9 +31,9 @@ $content
 Voer het HiveMind listener wachtwoord in, behorende bij de satelliet:
 "
 
-TITLE_HOST="Open Voice OS Installatie - Satelliet 1/4"
-TITLE_PORT="Open Voice OS Installatie - Satelliet 2/4"
-TITLE_KEY="Open Voice OS Installatie - Satelliet 3/4"
-TITLE_PASSWORD="Open Voice OS Installatie - Satelliet 4/4"
+TITLE_HOST="OpenVoice OS Installatie - Satelliet 1/4"
+TITLE_PORT="OpenVoice OS Installatie - Satelliet 2/4"
+TITLE_KEY="OpenVoice OS Installatie - Satelliet 3/4"
+TITLE_PASSWORD="OpenVoice OS Installatie - Satelliet 4/4"
 
 export CONTENT_HOST CONTENT_PORT CONTENT_KEY CONTENT_PASSWORD TITLE_HOST TITLE_PORT TITLE_KEY TITLE_PASSWORD

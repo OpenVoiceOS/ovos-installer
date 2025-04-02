@@ -18,6 +18,6 @@ De instellingen van je wizard kun je veranderen in het configuratiebestand $CONF
 
 Als je in de toekomst ondersteuning of updates nodig hebt, neem dan gerust contact met ons op. Veel plezier met Open Voice OS!
 "
-TITLE="Open Voice OS Installatie - Voltooid"
+TITLE="OpenVoice OS Installatie - Voltooid"
 
 export CONTENT TITLE
