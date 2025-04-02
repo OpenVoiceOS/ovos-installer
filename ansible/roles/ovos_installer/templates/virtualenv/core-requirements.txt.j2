@@ -4,6 +4,9 @@ ovos-dinkum-listener[extras,linux]
 ovos-docs-viewer
 ovos-PHAL[linux]
 ovos-phal-plugin-ipgeo
+{% if (ovos_installer_locale != "ca-es") or (ovos_installer_locale != "eu-es") or (ovos_installer_locale != "gl-es") %}
+ovos-tts-plugin-piper
+{% endif %}
 ovos-tts-plugin-polly
 
 {% if ovos_installer_locale == "ca-es" %}
