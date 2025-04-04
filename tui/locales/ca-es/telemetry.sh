@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 CONTENT="
-En optar per compartir la telemetria amb nosaltres, jugueu un paper crucial a l'hora d'aportar informació valuosa i anònima que ens permeti entendre millor les experiències dels usuaris i millorar el rendiment del nostre programari.
+En optar per compartir la telemetria amb nosaltres, jugueu un paper crucial a l'hora d'aportar informació valuosa i anònima que ens permetrà entendre millor les experiències dels usuaris i millorar el rendiment del nostre programari.
 
 Les vostres dades de telemetria inclouen informació essencial sobre com funciona el programari en escenaris del món real. Aquestes dades es recullen de manera anònima, prioritzant la vostra privadesa i confidencialitat.
 

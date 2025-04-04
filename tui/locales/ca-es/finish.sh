@@ -15,7 +15,7 @@ Si heu activat la característica d'habilitats predeterminades, podeu començar 
 
 La configuració del vostre assistent es pot canviar al fitxer de configuració $CONFIG_FILE.
 
-Si us cal ajuda o actualitzacions en el futur, no dubteu de posar-vos en contacte. Gaudiu de l'experiència amb Open Voice OS!
+Si us cal ajuda o actualitzacions en el futur, no dubteu a posar-vos en contacte. Gaudiu de l'experiència amb Open Voice OS!
 "
 TITLE="Instal·lació de l'Open Voice OS - Finalització"
 
