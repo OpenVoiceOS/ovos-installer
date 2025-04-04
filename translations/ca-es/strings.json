@@ -15,14 +15,14 @@
   },
   "features.sh": {
     "title": "Instal·lació de l'Open Voice OS - Característiques",
-    "content": "Quan trieu entre la IGU (interfície gràfica d'usuari) i les habilitats en Open Voice OS, tingueu en compte les vostres preferències i necessitats.\n\nLa IGU és un marc de visualització de codi obert per a OVOS que s'executa a sobre de KDE Plasma i és construït amb Kirigami potenciat per Qt.\n\nLes habilitats permeten la interacció a través de la parla, fent-la eficient per a tasques com la domòtica, la recuperació d'informació i el control de dispositius intel·ligents mitjançant ordres de llenguatge natural.\n\nSi us plau, trieu les funcions que voleu activar:",
+    "content": "Quan trieu entre la IGU (interfície gràfica d'usuari) i les habilitats en Open Voice OS, tingueu en compte les vostres preferències i necessitats.\n\nLa IGU és un marc de visualització de codi obert per a OVOS que s'executa a sobre de KDE Plasma i és construït amb Kirigami potenciat per Qt.\n\nLes habilitats permeten la interacció a través de la parla, fent-la eficient per a tasques com la domòtica, la recuperació d'informació i el control de dispositius intel·ligents mitjançant ordres en llenguatge natural.\n\nSi us plau, trieu les funcions que voleu activar:",
     "skill_description": "Carrega les habilitats d'OVOS predeterminades",
     "extra_skill_description": "Carrega habilitats d'OVOS addicionals",
     "gui_description": "Habilita la interfície gràfica d'usuari"
   },
   "finish.sh": {
     "title": "Instal·lació de l'Open Voice OS - Finalització",
-    "content": "La instal·lació s'ha completat correctament! 🎉\n\nL'assistent de veu ja és a punt. Ens complau que exploreu l'ampli ventall de funcions i capacitats que ofereix aquest assistent de veu.\n\nSi heu activat la característica d'habilitats predeterminades, podeu començar a interactuar amb el vostre assistent dient:\n\n  - Ei Mycroft, quina hora és?\n  - Ei Mycroft, quina temperatura fa?\n  - Ei Mycroft, qui et va fer?\n  - Ei Mycroft, qui és l'Ada Lovelace?\n  - Ei Mycroft, què diria Duke Nukem?\n\nLa configuració del vostre assistent es pot canviar al fitxer de configuració $CONFIG_FILE.\n\nSi us cal ajuda o actualitzacions en el futur, no dubteu de posar-vos en contacte. Gaudiu de l'experiència amb Open Voice OS!"
+    "content": "La instal·lació s'ha completat correctament! 🎉\n\nL'assistent de veu ja és a punt. Ens complau que exploreu l'ampli ventall de funcions i capacitats que ofereix aquest assistent de veu.\n\nSi heu activat la característica d'habilitats predeterminades, podeu començar a interactuar amb el vostre assistent dient:\n\n  - Ei Mycroft, quina hora és?\n  - Ei Mycroft, quina temperatura fa?\n  - Ei Mycroft, qui et va fer?\n  - Ei Mycroft, qui és l'Ada Lovelace?\n  - Ei Mycroft, què diria Duke Nukem?\n\nLa configuració del vostre assistent es pot canviar al fitxer de configuració $CONFIG_FILE.\n\nSi us cal ajuda o actualitzacions en el futur, no dubteu a posar-vos en contacte. Gaudiu de l'experiència amb Open Voice OS!"
   },
   "methods.sh": {
     "title": "Instal·lació de l'Open Voice OS - Mètodes",
@@ -41,7 +41,7 @@
     "content_host": "Introduïu l'amfitrió de l'escolta HiveMind (DNS o adreça IP):",
     "content_port": "Introduïu el port d'escolta de HiveMind:",
     "content_key": "Introduïu la clau d'escolta HiveMind relacionada amb el satèl·lit:",
-    "content_password": "Introduïu la contrasenya de l'escolat de HiveMind relacionada amb el satèl·lit:"
+    "content_password": "Introduïu la contrasenya de l'escolta de HiveMind relacionada amb el satèl·lit:"
   },
   "summary.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Resum",
@@ -49,11 +49,11 @@
   },
   "telemetry.sh": {
     "title": "Instal·lació de l'Open Voice OS - Telemetria",
-    "content": "En optar per compartir la telemetria amb nosaltres, jugueu un paper crucial a l'hora d'aportar informació valuosa i anònima que ens permeti entendre millor les experiències dels usuaris i millorar el rendiment del nostre programari.\n\nLes vostres dades de telemetria inclouen informació essencial sobre com funciona el programari en escenaris del món real. Aquestes dades es recullen de manera anònima, prioritzant la vostra privadesa i confidencialitat.\n\nLa informació recopilada ens ajuda a identificar problemes potencials, optimitzar les funcions i garantir una experiència d'usuari més fluida i eficient per a tothom.\n\nPer a obtenir més informació sobre les dades recollides, visiteu: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md (en anglès)\n\nAquesta recollida de dades només es farà durant el procés d'instal·lació.\n\nAccepteu compartir dades anònimes amb nosaltres?"
+    "content": "En optar per compartir la telemetria amb nosaltres, jugueu un paper crucial a l'hora d'aportar informació valuosa i anònima que ens permetrà entendre millor les experiències dels usuaris i millorar el rendiment del nostre programari.\n\nLes vostres dades de telemetria inclouen informació essencial sobre com funciona el programari en escenaris del món real. Aquestes dades es recullen de manera anònima, prioritzant la vostra privadesa i confidencialitat.\n\nLa informació recopilada ens ajuda a identificar problemes potencials, optimitzar les funcions i garantir una experiència d'usuari més fluida i eficient per a tothom.\n\nPer a obtenir més informació sobre les dades recollides, visiteu: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md (en anglès)\n\nAquesta recollida de dades només es farà durant el procés d'instal·lació.\n\nAccepteu compartir dades anònimes amb nosaltres?"
   },
   "tuning.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Ajustament",
-    "content": "L'ajustament de l'Open Voice OS per a Raspberry Pi implica optimitzar el sistema operatiu perquè funcioni de manera eficient en el maquinari Raspberry Pi.\n\nAquest procés d'ajust té com a objectiu millorar el rendiment, reduir l'ús de recursos i garantir una experiència d'usuari més fluida, cosa que la converteix en una opció excel·lent per a dispositius amb recursos limitats com el Raspberry Pi.\n\nVoleu habilitar l'ajustament per a Raspberry Pi (recomanat)?"
+    "content": "L'ajustament de l'Open Voice OS per a Raspberry Pi implica optimitzar el sistema operatiu perquè funcioni de manera eficient en el maquinari Raspberry Pi.\n\nAquest procés d'ajust té com a objectiu millorar el rendiment, reduir l'ús de recursos i garantir una experiència d'usuari més fluida, cosa que la converteix en una opció excel·lent per a dispositius amb recursos limitats com la Raspberry Pi.\n\nVoleu habilitar l'ajustament per a Raspberry Pi (recomanat)?"
   },
   "uninstall.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Desinstal·lació",
@@ -61,10 +61,14 @@
   },
   "update.sh": {
     "title": "Instal·lació de l'Open Voice OS - Actualització",
-    "content": "S'ha detectat una instància existent d'Open Voice OS/HiveMind.\n\nActualitzar la vostra instància existent d'Open Voice OS o HiveMind a la darrera versió us garanteix de mantenir-vos al capdavant amb les funcions més avançades, les actualitzacions de seguretat crítiques, les correccions d'errors i les optimitzacions de rendiment.\n\nAixò no només millora la funcionalitat general i l'experiència de l'usuari, sinó que també garanteix la compatibilitat amb les últimes integracions i eines, mantenint el vostre sistema fiable, segur i preparat per al futur.\n\nVoleu actualitzar Open Voice OS a l'última versió?"
+    "content": "S'ha detectat una instància existent d'Open Voice OS/HiveMind.\n\nActualitzar la vostra instància existent d'Open Voice OS o HiveMind a la darrera versió us assegura que us manteniu al capdavant amb les funcions més avançades, les actualitzacions de seguretat crítiques, les correccions d'errors i les optimitzacions de rendiment.\n\nAixò no només millora la funcionalitat general i l'experiència de l'usuari, sinó que també garanteix la compatibilitat amb les últimes integracions i eines, mantenint el vostre sistema fiable, segur i preparat per al futur.\n\nVoleu actualitzar Open Voice OS a l'última versió?"
   },
+  "usage_telemetry.sh": {
+    "title": "Instal·lació de l'Open VoiceOS - Mètriques d'ús",
+    "content": "Seleccionant compartir les vostres mètriques d'ús, contribuïu amb els nostres esforços per millorar contínuament el rendiment i l'experiència d'usuari del nostre programari. Les dades que compartireu amb nosaltres són anònimes i crucials per ajudar-nos a millorar la classificació d'intents, identificar les febleses del sistema i prendre decisions informades sobre els desenvolupaments futurs.\n\nA canvi de la vostra participació, us oferim informació valuosa sobre tendències d'ús i intents fallits, així com anàlisis personalitzades a través d'un tauler interactiu. Aquesta informació pot ajudar-vos a personalitzar l'assistent per cobrir millor les vostres necessitats específiques, assegurant una experiència d'usuari més eficient i satisfactòria.\n\nPer tenir més informació sobre la visualització de dades i les opcions de descàrrega, visiteu el nostre portal Open Data: https://opendata.tigregotico.pt\n\nValorem les vostres aportacions i esperem que col·laboreu amb nosaltres per a crear una millor experiència de programari per a tothom!\n\nAccepteu compartir les vostres dades anònimes amb nosaltres?"
+  },  
   "welcome.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Benvinguda",
-    "content": "Hola i benvinguts a la instal·lació de l'Open Voice OS!\n\nEns complau presentar-vos l'Open Voice OS, l'assistent de veu de codi obert que està canviant la manera com interactuem amb la tecnologia.\n\nLa instal·lació d'Open Voice OS és fàcil i obre un món de possibilitats per a la comoditat controlada per veu. Tant si sou un entusiasta de la tecnologia com si només voleu simplificar les vostres tasques diàries, Open Voice OS està aquí per fer-vos la vida més fàcil.\n\nComenceu amb la instal·lació avui mateix i deixeu que la vostra veu us guiï pel futur de la tecnologia!🌟"
+    "content": "Hola i benvinguts a la instal·lació de l'Open Voice OS!\n\nEns complau presentar-vos l'Open Voice OS, l'assistent de veu de codi obert que està canviant la manera com interactuem amb la tecnologia.\n\nLa instal·lació d'Open Voice OS és fàcil i obre un món de possibilitats mitjançant el control per veu. Tant si sou entusiastes de la tecnologia com si només voleu simplificar les vostres tasques diàries, Open Voice OS és aquí per fer-vos la vida més fàcil.\n\nComenceu amb la instal·lació avui mateix i deixeu que la vostra veu us guiï pel futur de la tecnologia!🌟"
   }
 }
