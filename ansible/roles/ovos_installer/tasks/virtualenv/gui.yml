@@ -33,7 +33,6 @@
     name:
       - cmake
       - gettext
-      - qmltermwidget
       - qt5-qtwebsockets-devel
       - qt5-qtdeclarative-devel
       - qt5-qtmultimedia-devel
