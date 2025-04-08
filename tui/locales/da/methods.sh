@@ -12,6 +12,6 @@ Hvis containermetoden er valgt, installeres Docker automatisk, hvis den ikke fin
 
 Vælg venligst en installationsmetode:
 "
-TITLE="Open Voice OS Installation - Methods"
+TITLE="Open Voice OS Installation - Methoder"
 
 export CONTENT TITLE

@@ -7,11 +7,11 @@ La GUI es un marco visual y de visualización de código abierto para OVOS que s
 
 Las habilidades permiten la interacción a través de la voz, lo que las hace eficaces para tareas como la domótica, la recuperación de información y el control de dispositivos inteligentes mediante comandos de voz.
 
-Seleccione las funciones que desea activar:
+Selecciona las funciones que quieres activar:
 "
-TITLE="Open Voice OS Installation - Características"
+TITLE="Instalación de Open Voice OS - Características"
 SKILL_DESCRIPTION="Descargar una selección de competencias (skills) OVOS"
-EXTRA_SKILL_DESCRIPTION="Cargar habilidades OVOS adicionales"
+EXTRA_SKILL_DESCRIPTION="Descargar habilidades OVOS adicionales"
 GUI_DESCRIPTION="Con interfaz gráfica de usuario"
 
 export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION

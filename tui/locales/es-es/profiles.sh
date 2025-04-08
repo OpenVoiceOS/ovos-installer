@@ -12,8 +12,8 @@ Cada uno de estos perfiles ofrece características y capacidades únicas que pue
 
 La única pregunta es qué perfil se adapta mejor a tus necesidades y preferencias.
 
-Seleccione un perfil:
+Selecciona un perfil:
 "
-TITLE="Open Voice OS Installation - Perfiles"
+TITLE="Instalación de Open Voice OS - Perfiles"
 
 export CONTENT TITLE

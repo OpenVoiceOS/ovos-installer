@@ -17,6 +17,6 @@ Indstillingerne for din assistent kunne ændres i $CONFIG_FILE-konfigurationsfil
 
 Hvis du har brug for hjælp eller opdateringer i fremtiden, er du velkommen til at kontakte os. Nyd din Open Voice OS-oplevelse!
 "
-TITLE="Åbn Voice OS Installation - Afslut"
+TITLE="Open Voice OS Installation - Afslut"
 
 export CONTENT TITLE

@@ -10,8 +10,8 @@ Los contenedores proporcionan aislamiento y facilidad de despliegue, mientras qu
 
 Si se selecciona el método de contenedor, Docker se instalará automáticamente si no está presente en el sistema.
 
-Seleccione un entorno de instalación:
+Selecciona un entorno de instalación:
 "
-TITLE="Open Voice OS Installation - Entorno de instalación"
+TITLE="Instalación de Open Voice OS - Entorno de instalación"
 
 export CONTENT TITLE

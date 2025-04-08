@@ -7,28 +7,28 @@ content="Al conectarse al HiveMind Listener, los satélites HiveMind acceden a u
 CONTENT_HOST="
 $content
 
-Introduzca el host de escucha HiveMind (DNS o dirección IP):
+Introduce el host de escucha HiveMind (DNS o dirección IP):
 "
 
 # Port
 CONTENT_PORT="
 $content
 
-Introduzca el puerto de escucha HiveMind:
+Introduce el puerto de escucha HiveMind:
 "
 
 # Key
 CONTENT_KEY="
 $content
 
-Introduzca la clave de escucha HiveMind del satélite:
+Introduce la clave de escucha HiveMind del satélite:
 "
 
 # Password
 CONTENT_PASSWORD="
 $content
 
-Introduzca la contraseña de escucha HiveMind del satélite:
+Introduce la contraseña de escucha HiveMind del satélite:
 "
 
 TITLE_HOST="Open Voice OS Installation - Satélite 1/4"

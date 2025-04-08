@@ -13,6 +13,6 @@ Find de fundne oplysninger:
     - Lyd: $SOUND_SERVER
     - Skærm: ${DISPLAY_SERVER^}
 "
-TITLE="Åbn Voice OS-installation - fundet"
+TITLE="Open Voice OS-installation - fundet"
 
 export CONTENT TITLE

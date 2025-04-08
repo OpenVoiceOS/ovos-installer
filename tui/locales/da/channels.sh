@@ -12,6 +12,6 @@ Udviklingsudgivelsen af ​​Open Voice OS er beregnet til udviklere og entusia
 
 Vælg venligst en kanal:
 "
-TITLE="Åbn Voice OS Installation - Kanaler"
+TITLE="OpenVoice OS Installation - Kanaler"
 
 export CONTENT TITLE

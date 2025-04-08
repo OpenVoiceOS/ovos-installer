@@ -1,19 +1,19 @@
 #!/bin/env bash
 
 CONTENT="
-Casi terminado. Un breve resumen:
+¡Ya casi has terminado! Aquí tienes un resumen de las opciones que has elegido para instalar Open Voice OS:
 
-    - Entorno:       $METHOD
-    - Version:       $CHANNEL
-    - Perfile:       $PROFILE
-    - GUI:           $FEATURE_GUI
-    - Skills:        $FEATURE_SKILLS
-    - Sintonización: $TUNING
+- Method: $METHOD
+- Version: $CHANNEL
+- Profile: $PROFILE
+- GUI: $FEATURE_GUI
+- Skills: $FEATURE_SKILLS
+- Tuning: $TUNING
 
-Las decisiones tomadas durante el proceso de instalación de Open Voice OS han sido cuidadosamente consideradas para adaptar nuestro sistema a sus necesidades y preferencias individuales.
+Las decisiones que has tomado durante el proceso de instalación de Open Voice OS han sido cuidadosamente consideradas para adaptar el sistema a tus necesidades y preferencias.
 
-¿Son correctos los ajustes?
+¿Este resumen es correcto? Si no es así, puedes volver atrás y hacer cambios.
 "
-TITLE="Open Voice OS Installation - Resumen"
+TITLE="Instalación de Open Voice OS - Resumen"
 
 export CONTENT TITLE
