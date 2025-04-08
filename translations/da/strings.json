@@ -2,15 +2,15 @@
   "misc.sh": {
     "ok_button": "Næste",
     "yes_button": "Ja",
-    "no_button": "Ingen",
+    "no_button": "Nej",
     "back_button": "Tilbage"
   },
   "channels.sh": {
-    "title": "Åbn Voice OS Installation - Kanaler",
+    "title": "OpenVoice OS Installation - Kanaler",
     "content": "Open Voice OS har to hovedudgivelseskanaler:\n\n  - stabil (anbefalet, men ikke tilgængelig endnu)\n  - udvikling\n\nDen stabile udgivelse af Open Voice OS er en velafprøvet og pålidelig version, der er velegnet til daglig brug.\n\nUdviklingsudgivelsen af ​​Open Voice OS er beregnet til udviklere og entusiaster, der ønsker at eksperimentere med banebrydende funktioner og bidrage til platformens udvikling.\n\nVælg venligst en kanal:"
   },
   "detection.sh": {
-    "title": "Åbn Voice OS-installation - fundet",
+    "title": "Open Voice OS-installation - fundet",
     "content": "Find de fundne oplysninger:\n\n    - OS: ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(ekko \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardware: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - Lyd: $SOUND_SERVER\n    - Skærm: ${DISPLAY_SERVER^}"
   },
   "features.sh": {
@@ -21,11 +21,11 @@
     "gui_description": "Aktiver grafisk brugergrænseflade"
   },
   "finish.sh": {
-    "title": "Åbn Voice OS Installation - Afslut",
+    "title": "Open Voice OS Installation - Afslut",
     "content": "Installationen er gennemført med succes! 🎉\n\nDin stemmeassistent er klar til at gå. Vi glæder os til, at du skal udforske den brede vifte af funktioner og muligheder, som denne stemmeassistent har at tilbyde.\n\nHvis du har aktiveret standardfærdighedsfunktionen, kan du begynde at interagere med din assistent ved at sige:\n\n  - Hej Mycroft, hvad er klokken?\n  - Hej Mycroft, hvad er temperaturen?\n  - Hej Mycroft, hvem har lavet dig?\n  - Hej Mycroft, hvem er Ada Lovelace?\n  - Hej Mycroft, hvad ville Duke Nukem sige?\n\nIndstillingerne for din assistent kunne ændres i $CONFIG_FILE-konfigurationsfilen.\n\nHvis du har brug for hjælp eller opdateringer i fremtiden, er du velkommen til at kontakte os. Nyd din Open Voice OS-oplevelse!"
   },
   "methods.sh": {
-    "title": "Open Voice OS Installation - Methods",
+    "title": "Open Voice OS Installation - Methoder",
     "content": "For at installere Open Voice OS har du to primære metoder:\n\n    - Containermotor såsom Docker\n    - Opsætning af det i et virtuelt Python-miljø\n\nContainere giver isolering og nem implementering, mens et virtuelt Python-miljø giver mere fleksibilitet og kontrol over installationen.\n\nHvis containermetoden er valgt, installeres Docker automatisk, hvis den ikke findes på systemet.\n\nVælg venligst en installationsmetode:"
   },
   "profiles.sh": {
@@ -58,6 +58,14 @@
   "uninstall.sh": {
     "title": "Open Voice OS Installation - Afinstaller",
     "content": "En eksisterende forekomst af Open Voice OS er blevet fundet.\n\nDa Docker og PipeWire muligvis er blevet installeret af systemet eller manuelt, vil installationsprogrammet ikke fjerne følgende pakker:\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - rørledning\n  - pipewire-alsa\n\nVil du afinstallere Open Voice OS?"
+  },
+  "update.sh": {
+    "title": "Open Voice OS Installation - Opdatering",
+    "content": "En eksisterende forekomst af Open Voice OS/HiveMind er blevet fundet.\n\nOpgradering af din eksisterende forekomst af Open Voice OS eller HiveMind til den nyeste version sikrer, at du er på forkant med de mest avancerede funktioner, kritiske sikkerhedsopdateringer, fejlrettelser og ydeevneoptimeringer.\n\nDette forbedrer ikke kun den overordnede funktionalitet og brugeroplevelse, men sikrer også kompatibilitet med de nyeste integrationer og værktøjer, hvilket holder dit system pålideligt, sikkert og fremtidssikret.\n\nVil du opdatere Open Voice OS til den nyeste version?"
+  },
+  "usage_telemetry.sh": {
+    "title": "OpenVoice OS Installation - Brugsmetrik",
+    "content": "Ved at vælge at dele dine brugsmålinger bliver du en vigtig bidragyder til vores løbende bestræbelser på løbende at forbedre ydeevnen og brugeroplevelsen af ​​vores software. De data, du giver, forbliver anonyme og er afgørende for at hjælpe os med at forfine hensigtsmatchning, identificere systemsvagheder og træffe informerede beslutninger om fremtidige udviklinger.\n\nTil gengæld for din deltagelse tilbyder vi værdifuld indsigt i brugstendenser, mislykkede hensigter og personlige analyser gennem et interaktivt dashboard. Disse oplysninger kan hjælpe dig med at finjustere assistenten, så den passer bedre til dine specifikke behov, hvilket sikrer en mere behagelig og effektiv brugeroplevelse.\n\nFor mere information om datavisualisering og downloadmuligheder, besøg venligst vores Open Data-portal: https://opendata.tigregotico.pt\n\nVi værdsætter dit input og håber, at du vil være med til at skabe en bedre softwareoplevelse for alle!\n\nAccepterer du at dele anonyme data med os?"
   },
   "welcome.sh": {
     "title": "Open Voice OS Installation - Velkommen",
