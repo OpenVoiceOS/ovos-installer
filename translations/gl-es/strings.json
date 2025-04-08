@@ -64,7 +64,8 @@
     "content": "Detectouse unha instancia existente de Open Voice OS/HiveMind.\n\nActualizar a túa instancia de Open Voice OS ou HiveMind á última versión garante que te manteñas ao día coas funcionalidades máis avanzadas, actualizacións de seguridade críticas, correccións de erros e optimizacións de rendemento.\n\nIsto non só mellora a funcionalidade xeral e a experiencia de usuario, senón que tamén asegura a compatibilidade coas últimas integracións e ferramentas, mantendo o teu sistema fiable, seguro e preparado para o futuro.\n\nQueres actualizar Open Voice OS á versión máis recente?"
   },
   "usage_telemetry.sh": {
-    "title": "Instalación de Open Voice OS - Métricas de uso"
+    "title": "Instalación de Open Voice OS - Métricas de uso",
+    "content": "Ao escolleres compartir as túas métricas de uso, convérteste nun contribuínte vital aos nosos esforzos constantes por mellorar continuamente o rendemento e as experiencias dos usuarios do noso software. Os datos que proporciones serán anónimos e cruciais para nos axudar a mellorarmos a identificación de comandos, descubrir debilidades do sistema e tomar decisións fundamentadas sobre futuros desenvolvementos.\n\nA cambio da túa participación, ofrecémosche información relevante sobre tendencias de uso, comandos mal identificados e análises personalizadas a través dun panel interactivo. Esta información pode axudarche a afinar o asistente para que se adapte mellor ás túas necesidades específicas, garantindo unha experiencia de usuario máis agradable e eficiente.\n\nPara obter máis información sobre a visualización de datos e as opcións de descarga, visita o noso portal de datos abertos: https://opendata.tigregotico.pt\n\nValoramos a túa contribución e esperamos que nos axudes a crear unha mellor experiencia de software para todos.\n\nAceptas compartir datos anónimos connosco?"
   },
   "welcome.sh": {
     "title": "Instalación de Open Voice OS - Benvida",
