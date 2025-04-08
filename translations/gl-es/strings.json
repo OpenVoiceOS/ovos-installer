@@ -59,11 +59,15 @@
     "title": "Instalación de Open Voice OS - Desinstalar",
     "content": "Detectouse unha instalación existente de Open Voice OS.\n\nComo Docker e PipeWire poden terse instalado manualmente ou polo sistema, o instalador non eliminará os seguintes paquetes:\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - pipewire\n  - pipewire-alsa\n\nQueres desinstalar Open Voice OS?"
   },
-"update.sh": {
+  "update.sh": {
     "title": "Instalación de Open Voice OS - Actualización",
     "content": "Detectouse unha instancia existente de Open Voice OS/HiveMind.\n\nActualizar a túa instancia de Open Voice OS ou HiveMind á última versión garante que te manteñas ao día coas funcionalidades máis avanzadas, actualizacións de seguridade críticas, correccións de erros e optimizacións de rendemento.\n\nIsto non só mellora a funcionalidade xeral e a experiencia de usuario, senón que tamén asegura a compatibilidade coas últimas integracións e ferramentas, mantendo o teu sistema fiable, seguro e preparado para o futuro.\n\nQueres actualizar Open Voice OS á versión máis recente?"
-},
-"welcome.sh": {
+  },
+  "usage_telemetry.sh": {
+    "title": "Instalación de Open Voice OS - Métricas de uso",
+    "content": "Ao escolleres compartir as túas métricas de uso, convérteste nun contribuínte vital aos nosos esforzos constantes por mellorar continuamente o rendemento e as experiencias dos usuarios do noso software. Os datos que proporciones serán anónimos e cruciais para nos axudar a mellorarmos a identificación de comandos, descubrir debilidades do sistema e tomar decisións fundamentadas sobre futuros desenvolvementos.\n\nA cambio da túa participación, ofrecémosche información relevante sobre tendencias de uso, comandos mal identificados e análises personalizadas a través dun panel interactivo. Esta información pode axudarche a afinar o asistente para que se adapte mellor ás túas necesidades específicas, garantindo unha experiencia de usuario máis agradable e eficiente.\n\nPara obter máis información sobre a visualización de datos e as opcións de descarga, visita o noso portal de datos abertos: https://opendata.tigregotico.pt\n\nValoramos a túa contribución e esperamos que nos axudes a crear unha mellor experiencia de software para todos.\n\nAceptas compartir datos anónimos connosco?"
+  },
+  "welcome.sh": {
     "title": "Instalación de Open Voice OS - Benvida",
     "content": "Ola! Benvido á instalación de Open Voice OS!\n\nEstamos encantados de presentarche Open Voice OS, o asistente de voz de código aberto que está a cambiar a forma na que interactuamos coa tecnoloxía.\n\nInstalar Open Voice OS é moi sinxelo e ábrelle a porta a un mundo máis cómodo a través do control por voz. Tanto se es un entusiasta da tecnoloxía como se simplemente queres simplificar as túas tarefas diarias, Open Voice OS está aquí para facerche a vida máis fácil.\n\nComeza a instalación hoxe mesmo e deixa que a túa voz te guíe cara ao futuro da tecnoloxía! 🌟"
   }
