@@ -243,7 +243,7 @@ function required_packages() {
     fi
 
     case "$DISTRO_NAME" in
-    debian | ubuntu | raspbian | linuxmint | zorin | neon)
+    debian | ubuntu | raspbian | linuxmint | zorin | neon | pop)
         UPDATE=1 apt_ensure python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
         ;;
     fedora)
