@@ -22,6 +22,15 @@ EOF
     assert_success
 }
 
+@test "function_required_packages_popos" {
+    DISTRO_NAME="pop"
+    function apt-get() {
+        exit 0
+    }
+    run required_packages
+    assert_success
+}
+
 @test "function_required_packages_raspbian" {
     DISTRO_NAME="raspbian"
     function apt-get() {
@@ -141,6 +150,15 @@ EOF
 
 @test "function_required_packages_debian_fail" {
     DISTRO_NAME="debian"
+    function apt-get() {
+        exit 1
+    }
+    run required_packages
+    assert_failure
+}
+
+@test "function_required_packages_popos_fail" {
+    DISTRO_NAME="pop"
     function apt-get() {
         exit 1
     }
