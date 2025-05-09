@@ -27,7 +27,7 @@ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-inst
 | openSUSE Leap       | `>= 15`   |
 | openSUSE Tumbleweed | `rolling` |
 | openSUSE Slowroll   | `rolling` |
-| Pop!_OS            | `>=22.04` |
+| Pop!_OS             | `>=22.04` |
 | Manjaro             | `rolling` |
 | Raspbian            | `10`      |
 | Raspberry Pi OS     | `>= 11`   |
