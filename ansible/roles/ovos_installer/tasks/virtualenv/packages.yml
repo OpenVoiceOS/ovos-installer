@@ -27,6 +27,7 @@
       - music123
       - sox
       - libsox-fmt-all
+      - libespeak-ng1
       - flac
       - mpv
       - libxslt1-dev
@@ -56,6 +57,7 @@
       - pkgconf-pkg-config
       - libicu-devel
       - portaudio-devel
+      - libespeak-ng1
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
 
@@ -68,6 +70,7 @@
       - alsa-lib-devel
       - libpulse-devel
       - libportaudio2
+      - libespeak-ng1
       - mpg123
       - sox
       - flac
@@ -90,6 +93,7 @@
       - mpv
       - libxslt
       - openblas
+      - espeak-ng
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "Archlinux"
 
