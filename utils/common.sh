@@ -302,13 +302,13 @@ function create_python_venv() {
     if [ "$USE_UV" == "true" ]; then
         export PIP_COMMAND="uv pip"
         if ! command -v uv &>>"$LOG_FILE"; then
-            pip3 install "uv>=0.4.10" &>>"$LOG_FILE"
+            pip3 install --no-cache-dir "uv>=0.4.10" &>>"$LOG_FILE"
         fi
     else
         export PIP_COMMAND="pip3"
     fi
 
-    $PIP_COMMAND install --upgrade pip setuptools &>>"$LOG_FILE"
+    $PIP_COMMAND install --no-cache-dir --upgrade pip setuptools &>>"$LOG_FILE"
     chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }
@@ -320,7 +320,7 @@ function install_ansible() {
     echo -ne "➤ Installing Ansible requirements in Python virtualenv... "
     ANSIBLE_VERSION="10.7.0"
     [ "$(ver "$PYTHON")" -lt "$(ver 3.10)" ] && ANSIBLE_VERSION="8.7.0"
-    $PIP_COMMAND install ansible=="$ANSIBLE_VERSION" docker==7.1.0 requests==2.32.3 &>>"$LOG_FILE"
+    $PIP_COMMAND install --no-cache-dir ansible=="$ANSIBLE_VERSION" docker==7.1.0 requests==2.32.3 &>>"$LOG_FILE"
     ansible-galaxy collection install -r ansible/requirements.yml &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }

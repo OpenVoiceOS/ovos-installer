@@ -1,14 +1,10 @@
 dev.env
 .dev_opts.json
 .idea
-*.code-workspace
-*.pyc
-*.swp
-*~
+.lock
 mimic
 /skills
 pocketsphinx-python
-*.egg-info/
 build
 dist
 tornado.web
@@ -26,6 +22,7 @@ doc/_build/
 .vscode
 .theia
 .venv/
+.ansible
 
 # Created by unit tests
 test/unittests/skills/test_skill/settings.json
