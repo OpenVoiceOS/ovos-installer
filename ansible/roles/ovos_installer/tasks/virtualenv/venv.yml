@@ -69,7 +69,7 @@
   moreati.uv.pip:
     name: numpy==1.26.4
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    state: present
+    state: forcereinstall
 
 - name: Install Open Voice OS in Python venv
   vars:
