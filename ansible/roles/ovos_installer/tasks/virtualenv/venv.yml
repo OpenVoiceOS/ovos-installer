@@ -65,12 +65,6 @@
     extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
   when: ansible_architecture == "aarch64" or ansible_architecture == "x86_64"
 
-- name: Ensure numpy==1.26.4 Python library is installed
-  moreati.uv.pip:
-    name: numpy==1.26.4
-    virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    state: forcereinstall
-
 - name: Install Open Voice OS in Python venv
   vars:
     _pip_args: "{{ '--pre' if ovos_installer_channel == 'development' else '' }}"
@@ -115,6 +109,12 @@
   when: item.state | bool
   tags:
     - skip_ansible_lint
+
+- name: Ensure numpy==1.26.4 Python library is installed
+  moreati.uv.pip:
+    name: numpy==1.26.4
+    virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    state: present
 
 # We are not using the file module but the command module because of performances "issue".
 # file module takes about 50 seconds on slow devices to finish.
