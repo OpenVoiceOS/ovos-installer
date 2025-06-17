@@ -65,10 +65,11 @@
     extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
   when: ansible_architecture == "aarch64" or ansible_architecture == "x86_64"
 
-- name: Force numpy==1.26.4 Python library
+- name: Ensure numpy==1.26.4 Python library is installed
   moreati.uv.pip:
     name: numpy==1.26.4
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    state: present
 
 - name: Install Open Voice OS in Python venv
   vars:
