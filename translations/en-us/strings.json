@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Open Voice OS Installation - Channels",
-    "content": "Open Voice OS has two main release channels:\n\n  - stable (recommended but not yet available)\n  - development\n\nThe stable release of Open Voice OS is a well-tested and reliable version suitable for everyday use.\n\nThe development release of Open Voice OS is intended for developers and enthusiasts who want to experiment with cutting-edge features and contribute to the platform's development.\n\nPlease select a channel:"
+    "content": "Open Voice OS has two main release channels:\n\n  - stable (default)\n  - testing (pretty stable)\n  - alpha (bleeding edge)\n\nThe stable release of Open Voice OS is the recommended version for most users. It is well-tested and includes all the latest features and improvements that have been deemed stable.\n\nThe testing release of Open Voice OS is a more experimental version that includes new features and improvements that are still being tested. It is generally stable but may have some bugs or issues.\n\nThe alpha release of Open Voice OS is the most experimental version, containing the latest features and changes that are still in development. It may be unstable and is not recommended for everyday use.\n\nPlease select a channel:"
   },
   "detection.sh": {
     "title": "Open Voice OS Installation - Detected",
@@ -66,7 +66,7 @@
   "usage_telemetry.sh": {
     "title": "Open Voice OS Installation - Usage Metrics",
     "content": "By choosing to share your usage metrics, you become a vital contributor to our ongoing efforts to continuously improve the performance and user experiences of our software. The data you provide will remain anonymous and is crucial in helping us refine intent matching, identify system weaknesses, and make informed decisions about future developments.\n\nIn return for your participation, we offer valuable insights into usage trends, failed intents, and personalized analytics through an interactive dashboard. This information can help you fine-tune the assistant to better suit your specific needs, ensuring a more enjoyable and efficient user experience.\n\nFor more information about data visualization and download options, please visit our Open Data portal: https://opendata.tigregotico.pt\n\nWe value your input and hope you'll join us in creating a better software experience for all!\n\nDo you accept to share anonymous data with us?"
-  },  
+  },
   "welcome.sh": {
     "title": "Open Voice OS Installation - Welcome",
     "content": "Hello and welcome to the Open Voice OS installation!\n\nWe're excited to introduce you to Open Voice OS, the open-source voice assistant that's changing the way we interact with technology.\n\nInstalling Open Voice OS is a breeze, and it opens up a world of possibilities for voice-controlled convenience. Whether you're a tech enthusiast or just looking to simplify your daily tasks, Open Voice OS is here to make your life easier.\n\nGet started with the installation today and let your voice guide you through the future of technology!🌟"

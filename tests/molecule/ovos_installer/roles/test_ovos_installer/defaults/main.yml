@@ -4,4 +4,4 @@ ovos_installer_uid: 1001
 ovos_installer_user_home: /home/ga-runner
 ovos_installer_method: containers
 ovos_installer_profile: ovos
-ovos_installer_channel: development
+ovos_installer_channel: stable

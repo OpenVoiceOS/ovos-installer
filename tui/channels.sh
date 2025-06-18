@@ -3,8 +3,8 @@
 # shellcheck source=locales/en-us/channels.sh
 source "tui/locales/$LOCALE/channels.sh"
 
-active_channel="development"
-available_channels=(development)
+active_channel="stable"
+available_channels=(stable testing alpha)
 
 whiptail_args=(
   --title "$TITLE"
