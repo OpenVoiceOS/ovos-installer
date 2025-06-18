@@ -1,7 +1,7 @@
 ---
 uninstall: false
 method: containers
-channel: development
+channel: stable
 profile: satellite
 hivemind:
   host: 192.168.100.50

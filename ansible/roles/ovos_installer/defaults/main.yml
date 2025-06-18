@@ -3,7 +3,7 @@ ovos_installer_ovos_docker_repo_url: https://github.com/OpenVoiceOS/ovos-docker.
 ovos_installer_ovos_docker_repo_branch: dev
 ovos_installer_hivemind_docker_repo_url: https://github.com/JarbasHiveMind/hivemind-docker.git
 ovos_installer_hivemind_docker_repo_branch: feat/initial
-ovos_installer_docker_image_tag: "{{ 'stable' if ovos_installer_channel == 'stable' else 'alpha' }}"
+ovos_installer_docker_image_tag: "{{ ovos_installer_channel | default('stable') }}"
 ovos_installer_docker_pull_policy: always
 ovos_installer_docker_compose_remove_orphans: true
 ovos_installer_docker_compose_remove_images: all

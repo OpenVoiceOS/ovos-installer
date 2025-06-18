@@ -1,14 +1,17 @@
 #!/bin/env bash
 
 CONTENT="
-Open Voice OS has two main release channels:
+Open Voice OS has three main release channels:
 
-  - stable (recommended but not yet available)
-  - development
+  - stable (default)
+  - testing (pretty stable)
+  - alpha (bleeding edge)
 
-The stable release of Open Voice OS is a well-tested and reliable version suitable for everyday use.
+The stable release of Open Voice OS is the recommended version for most users. It is well-tested and includes all the latest features and improvements that have been deemed stable.
 
-The development release of Open Voice OS is intended for developers and enthusiasts who want to experiment with cutting-edge features and contribute to the platform's development.
+The testing release of Open Voice OS is a more experimental version that includes new features and improvements that are still being tested. It is generally stable but may have some bugs or issues.
+
+The alpha release of Open Voice OS is the most experimental version, containing the latest features and changes that are still in development. It may be unstable and is not recommended for everyday use.
 
 Please select a channel:
 "
