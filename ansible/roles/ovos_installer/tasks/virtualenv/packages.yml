@@ -57,7 +57,7 @@
       - pkgconf-pkg-config
       - libicu-devel
       - portaudio-devel
-      - libespeak-ng1
+      - espeak-ng
     state: "{{ ovos_installer_uninstall }}"
   when: ansible_os_family == "RedHat"
 
