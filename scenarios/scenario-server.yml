@@ -1,7 +1,7 @@
 ---
 uninstall: false
 method: containers
-channel: development
+channel: stable
 profile: server
 features:
   skills: true

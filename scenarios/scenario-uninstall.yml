@@ -1,7 +1,7 @@
 ---
 uninstall: true
 method: containers
-channel: development
+channel: stable
 profile: satellite
 features:
   skills: false
