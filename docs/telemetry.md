@@ -13,7 +13,7 @@ Below is a list of the collected data _(please have a look to the [Ansible tempa
 | Data                   | Description                                              |
 | ---------------------- | -------------------------------------------------------- |
 | `architecture`         | CPU architecture where OVOS was installed                |
-| `channel`              | `stable` or `development` version of OVOS                |
+| `channel`              | `stable`, `testing` or `alpha` version of OVOS           |
 | `container`            | OVOS installed into containers                           |
 | `country`              | Country where OVOS has been installed                    |
 | `cpu_capable`          | Is the CPU supports AVX2 or SIMD instructions            |

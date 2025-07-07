@@ -94,7 +94,7 @@ function setup() {
 ---
 uninstall: false
 method: containers
-channel: stable
+channel: testing
 profile: ovos
 features:
   skills: true

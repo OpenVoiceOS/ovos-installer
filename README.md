@@ -81,7 +81,7 @@ cat <<EOF > ~/.config/ovos-installer/scenario.yaml
 ---
 uninstall: false
 method: containers
-channel: stable
+channel: testing
 profile: ovos
 features:
   skills: true
