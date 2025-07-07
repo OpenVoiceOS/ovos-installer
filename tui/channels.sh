@@ -3,8 +3,17 @@
 # shellcheck source=locales/en-us/channels.sh
 source "tui/locales/$LOCALE/channels.sh"
 
-active_channel="development"
-available_channels=(development)
+active_channel="testing"
+available_channels=(testing alpha)
+
+# Handle existing installation
+if [ -f "$INSTALLER_STATE_FILE" ]; then
+  if jq -e 'has("channel")' "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"; then
+    current_channel=$(jq -re '.channel' "$INSTALLER_STATE_FILE")
+    active_channel="$current_channel"
+    available_channels=("$current_channel")
+  fi
+fi
 
 whiptail_args=(
   --title "$TITLE"
@@ -31,3 +40,5 @@ if [ -z "$CHANNEL" ]; then
   source tui/methods.sh
   source tui/channels.sh
 fi
+
+jq -en --arg channel "$CHANNEL" '.channel += $channel' >"$TEMP_CHANNEL_FILE"

@@ -62,10 +62,12 @@ if [ -f "$SCENARIO_PATH" ]; then
                 export METHOD
                 ;;
             channel)
-                if [[ "${options[$option]}" == "development" ]]; then
-                    CHANNEL="development"
-                elif [[ "${options[$option]}" == "stable" ]]; then
+                if [[ "${options[$option]}" == "stable" ]]; then
                     CHANNEL="stable"
+                elif [[ "${options[$option]}" == "testing" ]]; then
+                    CHANNEL="testing"
+                elif [[ "${options[$option]}" == "alpha" ]]; then
+                    CHANNEL="alpha"
                 else
                     export SCENARIO_NOT_SUPPORTED="true"
                     break
@@ -188,7 +190,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                     break
                 fi
                 export SHARE_USAGE_TELEMETRY
-                ;;                
+                ;;
             *)
                 export SCENARIO_NOT_SUPPORTED="true"
                 ;;

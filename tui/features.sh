@@ -65,7 +65,7 @@ for FEATURE in $OVOS_FEATURES; do
 done
 
 if [ "$exit_status" -ne 1 ]; then
-  jq -en '.features += $ARGS.positional' --args "${FEATURES_STATE[@]}" > "$TEMP_FEATURES_FILE"
-  jq -es '.[0] * .[1]' "$TEMP_PROFILE_FILE" "$TEMP_FEATURES_FILE" > "$INSTALLER_STATE_FILE"
-  rm "$TEMP_FEATURES_FILE" "$TEMP_PROFILE_FILE"
+  jq -en '.features += $ARGS.positional' --args "${FEATURES_STATE[@]}" >"$TEMP_FEATURES_FILE"
+  jq -es '.[0] * .[1] * . [2]' "$TEMP_PROFILE_FILE" "$TEMP_FEATURES_FILE" "$TEMP_CHANNEL_FILE" >"$INSTALLER_STATE_FILE"
+  rm "$TEMP_FEATURES_FILE" "$TEMP_PROFILE_FILE" "$TEMP_CHANNEL_FILE"
 fi
