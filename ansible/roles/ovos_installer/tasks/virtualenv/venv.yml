@@ -69,7 +69,7 @@
   vars:
     _pip_args: "{{ '--pre' if ovos_installer_channel == 'development' else '' }}"
     _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
-    _pip_constraints: "{{ '--constraint _ovos_release' if ovos_installer_profile != 'satellite' else '' }}"
+    _pip_constraints: "--constraint {{ _ovos_release if ovos_installer_profile != 'satellite' else '' }}"
   moreati.uv.pip:
     requirements: "{{ item.file }}"
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
