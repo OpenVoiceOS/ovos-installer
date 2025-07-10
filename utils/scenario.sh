@@ -68,6 +68,9 @@ if [ -f "$SCENARIO_PATH" ]; then
                     CHANNEL="testing"
                 elif [[ "${options[$option]}" == "alpha" ]]; then
                     CHANNEL="alpha"
+                elif [[ "${options[$option]}" == "development" ]]; then
+		    echo "development channel has been deprecated and will be removed in a furture release." >&2
+                    CHANNEL="testing"
                 else
                     export SCENARIO_NOT_SUPPORTED="true"
                     break
