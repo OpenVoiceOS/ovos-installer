@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 # Global message
-content="Ao conectarse ao HiveMind Listener, os satélites HiveMind acceden a unha rede de coñecemento compartido e capacidades avanzadas, facilitando unha experiencia unificada e eficiente de asistente de voz e automatización."
+content="Ao se conectaren ao HiveMind Listener, os satélites HiveMind obteñen acceso a unha rede de coñecemento e capacidades compartidas, facilitando unha experiencia de asistente de voz e automatización unificada e eficiente."
 
 # Host
 CONTENT_HOST="
@@ -21,7 +21,7 @@ Introduce o porto do HiveMind Listener:
 CONTENT_KEY="
 $content
 
-Introduce a chave do HiveMind Listener asociada ao satélite:
+Introduce a clave do HiveMind Listener asociada ao satélite:
 "
 
 # Password
