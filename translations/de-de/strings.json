@@ -6,8 +6,8 @@
     "back_button": "Zurück"
   },
   "channels.sh": {
-    "title": "Open Voice OS Installationsversionen",
-    "content": "Für Open Voice OS gibt es zwei Versionen:\n- Stabil (empfohlen, aber noch nicht verfügbar)\n- Entwickler\n\nDie stabile Version von Open Voice OS ist eine gut getestete und zuverlässige Version für den täglichen Gebrauch.\n\nDie Entwicklungsversion von Open Voice OS ist für Entwickler und Enthusiasten gedacht, die den neusten Entwicklungen experimentieren und zur Weiterentwicklung der Plattform beitragen möchten..\n\nwähle eine Version:"
+    "title": "Open Voice OS-Installationskanäle",
+    "content": "Open Voice OS bietet drei Versionen:\n\n– stable (Standard)\n– testing (relativ stabil)\n– alpha (aktuellste Version)\n\nDie stabile Version von Open Voice OS ist für die meisten Nutzern empfehlenswert. Sie ist umfassend getestet und enthält alle aktuellen Funktionen und Verbesserungen, die als stabil gelten.\n\nDie Testversion von Open Voice OS ist eine experimentellere Version mit neuen Funktionen und Verbesserungen, die sich noch in der Testphase befinden. Sie ist grundsätzlich stabil, kann aber Fehler oder Probleme aufweisen.\n\nDie Alphaversion von Open Voice OS ist die experimentellste Version und enthält die neuesten Funktionen und Änderungen, die sich noch in der Entwicklung befinden. Sie kann instabil sein und wird nicht für den alltäglichen Gebrauch empfohlen.\n\nBitte wählen Sie eine Version:"
   },
   "detection.sh": {
     "title": "Eine vorhandene Open Voice OS Installation entdeckt",
@@ -16,13 +16,13 @@
   "features.sh": {
     "title": "Open Voice OS Funktionsauswahl",
     "content": "Bei der Wahl zwischen GUI (grafische Benutzeroberfläche) und Skills in Open Voice OS sollten Sie Ihre Vorlieben und Bedürfnisse berücksichtigen.\n\nDie GUI ist ein quelloffenes visuelles und Display-Framework für OVOS, das auf KDE Plasma läuft und mit Kirigami, unterstützt durch Qt, entwickelt wurde.\n\nSkills ermöglichen die Interaktion durch Sprache, z. B. für Aufgaben wie Hausautomatisierung, Informationsabfrage und die Steuerung intelligenter Geräte durch Sprachbefehle.\n\nBitte wählen Sie die zu aktivierenden Funktionen aus:",
-    "skill_description": "Lade eine Auswahl an OVOS skills",
+    "skill_description": "Laden Sie eine Auswahl an OVOS skills",
     "extra_skill_description": "Laden Sie zusätzliche OVOS-Skills",
     "gui_description": "Mit grafischer Benutzeroberfläche"
   },
   "finish.sh": {
     "title": "Open Voice OS Installations - Abschluß",
-    "content": "Die Installation wurde erfolgreich abgeschlossen! 🎉\n\nIhr Sprachassistent ist jetzt einsatzbereit. Wir freuen uns darauf, dass Sie das breite Spektrum an Funktionen und Möglichkeiten dieses Sprachassistenten erkunden können.\n\nWenn Sie die Skill-Funktion aktiviert haben, können Sie mit Ihrem Assistenten interagieren, indem Sie sagen:\n\n  - Hey Mycroft, wieviel Uhr ist es?\n  - Hey Mycroft, wie ist die Temperatur?\n  - Hey Mycroft, stelle einen Timer für drei Minuten!\n  - Hey Mycroft, wer hat dich gemacht?\n  - Hey Mycroft, wer ist Ada Lovelace?\n  - Hey Mycroft, was würde Duke Nukem sagen?\n\nDie Einstellungen Ihres Assistenten können in der Konfigurationsdatei $CONFIG_FILE geändert werden.\n\nSollten Sie in Zukunft Unterstützung oder Updates benötigen, können Sie sich gerne an uns wenden. Viel Spaß mit Open Voice OS!"
+    "content": "Die Installation wurde erfolgreich abgeschlossen! 🎉\n\nIhr Sprachassistent ist jetzt einsatzbereit. Wir freuen uns darauf, dass Sie das breite Spektrum an Funktionen und Möglichkeiten dieses Sprachassistenten erkunden können.\n\nWenn Sie die Skill-Funktion aktiviert haben, können Sie mit Ihrem Assistenten interagieren, indem Sie sagen:\n\n  - Hey Mycroft, wie spät ist es?\n  - Hey Mycroft, wie ist die Temperatur?\n  - Hey Mycroft, stelle einen Timer für drei Minuten!\n  - Hey Mycroft, wer hat dich gemacht?\n  - Hey Mycroft, wer ist Ada Lovelace?\n  - Hey Mycroft, was würde Duke Nukem sagen?\n\nDie Einstellungen Ihres Assistenten können in der Konfigurationsdatei $CONFIG_FILE geändert werden.\n\nSollten Sie in Zukunft Unterstützung oder Updates benötigen, können Sie sich gerne an uns wenden. Viel Spaß mit Open Voice OS!"
   },
   "methods.sh": {
     "title": "Open Voice OS Installation - Installationsumgebung",
@@ -38,10 +38,10 @@
     "title_key": "Open Voice OS Installation - Satellit 3 von 4",
     "title_password": "Open Voice OS Installation - Satellit 4 von 4",
     "content": "Durch die Verbindung mit dem HiveMind-Listener erhalten die HiveMind-Satelliten Zugang zu einem zentralen lokalen Dienst, der eine einheitliche und effiziente Sprachassistenz und Automatisierung ermöglicht.",
-    "content_host": "Gib den HiveMind listener host ein(DNS oder IP Addrese):",
-    "content_port": "Gib den HiveMind listener Port ein:",
-    "content_key": "Gib den HiveMind listener Zugangsschlüssel des Satelliten ein:",
-    "content_password": "Gib das HiveMind listener Passwort des Satelliten ein:"
+    "content_host": "Geben Sie  den DNS oder die IP Adresse des HiveMind Servers ein :",
+    "content_port": "Geben Sie die Portnummer des HiveMind Servers ein:",
+    "content_key": "Geben Sie den  Zugangsschlüssel des Satelliten für den HiveMind Server ein:",
+    "content_password": "Geben Sie das Passwort des Satelliten für den HiveMind Server  ein:"
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Zusammenfassung",
