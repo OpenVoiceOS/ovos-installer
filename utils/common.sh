@@ -56,7 +56,7 @@ function detect_user() {
     fi
 
     # Check for sudo or root user
-    if [ -n "$SUDO_USER" ]; then
+    if [ -n "$SUDO_USER" ] && [ "$EUID" -ne 0 ]; then
         # sudo user
         export RUN_AS="$SUDO_USER"
         export RUN_AS_UID="$SUDO_UID"
