@@ -3,8 +3,8 @@
 # shellcheck source=locales/en-us/channels.sh
 source "tui/locales/$LOCALE/channels.sh"
 
-active_channel="testing"
-available_channels=(testing alpha)
+active_channel="stable"
+available_channels=(stable testing alpha)
 
 # Handle existing installation
 if [ -f "$INSTALLER_STATE_FILE" ]; then
