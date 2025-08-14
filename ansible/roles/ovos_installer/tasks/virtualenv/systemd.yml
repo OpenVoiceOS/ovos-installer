@@ -308,7 +308,7 @@
         - "{{ ovos_installer_user_home }}/.config/OvosTheme"
         - "{{ ovos_installer_user_home }}/.config/OvosDisplay.conf"
         - "{{ ovos_installer_user_home }}/.config/ovos-installer"
-        - "{{ ovos_installer_user_home }}/.config/ovos-persona"
+        - "{{ ovos_installer_user_home }}/.config/ovos_persona"
         - "{{ ovos_installer_user_home }}/.local/share/mycroft"
         - "{{ ovos_installer_user_home }}/.local/share/OpenVoiceOS"
         - "{{ ovos_installer_user_home }}/.local/share/precise-lite"
