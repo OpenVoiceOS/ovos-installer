@@ -1,10 +1,9 @@
-ovos-core[skills-essential]
+ovos-core[skills-essential,skills-internet]
 
 {% if ovos_installer_profile != "server" %}
 ovos-core[skills-audio]
 {% endif %}
 
-# No PyPi release
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") or (ovos_installer_profile != "server") %}
 ovos-skill-ggwave
 {% endif %}
