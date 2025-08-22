@@ -48,7 +48,6 @@
     - name: Detect DISPLAY server number
       ansible.builtin.shell:
         cmd: |
-          set -e -o pipefail
           sed -zn 's/^DISPLAY=//p' /proc/*/environ | sort -zu | tr '\0' '\n'
         executable: /bin/bash
       register: _ovos_display_server_number
