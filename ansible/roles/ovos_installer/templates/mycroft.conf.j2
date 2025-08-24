@@ -50,7 +50,7 @@
 {% endif %}
 {% endif %}
   "websocket": {
-    "host": {{ '0.0.0.0' if ovos_installer_method == "containers" else '127.0.0.1' }},
+    "host": "{{ '0.0.0.0' if ovos_installer_method == "containers" else '127.0.0.1' }}",
     "max_msg_size": {{ 100 if ovos_installer_feature_gui | bool and ovos_installer_method == "containers" else 25 }}
   },
   "PHAL": {
