@@ -8,11 +8,11 @@ done_format="\e[32mdone\e[0m"
 fail_format="\e[31mfail\e[0m"
 
 # This function ask user agreement on uploading the content of
-# ovos-installer.log on https://dpaste.com. Without the user
+# ovos-installer.log on https://paste.uoi.io. Without the user
 # agreement this could lead to security infringement.
 function ask_optin() {
     while true; do
-        read -rp "Upload the log on https://dpaste.com website? (yes/no) " yn
+        read -rp "Upload the log on https://paste.uoi.io website? (yes/no) " yn
         case $yn in
         [Yy]*)
             return 0
@@ -32,7 +32,7 @@ function ask_optin() {
 function on_error() {
     echo -e "[$fail_format]\n"
     ask_optin
-    debug_url="$(curl -sF 'content=<-' https://dpaste.com/api/v2/ <"$LOG_FILE")"
+    debug_url="$(curl -sF 'content=<-' https://paste.uoi.io/api/ <"$LOG_FILE")"
     echo -e "Unable to continue the process, please check $LOG_FILE for more details."
     echo -e "Please share this URL with us $debug_url"
     exit 1
