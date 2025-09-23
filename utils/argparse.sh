@@ -65,5 +65,7 @@ function handle_options() {
     export SATELLITE_KEY="${SATELLITE_KEY:-}"
     export SATELLITE_PASSWORD="${SATELLITE_PASSWORD:-}"
     export UNINSTALL="${UNINSTALL:-false}"
+    export CONFIRM_UNINSTALL="${CONFIRM_UNINSTALL:-false}"
     export CONFIRM_UNINSTALL_CLI="${CONFIRM_UNINSTALL_CLI:-false}"
+    export INSTALLER_VERSION="${INSTALLER_VERSION:-unknown}"
 }
