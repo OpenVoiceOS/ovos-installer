@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 if [ -f "$SCENARIO_PATH" ]; then
     # Variables to store options, features and hivemind content

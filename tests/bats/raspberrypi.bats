@@ -7,6 +7,7 @@ function setup() {
     load ../../utils/common.sh
     LOG_FILE=/tmp/ovos-installer.log
     DT_FILE=/tmp/model
+    RASPBERRYPI_MODEL=""
 }
 
 @test "function_is_raspeberrypi_soc_detected" {

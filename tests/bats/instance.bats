@@ -6,6 +6,7 @@ function setup() {
     load ../../utils/constants.sh
     load ../../utils/common.sh
     LOG_FILE=/tmp/ovos-installer.log
+    RUN_AS_HOME="/home/testuser"
 }
 
 @test "function_detect_existing_instance_docker_exists" {

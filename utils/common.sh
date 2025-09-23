@@ -1,27 +1,27 @@
 #!/bin/env bash
+set -euo pipefail
 #
 # Functions in this file are mostly called by setup.sh but most of
 # the exported variables are consumed within the Ansible playbook.
 
-# Format the "done" and "fail" strings
 done_format="\e[32mdone\e[0m"
 fail_format="\e[31mfail\e[0m"
 
-# This function ask user agreement on uploading the content of
+# This function asks for user agreement on uploading the content of
 # ovos-installer.log on https://paste.uoi.io. Without the user
 # agreement this could lead to security infringement.
 function ask_optin() {
     while true; do
-        read -rp "Upload the log on https://paste.uoi.io website? (yes/no) " yn
+        read -rp "Upload the log on ${PASTE_URL} website? (yes/no) " yn
         case $yn in
         [Yy]*)
             return 0
             ;;
         [Nn]*)
-            echo -e "Unable to continue the process, please check $LOG_FILE for more details."
+            printf '%s\n' "Unable to continue the process, please check $LOG_FILE for more details."
             exit 1
             ;;
-        *) echo -e "Please answer (y)es or (n)o." ;;
+        *) printf '%s\n' "Please answer (y)es or (n)o." ;;
         esac
     done
 }
@@ -30,11 +30,11 @@ function ask_optin() {
 # This is mainly used in setup.sh to handle errors during the functions
 # execution.
 function on_error() {
-    echo -e "[$fail_format]\n"
+    echo -e "[$fail_format]"
     ask_optin
-    debug_url="$(curl -sF 'content=<-' https://paste.uoi.io/api/ <"$LOG_FILE")"
-    echo -e "Unable to continue the process, please check $LOG_FILE for more details."
-    echo -e "Please share this URL with us $debug_url"
+    debug_url="$(curl -sF 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE")"
+    printf '%s\n' "Unable to continue the process, please check $LOG_FILE for more details."
+    printf '%s\n' "Please share this URL with us $debug_url"
     exit 1
 }
 
@@ -50,55 +50,68 @@ function delete_log() {
 # Installer must be executed with super privileges but either
 # "root" or "sudo" can run this script, we need to know whom.
 function detect_user() {
-    if [ "$USER_ID" -ne 0 ]; then
-        echo -e "[$fail_format] This script must be run as root (not recommended) or with sudo\n"
-        exit 1
+    if [ "${USER_ID}" -ne 0 ]; then
+        echo -e "[$fail_format] This script must be run as root (not recommended) or with sudo"
+        exit "${EXIT_PERMISSION_DENIED}"
     fi
 
-    # Check for sudo or root user
-    if [ -n "$SUDO_USER" ]; then
-        # sudo user
-        export RUN_AS="$SUDO_USER"
-        export RUN_AS_UID="$SUDO_UID"
+    if [ -n "${SUDO_USER}" ]; then
+        export RUN_AS="${SUDO_USER}"
+        export RUN_AS_UID="${SUDO_UID}"
     else
-        while true; do
-            echo -e "Best pratices don't recommend running the installer as root user!"
-            read -rp "Do you really want to continue as you will be on your own? (yes/no) " yn
-            case $yn in
-            [Yy]*)
-                return 0
-                ;;
-            [Nn]*)
-                echo -e "\nSmart choice! Exiting the installer..."
-                exit 1
-                ;;
-            *) echo -e "Please answer (y)es or (n)o." ;;
-            esac
-        done
-        # root user
-        export RUN_AS="$USER"
-        export RUN_AS_UID="$EUID"
+        if [ -t 0 ]; then
+            while true; do
+                printf '%s\n' "Best practices don't recommend running the installer as root user!"
+                read -rp "Do you really want to continue as you will be on your own? (yes/no) " yn
+                case "${yn}" in
+                [Yy]*)
+                    return 0
+                    ;;
+                [Nn]*)
+                    printf '\n%s\n' "Smart choice! Exiting the installer..."
+                    exit 1
+                    ;;
+                *) printf '%s\n' "Please answer (y)es or (n)o." ;;
+                esac
+            done
+        else
+            printf '%s\n' "Non-interactive mode detected. Exiting as root user is not recommended."
+            exit "${EXIT_PERMISSION_DENIED}"
+        fi
+        export RUN_AS="${USER}"
+        export RUN_AS_UID="${EUID}"
     fi
-    RUN_AS_HOME=$(eval echo ~"$RUN_AS")
+    RUN_AS_HOME=$(eval echo ~"${RUN_AS}")
     export RUN_AS_HOME
     export VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
 }
 
 # Detect which sound server is running (if running), PulseAudio or PipeWire.
-# If PulseAudio is running, the function checks to see how the PulseAudio
-# service is started, is it via PulseAudio itself or via pipewire-pulse.
+# If PulseAudio is running, the function checks how the PulseAudio
+# service is started, whether via PulseAudio itself or via pipewire-pulse.
+#
+# This function sets the following environment variables:
+#   - PULSE_SERVER: Path to PulseAudio socket if detected
+#   - PULSE_COOKIE: Path to PulseAudio cookie if detected
+#   - SOUND_SERVER: Name of detected sound server or "N/A"
+#
+# Dependencies:
+#   - RUN_AS_UID: Must be set by detect_user()
+#   - RUN_AS_HOME: Must be set by detect_user()
+#
+# Returns:
+#   Always succeeds, sets SOUND_SERVER to "N/A" if no server detected
 function detect_sound() {
-    echo -ne "➤ Detecting sound server... "
-    # Looking for any pulse processes
-    if [[ "$(pgrep -a -f "pulse" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")" =~ "pulse" ]]; then
+    printf '%s' "➤ Detecting sound server... "
+    local pulse_processes
+    pulse_processes="$(pgrep -a -f "pulse" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")"
+    if [[ "$pulse_processes" =~ "pulse" ]]; then
         # PULSE_SERVER is required by pactl as it is executed via sudo
         # Detect if a PulseAudio socket exists either Linux or WSL2
         if [ -S "/run/user/${RUN_AS_UID}/pulse/native" ] && [ ! -S "$PULSE_SOCKET_WSL2" ]; then
-            # When running on Linux
             export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
             export PULSE_COOKIE="${RUN_AS_HOME}/.config/pulse/cookie"
         elif [ -S "$PULSE_SOCKET_WSL2" ]; then
-            # When running on WSL2
             export PULSE_SERVER="$PULSE_SOCKET_WSL2"
         fi
 
@@ -118,7 +131,7 @@ function detect_sound() {
         else
             export SOUND_SERVER="N/A"
         fi
-    # Looking for strictly for pipepire process
+    # Looking for pipewire process
     elif [ "$(pgrep -a -f "pipewire$" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")" == "pipewire" ]; then
         export SOUND_SERVER="PipeWire"
     else
@@ -132,7 +145,7 @@ function detect_sound() {
 # Ansible playbook to disable certain wake words and VAD plugin requiring
 # these features if AVX2 or SIMD are not detected.
 function detect_cpu_instructions() {
-    echo -ne "➤ Detecting AVX2/SIMD support... "
+    printf '%s' "➤ Detecting AVX2/SIMD support... "
     if grep -q -i -E "avx2|simd" /proc/cpuinfo; then
         export CPU_IS_CAPABLE="true"
     else
@@ -144,9 +157,9 @@ function detect_cpu_instructions() {
 # Look for existing or partial instance of Open Voice OS.
 # First Docker and Podman will be checked for ovos-* and/or hivemind-*
 # containers, if nothing was found then the function will check for
-# the Python virtual environement.
+# the Python virtual environment.
 function detect_existing_instance() {
-    echo -ne "➤ Checking for existing instance... "
+    printf '%s' "➤ Checking for existing instance... "
     if [ -n "$(docker ps -a --filter="name=ovos_core|ovos_messagebus|hivemind*" -q 2>>"$LOG_FILE")" ]; then
         export EXISTING_INSTANCE="true"
         export INSTANCE_TYPE="containers"
@@ -166,7 +179,7 @@ function detect_existing_instance() {
 # This function only works with systemd as it leveraged loginctl
 # to retrieve the session type.
 function detect_display() {
-    echo -ne "➤ Detecting display server... "
+    printf '%s' "➤ Detecting display server... "
     export DISPLAY_SERVER="N/A"
     local sessions
     sessions="$(loginctl | grep "$RUN_AS" | awk '{ print $1 }')"
@@ -184,7 +197,7 @@ function detect_display() {
 # Parse /sys/firmware/devicetree/base/model file if it exists and check
 # for "raspberrypi" string.
 function is_raspeberrypi_soc() {
-    echo -ne "➤ Checking for Raspberry Pi board... "
+    printf '%s' "➤ Checking for Raspberry Pi board... "
     RASPBERRYPI_MODEL="N/A"
     if [ -f "$DT_FILE" ]; then
         if grep -q -i raspberry "$DT_FILE"; then
@@ -205,9 +218,9 @@ function is_raspeberrypi_soc() {
 # Retrieve operating system information based on standard /etc/os-release
 # and Python command. This is used to display information to the user
 # about the platform where the installer is running on and where OVOS is
-# gonna be installed.
+# going to be installed.
 function get_os_information() {
-    echo -ne "➤ Retrieving OS information... "
+    printf '%s' "➤ Retrieving OS information... "
     if [ -f "$OS_RELEASE" ]; then
         ARCH="$(uname -m 2>>"$LOG_FILE")"
         KERNEL="$(uname -r 2>>"$LOG_FILE")"
@@ -216,9 +229,9 @@ function get_os_information() {
         # shellcheck source=/etc/os-release
         source "$OS_RELEASE"
 
-        export DISTRO_NAME="$ID"
-        export DISTRO_VERSION_ID="$VERSION_ID"
-        export DISTRO_VERSION="$VERSION"
+        export DISTRO_NAME="${ID:-unknown}"
+        export DISTRO_VERSION_ID="${VERSION_ID:-}"
+        export DISTRO_VERSION="${VERSION:-}"
         export ARCH KERNEL PYTHON
 
         # For debug purpose only
@@ -230,38 +243,84 @@ function get_os_information() {
     echo -e "[$done_format]"
 }
 
+# Install packages for Debian-based distributions
+function install_debian_packages() {
+    local extra_packages=("$@")
+    UPDATE=1 apt_ensure python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+}
+
+# Install packages for Fedora-based distributions
+function install_fedora_packages() {
+    local extra_packages=("$@")
+    dnf install -y python3 python3-devel python3-pip python3-virtualenv python3-libdnf5 newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+}
+
+# Install packages for Red Hat-based distributions
+function install_rhel_packages() {
+    local extra_packages=("$@")
+    dnf install -y python3 python3-devel python3-pip newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+}
+
+# Install packages for openSUSE distributions
+function install_opensuse_packages() {
+    local extra_packages=("$@")
+    zypper install --no-recommends -y python3 python3-devel python3-pip python3-rpm newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+}
+
+# Install packages for Arch-based distributions
+function install_arch_packages() {
+    local extra_packages=("$@")
+    pacman -Sy --noconfirm python python-pip python-virtualenv libnewt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+}
+
 # Install packages required by the installer based on retrieved information
 # from get_os_information() function. If the operating system is not supported then
 # the installer will exit with a message.
+#
+# This function validates that required environment variables are set and
+# delegates package installation to distro-specific functions.
+#
+# Dependencies:
+#   - DISTRO_NAME: Must be set by get_os_information()
+#   - RASPBERRYPI_MODEL: Optional, set by is_raspeberrypi_soc()
+#
+# Returns:
+#   0 on success, exits with EXIT_OS_NOT_SUPPORTED for unsupported distros
 function required_packages() {
-    echo -ne "➤ Validating installer package requirements... "
+    # Input validation
+    if [ -z "${DISTRO_NAME}" ]; then
+        echo "Error: DISTRO_NAME is not set. Run get_os_information() first." >&2
+        exit "${EXIT_MISSING_DEPENDENCY}"
+    fi
+
+    printf '%s' "➤ Validating installer package requirements... "
     # Add extra packages if a Raspberry Pi board is detected
-    declare extra_packages
-    if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
+    local extra_packages=()
+    if [ "${RASPBERRYPI_MODEL}" != "N/A" ]; then
         extra_packages+=("i2c-tools")
         extra_packages+=("iw")
     fi
 
-    case "$DISTRO_NAME" in
+    case "${DISTRO_NAME}" in
     debian | ubuntu | raspbian | linuxmint | zorin | neon | pop)
-        UPDATE=1 apt_ensure python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        install_debian_packages "${extra_packages[@]}"
         ;;
     fedora)
-        dnf install -y python3 python3-devel python3-pip python3-virtualenv python3-libdnf5 newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        install_fedora_packages "${extra_packages[@]}"
         ;;
     almalinux | rocky | centos)
-        dnf install -y python3 python3-devel python3-pip newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        install_rhel_packages "${extra_packages[@]}"
         ;;
     opensuse-tumbleweed | opensuse-leap | opensuse-slowroll)
-        zypper install --no-recommends -y python3 python3-devel python3-pip python3-rpm newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        install_opensuse_packages "${extra_packages[@]}"
         ;;
     arch | manjaro | endeavouros)
-        pacman -Sy --noconfirm python python-pip python-virtualenv libnewt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+        install_arch_packages "${extra_packages[@]}"
         ;;
     *)
         echo -e "[$fail_format]"
-        echo "Operating system not supported." | tee -a "$LOG_FILE"
-        exit 1
+        echo "Operating system not supported." | tee -a "${LOG_FILE}"
+        exit "${EXIT_OS_NOT_SUPPORTED}"
         ;;
     esac
     echo -e "[$done_format]"
@@ -271,7 +330,7 @@ function required_packages() {
 # setuptools package.Permissions on the virtual environment are set
 # to match the target user.
 function create_python_venv() {
-    echo -ne "➤ Creating installer Python virtualenv... "
+    printf '%s' "➤ Creating installer Python virtualenv... "
 
     # Make sure Python version is higher then 3.8.
     if [ "$(ver "$PYTHON")" -lt "$(ver 3.9)" ]; then
@@ -317,7 +376,7 @@ function create_python_venv() {
 # Ansible's collections required by the Ansible playbook as well. These
 # collections will be installed under the /root/.ansible directory.
 function install_ansible() {
-    echo -ne "➤ Installing Ansible requirements in Python virtualenv... "
+    printf '%s' "➤ Installing Ansible requirements in Python virtualenv... "
     ANSIBLE_VERSION="10.7.0"
     [ "$(ver "$PYTHON")" -lt "$(ver 3.10)" ] && ANSIBLE_VERSION="8.7.0"
     $PIP_COMMAND install --no-cache-dir ansible=="$ANSIBLE_VERSION" docker==7.1.0 requests==2.32.3 &>>"$LOG_FILE"
@@ -325,7 +384,7 @@ function install_ansible() {
     echo -e "[$done_format]"
 }
 
-# Downloads the yq tool from GitHub to parse YAML scenerio file.
+# Downloads the yq tool from GitHub to parse YAML scenario file.
 # The binary will be downloaded based on the found operating system and CPU
 # architecture.
 function download_yq() {
@@ -346,7 +405,7 @@ function download_yq() {
 # installation like when running within a CI or when industrial deployments
 # are required.
 function detect_scenario() {
-    echo -ne "➤ Looking for automated scenario... "
+    printf '%s' "➤ Looking for automated scenario... "
     SCENARIO_PATH="$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME"
     export SCENARIO_FOUND="false"
     if [ -f "$SCENARIO_PATH" ]; then
@@ -395,7 +454,7 @@ function in_array() {
 # handles the boot process, etc...
 function wsl2_requirements() {
     if [[ "$KERNEL" == *"microsoft"* ]]; then
-        echo -ne "➤ Validating WSL2 requirements... "
+        printf '%s' "➤ Validating WSL2 requirements... "
         if ! grep -q "systemd=true" "$WSL_FILE" &>>"$LOG_FILE"; then
             echo "systemd=true must be added to $WSL_FILE" &>>"$LOG_FILE"
             return 1
@@ -404,17 +463,16 @@ function wsl2_requirements() {
     fi
 }
 
-# This is a helper to strip the point from sementic versioning such as 3.9 or
+# This is a helper to strip the point from semantic versioning such as 3.9 or
 # 6.5.3. Mostly useful when comparing Python or kernel version.
 function ver() {
     # shellcheck disable=SC2046
     printf "%03d" $(echo "$1" | tr '.' ' ')
 }
 
-# Check if a specific hexacidemal address exists on the I2C bus.
-# This function takes an argument like "2f", this will be converted
-# to "0x2f".
-# It will be only used when a Raspberry Pi board is detected.
+# Check if a specific hexadecimal address exists on the I2C bus.
+# Takes an argument like "2f" which is converted to "0x2f".
+# Only used when a Raspberry Pi board is detected.
 function i2c_get() {
     if i2cdetect -y -a "$I2C_BUS" "0x$1" "0x$1" 2>>"$LOG_FILE" | grep -Eq "$1|UU"; then
         return 0
@@ -426,7 +484,7 @@ function i2c_get() {
 # This function will only run if a Raspberry Pi board is detected.
 function i2c_scan() {
     if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
-        echo -ne "➤ Scan I2C bus for hardware auto-detection..."
+        printf '%s' "➤ Scan I2C bus for hardware auto-detection..."
 
         # Load I2C requirements if not already, nothing persistent here as
         # it will be handled later by the Ansible playbook.

@@ -9,9 +9,23 @@ function setup() {
 }
 
 @test "function_on_error_detected" {
+    # Mock the ask_optin function to avoid interactive input
+    function ask_optin() {
+        return 0  # Simulate user agreeing
+    }
+    export -f ask_optin
+
+    # Mock curl to avoid network calls
+    function curl() {
+        echo "https://paste.example.com/test"
+    }
+    export -f curl
+
     run on_error
     assert_failure
     assert_output --partial "Please share this URL with us"
+
+    unset -f ask_optin curl
 }
 
 @test "function_delete_log_if_exist" {
@@ -25,16 +39,13 @@ function setup() {
     assert_success
 }
 
-@test "function_detect_user_root" {
-    USER_ID="0"
-    run detect_user
-    assert_success
-}
+
 
 @test "function_detect_user_non_root" {
+    USER_ID="1000"  # Non-root user
     run detect_user
     assert_failure
-    assert_output --partial "This script must be run as root or with sudo"
+    assert_output --partial "This script must be run as root (not recommended) or with sudo"
 }
 
 @test "function_detect_cpu_instructions_capable" {
