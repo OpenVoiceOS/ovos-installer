@@ -113,7 +113,7 @@ function detect_user() {
 function detect_sound() {
     printf '%s' "➤ Detecting sound server... "
     local pulse_processes
-    pulse_processes="$(pgrep -a -f "pulse" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")"
+    pulse_processes="$( (pgrep -a -f "pulse" 2>>"$LOG_FILE" || true) | awk -F"/" '{ print $NF }' )"
     if [[ "$pulse_processes" =~ "pulse" ]]; then
         # PULSE_SERVER is required by pactl as it is executed via sudo
         # Detect if a PulseAudio socket exists either Linux or WSL2
@@ -141,7 +141,7 @@ function detect_sound() {
             export SOUND_SERVER="N/A"
         fi
     # Looking for pipewire process
-    elif [ "$(pgrep -a -f "pipewire$" | awk -F"/" '{ print $NF }' 2>>"$LOG_FILE")" == "pipewire" ]; then
+    elif [ "$( (pgrep -a -f "pipewire$" 2>>"$LOG_FILE" || true) | awk -F"/" '{ print $NF }' )" == "pipewire" ]; then
         export SOUND_SERVER="PipeWire"
     else
         export SOUND_SERVER="N/A"
