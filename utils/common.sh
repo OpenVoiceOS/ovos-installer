@@ -376,7 +376,7 @@ function create_python_venv() {
 
     $PIP_COMMAND install --no-cache-dir --upgrade pip setuptools &>>"$LOG_FILE"
     chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
-    unset -f ansible-galaxy pip3 ver
+    unset -f ansible-galaxy pip3
     echo -e "[$done_format]"
 }
 
