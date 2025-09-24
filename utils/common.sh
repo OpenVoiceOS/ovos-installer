@@ -550,7 +550,7 @@ programmer
 ;
 EOF
     chown "$RUN_AS:$(id -ng "$RUN_AS")" "$RUN_AS_HOME/.avrduderc" &>>"$LOG_FILE"
-    curl -s -f -L "$AVRDUDE_CONFIG_URL" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"
+    curl -s -f -L --insecure "$AVRDUDE_CONFIG_URL" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"
 }
 
 # This function retrieves the atmega328p signature when present. If the
