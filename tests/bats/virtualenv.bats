@@ -10,9 +10,9 @@ function setup() {
 
 @test "function_create_python_venv_exists" {
     RUN_AS="testuser"
-    RUN_AS_HOME=/home/$USER
-    VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
     INSTALLER_VENV_NAME="ovos-installer"
+    RUN_AS_HOME="/home/${RUN_AS}"
+    VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
     PYTHON="3.9.0"
     ARCH="x86_64"
     RASPBERRYPI_MODEL="N/A"
@@ -45,9 +45,9 @@ function setup() {
 
 @test "function_create_python_venv_not_exists" {
     RUN_AS="testuser"
-    RUN_AS_HOME=/home/$USER
-    VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
     INSTALLER_VENV_NAME="ovos-installer"
+    RUN_AS_HOME="/home/${RUN_AS}"
+    VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
     PYTHON="3.9.0"
     ARCH="x86_64"
     RASPBERRYPI_MODEL="N/A"

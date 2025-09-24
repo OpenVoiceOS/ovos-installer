@@ -32,10 +32,17 @@ function ask_optin() {
 function on_error() {
     echo -e "[$fail_format]"
     ask_optin
-    debug_url="$(curl -sF 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE")"
-    printf '%s\n' "Unable to continue the process, please check $LOG_FILE for more details."
-    printf '%s\n' "Please share this URL with us $debug_url"
-    exit 1
+    cat "$ANSIBLE_LOG_FILE" >>"$LOG_FILE"
+    if command -v curl >/dev/null 2>&1; then
+        debug_url="$(curl -sSf -m 10 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" || true)"
+    fi
+    printf '\n%s\n' "➤ Unable to finalize the process, please check $LOG_FILE for more details."
+    if [ -n "${debug_url:-}" ]; then
+        printf '%s\n' "➤ Please share this URL with us $debug_url"
+    else
+        printf '%s\n' "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
+    fi
+    exit "${EXIT_FAILURE}"
 }
 
 # Delete installer log file if existing from previous run.
@@ -369,6 +376,7 @@ function create_python_venv() {
 
     $PIP_COMMAND install --no-cache-dir --upgrade pip setuptools &>>"$LOG_FILE"
     chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
+    unset -f ansible-galaxy pip3 ver
     echo -e "[$done_format]"
 }
 

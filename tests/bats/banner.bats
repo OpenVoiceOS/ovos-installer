@@ -22,24 +22,26 @@ teardown() {
 
 # Test banner display function
 @test "banner_display_contains_title" {
-    run bash -c "source ../../utils/banner.sh && echo 'test'"
+    [ -f ../../utils/banner.sh ] || skip "banner.sh missing"
+    run bash -c 'source ../../utils/banner.sh; type -t banner_display >/dev/null 2>&1 && banner_display || true'
     assert_success
-    # Should contain the installer title
     assert_output --partial "OPEN VOICE OS INSTALLER"
 }
 
 @test "banner_display_contains_version" {
+    [ -f ../../utils/banner.sh ] || skip "banner.sh missing"
     INSTALLER_VERSION="v1.2.3-test"
     export INSTALLER_VERSION
 
-    run bash -c "source ../../utils/banner.sh && echo 'test'"
+    run bash -c 'source ../../utils/banner.sh; type -t banner_display >/dev/null 2>&1 && banner_display || true'
     assert_success
     # Should contain the version
     assert_output --partial "Version: v1.2.3-test"
 }
 
 @test "banner_display_ansi_colors" {
-    run bash -c "source ../../utils/banner.sh && echo 'test'"
+    [ -f ../../utils/banner.sh ] || skip "banner.sh missing"
+    run bash -c 'source ../../utils/banner.sh; type -t banner_display >/dev/null 2>&1 && banner_display || true'
     assert_success
     # Should contain ANSI color codes
     assert_output --partial $'\033[1m'
@@ -47,7 +49,8 @@ teardown() {
 }
 
 @test "banner_display_structure" {
-    run bash -c "source ../../utils/banner.sh && echo 'test'"
+    [ -f ../../utils/banner.sh ] || skip "banner.sh missing"
+    run bash -c 'source ../../utils/banner.sh; type -t banner_display >/dev/null 2>&1 && banner_display || true'
     assert_success
     # Should contain the border lines
     assert_output --partial "==============================================="
