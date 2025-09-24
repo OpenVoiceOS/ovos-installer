@@ -125,13 +125,13 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     fi
   else
     rm -rf "$VENV_PATH" /root/.ansible
-    echo -e "\n➤ Open Voice OS has been successfully uninstalled."
+    printf '\n%s\n' "➤ Open Voice OS has been successfully uninstalled."
   fi
 else
   # Concatenate Ansible log with installer log
-  cat $ANSIBLE_LOG_FILE >>$LOG_FILE
-  debug_url="$(curl -sF 'content=<-' https://dpaste.com/api/v2/ <"$LOG_FILE")"
-  echo -e "\n➤ Unable to finalize the process, please check $LOG_FILE for more details."
-  echo -e "➤ Please share this URL with us $debug_url"
-  exit 1
+  cat "$ANSIBLE_LOG_FILE" >>"$LOG_FILE"
+  debug_url="$(curl -sF 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE")"
+  printf '\n%s\n' "➤ Unable to finalize the process, please check $LOG_FILE for more details."
+  printf '%s\n' "➤ Please share this URL with us $debug_url"
+  exit "${EXIT_FAILURE}"
 fi

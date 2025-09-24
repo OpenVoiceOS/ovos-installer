@@ -6,14 +6,20 @@ function setup() {
     load ../../utils/constants.sh
     load ../../utils/common.sh
     LOG_FILE=/tmp/ovos-installer.log
+    RUN_AS="testuser"
+    RASPBERRYPI_MODEL="N/A"
 }
 
 @test "function_detect_display_x11" {
     function loginctl() {
-        echo "x11"
+        if [[ "$*" == *"show-session"* ]]; then
+            echo "x11"
+        else
+            echo "3 testuser seat0 x11"
+        fi
     }
-    sessions="3"
     export -f loginctl
+    DISPLAY_SERVER=""
     detect_display
     assert_equal "$DISPLAY_SERVER" "x11"
     unset loginctl
@@ -21,10 +27,14 @@ function setup() {
 
 @test "function_detect_display_wayland" {
     function loginctl() {
-        echo "wayland"
+        if [[ "$*" == *"show-session"* ]]; then
+            echo "wayland"
+        else
+            echo "6 testuser seat0 wayland"
+        fi
     }
-    sessions="6"
     export -f loginctl
+    DISPLAY_SERVER=""
     detect_display
     assert_equal "$DISPLAY_SERVER" "wayland"
     unset loginctl
@@ -32,10 +42,14 @@ function setup() {
 
 @test "function_detect_display_no_display" {
     function loginctl() {
-        echo "tty"
+        if [[ "$*" == *"show-session"* ]]; then
+            echo "tty"
+        else
+            echo "11 testuser seat0 tty"
+        fi
     }
-    sessions="11"
     export -f loginctl
+    DISPLAY_SERVER=""
     detect_display
     assert_equal "$DISPLAY_SERVER" "N/A"
     unset loginctl

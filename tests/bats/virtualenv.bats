@@ -9,37 +9,88 @@ function setup() {
 }
 
 @test "function_create_python_venv_exists" {
-    RUN_AS_HOME=/home/$USER
+    RUN_AS="testuser"
+    INSTALLER_VENV_NAME="ovos-installer"
+    RUN_AS_HOME="/home/${RUN_AS}"
     VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
+    PYTHON="3.9.0"
+    ARCH="x86_64"
+    RASPBERRYPI_MODEL="N/A"
+    USE_UV="false"
+    REUSE_CACHED_ARTIFACTS="false"
+
+    function python3() {
+        return 0  # Mock python3 command
+    }
     function source() {
-        return 0
+        return 0  # Mock source command
     }
     function pip3() {
-        return 0
+        return 0  # Mock pip3 command
     }
-    export -f source pip3
+    function chown() {
+        return 0  # Mock chown command
+    }
+    function ver() {
+        echo "003009000"  # Mock version comparison
+    }
+    export -f python3 source pip3 chown ver
+
     run mkdir -p "$VENV_PATH"
     run create_python_venv
     assert_success
-    unset source pip3
+
+    unset -f python3 source pip3 chown ver
 }
 
 @test "function_create_python_venv_not_exists" {
-    RUN_AS_HOME=/home/$USER
+    RUN_AS="testuser"
+    INSTALLER_VENV_NAME="ovos-installer"
+    RUN_AS_HOME="/home/${RUN_AS}"
     VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
+    PYTHON="3.9.0"
+    ARCH="x86_64"
+    RASPBERRYPI_MODEL="N/A"
+    USE_UV="false"
+    REUSE_CACHED_ARTIFACTS="false"
+
     function python3() {
-        return 0
+        return 0  # Mock python3 command
     }
     function source() {
-        return 0
+        return 0  # Mock source command
     }
     function pip3() {
-        return 0
+        return 0  # Mock pip3 command
     }
-    export -f python3 source pip3
+    function chown() {
+        return 0  # Mock chown command
+    }
+    function ver() {
+        echo "003009000"  # Mock version comparison
+    }
+    export -f python3 source pip3 chown ver
+
     run create_python_venv
     assert_success
-    unset python3 source pip3
+
+    unset -f python3 source pip3 chown ver
+}
+
+# Test install_ansible function (mocked)
+@test "function_install_ansible_success" {
+    PYTHON="3.9"
+    PIP_COMMAND="pip3"
+    function ver() {
+        printf "%03d%03d%03d" 3 9 0
+    }
+    function pip3() { return 0; }
+    function ansible-galaxy() { return 0; }
+    export -f ver pip3 ansible-galaxy
+
+    run install_ansible
+    assert_success
+    unset -f ver pip3 ansible-galaxy
 }
 
 function teardown() {

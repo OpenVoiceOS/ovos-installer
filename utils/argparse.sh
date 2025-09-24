@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # Usage instruction for available arguments
 function usage() {
@@ -10,10 +11,10 @@ function usage() {
     echo
 }
 
-# Parse the arguments passed to the command line.
+# Parse command line arguments, handling both short and long options
 # We are not using getopts as it only handles short arguments
-# such as -v where this method handle short and long arguments
-# such as --verbode
+# such as -v where this method handles short and long arguments
+# such as --verbose
 function handle_options() {
     while [ $# -gt 0 ]; do
         case $1 in
@@ -47,5 +48,24 @@ function handle_options() {
     # speeds up the installer, but could result in errors if it is in a dirty
     # state. This is mainly useful when debugging the installer.
     export REUSE_CACHED_ARTIFACTS="${REUSE_CACHED_ARTIFACTS:-false}"
-}
 
+    # Set default values for variables that may not be set
+    export DEBUG="${DEBUG:-false}"
+    export METHOD="${METHOD:-virtualenv}"
+    export PROFILE="${PROFILE:-ovos}"
+    export CHANNEL="${CHANNEL:-stable}"
+    export TUNING="${TUNING:-no}"
+    export SHARE_TELEMETRY="${SHARE_TELEMETRY:-false}"
+    export SHARE_USAGE_TELEMETRY="${SHARE_USAGE_TELEMETRY:-false}"
+    export FEATURE_SKILLS="${FEATURE_SKILLS:-true}"
+    export FEATURE_EXTRA_SKILLS="${FEATURE_EXTRA_SKILLS:-false}"
+    export FEATURE_GUI="${FEATURE_GUI:-false}"
+    export HIVEMIND_HOST="${HIVEMIND_HOST:-}"
+    export HIVEMIND_PORT="${HIVEMIND_PORT:-}"
+    export SATELLITE_KEY="${SATELLITE_KEY:-}"
+    export SATELLITE_PASSWORD="${SATELLITE_PASSWORD:-}"
+    export UNINSTALL="${UNINSTALL:-false}"
+    export CONFIRM_UNINSTALL="${CONFIRM_UNINSTALL:-false}"
+    export CONFIRM_UNINSTALL_CLI="${CONFIRM_UNINSTALL_CLI:-false}"
+    export INSTALLER_VERSION="${INSTALLER_VERSION:-unknown}"
+}

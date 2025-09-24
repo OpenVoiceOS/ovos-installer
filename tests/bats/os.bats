@@ -10,6 +10,7 @@ function setup() {
     WSL_FILE=/tmp/wsl.conf
     cat <<EOF >"$OS_RELEASE"
 VERSION="39 (Workstation Edition)"
+VERSION_ID="39"
 ID=fedora
 EOF
     cat <<EOF >"$WSL_FILE"

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+set -euo pipefail
+
+# Safe defaults for strict mode
+: "${SCENARIO_PATH:=}"
+: "${YQ_BINARY_PATH:=yq}"
 
 if [ -f "$SCENARIO_PATH" ]; then
     # Variables to store options, features and hivemind content
