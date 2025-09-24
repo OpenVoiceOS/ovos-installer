@@ -535,18 +535,19 @@ function setup_avrdude() {
     chmod 0755 "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
 
     cat <<EOF >"$RUN_AS_HOME/.avrduderc"
-    # Mark 1 pinout
-    programmer
-      id                     = "linuxgpio";
-      desc                   = "Use the Linux sysfs interface to bitbang GPIO lines";
-      type                   = "linuxgpio";
-      connection_type        = linuxgpio;
-      prog_modes             = PM_ISP;
-      reset                  = 22;
-      sck                    = 27;
-      sdo                    = 24;
-      sdi                    = 17;
-    ;
+# Mark 1 pinout
+programmer
+  id               = "linuxgpio_rpi";
+  desc             = "Raspberry Pi 3B libgpiod bitbang (BCM: RST=22,SCK=27,SDO=24,SDI=17)";
+  type             = "linuxgpio";
+  connection_type  = linuxgpio;
+  prog_modes       = PM_ISP;
+
+  reset = 22;   # BCM numbers
+  sck   = 27;
+  sdo   = 24;   # MOSI
+  sdi   = 17;   # MISO
+;
 EOF
     chown "$RUN_AS:$(id -ng "$RUN_AS")" "$RUN_AS_HOME/.avrduderc" &>>"$LOG_FILE"
     curl -s -f -L "$AVRDUDE_CONFIG_URL" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"
