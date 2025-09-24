@@ -84,11 +84,13 @@ function setup() {
     function ver() {
         printf "%03d%03d%03d" 3 9 0
     }
-    export -f ver
+    function pip3() { return 0; }
+    function ansible-galaxy() { return 0; }
+    export -f ver pip3 ansible-galaxy
 
     run install_ansible
     assert_success
-    unset -f ver
+    unset -f ver pip3 ansible-galaxy
 }
 
 function teardown() {

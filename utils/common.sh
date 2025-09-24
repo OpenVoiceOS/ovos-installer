@@ -32,7 +32,9 @@ function ask_optin() {
 function on_error() {
     echo -e "[$fail_format]"
     ask_optin
-    cat "$ANSIBLE_LOG_FILE" >>"$LOG_FILE"
+    if [ -n "${ANSIBLE_LOG_FILE:-}" ] && [ -f "$ANSIBLE_LOG_FILE" ]; then
+        cat "$ANSIBLE_LOG_FILE" >>"$LOG_FILE"
+    fi
     if command -v curl >/dev/null 2>&1; then
         debug_url="$(curl -sSf -m 10 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" || true)"
     fi
@@ -57,14 +59,14 @@ function delete_log() {
 # Installer must be executed with super privileges but either
 # "root" or "sudo" can run this script, we need to know whom.
 function detect_user() {
-    if [ "${USER_ID}" -ne 0 ]; then
+    if [ "${USER_ID:-$(id -u)}" -ne 0 ]; then
         echo -e "[$fail_format] This script must be run as root (not recommended) or with sudo"
         exit "${EXIT_PERMISSION_DENIED}"
     fi
 
-    if [ -n "${SUDO_USER}" ]; then
+    if [ -n "${SUDO_USER:-}" ]; then
         export RUN_AS="${SUDO_USER}"
-        export RUN_AS_UID="${SUDO_UID}"
+        export RUN_AS_UID="${SUDO_UID:-$(id -u "${SUDO_USER}")}"
     else
         if [ -t 0 ]; then
             while true; do
@@ -295,7 +297,7 @@ function install_arch_packages() {
 #   0 on success, exits with EXIT_OS_NOT_SUPPORTED for unsupported distros
 function required_packages() {
     # Input validation
-    if [ -z "${DISTRO_NAME}" ]; then
+    if [ -z "${DISTRO_NAME:-}" ]; then
         echo "Error: DISTRO_NAME is not set. Run get_os_information() first." >&2
         exit "${EXIT_MISSING_DEPENDENCY}"
     fi
@@ -303,7 +305,7 @@ function required_packages() {
     printf '%s' "➤ Validating installer package requirements... "
     # Add extra packages if a Raspberry Pi board is detected
     local extra_packages=()
-    if [ "${RASPBERRYPI_MODEL}" != "N/A" ]; then
+    if [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
         extra_packages+=("i2c-tools")
         extra_packages+=("iw")
     fi
@@ -375,7 +377,7 @@ function create_python_venv() {
     fi
 
     $PIP_COMMAND install --no-cache-dir --upgrade pip setuptools &>>"$LOG_FILE"
-    chown "$RUN_AS":"$(id -ng "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
+    chown "$RUN_AS":"$(id -ng "$RUN_AS" 2>>"$LOG_FILE" || echo "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
     unset -f ansible-galaxy pip3
     echo -e "[$done_format]"
 }
