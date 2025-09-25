@@ -28,6 +28,7 @@
       - sox
       - libsox-fmt-all
       - libespeak-ng1
+      - espeak-ng
       - flac
       - mpv
       - libxslt1-dev
