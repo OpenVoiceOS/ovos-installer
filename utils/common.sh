@@ -308,6 +308,7 @@ function required_packages() {
     if [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
         extra_packages+=("i2c-tools")
         extra_packages+=("iw")
+        extra_packages+=("libhidapi-libusb0")
     fi
 
     case "${DISTRO_NAME}" in
