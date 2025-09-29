@@ -66,12 +66,8 @@ done
 
 if [ "$exit_status" -ne 1 ]; then
   jq -en '.features += $ARGS.positional' --args "${FEATURES_STATE[@]}" >"$TEMP_FEATURES_FILE"
-  if [ ! -f "$TEMP_PROFILE_FILE" ]; then
-    jq -n '{}' > "$TEMP_PROFILE_FILE"
-  fi
-  if [ ! -f "$TEMP_CHANNEL_FILE" ]; then
-    jq -n '{}' > "$TEMP_CHANNEL_FILE"
-  fi
-  jq -es '.[0] * .[1] * . [2]' "$TEMP_PROFILE_FILE" "$TEMP_FEATURES_FILE" "$TEMP_CHANNEL_FILE" >"$INSTALLER_STATE_FILE"
-  rm "$TEMP_FEATURES_FILE" "$TEMP_PROFILE_FILE" "$TEMP_CHANNEL_FILE"
+  # Coerce any non-object (missing/null/invalid) to {} then merge left-to-right
+  jq -s 'map(if type=="object" then . else {} end) | reduce .[] as $o ({}; . * $o)' \
+    "$TEMP_PROFILE_FILE" "$TEMP_FEATURES_FILE" "$TEMP_CHANNEL_FILE" >"$INSTALLER_STATE_FILE"
+  rm -f "$TEMP_FEATURES_FILE" "$TEMP_PROFILE_FILE" "$TEMP_CHANNEL_FILE"
 fi
