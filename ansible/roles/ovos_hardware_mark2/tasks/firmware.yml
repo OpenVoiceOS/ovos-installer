@@ -14,12 +14,12 @@
 - name: Update EEPROM
   ansible.builtin.command:
     cmd: rpi-eeprom-update -a
-  register: _eeprom_status
+  register: ovos_hardware_mark2_eeprom_status
   changed_when: false
 
 - name: Set ovos_installer_reboot fact (EEPROM)
   vars:
-    _eeprom_reboot: "{{ _eeprom_status.stdout | regex_search('reboot') }}"
+    ovos_hardware_mark2_eeprom_reboot: "{{ ovos_hardware_mark2_eeprom_status.stdout | regex_search('reboot') }}"
   ansible.builtin.set_fact:
     ovos_installer_reboot: true
-  when: _eeprom_status is defined and _eeprom_reboot | length > 0
+  when: ovos_hardware_mark2_eeprom_status is defined and ovos_hardware_mark2_eeprom_reboot | length > 0

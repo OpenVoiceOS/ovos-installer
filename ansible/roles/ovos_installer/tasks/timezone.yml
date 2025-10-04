@@ -21,7 +21,7 @@
 
     - name: Set _ovos_installer_timezone fact
       ansible.builtin.set_fact:
-        _ovos_installer_timezone: "{{ _detected_timezone.json.timezone }}"
+        _ovos_installer_timezone: "{{ ovos_installer_detected_timezone.json.timezone }}"
   rescue:
     - name: Rescue timezone
       ansible.builtin.debug:

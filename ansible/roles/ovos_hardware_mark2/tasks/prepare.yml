@@ -14,8 +14,8 @@
 - name: Check for /boot/firmware directory
   ansible.builtin.stat:
     path: /boot/firmware
-  register: _boot_config_status
+  register: ovos_hardware_mark2_boot_config_status
 
 - name: Set _boot_directory fact
   ansible.builtin.set_fact:
-    _boot_directory: "{{ '/boot/firmware' if _boot_config_status.stat.exists | bool else '/boot' }}"
+    _boot_directory: "{{ '/boot/firmware' if ovos_hardware_mark2_boot_config_status.stat.exists | bool else '/boot' }}"

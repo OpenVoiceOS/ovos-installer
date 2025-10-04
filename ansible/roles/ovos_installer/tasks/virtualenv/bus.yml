@@ -4,7 +4,7 @@
     _ovos_rust_bus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
     _ovos_rust_bus_version: v1.1.0
     _ovos_rust_bus_archive_name: "ovos_messagebus-{{ ansible_architecture }}-unknown-linux-gnu.tar.gz"
-    _ovos_rust_bus_url: "{{ _ovos_rust_bus_repo }}/releases/download/{{ _ovos_rust_bus_version }}/{{ _ovos_rust_bus_archive_name}}"
+    _ovos_rust_bus_url: "{{ _ovos_rust_bus_repo }}/releases/download/{{ _ovos_rust_bus_version }}/{{ _ovos_rust_bus_archive_name }}"
   ansible.builtin.unarchive:
     src: "{{ _ovos_rust_bus_url }}"
     dest: "{{ ovos_installer_user_home }}/.local/bin"
