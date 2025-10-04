@@ -72,6 +72,7 @@
       - libpulse-devel
       - libportaudio2
       - libespeak-ng1
+      - espeak-ng
       - mpg123
       - sox
       - flac
