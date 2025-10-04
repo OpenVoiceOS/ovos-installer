@@ -23,7 +23,7 @@ if [ -d "$installer_path" ]; then
 fi
 
 # Clone the latest version of ovos-installer git repository
-sudo -u $RUN_AS git clone --quiet https://github.com/OpenVoiceOS/ovos-installer.git "$installer_path"
+sudo -u "$RUN_AS" git clone --quiet https://github.com/OpenVoiceOS/ovos-installer.git "$installer_path"
 cd "$installer_path" || exit 1
 
 # Execute the installer entrypoint
