@@ -10,13 +10,13 @@
 - name: Check for /boot/firmware directory
   ansible.builtin.stat:
     path: /boot/firmware
-  register: _boot_config_status
+  register: ovos_installer_boot_config_status
 
 - name: Manage I2C, SPI and I2S buses
   vars:
-    _boot_directory: "{{ '/boot/firmware' if _boot_config_status.stat.exists | bool else '/boot' }}"
+    ovos_installer_boot_directory: "{{ '/boot/firmware' if ovos_installer_boot_config_status.stat.exists | bool else '/boot' }}"
   ansible.builtin.lineinfile:
-    path: "{{ _boot_directory }}/config.txt"
+    path: "{{ ovos_installer_boot_directory }}/config.txt"
     regexp: "^{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   loop:

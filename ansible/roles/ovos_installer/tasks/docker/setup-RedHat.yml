@@ -1,11 +1,11 @@
 ---
 - name: Detect RHEL based distribution
   ansible.builtin.set_fact:
-    os_distribution: "{{ 'centos' if (ansible_distribution == 'CentOS' or ansible_distribution == 'Rocky' or ansible_distribution == 'AlmaLinux') else 'fedora' }}"
+    ovos_installer_os_distribution: "{{ 'centos' if ansible_distribution in ['CentOS', 'Rocky', 'AlmaLinux'] else 'fedora' }}"
 
 - name: Retrieve docker-ce.repo file
   ansible.builtin.get_url:
-    url: "https://download.docker.com/linux/{{ os_distribution }}/docker-ce.repo"
+    url: "https://download.docker.com/linux/{{ ovos_installer_os_distribution }}/docker-ce.repo"
     dest: /etc/yum.repos.d/docker-ce.repo
     owner: root
     group: root

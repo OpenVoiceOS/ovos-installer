@@ -1,7 +1,7 @@
 ---
 - name: Detect Debian based distribution
   ansible.builtin.set_fact:
-    os_distribution: "{{ 'ubuntu' if (ansible_distribution != 'Debian') else 'debian' }}"
+    ovos_installer_os_distribution: "{{ 'ubuntu' if (ansible_distribution != 'Debian') else 'debian' }}"
 
 - name: Install required packages
   ansible.builtin.apt:
@@ -12,7 +12,7 @@
 
 - name: Retrieve Docker GPG repository key
   ansible.builtin.get_url:
-    url: "https://download.docker.com/linux/{{ os_distribution }}/gpg"
+    url: "https://download.docker.com/linux/{{ ovos_installer_os_distribution }}/gpg"
     dest: "{{ _ovos_installer_debian_docker_gpg }}"
     owner: root
     group: root
@@ -30,7 +30,10 @@
     # Dirty hack because of Linux Mint
     release: "{{ 'jammy' if (ansible_distribution == 'Linux Mint' and ansible_distribution_major_version == '21') else ansible_distribution_release }}"
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ architecture }}, signed-by={{ _ovos_installer_debian_docker_gpg }}.gpg] https://download.docker.com/linux/{{ os_distribution }} {{ release }} stable"
+    repo: >-
+      deb [arch={{ architecture }}, signed-by={{ _ovos_installer_debian_docker_gpg }}.gpg]
+      https://download.docker.com/linux/{{ ovos_installer_os_distribution }}
+      {{ release }} stable
     filename: /etc/apt/sources.list.d/docker
     update_cache: true
 

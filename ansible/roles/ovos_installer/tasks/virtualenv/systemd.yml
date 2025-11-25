@@ -10,9 +10,9 @@
 
 - name: Copy OVOS systemd unit files
   vars:
-    _path_user: "{{ ovos_installer_user_home }}/.config/systemd/user"
-    _path_system: "/etc/systemd/system"
-    _notify_systemd_scope: "{{ 'Reload Systemd' if item.user == 'root' else 'Reload Systemd User' }}"
+    ovos_installer_systemd_path_user: "{{ ovos_installer_user_home }}/.config/systemd/user"
+    ovos_installer_systemd_path_system: "/etc/systemd/system"
+    ovos_installer_notify_scope: "{{ 'Reload Systemd' if item.user == 'root' else 'Reload Systemd User' }}"
   ansible.builtin.template:
     src: "virtualenv/{{ item.unit }}.j2"
     dest: "{{ item.dest }}"
@@ -20,94 +20,70 @@
     group: "{{ item.group }}"
     mode: "0644"
     backup: true
-  notify: "{{ _notify_systemd_scope }}"
+  notify: "{{ ovos_installer_notify_scope }}"
   loop:
-    - {
-        "unit": "ovos.service",
-        "dest": "{{ _path_user }}/ovos.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
-      }
-    - {
-        "unit": "ovos-messagebus.service",
-        "dest": "{{ _path_user }}/ovos-messagebus.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
-      }
-    - {
-        "unit": "ovos-core.service",
-        "dest": "{{ _path_user }}/ovos-core.service",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
-      }
-    - {
-        "unit": "ovos-phal.service",
-        "dest": "{{ _path_user }}/ovos-phal.service",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
-      }
-    - {
-        "unit": "ovos-phal-admin.service",
-        "dest": "{{ _path_system }}/ovos-phal-admin.service",
-        "user": "root",
-        "group": "root",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
-      }
-    - {
-        "unit": "ovos-listener.service",
-        "dest": "{{ _path_user }}/ovos-listener.service",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
-      }
-    - {
-        "unit": "ovos-audio.service",
-        "dest": "{{ _path_user }}/ovos-audio.service",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
-      }
-    - {
-        "unit": "ovos-gui-websocket.service",
-        "dest": "{{ _path_user }}/ovos-gui-websocket.service",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
-      }
-    - {
-        "unit": "ovos-gui.service",
-        "dest": "{{ _path_user }}/ovos-gui.service",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
-      }
-    - {
-        "unit": "ovos-ggwave-listener.service",
-        "dest": "{{ _path_user }}/ovos-ggwave-listener.service",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool)) else false }}",
-      }
-    - {
-        "unit": "hivemind-listener.service",
-        "dest": "{{ _path_user }}/hivemind-listener.service",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if (ovos_installer_profile == 'listener' or ovos_installer_profile == 'server') else false }}",
-      }
-    - {
-        "unit": "hivemind-satellite.service",
-        "dest": "{{ _path_user }}/hivemind-satellite.service",
-        "user": "{{ ovos_installer_user }}",
-        "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if ovos_installer_profile == 'satellite' else false }}",
-      }
+    - unit: ovos.service
+      dest: "{{ ovos_installer_systemd_path_user }}/ovos.service"
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_profile != 'satellite' }}"
+    - unit: ovos-messagebus.service
+      dest: "{{ ovos_installer_systemd_path_user }}/ovos-messagebus.service"
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_profile != 'satellite' }}"
+    - unit: ovos-core.service
+      dest: "{{ ovos_installer_systemd_path_user }}/ovos-core.service"
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_profile != 'satellite' }}"
+    - unit: ovos-phal.service
+      dest: "{{ ovos_installer_systemd_path_user }}/ovos-phal.service"
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    - unit: ovos-phal-admin.service
+      dest: "{{ ovos_installer_systemd_path_system }}/ovos-phal-admin.service"
+      user: root
+      group: root
+      state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    - unit: ovos-listener.service
+      dest: "{{ ovos_installer_systemd_path_user }}/ovos-listener.service"
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    - unit: ovos-audio.service
+      dest: "{{ ovos_installer_systemd_path_user }}/ovos-audio.service"
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    - unit: ovos-gui-websocket.service
+      dest: "{{ ovos_installer_systemd_path_user }}/ovos-gui-websocket.service"
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite' }}"
+    - unit: ovos-gui.service
+      dest: "{{ ovos_installer_systemd_path_user }}/ovos-gui.service"
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite' }}"
+    - unit: ovos-ggwave-listener.service
+      dest: "{{ ovos_installer_systemd_path_user }}/ovos-ggwave-listener.service"
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool) }}"
+    - unit: hivemind-listener.service
+      dest: "{{ ovos_installer_systemd_path_user }}/hivemind-listener.service"
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_profile == 'listener' or ovos_installer_profile == 'server' }}"
+    - unit: hivemind-satellite.service
+      dest: "{{ ovos_installer_systemd_path_user }}/hivemind-satellite.service"
+      user: "{{ ovos_installer_user }}"
+      group: "{{ ovos_installer_group }}"
+      state: "{{ ovos_installer_profile == 'satellite' }}"
   when: item.state | bool
 
 - name: Flush handlers ovos
@@ -115,88 +91,64 @@
 
 - name: Enable and start OVOS and/or HiveMind systemd units
   vars:
-    _state: "{{ 'restarted' if _configuration.changed | bool else 'started' }}"
+    ovos_installer_systemd_state: "{{ 'restarted' if ovos_installer_configuration.changed | bool else 'started' }}"
   become: true
   become_user: "{{ item.user }}"
   ansible.builtin.systemd_service:
     name: "{{ item.unit }}"
     enabled: true
     force: true
-    state: "{{ _state }}"
+    state: "{{ ovos_installer_systemd_state }}"
     scope: "{{ item.scope }}"
   loop:
-    - {
-        "unit": "ovos.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
-      }
-    - {
-        "unit": "ovos-messagebus.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
-      }
-    - {
-        "unit": "ovos-core.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if ovos_installer_profile != 'satellite' else false }}",
-      }
-    - {
-        "unit": "ovos-phal.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
-      }
-    - {
-        "unit": "ovos-phal-admin.service",
-        "scope": "system",
-        "user": "root",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
-      }
-    - {
-        "unit": "ovos-listener.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
-      }
-    - {
-        "unit": "ovos-audio.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
-      }
-    - {
-        "unit": "ovos-gui-websocket.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
-      }
-    - {
-        "unit": "ovos-gui.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if (ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite') else false }}",
-      }
-    - {
-        "unit": "ovos-ggwave-listener.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool)) else false }}",
-      }
-    - {
-        "unit": "hivemind-listener.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if (ovos_installer_profile == 'listener' or ovos_installer_profile == 'server') else false }}",
-      }
-    - {
-        "unit": "hivemind-satellite.service",
-        "scope": "user",
-        "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if ovos_installer_profile == 'satellite' else false }}",
-      }
+    - unit: ovos.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_profile != 'satellite' }}"
+    - unit: ovos-messagebus.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_profile != 'satellite' }}"
+    - unit: ovos-core.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_profile != 'satellite' }}"
+    - unit: ovos-phal.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    - unit: ovos-phal-admin.service
+      scope: system
+      user: root
+      state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    - unit: ovos-listener.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    - unit: ovos-audio.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    - unit: ovos-gui-websocket.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite' }}"
+    - unit: ovos-gui.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite' }}"
+    - unit: ovos-ggwave-listener.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool) }}"
+    - unit: hivemind-listener.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_profile == 'listener' or ovos_installer_profile == 'server' }}"
+    - unit: hivemind-satellite.service
+      scope: user
+      user: "{{ ovos_installer_user }}"
+      state: "{{ ovos_installer_profile == 'satellite' }}"
   when: item.state | bool
 
 - name: Block uninstall systemd
@@ -213,64 +165,42 @@
         state: stopped
         scope: "{{ item.scope }}"
       loop:
-        - {
-            "unit": "ovos.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
-        - {
-            "unit": "ovos-messagebus.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
-        - {
-            "unit": "ovos-core.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
-        - {
-            "unit": "ovos-phal.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
+        - unit: ovos.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
+        - unit: ovos-messagebus.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
+        - unit: ovos-core.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
+        - unit: ovos-phal.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
         - {"unit": "ovos-phal-admin.service", "scope": "system", "user": "root"}
-        - {
-            "unit": "ovos-listener.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
-        - {
-            "unit": "ovos-audio.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
-        - {
-            "unit": "ovos-gui-websocket.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
-        - {
-            "unit": "ovos-gui.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
-        - {
-            "unit": "ovos-ggwave-listener.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
-        - {
-            "unit": "hivemind-listener.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
-        - {
-            "unit": "hivemind-satellite.service",
-            "scope": "user",
-            "user": "{{ ovos_installer_user }}",
-          }
-      register: _systemd_stop
-      failed_when: _systemd_stop is not defined # We never want it to fail even if systemd unit doesn't exist
+        - unit: ovos-listener.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
+        - unit: ovos-audio.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
+        - unit: ovos-gui-websocket.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
+        - unit: ovos-gui.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
+        - unit: ovos-ggwave-listener.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
+        - unit: hivemind-listener.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
+        - unit: hivemind-satellite.service
+          scope: user
+          user: "{{ ovos_installer_user }}"
+      register: ovos_installer_systemd_stop
+      failed_when: ovos_installer_systemd_stop is not defined # We never want it to fail even if systemd unit doesn't exist
 
     - name: Remove OVOS systemd unit files
       ansible.builtin.file:

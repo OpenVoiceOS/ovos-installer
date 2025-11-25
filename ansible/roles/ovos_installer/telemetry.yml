@@ -10,8 +10,8 @@
         headers:
           Content-Type: application/json
           accept: application/json
-      register: _isp_data
-      until: _isp_data.status == 200
+      register: ovos_installer_isp_data
+      until: ovos_installer_isp_data.status == 200
       retries: 5
       delay: 3
 
@@ -27,8 +27,8 @@
           accept: application/json
           user-agent: "{{ _ovos_installer_telemetry_user_agent }}"
         validate_certs: false
-      register: _push_telemetry_data
-      until: _push_telemetry_data.status == 200
+      register: ovos_installer_push_telemetry_data
+      until: ovos_installer_push_telemetry_data.status == 200
       retries: 5
       delay: 3
   rescue:

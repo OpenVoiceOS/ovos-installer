@@ -1,5 +1,5 @@
 ---
-- name: Add {{ ovos_installer_user }} to video and render groups
+- name: Add installer user to video and render groups
   ansible.builtin.user:
     name: "{{ ovos_installer_user }}"
     groups: audio
@@ -34,15 +34,15 @@
           set -e -o pipefail
           ls -1 /run/user/{{ ovos_installer_uid }} | grep -E '^wayland-[0-9]$'
         executable: /bin/bash
-      register: _ovos_wayland_display
+      register: ovos_installer_ovos_wayland_display
       changed_when: false
       when: ovos_installer_display_server == 'wayland'
 
     - name: Set ovos_installer_wayland_display fact
       ansible.builtin.set_fact:
-        ovos_installer_wayland_display: "{{ _ovos_wayland_display.stdout }}"
+        ovos_installer_wayland_display: "{{ ovos_installer_ovos_wayland_display.stdout }}"
       when:
-        - _ovos_wayland_display is defined
+        - ovos_installer_ovos_wayland_display is defined
         - ovos_installer_display_server == 'wayland'
 
     - name: Detect DISPLAY server number
@@ -71,10 +71,10 @@
               | head -n 1
           fi
         executable: /bin/bash
-      register: _ovos_display_server_number
+      register: ovos_installer_ovos_display_server_number
       changed_when: false
 
     - name: Set ovos_installer_display_server_number fact
       ansible.builtin.set_fact:
-        ovos_installer_display_server_number: "{{ _ovos_display_server_number.stdout }}"
-      when: _ovos_display_server_number.stdout | length > 0
+        ovos_installer_display_server_number: "{{ ovos_installer_ovos_display_server_number.stdout }}"
+      when: ovos_installer_ovos_display_server_number.stdout | length > 0

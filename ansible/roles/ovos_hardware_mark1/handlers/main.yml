@@ -8,4 +8,4 @@
 
 - name: Set Reboot
   ansible.builtin.set_fact:
-    ovos_installer_reboot: true
+    ovos_installer_reboot: true  # noqa var-naming

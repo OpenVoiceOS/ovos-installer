@@ -1,5 +1,5 @@
 ---
-- name: Add {{ ovos_installer_user }} to dialout group
+- name: Add installer user to dialout group
   ansible.builtin.user:
     name: "{{ ovos_installer_user }}"
     groups: dialout
@@ -16,7 +16,7 @@
     - "{{ ovos_installer_user_home }}/.config/systemd/user"
     - "{{ _ovos_hardware_mark1_workind_directory }}"
 
-- name: Configure initialize.sh to {{ _ovos_hardware_mark1_workind_directory }}
+- name: Configure initialize.sh in work directory
   ansible.builtin.copy:
     src: initialize.sh
     dest: "{{ _ovos_hardware_mark1_workind_directory }}/initialize.sh"

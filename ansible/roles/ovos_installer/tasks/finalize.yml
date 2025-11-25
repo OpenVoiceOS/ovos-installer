@@ -2,7 +2,7 @@
 - name: Check for /etc/pip.conf
   ansible.builtin.stat:
     path: /etc/pip.conf
-  register: _pip_conf
+  register: ovos_installer_pip_conf
 
 - name: Restore /etc/pip.conf configuration
   ansible.builtin.lineinfile:
@@ -12,11 +12,11 @@
     backrefs: true
   when:
     - ansible_architecture == "aarch64" or "'Raspberry Pi 5' in ovos_installer_raspberrypi"
-    - _pip_conf.stat.exists | bool
+    - ovos_installer_pip_conf.stat.exists | bool
 
 - name: Configuration drift detection
   vars:
-    _drift: "{{ 'true' if _configuration.changed | bool else 'false' }}"
+    _drift: "{{ 'true' if ovos_installer_configuration.changed | bool else 'false' }}"
   ansible.builtin.debug:
     msg: The "mycroft.conf" configuration file has been restored, existing file has been backup.
   when: _drift | bool

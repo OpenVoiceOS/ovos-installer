@@ -7,7 +7,7 @@
     name:
       - "{{ 'pipewire-alsa' if ansible_distribution not in ['Linux Mint', 'Zorin OS'] else 'pipewire' }}"
       - alsa-utils
-  register: _pipewire_install
+  register: ovos_installer_pipewire_install
   when:
     not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
     ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
@@ -20,7 +20,7 @@
     name:
       - pulseaudio
       - alsa-utils
-  register: _pulseaudio_install
+  register: ovos_installer_pulseaudio_install
   when:
     (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
     ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
@@ -29,14 +29,14 @@
   ansible.builtin.getent:
     database: group
 
-- name: Add {{ ovos_installer_user }} to audio group
+- name: Add installer user to audio group
   ansible.builtin.user:
     name: "{{ ovos_installer_user }}"
     groups:
       - audio
     append: true
 
-- name: Add {{ ovos_installer_user }} to rtkit group
+- name: Add installer user to rtkit group
   ansible.builtin.user:
     name: "{{ ovos_installer_user }}"
     groups:
@@ -44,7 +44,7 @@
     append: true
   when: "'rtkit' in ansible_facts.getent_group"
 
-- name: Add {{ ovos_installer_user }} to pipewire group
+- name: Add installer user to pipewire group
   vars:
     # Debian Unstable hack
     _distribution_version: "{{ '99' if ansible_distribution == 'Debian' and ansible_distribution_version == 'n/a' else ansible_distribution_version }}"
@@ -53,7 +53,8 @@
     groups: pipewire
     append: true
   when:
-    - not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
+    - not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
+           ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
     - ansible_os_family != "Suse"
     - ansible_os_family != "Archlinux"
     - ansible_distribution != "Linux Mint"
@@ -91,14 +92,14 @@
         fi
       fi
     executable: /bin/bash
-  register: _detect_sound_server
+  register: ovos_installer_detect_sound_server
   changed_when: false
 
-- name: Generate {{ ovos_installer_user_home }}/.asoundrc file based on detected sound server (Raspberry Pi boards only)
+- name: Generate .asoundrc based on detected sound server (Raspberry Pi only)
   ansible.builtin.copy:
     content: |
-      pcm.!default {{ _detect_sound_server.stdout }}
-      ctl.!default {{ _detect_sound_server.stdout }}
+      pcm.!default {{ ovos_installer_detect_sound_server.stdout }}
+      ctl.!default {{ ovos_installer_detect_sound_server.stdout }}
     dest: "{{ ovos_installer_user_home }}/.asoundrc"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
@@ -106,7 +107,7 @@
     backup: true
   when: ovos_installer_raspberrypi != "N/A"
 
-- name: Remove {{ ovos_installer_user_home }}/.asoundrc file
+- name: Remove .asoundrc file
   ansible.builtin.file:
     path: "{{ ovos_installer_user_home }}/.asoundrc"
     state: absent
