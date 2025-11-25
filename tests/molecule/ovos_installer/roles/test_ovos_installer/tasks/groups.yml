@@ -6,5 +6,5 @@
 - name: Assert user's groups
   ansible.builtin.assert:
     that:
-      - "getent_group['audio'] is search('{{ ovos_installer_user }}')"
-      - "getent_group['docker'] is search('{{ ovos_installer_user }}')"
+      - "getent_group['audio'] is search('{{ test_ovos_installer_user }}')"
+      - "getent_group['docker'] is search('{{ test_ovos_installer_user }}')"

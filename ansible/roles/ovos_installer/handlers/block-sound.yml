@@ -1,6 +1,6 @@
 ---
 - name: Block Start Sound Server (PipeWire)
-  when: "'skipped' not in _pipewire_install.keys()"
+  when: "'skipped' not in ovos_installer_pipewire_install.keys()"
   block:
     - name: Start PipeWire systemd service
       become: true
@@ -20,7 +20,7 @@
       when: ovos_installer_sound_server == 'PulseAudio'
 
 - name: Block Start Sound Server (PulseAudio)
-  when: "'skipped' not in _pulseaudio_install.keys()"
+  when: "'skipped' not in ovos_installer_pulseaudio_install.keys()"
   block:
     - name: Start PulseAudio systemd service
       become: true

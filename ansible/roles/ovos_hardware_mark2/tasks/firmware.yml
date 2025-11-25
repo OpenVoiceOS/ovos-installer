@@ -22,5 +22,4 @@
     ovos_hardware_mark2_eeprom_reboot: "{{ ovos_hardware_mark2_eeprom_status.stdout | regex_search('reboot') }}"
   ansible.builtin.set_fact:
     ovos_installer_reboot: true  # noqa var-naming
-    ovos_hardware_mark2_reboot: true
   when: ovos_hardware_mark2_eeprom_status is defined and ovos_hardware_mark2_eeprom_reboot | length > 0

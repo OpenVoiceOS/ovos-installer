@@ -17,9 +17,10 @@
   tags:
     - uninstall
 
-- name: Check if directory to backup exists
+- name: Check if directories to backup exist
   ansible.builtin.stat:
-    path: "{{ ovos_installer_directories_backup }}"
+    path: "{{ item }}"
+  loop: "{{ ovos_installer_directories_backup }}"
   register: ovos_installer_directory_exists
   when: ovos_installer_cleaning | bool
   tags:
@@ -36,7 +37,11 @@
     force_archive: true
   when:
     - ovos_installer_cleaning | bool
-    - ovos_installer_directory_exists.stat.exists | bool
+    - ovos_installer_directory_exists.results
+      | selectattr('stat.exists')
+      | list
+      | length
+      | int > 0
   tags:
     - uninstall
 
@@ -63,11 +68,11 @@
     - directory: "{{ ovos_installer_user_home }}/ovos/tmp"
       status: true
     - directory: "{{ ovos_installer_user_home }}/hivemind"
-      status: "{{ not (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') }}"
+      status: "{{ ovos_installer_profile != 'ovos' }}"
     - directory: "{{ ovos_installer_user_home }}/hivemind/config"
-      status: "{{ not (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') }}"
+      status: "{{ ovos_installer_profile != 'ovos' }}"
     - directory: "{{ ovos_installer_user_home }}/hivemind/share"
-      status: "{{ not (ovos_installer_profile == 'ovos' and ovos_installer_profile == 'server') }}"
+      status: "{{ ovos_installer_profile != 'ovos' }}"
   when:
     - item.status | bool
     - ovos_installer_method == "containers"
