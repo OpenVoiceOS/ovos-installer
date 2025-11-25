@@ -55,10 +55,11 @@
   vars:
     _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
     _pip_constraints: "--constraint {{ _ovos_release }}"
+    _uv_extra_args: "{{ _pip_constraints }}{{ ' --prerelease=allow' if ovos_installer_uv_allow_prerelease | bool else '' }}"
   moreati.uv.pip:
     requirements: "{{ item.file }}"
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    extra_args: "{{ _pip_constraints }}"
+    extra_args: "{{ _uv_extra_args }}"
     state: latest
   register: ovos_installer_install_venv
   until: ovos_installer_install_venv is success
