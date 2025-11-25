@@ -25,3 +25,5 @@ galaxy_info:
     - mark2
 
 dependencies: []
+collections:
+  - moreati.uv

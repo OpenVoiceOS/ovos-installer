@@ -1,5 +1,5 @@
 ---
-- name: Add {{ ovos_installer_user }} to docker group
+- name: Add installer user to docker group
   ansible.builtin.user:
     name: "{{ ovos_installer_user }}"
     groups: docker
@@ -24,8 +24,14 @@
     version: "{{ item.branch }}"
     force: true
   loop:
-    - { "url": "{{ ovos_installer_ovos_docker_repo_url }}", "branch": "{{ ovos_installer_ovos_docker_repo_branch }}", "dest": "ovos-docker", "state": "{{ true if (ovos_installer_profile != 'satellite' or ovos_installer_cleaning | bool) else false }}" }
-    - { "url": "{{ ovos_installer_hivemind_docker_repo_url }}", "branch": "{{ ovos_installer_hivemind_docker_repo_branch }}", "dest": "hivemind-docker", "state": "{{ true if (ovos_installer_profile == 'satellite' or ovos_installer_cleaning | bool) else false }}" }
+    - url: "{{ ovos_installer_ovos_docker_repo_url }}"
+      branch: "{{ ovos_installer_ovos_docker_repo_branch }}"
+      dest: ovos-docker
+      state: "{{ ovos_installer_profile != 'satellite' or ovos_installer_cleaning | bool }}"
+    - url: "{{ ovos_installer_hivemind_docker_repo_url }}"
+      branch: "{{ ovos_installer_hivemind_docker_repo_branch }}"
+      dest: hivemind-docker
+      state: "{{ ovos_installer_profile == 'satellite' or ovos_installer_cleaning | bool }}"
   when: item.state | bool
   tags:
     - always

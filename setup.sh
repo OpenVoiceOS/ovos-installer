@@ -22,6 +22,11 @@ source utils/argparse.sh
 # Parse command line arguments
 handle_options "$@"
 
+# Default Ansible flags to avoid unbound variable errors when set -u is enabled
+ansible_cleaning="false"
+ansible_tags=()
+ansible_debug=()
+
 # Enable debug/verbosity for Bash and Ansible
 if [ "$DEBUG" == "true" ]; then
   set -x

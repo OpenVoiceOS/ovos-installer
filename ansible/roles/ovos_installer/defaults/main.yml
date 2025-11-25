@@ -9,3 +9,4 @@ ovos_installer_docker_compose_remove_orphans: true
 ovos_installer_docker_compose_remove_images: all
 ovos_installer_docker_compose_remove_volumes: true
 ovos_installer_uninstall: "{{ 'present' if (not ovos_installer_cleaning | bool | default(false)) else 'absent' }}"
+ovos_installer_enable_ggwave: "{{ (ovos_installer_channel | default('')) in ['stable', 'testing'] and ansible_architecture in ['x86_64', 'aarch64'] }}"
