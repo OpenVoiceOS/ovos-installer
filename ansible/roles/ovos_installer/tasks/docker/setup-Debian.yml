@@ -27,8 +27,38 @@
 - name: Add Docker repository
   vars:
     architecture: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
-    # Dirty hack because of Linux Mint
-    release: "{{ 'jammy' if (ansible_distribution == 'Linux Mint' and ansible_distribution_major_version == '21') else ansible_distribution_release }}"
+    release: >-
+      {{
+        (
+          {
+            'vanessa': 'jammy',
+            'vera': 'jammy',
+            'victoria': 'jammy',
+            'virginia': 'jammy',
+            'wilma': 'noble',
+            'zara': 'noble'
+          }.get(ansible_distribution_release)
+          or {
+            '21': 'jammy',
+            '22': 'noble'
+          }.get(ansible_distribution_major_version)
+          if ansible_distribution == 'Linux Mint'
+          else {
+            '25.10': 'questing',
+            '25.04': 'plucky',
+            '24.04': 'noble',
+            '22.04': 'jammy'
+          }.get(ansible_distribution_version, ansible_distribution_release)
+          if ansible_distribution == 'Ubuntu'
+          else {
+            '13': 'trixie',
+            '12': 'bookworm',
+            '11': 'bullseye'
+          }.get(ansible_distribution_major_version, ansible_distribution_release)
+          if ansible_distribution == 'Debian'
+          else ansible_distribution_release
+        )
+      }}
   ansible.builtin.apt_repository:
     repo: >-
       deb [arch={{ architecture }}, signed-by={{ _ovos_installer_debian_docker_gpg }}.gpg]
