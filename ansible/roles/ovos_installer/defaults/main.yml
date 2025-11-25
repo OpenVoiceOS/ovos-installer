@@ -9,3 +9,6 @@ ovos_installer_docker_compose_remove_orphans: true
 ovos_installer_docker_compose_remove_images: all
 ovos_installer_docker_compose_remove_volumes: true
 ovos_installer_uninstall: "{{ 'present' if (not ovos_installer_cleaning | bool | default(false)) else 'absent' }}"
+# ggwave stack doesn't support the ovos-audio >=1.1 move to plugin-manager >=2 yet,
+# so limit it to stable/testing on x86_64/aarch64 until an updated release lands.
+ovos_installer_enable_ggwave: "{{ (ovos_installer_channel | default('')) in ['stable', 'testing'] and ansible_architecture in ['x86_64', 'aarch64'] }}"

@@ -21,7 +21,7 @@ ovos-tts-plugin-nos
 ovos-tts-plugin-ahotts
 {% endif %}
 
-{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
+{% if ovos_installer_enable_ggwave %}
 ovos-audio-transformer-plugin-ggwave
 {% endif %}
 
@@ -41,4 +41,3 @@ ovos-PHAL[mk1]
 ovos-PHAL[mk2dev]
 git+https://github.com/OVOSHatchery/ovos-PHAL-plugin-sj201-leds.git
 {% endif %}
-

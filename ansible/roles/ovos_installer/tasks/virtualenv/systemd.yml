@@ -92,7 +92,7 @@
         "dest": "{{ _path_user }}/ovos-ggwave-listener.service",
         "user": "{{ ovos_installer_user }}",
         "group": "{{ ovos_installer_group }}",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
+        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool)) else false }}",
       }
     - {
         "unit": "hivemind-listener.service",
@@ -183,7 +183,7 @@
         "unit": "ovos-ggwave-listener.service",
         "scope": "user",
         "user": "{{ ovos_installer_user }}",
-        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') else false }}",
+        "state": "{{ true if (ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool)) else false }}",
       }
     - {
         "unit": "hivemind-listener.service",
