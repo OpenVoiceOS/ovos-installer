@@ -63,7 +63,7 @@
     name: ggwave
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
     extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
-  when: ansible_architecture == "aarch64" or ansible_architecture == "x86_64"
+  when: ovos_installer_enable_ggwave | bool
 
 - name: Install Open Voice OS in Python venv
   vars:
