@@ -5,7 +5,7 @@
     "os_version": "{{ ansible_distribution_version }}",
     "os_kernel": "{{ ansible_kernel }}",
     "architecture": "{{ ansible_architecture }}",
-    "sound_server": "{{ _detect_sound_server.stdout }}",
+    "sound_server": "{{ ovos_installer_detect_sound_server.stdout }}",
     "python_version": "{{ ansible_python_version }}",
     "display_server": "{{ ovos_installer_display_server | lower }}",
     "container": {{ true if ovos_installer_method == 'containers' else false }},
