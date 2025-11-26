@@ -1,3 +1,3 @@
 ---
 _ovos_hardware_mark1_avrdude_binary: /usr/local/bin/avrdude
-_ovos_hardware_mark1_workind_directory: /opt/mark1
+_ovos_hardware_mark1_working_directory: /opt/mark1

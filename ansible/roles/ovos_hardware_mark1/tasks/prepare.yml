@@ -14,12 +14,12 @@
     mode: "0755"
   loop:
     - "{{ ovos_installer_user_home }}/.config/systemd/user"
-    - "{{ _ovos_hardware_mark1_workind_directory }}"
+    - "{{ _ovos_hardware_mark1_working_directory }}"
 
 - name: Configure initialize.sh in work directory
   ansible.builtin.copy:
     src: initialize.sh
-    dest: "{{ _ovos_hardware_mark1_workind_directory }}/initialize.sh"
+    dest: "{{ _ovos_hardware_mark1_working_directory }}/initialize.sh"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     mode: "0755"

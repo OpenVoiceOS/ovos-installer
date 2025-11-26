@@ -10,7 +10,7 @@
 
 - name: Manage TTY and soundcard overlays
   ansible.builtin.lineinfile:
-    path: "{{ _boot_directory }}/config.txt"
+    path: "{{ ovos_hardware_mark1_boot_directory }}/config.txt"
     regexp: "^{{ item }}"
     line: "{{ item }}"
   notify: Set Reboot
