@@ -1,7 +1,7 @@
 ---
 - name: Install kernel headers
   ansible.builtin.apt:
-    name: raspberrypi-kernel-headers
+    name: "{{ ovos_hardware_mark2_kernel_headers_package }}"
     install_recommends: false
     update_cache: true
 
