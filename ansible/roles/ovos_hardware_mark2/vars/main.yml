@@ -1,2 +1,9 @@
 ---
 _ovos_hardware_mark2_vocalfusion_src_path: /usr/src/vocalfusion
+ovos_hardware_mark2_kernel_headers_package: >-
+  {{
+    'linux-headers-rpi-v8'
+    if ansible_distribution == 'Debian' and ansible_distribution_major_version == '13'
+    else
+    'raspberrypi-kernel-headers'
+  }}
