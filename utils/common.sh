@@ -252,6 +252,27 @@ function get_os_information() {
     echo -e "[$done_format]"
 }
 
+# Validate the default Python version before creating the virtualenv.
+# onnxruntime is currently incompatible with Python 3.14, so abort early.
+function check_python_compatibility() {
+    printf '%s' "➤ Validating default Python version... "
+    local python_version="${PYTHON:-}"
+
+    if [ -z "$python_version" ]; then
+        echo -e "[$fail_format]"
+        echo "Unable to determine the default Python version." | tee -a "$LOG_FILE"
+        exit "${EXIT_MISSING_DEPENDENCY}"
+    fi
+
+    if [ "$python_version" == "3.14" ]; then
+        echo -e "[$fail_format]"
+        echo "Python $python_version is not supported because onnxruntime is not yet compatible with it." | tee -a "$LOG_FILE"
+        exit "${EXIT_MISSING_DEPENDENCY}"
+    fi
+
+    echo -e "[$done_format]"
+}
+
 # Install packages for Debian-based distributions
 function install_debian_packages() {
     local extra_packages=("$@")
