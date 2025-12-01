@@ -39,6 +39,7 @@ detect_user
 delete_log
 detect_existing_instance
 get_os_information
+check_python_compatibility
 wsl2_requirements
 detect_cpu_instructions
 is_raspeberrypi_soc
