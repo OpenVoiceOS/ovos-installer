@@ -15,7 +15,10 @@ function setup() {
     function ask_optin() {
         return 0  # Simulate user agreeing
     }
-    export -f ask_optin
+    function curl() {
+        echo "https://paste.example.com/test-url"
+    }
+    export -f ask_optin curl
 
     run on_error
     assert_failure
@@ -23,7 +26,7 @@ function setup() {
     assert_output --partial "Unable to finalize the process"
     assert_output --partial "Please share this URL with us"
 
-    unset -f ask_optin
+    unset -f ask_optin curl
 }
 
 @test "printf_migration_detect_user" {
