@@ -20,7 +20,11 @@ Before we begin, make sure you have `curl`, `git`, and `sudo` installed. `curl` 
 sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
 ```
 
+If you prefer to inspect before running, download the script first, review it, then execute it with `sudo sh installer.sh`.
+
 This command downloads and runs the official installer script, which will guide you through the installation process interactively.
+
+> Heads-up: Python 3.14 is not yet supported because `onnxruntime` does not provide wheels for it. Ensure your system `python3` defaults to 3.13 or earlier.
 
 👉 [Start your Open Voice OS journey!](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
 
@@ -120,7 +124,7 @@ features:
   skills: true
   extra_skills: false
   gui: true
-rapsberry_pi_tuning: true
+raspberry_pi_tuning: true
 share_telemetry: true
 share_usage_telemetry: true
 EOF
