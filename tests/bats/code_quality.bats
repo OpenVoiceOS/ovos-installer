@@ -20,7 +20,7 @@ function setup() {
     run on_error
     assert_failure
     # Should contain printf-formatted output
-    assert_output --partial "Unable to continue the process"
+    assert_output --partial "Unable to finalize the process"
     assert_output --partial "Please share this URL with us"
 
     unset -f ask_optin

@@ -276,31 +276,81 @@ function check_python_compatibility() {
 # Install packages for Debian-based distributions
 function install_debian_packages() {
     local extra_packages=("$@")
+    local errexit_set=0
+    [[ $- == *e* ]] && errexit_set=1
+    set +e
     UPDATE=1 apt_ensure python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    local status=$?
+    if [ "$errexit_set" -eq 1 ]; then
+        set -e
+    else
+        set +e
+    fi
+    return "$status"
 }
 
 # Install packages for Fedora-based distributions
 function install_fedora_packages() {
     local extra_packages=("$@")
+    local errexit_set=0
+    [[ $- == *e* ]] && errexit_set=1
+    set +e
     dnf install -y python3 python3-devel python3-pip python3-virtualenv python3-libdnf5 newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    local status=$?
+    if [ "$errexit_set" -eq 1 ]; then
+        set -e
+    else
+        set +e
+    fi
+    return "$status"
 }
 
 # Install packages for Red Hat-based distributions
 function install_rhel_packages() {
     local extra_packages=("$@")
+    local errexit_set=0
+    [[ $- == *e* ]] && errexit_set=1
+    set +e
     dnf install -y python3 python3-devel python3-pip newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    local status=$?
+    if [ "$errexit_set" -eq 1 ]; then
+        set -e
+    else
+        set +e
+    fi
+    return "$status"
 }
 
 # Install packages for openSUSE distributions
 function install_opensuse_packages() {
     local extra_packages=("$@")
+    local errexit_set=0
+    [[ $- == *e* ]] && errexit_set=1
+    set +e
     zypper install --no-recommends -y python3 python3-devel python3-pip python3-rpm newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    local status=$?
+    if [ "$errexit_set" -eq 1 ]; then
+        set -e
+    else
+        set +e
+    fi
+    return "$status"
 }
 
 # Install packages for Arch-based distributions
 function install_arch_packages() {
     local extra_packages=("$@")
+    local errexit_set=0
+    [[ $- == *e* ]] && errexit_set=1
+    set +e
     pacman -Sy --noconfirm python python-pip python-virtualenv libnewt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    local status=$?
+    if [ "$errexit_set" -eq 1 ]; then
+        set -e
+    else
+        set +e
+    fi
+    return "$status"
 }
 
 # Install packages required by the installer based on retrieved information
@@ -331,22 +381,31 @@ function required_packages() {
         extra_packages+=("iw")
         extra_packages+=("libhidapi-libusb0")
     fi
+    local install_status=0
 
+    local errexit_set=0
+    [[ $- == *e* ]] && errexit_set=1
+    set +e
     case "${DISTRO_NAME}" in
     debian | ubuntu | raspbian | linuxmint | zorin | neon | pop)
         install_debian_packages "${extra_packages[@]}"
+        install_status=$?
         ;;
     fedora)
         install_fedora_packages "${extra_packages[@]}"
+        install_status=$?
         ;;
     almalinux | rocky | centos)
         install_rhel_packages "${extra_packages[@]}"
+        install_status=$?
         ;;
     opensuse-tumbleweed | opensuse-leap | opensuse-slowroll)
         install_opensuse_packages "${extra_packages[@]}"
+        install_status=$?
         ;;
     arch | manjaro | endeavouros)
         install_arch_packages "${extra_packages[@]}"
+        install_status=$?
         ;;
     *)
         echo -e "[$fail_format]"
@@ -354,6 +413,18 @@ function required_packages() {
         exit "${EXIT_OS_NOT_SUPPORTED}"
         ;;
     esac
+    if [ "$errexit_set" -eq 1 ]; then
+        set -e
+    else
+        set +e
+    fi
+
+    if [ "$install_status" -ne 0 ]; then
+        echo -e "[$fail_format]"
+        echo "Package installation failed." | tee -a "${LOG_FILE}"
+        exit "${EXIT_MISSING_DEPENDENCY}"
+    fi
+
     echo -e "[$done_format]"
 }
 

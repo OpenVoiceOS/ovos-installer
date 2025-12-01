@@ -7,6 +7,12 @@ function setup() {
     load ../../utils/common.sh
     LOG_FILE=/tmp/ovos-installer.log
     OS_RELEASE=/tmp/os-release
+    # Stub package managers to avoid real system calls
+    function apt_ensure() { return 0; }
+    function dnf() { return 0; }
+    function pacman() { return 0; }
+    function zypper() { return 0; }
+    export -f apt_ensure dnf pacman zypper
     RASPBERRYPI_MODEL="N/A"
     cat <<EOF >"$OS_RELEASE"
 VERSION="39 (Workstation Edition)"
@@ -16,184 +22,140 @@ EOF
 
 @test "function_required_packages_debian" {
     DISTRO_NAME="debian"
-    function apt-get() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_popos" {
     DISTRO_NAME="pop"
-    function apt-get() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_raspbian" {
     DISTRO_NAME="raspbian"
-    function apt-get() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_ubuntu" {
     DISTRO_NAME="ubuntu"
-    function apt-get() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_fedora" {
     DISTRO_NAME="fedora"
-    function dnf() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_centos" {
     DISTRO_NAME="centos"
-    function dnf() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_rocky" {
     DISTRO_NAME="rocky"
-    function dnf() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_almalinux" {
     DISTRO_NAME="almalinux"
-    function dnf() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_manjaro" {
     DISTRO_NAME="manjaro"
-    function pacman() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_arch" {
     DISTRO_NAME="arch"
-    function pacman() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_opensuse_leap" {
     DISTRO_NAME="opensuse-leap"
-    function zypper() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_opensuse_tumbleweed" {
     DISTRO_NAME="opensuse-tumbleweed"
-    function zypper() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_opensuse_slowroll" {
     DISTRO_NAME="opensuse-slowroll"
-    function zypper() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_linuxmint" {
     DISTRO_NAME="linuxmint"
-    function apt-get() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_zorinos" {
     DISTRO_NAME="zorin"
-    function apt-get() {
-        exit 0
-    }
     run required_packages
     assert_success
 }
 
 @test "function_required_packages_debian_fail" {
     DISTRO_NAME="debian"
-    function apt-get() {
-        exit 1
+    function apt_ensure() {
+        return 1
     }
+    export -f apt_ensure
     run required_packages
-    # Function doesn't check package manager exit codes, so it succeeds
-    assert_success
+    assert_failure
 }
 
 @test "function_required_packages_popos_fail" {
     DISTRO_NAME="pop"
-    function apt-get() {
-        exit 1
+    function apt_ensure() {
+        return 1
     }
+    export -f apt_ensure
     run required_packages
-    # Function doesn't check package manager exit codes, so it succeeds
-    assert_success
+    assert_failure
 }
 
 @test "function_required_packages_raspbian_fail" {
     DISTRO_NAME="raspbian"
-    function apt-get() {
-        exit 1
+    function apt_ensure() {
+        return 1
     }
+    export -f apt_ensure
     run required_packages
-    # Function doesn't check package manager exit codes, so it succeeds
-    assert_success
+    assert_failure
 }
 
 @test "function_required_packages_ubuntu_fail" {
     DISTRO_NAME="ubuntu"
-    function apt-get() {
-        exit 1
+    function apt_ensure() {
+        return 1
     }
+    export -f apt_ensure
     run required_packages
-    # Function doesn't check package manager exit codes, so it succeeds
-    assert_success
+    assert_failure
 }
 
 @test "function_required_packages_fedora_fail" {
     DISTRO_NAME="fedora"
     function dnf() {
-        exit 1
+        return 1
     }
+    export -f dnf
     run required_packages
     assert_failure
 }
@@ -201,8 +163,9 @@ EOF
 @test "function_required_packages_centos_fail" {
     DISTRO_NAME="centos"
     function dnf() {
-        exit 1
+        return 1
     }
+    export -f dnf
     run required_packages
     assert_failure
 }
@@ -210,8 +173,9 @@ EOF
 @test "function_required_packages_rocky_fail" {
     DISTRO_NAME="rocky"
     function dnf() {
-        exit 1
+        return 1
     }
+    export -f dnf
     run required_packages
     assert_failure
 }
@@ -219,8 +183,9 @@ EOF
 @test "function_required_packages_almalinux_fail" {
     DISTRO_NAME="almalinux"
     function dnf() {
-        exit 1
+        return 1
     }
+    export -f dnf
     run required_packages
     assert_failure
 }
@@ -228,8 +193,9 @@ EOF
 @test "function_required_packages_manjaro_fail" {
     DISTRO_NAME="manjaro"
     function pacman() {
-        exit 1
+        return 1
     }
+    export -f pacman
     run required_packages
     assert_failure
 }
@@ -237,8 +203,9 @@ EOF
 @test "function_required_packages_arch_fail" {
     DISTRO_NAME="arch"
     function pacman() {
-        exit 1
+        return 1
     }
+    export -f pacman
     run required_packages
     assert_failure
 }
@@ -246,17 +213,19 @@ EOF
 @test "function_required_packages_opensuse_leap_fail" {
     DISTRO_NAME="opensuse-leap"
     function zypper() {
-        exit 1
+        return 1
     }
+    export -f zypper
     run required_packages
     assert_failure
 }
 
 @test "function_required_packages_opensuse_tumbleweed_fail" {
-    DISTRO_NAME="opensuse-leap"
+    DISTRO_NAME="opensuse-tumbleweed"
     function zypper() {
-        exit 1
+        return 1
     }
+    export -f zypper
     run required_packages
     assert_failure
 }
@@ -264,30 +233,31 @@ EOF
 @test "function_required_packages_opensuse_slowroll_fail" {
     DISTRO_NAME="opensuse-slowroll"
     function zypper() {
-        exit 1
+        return 1
     }
+    export -f zypper
     run required_packages
     assert_failure
 }
 
 @test "function_required_packages_linuxmint_fail" {
     DISTRO_NAME="linuxmint"
-    function apt-get() {
-        exit 1
+    function apt_ensure() {
+        return 1
     }
+    export -f apt_ensure
     run required_packages
-    # Function doesn't check package manager exit codes, so it succeeds
-    assert_success
+    assert_failure
 }
 
 @test "function_required_packages_zorinos_fail" {
     DISTRO_NAME="zorin"
-    function apt-get() {
-        exit 1
+    function apt_ensure() {
+        return 1
     }
+    export -f apt_ensure
     run required_packages
-    # Function doesn't check package manager exit codes, so it succeeds
-    assert_success
+    assert_failure
 }
 
 @test "function_required_packages_unknown" {

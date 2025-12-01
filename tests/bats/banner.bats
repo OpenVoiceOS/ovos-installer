@@ -63,7 +63,7 @@ teardown() {
 # Test that banner loads constants
 @test "banner_loads_installer_version" {
     # Test that banner script can access INSTALLER_VERSION
-    run bash -c "source ../../utils/constants.sh && source ../../utils/banner.sh && echo \"Version: \$INSTALLER_VERSION\""
+    run bash -c "source \"${BATS_TEST_DIRNAME}/../../utils/constants.sh\" && source \"${BATS_TEST_DIRNAME}/../../utils/banner.sh\" && echo \"Version: ${INSTALLER_VERSION}\""
     assert_success
     assert_output --partial "Version:"
 }
