@@ -19,6 +19,6 @@
     "gui_feature": {{ ovos_installer_feature_gui }},
     "cpu_capable": {{ ovos_installer_cpu_is_capable }},
     "tuning_enabled": {{ true if ovos_installer_tuning == 'yes' else false }},
-    "country": "{{ _isp_data.json.country | lower }}",
+    "country": "{{ (ovos_installer_isp_data.json.country | default('unknown', true)) | lower }}",
     "hardware": "{{ 'n/a' if ovos_installer_i2c_devices | from_json | length < 1 else ovos_installer_i2c_devices | from_json | first }}"
 }
