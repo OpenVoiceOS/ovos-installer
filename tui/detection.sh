@@ -12,7 +12,7 @@ for device in "${DETECTED_DEVICES[@]}"; do
         ;;
     attiny1614)
         HARDWARE_DETECTED="Mycroft DevKit"
-        ;;        
+        ;;
     esac
 done
 export HARDWARE_DETECTED

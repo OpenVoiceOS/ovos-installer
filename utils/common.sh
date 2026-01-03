@@ -120,7 +120,7 @@ function detect_sound() {
     local python_detection
     # Use the Python helper to reliably detect the server name
     if [ -f "utils/detect_sound.py" ]; then
-        python_detection=$(python3 utils/detect_sound.py "${RUN_AS_UID}")
+        python_detection=$(python3 utils/detect_sound.py)
     else
         python_detection="N/A"
     fi
