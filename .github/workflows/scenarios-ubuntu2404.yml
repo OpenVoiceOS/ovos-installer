@@ -19,20 +19,14 @@ jobs:
           sudo apt-get update
           sudo apt-get --no-install-recommends install curl git -y
 
-      - name: Uninstall existing instance
-        run: |
-          curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh
-          chmod +x installer.sh
-          sudo ./installer.sh -u
-
-      - name: Scenario containers, development, ovos, skills
+      - name: Scenario virtualenv, alpha, ovos, skills
         run: |
           mkdir -p ~/.config/ovos-installer
           cat <<EOF >~/.config/ovos-installer/scenario.yaml
           ---
           uninstall: false
-          method: containers
-          channel: testing
+          method: virtualenv
+          channel: alpha
           profile: ovos
           features:
             skills: true
@@ -45,3 +39,9 @@ jobs:
           curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh
           chmod +x installer.sh
           sudo ./installer.sh
+
+      - name: Uninstall existing instance
+        run: |
+          curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh
+          chmod +x installer.sh
+          sudo ./installer.sh -u
