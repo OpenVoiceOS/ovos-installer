@@ -295,7 +295,7 @@ function install_fedora_packages() {
     local errexit_set=0
     [[ $- == *e* ]] && errexit_set=1
     set +e
-    dnf install -y python3 python3-devel python3-pip python3-virtualenv python3-libdnf5 newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    dnf install -y python3 python3-devel python3-pip python3-virtualenv python3-libdnf5 libffi-devel newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
     local status=$?
     if [ "$errexit_set" -eq 1 ]; then
         set -e
@@ -311,7 +311,7 @@ function install_rhel_packages() {
     local errexit_set=0
     [[ $- == *e* ]] && errexit_set=1
     set +e
-    dnf install -y python3 python3-devel python3-pip newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    dnf install -y python3 python3-devel python3-pip libffi-devel newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
     local status=$?
     if [ "$errexit_set" -eq 1 ]; then
         set -e
@@ -327,7 +327,7 @@ function install_opensuse_packages() {
     local errexit_set=0
     [[ $- == *e* ]] && errexit_set=1
     set +e
-    zypper install --no-recommends -y python3 python3-devel python3-pip python3-rpm newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    zypper install --no-recommends -y python3 python3-devel python3-pip python3-rpm libffi-devel newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
     local status=$?
     if [ "$errexit_set" -eq 1 ]; then
         set -e
@@ -343,7 +343,7 @@ function install_arch_packages() {
     local errexit_set=0
     [[ $- == *e* ]] && errexit_set=1
     set +e
-    pacman -Sy --noconfirm python python-pip python-virtualenv libnewt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    pacman -Sy --noconfirm python python-pip python-virtualenv libffi libnewt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
     local status=$?
     if [ "$errexit_set" -eq 1 ]; then
         set -e
