@@ -16,20 +16,16 @@ def get_process_names():
                 cmd = parts[1].split()[0]
                 processes.add(os.path.basename(cmd))
         return processes
-    except Exception:
+    except (subprocess.CalledProcessError, OSError):
         return set()
 
-def detect_sound_server(uid, home):
+def detect_sound_server(uid):
     """Detect the active sound server."""
     processes = get_process_names()
 
     # Check for PipeWire
     has_pipewire = "pipewire" in processes
     has_pulseaudio = "pulseaudio" in processes
-
-    # Socket paths
-    pulse_native = f"/run/user/{uid}/pulse/native"
-    # WSL2 pulse socket is typically in /mnt/wslg/, passed via env but we can verify logic
 
     # Logic
     if has_pipewire:
@@ -44,12 +40,11 @@ def detect_sound_server(uid, home):
     return "N/A"
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         # Fallback or error
         sys.exit(1)
 
     uid = sys.argv[1]
-    user_home = sys.argv[2]
 
-    result = detect_sound_server(uid, user_home)
+    result = detect_sound_server(uid)
     print(result)
