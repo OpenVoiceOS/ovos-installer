@@ -279,7 +279,7 @@ function install_debian_packages() {
     local errexit_set=0
     [[ $- == *e* ]] && errexit_set=1
     set +e
-    UPDATE=1 apt_ensure python3 python3-dev python3-pip python3-venv whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    UPDATE=1 apt_ensure python3 python3-dev python3-pip python3-venv libffi-dev whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
     local status=$?
     if [ "$errexit_set" -eq 1 ]; then
         set -e
