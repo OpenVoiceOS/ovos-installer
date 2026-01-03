@@ -20,6 +20,8 @@ function setup() {
     }
     export -f ask_optin curl
 
+    touch "$LOG_FILE"
+
     run on_error
     assert_failure
     # Should contain printf-formatted output

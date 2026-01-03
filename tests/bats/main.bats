@@ -21,6 +21,8 @@ function setup() {
     }
     export -f curl
 
+    touch "$LOG_FILE"
+
     run on_error
     assert_failure
     assert_output --partial "Please share this URL with us"

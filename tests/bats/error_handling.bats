@@ -17,6 +17,8 @@ function setup() {
     }
     export -f ask_optin
 
+    touch "$LOG_FILE"
+
     run on_error
     assert_failure
     assert_equal "${status}" 1
@@ -67,6 +69,8 @@ function setup() {
         echo "https://paste.example.com/test-url"
     }
     export -f ask_optin curl
+
+    touch "$LOG_FILE"
 
     run on_error
     assert_failure
