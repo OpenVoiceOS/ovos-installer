@@ -23,6 +23,7 @@ doc/_build/
 .theia
 .venv/
 .ansible
+__pycache__
 
 # Created by unit tests
 test/unittests/skills/test_skill/settings.json

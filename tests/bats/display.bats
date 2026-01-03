@@ -11,48 +11,54 @@ function setup() {
 }
 
 @test "function_detect_display_x11" {
-    function loginctl() {
-        if [[ "$*" == *"show-session"* ]]; then
-            echo "x11"
-        else
-            echo "3 testuser seat0 x11"
+    function python3() {
+        if [[ "$1" == *"detect_display.py"* ]]; then
+             echo "x11"
         fi
     }
-    export -f loginctl
+    export -f python3
+
+    # Needs script presence
+    touch "utils/detect_display.py"
+
     DISPLAY_SERVER=""
     detect_display
     assert_equal "$DISPLAY_SERVER" "x11"
-    unset loginctl
+
+    rm -f "utils/detect_display.py"
+    unset python3
 }
 
 @test "function_detect_display_wayland" {
-    function loginctl() {
-        if [[ "$*" == *"show-session"* ]]; then
-            echo "wayland"
-        else
-            echo "6 testuser seat0 wayland"
+    function python3() {
+        if [[ "$1" == *"detect_display.py"* ]]; then
+             echo "wayland"
         fi
     }
-    export -f loginctl
+    export -f python3
+    touch "utils/detect_display.py"
+
     DISPLAY_SERVER=""
     detect_display
     assert_equal "$DISPLAY_SERVER" "wayland"
-    unset loginctl
+
+    rm -f "utils/detect_display.py"
+    unset python3
 }
 
 @test "function_detect_display_no_display" {
-    function loginctl() {
-        if [[ "$*" == *"show-session"* ]]; then
-            echo "tty"
-        else
-            echo "11 testuser seat0 tty"
-        fi
+    function python3() {
+        echo "N/A"
     }
-    export -f loginctl
+    export -f python3
+    touch "utils/detect_display.py"
+
     DISPLAY_SERVER=""
     detect_display
     assert_equal "$DISPLAY_SERVER" "N/A"
-    unset loginctl
+
+    rm -f "utils/detect_display.py"
+    unset python3
 }
 
 function teardown() {

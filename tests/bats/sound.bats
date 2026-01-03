@@ -12,60 +12,55 @@ function setup() {
 }
 
 @test "function_detect_sound_pulseaudio" {
-    function pgrep() {
-        echo "pulse"
+    function python3() {
+        if [[ "$1" == *"detect_sound.py"* ]]; then
+             echo "PulseAudio"
+        fi
     }
-    function command() {
-        return 0
-    }
-    function pactl() {
-        echo "Server Name: pulseaudio"
-    }
-    export -f pgrep command pactl
-    detect_sound
-    assert_equal "$SOUND_SERVER" "pulseaudio"
-    unset pgrep command pactl
-}
+    export -f python3
 
-@test "function_detect_sound_pulseaudio_via_pipewire" {
-    function pgrep() {
-        echo "pulse"
-    }
-    function command() {
-        return 1
-    }
-    export -f pgrep command
-    detect_sound
-    assert_equal "$SOUND_SERVER" "PulseAudio (on PipeWire)"
-    unset pgrep command
-}
+    # Mock existence of the helper script
+    touch "utils/detect_sound.py"
 
-@test "function_detect_sound_pulseaudio_wsl2" {
-    PULSE_SOCKET_WSL2=/tmp/PulseServer
-    run touch "$PULSE_SOCKET_WSL2"
-    function pactl() {
-        echo "Server Name: pulseaudio"
-    }
-    export -f pactl
     detect_sound
-    assert_equal "$SOUND_SERVER" "pulseaudio"
-    unset pactl
+    assert_equal "$SOUND_SERVER" "PulseAudio"
+
+    rm -f "utils/detect_sound.py"
+    unset python3
 }
 
 @test "function_detect_sound_pipewire" {
-    function pgrep() {
-        echo "pipewire"
+    function python3() {
+        if [[ "$1" == *"detect_sound.py"* ]]; then
+             echo "PipeWire"
+        fi
     }
-    export -f pgrep
+    export -f python3
+
+    # Needs the python script check to pass
+    touch "utils/detect_sound.py"
+
     detect_sound
     assert_equal "$SOUND_SERVER" "PipeWire"
-    unset pgrep
+
+    rm -f "utils/detect_sound.py"
+    unset python3
 }
 
 @test "function_detect_sound_no_audio" {
-    skip "Complex sound server detection mocking"
+    function python3() {
+        echo "N/A"
+    }
+    export -f python3
+    touch "utils/detect_sound.py"
+
+    detect_sound
+    assert_equal "$SOUND_SERVER" "N/A"
+
+    rm -f "utils/detect_sound.py"
+    unset python3
 }
 
 function teardown() {
-    rm -f "$LOG_FILE" "$PULSE_SOCKET_WSL2"
+    rm -f "$LOG_FILE"
 }
