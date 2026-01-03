@@ -30,7 +30,7 @@
   },
   "profiles.sh": {
     "title": "Open Voice OS Installation - Profiles",
-    "content": "To create a versatile system that is suitable for many applications, there are three intriguing choices:\n\n  - Open Voice OS Master: The Open Voice OS classic experience\n  - HiveMind Satellite: Open Voice OS audio components connected to HiveMind Listener\n  - HiveMind Listener: Hub for HiveMind Satellite, bots, etc.. to connect to\n  - Server: Open Voice OS Core and HiveMind Core only, no audio features\n\nEach of these profiles offers unique features and capabilities that could greatly enhance your digital experience.\n\nThe question is, which one aligns best with your needs and preferences?\n\nPlease select a profile:"
+    "content": "To create a versatile system that is suitable for many applications, there are four intriguing choices:\n\n  - Open Voice OS Master: The Open Voice OS classic experience\n  - HiveMind Satellite: Open Voice OS audio components connected to HiveMind Listener\n  - HiveMind Listener: Hub for HiveMind Satellite, bots, etc.. to connect to\n  - Server: Open Voice OS Core and HiveMind Core only, no audio features\n\nEach of these profiles offers unique features and capabilities that could greatly enhance your digital experience.\n\nThe question is, which one aligns best with your needs and preferences?\n\nPlease select a profile:"
   },
   "satellite.sh": {
     "title_host": "Open Voice OS Installation - Satellite 1/4",
