@@ -11,6 +11,11 @@ fail_format="\e[31mfail\e[0m"
 # ovos-installer.log on https://paste.uoi.io. Without the user
 # agreement this could lead to security infringement.
 function ask_optin() {
+    # If not running interactively, assume NO to avoid hanging CI/CD pipelines
+    if [ ! -t 0 ]; then
+        return 1
+    fi
+
     while true; do
         read -rp "Upload the log on ${PASTE_URL} website? (yes/no) " yn
         case $yn in
@@ -112,11 +117,18 @@ function detect_user() {
 #   Always succeeds, sets SOUND_SERVER to "N/A" if no server detected
 function detect_sound() {
     printf '%s' "➤ Detecting sound server... "
-    local pulse_processes
-    pulse_processes="$( (pgrep -a -f "pulse" 2>>"$LOG_FILE" || true) | awk -F"/" '{ print $NF }' )"
-    if [[ "$pulse_processes" =~ "pulse" ]]; then
-        # PULSE_SERVER is required by pactl as it is executed via sudo
-        # Detect if a PulseAudio socket exists either Linux or WSL2
+    local python_detection
+    # Use the Python helper to reliably detect the server name
+    if [ -f "utils/detect_sound.py" ]; then
+        python_detection=$(python3 utils/detect_sound.py "${RUN_AS_UID}" "${RUN_AS_HOME}")
+    else
+        python_detection="N/A"
+    fi
+
+    if [[ "$python_detection" == "PulseAudio" ]] || [[ "$python_detection" == "PipeWire" ]]; then
+        export SOUND_SERVER="$python_detection"
+
+        # Set PULSE_SERVER variables for ansible/pactl usage
         if [ -S "/run/user/${RUN_AS_UID}/pulse/native" ] && [ ! -S "$PULSE_SOCKET_WSL2" ]; then
             export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
             export PULSE_COOKIE="${RUN_AS_HOME}/.config/pulse/cookie"
@@ -124,25 +136,8 @@ function detect_sound() {
             export PULSE_SERVER="$PULSE_SOCKET_WSL2"
         fi
 
-        if command -v pactl &>>"$LOG_FILE"; then
-            SOUND_SERVER="$(pactl info | awk -F":" '$1 ~ /Server Name/ { print $2 }' | sed 's/^ *//')"
-        else
-            SOUND_SERVER="PulseAudio (on PipeWire)"
-        fi
-        export SOUND_SERVER
-    elif [ -e "$PULSE_SOCKET_WSL2" ]; then
-        # This condition is only related to WSL2 as PulseServer socket will be
-        # created under the /mnt/wslg/ directory.
-        if command -v pactl &>>"$LOG_FILE"; then
-            export PULSE_SERVER="$PULSE_SOCKET_WSL2"
-            SOUND_SERVER="$(pactl info | awk -F":" '$1 ~ /Server Name/ { print $2 }' | sed 's/^ *//')"
-            export SOUND_SERVER
-        else
-            export SOUND_SERVER="N/A"
-        fi
-    # Looking for pipewire process
-    elif [ "$( (pgrep -a -f "pipewire$" 2>>"$LOG_FILE" || true) | awk -F"/" '{ print $NF }' )" == "pipewire" ]; then
-        export SOUND_SERVER="PipeWire"
+        # If it's PulseAudio on PipeWire, the python script might just say "PipeWire" or "PulseAudio" depending on what it found first.
+        # But we preserved the logic to set PULSE_SERVER irrespective of the name, which is good.
     else
         export SOUND_SERVER="N/A"
     fi
@@ -190,16 +185,14 @@ function detect_existing_instance() {
 function detect_display() {
     printf '%s' "➤ Detecting display server... "
     export DISPLAY_SERVER="N/A"
-    local sessions
-    sessions="$(loginctl | grep "$RUN_AS" | awk '{ print $1 }')"
-    for session in $sessions; do
-        session_type="$(loginctl show-session "$session" -p Type --value)"
-        if [ "$session_type" == "wayland" ]; then
-            export DISPLAY_SERVER="wayland"
-        elif [ "$session_type" == "x11" ]; then
-            export DISPLAY_SERVER="x11"
-        fi
-    done
+
+    if [ -f "utils/detect_display.py" ]; then
+        DISPLAY_SERVER="$(python3 utils/detect_display.py "$RUN_AS")"
+    else
+        # Fallback if script missing (should not happen)
+        DISPLAY_SERVER="N/A"
+    fi
+    export DISPLAY_SERVER
     echo -e "[$done_format]"
 }
 

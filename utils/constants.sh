@@ -67,6 +67,7 @@ export TEMP_FEATURES_FILE=/tmp/features.json
 export TEMP_PROFILE_FILE=/tmp/profile.json
 export TUI_WINDOW_HEIGHT="35"
 export TUI_WINDOW_WIDTH="90"
+export USE_UV="true"
 export USER_ID="$EUID"
 export WLAN_INTERFACE="wlan0"
 export WSL_FILE=/etc/wsl.conf
