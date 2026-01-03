@@ -28,7 +28,7 @@ jobs:
         run: |
           python scripts/sync_translations.py
       - name: Commit to main
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Update translations
           branch: main
