@@ -9,7 +9,7 @@ Um ein vielseitiges und vernetztes System zu schaffen, das für viele Anwendunge
 
 Jedes dieser Profile bietet spezielle Funktionen und Möglichkeiten, die Ihr digitale Interaktion erweitern.
 
-Welches Profil passt am besten zu Ihren Bedürfnissen und Vorlieben? 
+Welches Profil passt am besten zu Ihren Bedürfnissen und Vorlieben?
 
 Bitte wählen Sie ein Profil aus:
 "

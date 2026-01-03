@@ -19,18 +19,17 @@ def get_process_names():
     except (subprocess.CalledProcessError, OSError):
         return set()
 
-def detect_sound_server(uid):
+def detect_sound_server():
     """Detect the active sound server."""
     processes = get_process_names()
 
     # Check for PipeWire
     has_pipewire = "pipewire" in processes
+    has_pipewire_pulse = "pipewire-pulse" in processes
     has_pulseaudio = "pulseaudio" in processes
 
     # Logic
-    if has_pipewire:
-        # Check if pipewire-pulse is also running or if pulseaudio is actually handling it
-        # Usually pipewire acts as pulse server
+    if has_pipewire or has_pipewire_pulse:
         return "PipeWire"
 
     if has_pulseaudio:
@@ -40,11 +39,5 @@ def detect_sound_server(uid):
     return "N/A"
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        # Fallback or error
-        sys.exit(1)
-
-    uid = sys.argv[1]
-
-    result = detect_sound_server(uid)
+    result = detect_sound_server()
     print(result)
