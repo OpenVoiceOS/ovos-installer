@@ -31,7 +31,7 @@
 
 - name: Set OVOS venv creation command
   ansible.builtin.set_fact:
-    ovos_installer_venv_command: "{{ (ovos_installer_venv_python | default('')) | ternary((ansible_python.executable | dirname) ~ '/uv venv --python ' ~ ovos_installer_venv_python, ansible_python.executable ~ ' -m venv') }}"
+    ovos_installer_venv_command: "{{ (ansible_python.executable | dirname) ~ '/uv venv --python ' ~ ovos_installer_venv_python }}"
   changed_when: false
 
 - name: Create ovos Python venv with tflite_runtime
