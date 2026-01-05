@@ -396,7 +396,7 @@ function required_packages() {
         install_opensuse_packages "${extra_packages[@]}"
         install_status=$?
         ;;
-    arch | manjaro | endeavouros)
+    arch | manjaro | endeavouros | cachyos)
         install_arch_packages "${extra_packages[@]}"
         install_status=$?
         ;;
