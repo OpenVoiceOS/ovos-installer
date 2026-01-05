@@ -86,7 +86,18 @@ echo "➤ Starting Ansible playbook... ☕🍵🧋"
 
 # Execute the Ansible playbook on localhost
 export ANSIBLE_CONFIG=ansible/ansible.cfg
-export ANSIBLE_PYTHON_INTERPRETER="$VENV_PATH/bin/python3"
+case "${DISTRO_NAME:-}" in
+  fedora | almalinux | rocky | centos | rhel)
+    if [ -x /usr/libexec/platform-python ]; then
+      export ANSIBLE_PYTHON_INTERPRETER="/usr/libexec/platform-python"
+    else
+      export ANSIBLE_PYTHON_INTERPRETER="/usr/bin/python3"
+    fi
+    ;;
+  *)
+    export ANSIBLE_PYTHON_INTERPRETER="$VENV_PATH/bin/python3"
+    ;;
+esac
 export ANSIBLE_NOCOWS=1
 ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_user=${RUN_AS}" \
