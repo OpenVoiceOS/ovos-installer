@@ -93,6 +93,7 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_group=$(id -ng "$RUN_AS")" \
   -e "ovos_installer_uid=${RUN_AS_UID}" \
   -e "ovos_installer_venv=${VENV_PATH}" \
+  -e "ovos_installer_venv_python=${OVOS_VENV_PYTHON}" \
   -e "ovos_installer_user_home=${RUN_AS_HOME}" \
   -e "ovos_installer_method=${METHOD}" \
   -e "ovos_installer_profile=${PROFILE}" \
