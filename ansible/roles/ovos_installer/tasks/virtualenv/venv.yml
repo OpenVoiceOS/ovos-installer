@@ -29,11 +29,16 @@
       state: "{{ ovos_installer_profile == 'server' }}"
   when: item.state | bool
 
+- name: Set OVOS venv creation command
+  ansible.builtin.set_fact:
+    ovos_installer_venv_command: "{{ (ansible_python.executable | dirname) ~ '/uv venv --python ' ~ ovos_installer_venv_python }}"
+  changed_when: false
+
 - name: Create ovos Python venv with tflite_runtime
   moreati.uv.pip:
     name: tflite_runtime
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    virtualenv_command: "{{ ansible_python.executable }} -m venv"
+    virtualenv_command: "{{ ovos_installer_venv_command }}"
     extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
   when: ovos_installer_cpu_is_capable | bool
 
@@ -41,7 +46,7 @@
   moreati.uv.pip:
     name: wheel
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    virtualenv_command: "{{ ansible_python.executable }} -m venv"
+    virtualenv_command: "{{ ovos_installer_venv_command }}"
   when: not ovos_installer_cpu_is_capable | bool
 
 - name: Install ggwave Python library

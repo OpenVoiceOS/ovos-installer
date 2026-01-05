@@ -95,7 +95,7 @@ teardown() {
     export USE_UV REUSE_CACHED_ARTIFACTS
 
     handle_options
-    assert_equal "${USE_UV}" "false"
+    assert_equal "${USE_UV}" "true"
     assert_equal "${REUSE_CACHED_ARTIFACTS}" "true"
 
     unset USE_UV REUSE_CACHED_ARTIFACTS
@@ -114,7 +114,7 @@ teardown() {
 
     handle_options -d
     assert_equal "${DEBUG}" "true"
-    assert_equal "${USE_UV}" "false"
+    assert_equal "${USE_UV}" "true"
 
     unset USE_UV
 }

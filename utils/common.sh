@@ -245,19 +245,45 @@ function get_os_information() {
     echo -e "[$done_format]"
 }
 
-# Validate the default Python version before creating the virtualenv.
+# Validate the requested Python version before creating the virtualenv.
 # onnxruntime is currently incompatible with Python 3.14, so abort early.
 function check_python_compatibility() {
-    printf '%s' "➤ Validating default Python version... "
-    local python_version="${PYTHON:-}"
+    printf '%s' "➤ Validating Python version... "
+    local python_version=""
+    local python_cmd="python3"
+    local requested_python=""
+
+    if [ -n "${OVOS_VENV_PYTHON:-}" ]; then
+        requested_python="${OVOS_VENV_PYTHON}"
+        if [[ "${requested_python}" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            python_version="${requested_python}"
+        elif [[ "${requested_python}" =~ ^python([0-9]+\.[0-9]+)$ ]]; then
+            python_version="${requested_python#python}"
+        elif [ -x "${requested_python}" ]; then
+            python_cmd="${requested_python}"
+            python_version="$("$python_cmd" -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE")"
+        elif command -v "${requested_python}" &>>"$LOG_FILE"; then
+            python_cmd="${requested_python}"
+            python_version="$("$python_cmd" -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE")"
+        fi
+    else
+        python_version="${PYTHON:-}"
+        if [ -z "$python_version" ]; then
+            python_version="$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE")"
+        fi
+    fi
 
     if [ -z "$python_version" ]; then
         echo -e "[$fail_format]"
-        echo "Unable to determine the default Python version." | tee -a "$LOG_FILE"
+        if [ -n "${OVOS_VENV_PYTHON:-}" ]; then
+            echo "Unable to determine the Python version for ${requested_python}." | tee -a "$LOG_FILE"
+        else
+            echo "Unable to determine the default Python version." | tee -a "$LOG_FILE"
+        fi
         exit "${EXIT_MISSING_DEPENDENCY}"
     fi
 
-    if [ "$python_version" == "3.14" ]; then
+    if [ -n "${OVOS_VENV_PYTHON:-}" ] && [ "$python_version" == "3.14" ]; then
         echo -e "[$fail_format]"
         echo "Python $python_version is not supported because onnxruntime is not yet compatible with it." | tee -a "$LOG_FILE"
         exit "${EXIT_MISSING_DEPENDENCY}"
@@ -453,13 +479,18 @@ function create_python_venv() {
     # shellcheck source=/dev/null
     source "$VENV_PATH/bin/activate"
 
-    if [ "$USE_UV" == "true" ]; then
-        export PIP_COMMAND="uv pip"
-        if ! command -v uv &>>"$LOG_FILE"; then
-            pip3 install --no-cache-dir "uv>=0.4.10" &>>"$LOG_FILE"
+    export PIP_COMMAND="uv pip"
+    if ! command -v uv &>>"$LOG_FILE"; then
+        if ! pip3 install --no-cache-dir "uv>=0.4.10" &>>"$LOG_FILE"; then
+            echo -e "[$fail_format]"
+            echo "Failed to install uv. Check your network connection and pip configuration, then retry." | tee -a "$LOG_FILE"
+            exit "${EXIT_MISSING_DEPENDENCY}"
         fi
-    else
-        export PIP_COMMAND="pip3"
+    fi
+    if ! command -v uv &>>"$LOG_FILE"; then
+        echo -e "[$fail_format]"
+        echo "uv is required but was not found after installation. Check $LOG_FILE for details." | tee -a "$LOG_FILE"
+        exit "${EXIT_MISSING_DEPENDENCY}"
     fi
 
     $PIP_COMMAND install --no-cache-dir --upgrade pip setuptools &>>"$LOG_FILE"

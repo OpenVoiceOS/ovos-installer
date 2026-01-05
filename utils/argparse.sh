@@ -40,9 +40,8 @@ function handle_options() {
     # To reduce UX clutter, the following options are not exposed as CLI flags,
     # instead the user can specify them via environment variables.
 
-    # If USE_UV is true, install and use uv instead of pip, which can be
-    # significantly faster.
-    export USE_UV="${USE_UV:-true}"
+    # Always install and use uv instead of pip, which is significantly faster.
+    export USE_UV="true"
 
     # If REUSE_CACHED_ARTIFACTS is true, keep any existing ansible venv which
     # speeds up the installer, but could result in errors if it is in a dirty
@@ -60,6 +59,7 @@ function handle_options() {
     export FEATURE_SKILLS="${FEATURE_SKILLS:-true}"
     export FEATURE_EXTRA_SKILLS="${FEATURE_EXTRA_SKILLS:-false}"
     export FEATURE_GUI="${FEATURE_GUI:-false}"
+    export OVOS_VENV_PYTHON="${OVOS_VENV_PYTHON:-3.11}"
     export HIVEMIND_HOST="${HIVEMIND_HOST:-}"
     export HIVEMIND_PORT="${HIVEMIND_PORT:-}"
     export SATELLITE_KEY="${SATELLITE_KEY:-}"

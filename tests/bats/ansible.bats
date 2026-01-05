@@ -10,22 +10,22 @@ function setup() {
 
 @test "function_install_ansible" {
     PYTHON="3.9"
-    PIP_COMMAND="pip3"
+    PIP_COMMAND="uv pip"
     RUN_AS_HOME=/home/$USER
     VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
     function ansible-galaxy() {
         return 0
     }
-    function pip3() {
+    function uv() {
         return 0
     }
     function ver() {
         printf "%03d%03d%03d" 3 9 0
     }
-    export -f ansible-galaxy pip3 ver
+    export -f ansible-galaxy uv ver
     run install_ansible
     assert_success
-    unset ansible-galaxy pip3 ver
+    unset ansible-galaxy uv ver
 }
 
 function teardown() {
