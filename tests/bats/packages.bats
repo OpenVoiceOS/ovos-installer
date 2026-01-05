@@ -80,6 +80,12 @@ EOF
     assert_success
 }
 
+@test "function_required_packages_cachyos" {
+    DISTRO_NAME="cachyos"
+    run required_packages
+    assert_success
+}
+
 @test "function_required_packages_opensuse_leap" {
     DISTRO_NAME="opensuse-leap"
     run required_packages
@@ -202,6 +208,16 @@ EOF
 
 @test "function_required_packages_arch_fail" {
     DISTRO_NAME="arch"
+    function pacman() {
+        return 1
+    }
+    export -f pacman
+    run required_packages
+    assert_failure
+}
+
+@test "function_required_packages_cachyos_fail" {
+    DISTRO_NAME="cachyos"
     function pacman() {
         return 1
     }
