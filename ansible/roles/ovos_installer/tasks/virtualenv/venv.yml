@@ -29,6 +29,17 @@
       state: "{{ ovos_installer_profile == 'server' }}"
   when: item.state | bool
 
+- name: Ensure uv has requested Python available
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    cmd: "uv python install {{ ovos_installer_venv_python }}"
+  changed_when: false
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+  when: not ovos_installer_cleaning | bool
+
 - name: Ensure ovos Python venv exists with requested Python
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -43,6 +54,7 @@
   environment:
     HOME: "{{ ovos_installer_user_home }}"
     PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+  when: not ovos_installer_cleaning | bool
 
 - name: Create ovos Python venv with tflite_runtime
   moreati.uv.pip:
