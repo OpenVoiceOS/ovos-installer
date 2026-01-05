@@ -34,7 +34,7 @@
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.command:
     cmd: >-
-      {{ ovos_installer_venv }}/bin/uv venv
+      uv venv
       --python {{ ovos_installer_venv_python }}
       --python-preference managed
       {{ ovos_installer_user_home }}/.venvs/ovos
@@ -42,6 +42,7 @@
     creates: "{{ ovos_installer_user_home }}/.venvs/ovos/bin/activate"
   environment:
     HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
 
 - name: Create ovos Python venv with tflite_runtime
   moreati.uv.pip:
