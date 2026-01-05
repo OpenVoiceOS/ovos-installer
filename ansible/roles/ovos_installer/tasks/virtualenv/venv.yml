@@ -29,16 +29,11 @@
       state: "{{ ovos_installer_profile == 'server' }}"
   when: item.state | bool
 
-- name: Set OVOS venv creation command
-  ansible.builtin.set_fact:
-    ovos_installer_venv_command: "{{ (ansible_python.executable | dirname) ~ '/uv venv --python ' ~ ovos_installer_venv_python }}"
-  changed_when: false
-
 - name: Create ovos Python venv with tflite_runtime
   moreati.uv.pip:
     name: tflite_runtime
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    virtualenv_command: "{{ ovos_installer_venv_command }}"
+    virtualenv_python: "{{ ovos_installer_venv_python }}"
     extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
   when: ovos_installer_cpu_is_capable | bool
 
@@ -46,13 +41,14 @@
   moreati.uv.pip:
     name: wheel
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
-    virtualenv_command: "{{ ovos_installer_venv_command }}"
+    virtualenv_python: "{{ ovos_installer_venv_python }}"
   when: not ovos_installer_cpu_is_capable | bool
 
 - name: Install ggwave Python library
   moreati.uv.pip:
     name: ggwave
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    virtualenv_python: "{{ ovos_installer_venv_python }}"
     extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
   when: ovos_installer_enable_ggwave | bool
 
@@ -64,6 +60,7 @@
   moreati.uv.pip:
     requirements: "{{ item.file }}"
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    virtualenv_python: "{{ ovos_installer_venv_python }}"
     extra_args: "{{ _uv_extra_args }}"
     state: latest
   register: ovos_installer_install_venv
@@ -91,6 +88,7 @@
   moreati.uv.pip:
     name: numpy==1.26.4
     virtualenv: "{{ ovos_installer_user_home }}/.venvs/ovos"
+    virtualenv_python: "{{ ovos_installer_venv_python }}"
     state: present
 
 - name: Change files ownership of ovos virtualenv
