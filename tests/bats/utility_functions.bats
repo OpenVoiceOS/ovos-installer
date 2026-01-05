@@ -152,21 +152,20 @@ EOF
     RUN_AS_UID="1000"
     RUN_AS_HOME="/home/testuser"
 
-    function pgrep() {
-        echo "pulse"
+    function python3() {
+        if [[ "$1" == *"detect_sound.py"* ]]; then
+            echo "PulseAudio"
+        fi
     }
-    function command() {
-        return 0
-    }
-    function pactl() {
-        echo "Server Name: pulseaudio"
-    }
-    export -f pgrep command pactl
+    export -f python3
+
+    touch "utils/detect_sound.py"
 
     detect_sound
-    assert_equal "${SOUND_SERVER}" "pulseaudio"
+    assert_equal "${SOUND_SERVER}" "PulseAudio"
 
-    unset pgrep command pactl
+    rm -f "utils/detect_sound.py"
+    unset python3
 }
 
 # Test ask_optin function
