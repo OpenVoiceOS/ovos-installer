@@ -24,7 +24,7 @@ If you prefer to inspect before running, download the script first, review it, t
 
 This command downloads and runs the official installer script, which will guide you through the installation process interactively.
 
-> Heads-up: Python 3.14 is not yet supported because `onnxruntime` does not provide wheels for it. Ensure your system `python3` defaults to 3.13 or earlier.
+> Heads-up: OVOS targets a supported Python runtime in its virtualenv (default `3.11`). The installer uses `uv` to provision that version if it is not already available. You can override with `OVOS_VENV_PYTHON`, but `3.14` is blocked because `onnxruntime` does not provide wheels for it.
 
 👉 [Start your Open Voice OS journey!](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
 
@@ -36,6 +36,7 @@ The installer has been tested on the following Linux distributions and versions:
 | ------------------- | --------- |
 | AlmaLinux           | `>= 8`    |
 | Arch                | `rolling` |
+| CachyOS             | `rolling` |
 | CentOS              | `>= 8`    |
 | Debian GNU/Linux    | `>= 10`   |
 | EndeavourOS         | `rolling` |
