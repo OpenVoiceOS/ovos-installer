@@ -94,6 +94,25 @@
       chown -R {{ ovos_installer_user }}:{{ ovos_installer_group }} {{ ovos_installer_user_home }}/.venvs/ovos
   changed_when: false
 
+- name: Add OVOS constraints to venv activation
+  vars:
+    _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_installer_user_home }}/.venvs/ovos/bin/activate"
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    insertafter: "{{ item.insertafter }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    state: "{{ ovos_installer_uninstall }}"
+  loop:
+    - line: "export PIP_CONSTRAINT=\"{{ _ovos_release }}\""
+      regexp: "^export PIP_CONSTRAINT="
+      insertafter: "^VIRTUAL_ENV="
+    - line: "export UV_CONSTRAINT=\"{{ _ovos_release }}\""
+      regexp: "^export UV_CONSTRAINT="
+      insertafter: "^export PIP_CONSTRAINT="
+
 - name: Add VIRTUAL_ENV variable to .bashrc and update user PATH
   vars:
     _path: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
@@ -106,8 +125,10 @@
     mode: "0644"
     state: "{{ ovos_installer_uninstall }}"
   loop:
-    - {"line": "VIRTUAL_ENV={{ _path }}", "regexp": "^VIRTUAL_ENV"}
-    - {"line": "PATH=$PATH:{{ _path }}", "regexp": "^PATH"}
+    - line: "VIRTUAL_ENV={{ _path }}"
+      regexp: "^VIRTUAL_ENV"
+    - line: "PATH=$PATH:{{ _path }}"
+      regexp: "^PATH"
   when: ovos_installer_i2c_devices | from_json | length < 1
   tags:
     - always
