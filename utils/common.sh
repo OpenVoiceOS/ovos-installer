@@ -479,13 +479,18 @@ function create_python_venv() {
     # shellcheck source=/dev/null
     source "$VENV_PATH/bin/activate"
 
-    if [ "$USE_UV" == "true" ]; then
-        export PIP_COMMAND="uv pip"
-        if ! command -v uv &>>"$LOG_FILE"; then
-            pip3 install --no-cache-dir "uv>=0.4.10" &>>"$LOG_FILE"
+    export PIP_COMMAND="uv pip"
+    if ! command -v uv &>>"$LOG_FILE"; then
+        if ! pip3 install --no-cache-dir "uv>=0.4.10" &>>"$LOG_FILE"; then
+            echo -e "[$fail_format]"
+            echo "Failed to install uv. Check your network connection and pip configuration, then retry." | tee -a "$LOG_FILE"
+            exit "${EXIT_MISSING_DEPENDENCY}"
         fi
-    else
-        export PIP_COMMAND="pip3"
+    fi
+    if ! command -v uv &>>"$LOG_FILE"; then
+        echo -e "[$fail_format]"
+        echo "uv is required but was not found after installation. Check $LOG_FILE for details." | tee -a "$LOG_FILE"
+        exit "${EXIT_MISSING_DEPENDENCY}"
     fi
 
     $PIP_COMMAND install --no-cache-dir --upgrade pip setuptools &>>"$LOG_FILE"

@@ -16,7 +16,6 @@ function setup() {
     PYTHON="3.9.0"
     ARCH="x86_64"
     RASPBERRYPI_MODEL="N/A"
-    USE_UV="false"
     REUSE_CACHED_ARTIFACTS="false"
 
     function python3() {
@@ -28,19 +27,22 @@ function setup() {
     function pip3() {
         return 0  # Mock pip3 command
     }
+    function uv() {
+        return 0  # Mock uv command
+    }
     function chown() {
         return 0  # Mock chown command
     }
     function ver() {
         echo "003009000"  # Mock version comparison
     }
-    export -f python3 source pip3 chown ver
+    export -f python3 source pip3 uv chown ver
 
     run mkdir -p "$VENV_PATH"
     run create_python_venv
     assert_success
 
-    unset -f python3 source pip3 chown ver
+    unset -f python3 source pip3 uv chown ver
 }
 
 @test "function_create_python_venv_not_exists" {
@@ -51,7 +53,6 @@ function setup() {
     PYTHON="3.9.0"
     ARCH="x86_64"
     RASPBERRYPI_MODEL="N/A"
-    USE_UV="false"
     REUSE_CACHED_ARTIFACTS="false"
 
     function python3() {
@@ -63,34 +64,37 @@ function setup() {
     function pip3() {
         return 0  # Mock pip3 command
     }
+    function uv() {
+        return 0  # Mock uv command
+    }
     function chown() {
         return 0  # Mock chown command
     }
     function ver() {
         echo "003009000"  # Mock version comparison
     }
-    export -f python3 source pip3 chown ver
+    export -f python3 source pip3 uv chown ver
 
     run create_python_venv
     assert_success
 
-    unset -f python3 source pip3 chown ver
+    unset -f python3 source pip3 uv chown ver
 }
 
 # Test install_ansible function (mocked)
 @test "function_install_ansible_success" {
     PYTHON="3.9"
-    PIP_COMMAND="pip3"
+    PIP_COMMAND="uv pip"
     function ver() {
         printf "%03d%03d%03d" 3 9 0
     }
-    function pip3() { return 0; }
+    function uv() { return 0; }
     function ansible-galaxy() { return 0; }
-    export -f ver pip3 ansible-galaxy
+    export -f ver uv ansible-galaxy
 
     run install_ansible
     assert_success
-    unset -f ver pip3 ansible-galaxy
+    unset -f ver uv ansible-galaxy
 }
 
 function teardown() {
