@@ -30,14 +30,18 @@
   when: item.state | bool
 
 - name: Ensure ovos Python venv exists with requested Python
+  become: true
+  become_user: "{{ ovos_installer_user }}"
   ansible.builtin.command:
     cmd: >-
       {{ ovos_installer_venv }}/bin/uv venv
       --python {{ ovos_installer_venv_python }}
-      --python-preference system
+      --python-preference managed
       {{ ovos_installer_user_home }}/.venvs/ovos
   args:
     creates: "{{ ovos_installer_user_home }}/.venvs/ovos/bin/activate"
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
 
 - name: Create ovos Python venv with tflite_runtime
   moreati.uv.pip:
