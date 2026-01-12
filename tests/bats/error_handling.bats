@@ -26,6 +26,42 @@ function setup() {
     unset -f ask_optin
 }
 
+@test "function_upload_logs_returns_url_on_success" {
+    touch "$LOG_FILE"
+
+    function curl() {
+        echo "https://paste.example.com/test-url"
+    }
+    export -f curl
+
+    run upload_logs
+    assert_success
+    assert_output "https://paste.example.com/test-url"
+
+    unset -f curl
+}
+
+@test "function_upload_logs_retries_with_insecure_on_tls_failure" {
+    touch "$LOG_FILE"
+
+    function curl() {
+        for arg in "$@"; do
+            if [[ "$arg" == -*k* ]]; then
+                echo "https://paste.example.com/fallback-url"
+                return 0
+            fi
+        done
+        return 60
+    }
+    export -f curl
+
+    run upload_logs
+    assert_success
+    assert_output "https://paste.example.com/fallback-url"
+
+    unset -f curl
+}
+
 @test "function_detect_user_permission_denied_exit_code" {
     USER_ID="1000"
     run detect_user

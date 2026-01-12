@@ -148,8 +148,12 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
 else
   # Concatenate Ansible log with installer log
   cat "$ANSIBLE_LOG_FILE" >>"$LOG_FILE"
-  debug_url="$(curl -sF 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE")"
+  debug_url="$(upload_logs)"
   printf '\n%s\n' "➤ Unable to finalize the process, please check $LOG_FILE for more details."
-  printf '%s\n' "➤ Please share this URL with us $debug_url"
+  if [ -n "${debug_url:-}" ]; then
+    printf '%s\n' "➤ Please share this URL with us $debug_url"
+  else
+    printf '%s\n' "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
+  fi
   exit "${EXIT_FAILURE}"
 fi
