@@ -31,6 +31,21 @@ function ask_optin() {
     done
 }
 
+# Upload the installer log to the paste service and return the URL (empty on failure).
+function upload_logs() {
+    local debug_url=""
+
+    if command -v curl >/dev/null 2>&1; then
+        debug_url="$(curl -sSf -m 10 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" 2>/dev/null || true)"
+        if [ -z "$debug_url" ]; then
+            # Retry without certificate verification to tolerate self-signed paste endpoints
+            debug_url="$(curl -sSkf -m 10 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" 2>/dev/null || true)"
+        fi
+    fi
+
+    echo "$debug_url"
+}
+
 # The function exits the installer when trap detects ERR as signal.
 # This is mainly used in setup.sh to handle errors during the functions
 # execution.
@@ -40,9 +55,7 @@ function on_error() {
     if [ -n "${ANSIBLE_LOG_FILE:-}" ] && [ -f "$ANSIBLE_LOG_FILE" ]; then
         cat "$ANSIBLE_LOG_FILE" >>"$LOG_FILE"
     fi
-    if command -v curl >/dev/null 2>&1; then
-        debug_url="$(curl -sSf -m 10 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" || true)"
-    fi
+    debug_url="$(upload_logs)"
     printf '\n%s\n' "➤ Unable to finalize the process, please check $LOG_FILE for more details."
     if [ -n "${debug_url:-}" ]; then
         printf '%s\n' "➤ Please share this URL with us $debug_url"
