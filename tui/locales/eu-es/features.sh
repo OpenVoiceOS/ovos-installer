@@ -1,10 +1,6 @@
 #!/bin/env bash
 
 CONTENT="
-GUI (erabiltzailearen interfaze grafikoa) eta Open Voice OS-en trebetasunen artean aukeratzerakoan, kontuan hartu zure hobespenak eta beharrak.
-
-GUI KDE Plasma-ren gainean exekutatzen den OVOSentzako kode irekiko bisual eta bistaratze-esparru bat da eta Qt-ek ahalbidetutako Kirigami erabiliz eraikia.
-
 Trebetasunek hizkeraren bidez interakzioa ahalbidetzen dute, eta eraginkorra egiten dute etxeko automatizazioa, informazioa berreskuratzea eta gailu adimendunak kontrolatzea hizkuntza naturaleko komandoak erabiliz.
 
 Mesedez, aukeratu gaitzeko eginbideak:

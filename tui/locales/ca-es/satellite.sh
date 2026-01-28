@@ -7,7 +7,7 @@ content="En connectar-se a l'oient HiveMind, els satèl·lits HiveMind tenen acc
 CONTENT_HOST="
 $content
 
-Introduïu l'amfitrió de l'escolta HiveMind (DNS o adreça IP):
+Introduïu l'amfitrió de l'escolta de HiveMind (DNS o adreça IP):
 "
 
 # Port
@@ -21,14 +21,14 @@ Introduïu el port d'escolta de HiveMind:
 CONTENT_KEY="
 $content
 
-Introduïu la clau d'escolta HiveMind relacionada amb el satèl·lit:
+Introduïu la clau d'escolta de HiveMind relacionada amb el satèl·lit:
 "
 
 # Password
 CONTENT_PASSWORD="
 $content
 
-Introduïu la contrasenya de l'escolat de HiveMind relacionada amb el satèl·lit:
+Introduïu la contrasenya d'escolta de HiveMind relacionada amb el satèl·lit:
 "
 
 TITLE_HOST="Instal·lació de l'Open VoiceOS - Satèl·lit 1/4"

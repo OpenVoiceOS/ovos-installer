@@ -6,7 +6,6 @@ Bijna klaar. Een korte samenvatting:
     - Omgeving: $METHOD
     - Versie:   $CHANNEL
     - Profiel:  $PROFILE
-    - GUI:      $FEATURE_GUI
     - Skills:   $FEATURE_SKILLS
     - Tuning:   $TUNING
 

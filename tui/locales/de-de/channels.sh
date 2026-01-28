@@ -1,16 +1,20 @@
 #!/bin/env bash
 
 CONTENT="
-Für Open Voice OS gibt es zwei Versionen:
-- Stabil (empfohlen, aber noch nicht verfügbar)
-- Entwickler
+Open Voice OS bietet drei Versionen:
 
-Die stabile Version von Open Voice OS ist eine gut getestete und zuverlässige Version für den täglichen Gebrauch.
+– stable (Standard)
+– testing (relativ stabil)
+– alpha (aktuellste Version)
 
-Die Entwicklungsversion von Open Voice OS ist für Entwickler und Enthusiasten gedacht, die den neusten Entwicklungen experimentieren und zur Weiterentwicklung der Plattform beitragen möchten..
+Die stabile Version von Open Voice OS ist für die meisten Nutzern empfehlenswert. Sie ist umfassend getestet und enthält alle aktuellen Funktionen und Verbesserungen, die als stabil gelten.
 
-wähle eine Version:
+Die Testversion von Open Voice OS ist eine experimentellere Version mit neuen Funktionen und Verbesserungen, die sich noch in der Testphase befinden. Sie ist grundsätzlich stabil, kann aber Fehler oder Probleme aufweisen.
+
+Die Alphaversion von Open Voice OS ist die experimentellste Version und enthält die neuesten Funktionen und Änderungen, die sich noch in der Entwicklung befinden. Sie kann instabil sein und wird nicht für den alltäglichen Gebrauch empfohlen.
+
+Bitte wählen Sie eine Version:
 "
-TITLE="Open Voice OS Installationsversionen"
+TITLE="Open Voice OS-Installationskanäle"
 
 export CONTENT TITLE

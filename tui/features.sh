@@ -3,16 +3,13 @@
 # shellcheck source=locales/en-us/features.sh
 source "tui/locales/$LOCALE/features.sh"
 
-export FEATURE_GUI="false"
 export FEATURE_SKILLS="false"
 export FEATURE_EXTRA_SKILLS="false"
+export FEATURE_GUI="false"
 
 declare -a features
 features=("skills" "$SKILL_DESCRIPTION" ON)
 features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" OFF)
-if [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 3"* ]] && [[ "$KERNEL" != *"microsoft"* ]] && [ "$PROFILE" != "server" ]; then
-  features+=("gui" "$GUI_DESCRIPTION" OFF)
-fi
 
 if [ -f "$INSTALLER_STATE_FILE" ]; then
   if jq -e '.features|any(. == "skills")' "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"; then
@@ -24,11 +21,6 @@ if [ -f "$INSTALLER_STATE_FILE" ]; then
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" ON)
   else
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" OFF)
-  fi
-  if jq -e '.features|any(. == "gui")' "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"; then
-    features+=("gui" "$GUI_DESCRIPTION" ON)
-  else
-    features+=("gui" "$GUI_DESCRIPTION" OFF)
   fi
 fi
 
@@ -49,10 +41,6 @@ fi
 declare -a FEATURES_STATE
 for FEATURE in $OVOS_FEATURES; do
   case "$FEATURE" in
-  "gui")
-    export FEATURE_GUI="true"
-    FEATURES_STATE+=("gui")
-    ;;
   "skills")
     export FEATURE_SKILLS="true"
     FEATURES_STATE+=("skills")

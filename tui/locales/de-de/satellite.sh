@@ -7,28 +7,28 @@ content="Durch die Verbindung mit dem HiveMind-Listener erhalten die HiveMind-Sa
 CONTENT_HOST="
 $content
 
-Gib den HiveMind listener host ein(DNS oder IP Addrese):
+Geben Sie  den DNS oder die IP Adresse des HiveMind Servers ein :
 "
 
 # Port
 CONTENT_PORT="
 $content
 
-Gib den HiveMind listener Port ein:
+Geben Sie die Portnummer des HiveMind Servers ein:
 "
 
 # Key
 CONTENT_KEY="
 $content
 
-Gib den HiveMind listener Zugangsschlüssel des Satelliten ein:
+Geben Sie den  Zugangsschlüssel des Satelliten für den HiveMind Server ein:
 "
 
 # Password
 CONTENT_PASSWORD="
 $content
 
-Gib das HiveMind listener Passwort des Satelliten ein:
+Geben Sie das Passwort des Satelliten für den HiveMind Server  ein:
 "
 
 TITLE_HOST="Open Voice OS Installation - Satellit 1 von 4"

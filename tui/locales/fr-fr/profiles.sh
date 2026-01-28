@@ -1,18 +1,21 @@
 #!/bin/env bash
 
 CONTENT="
-Dans la quête actuelle du compagnon numérique idéal, nous nous trouvons à la croisée des chemins avec trois choix intrigants:
+Pour créer un système polyvalent adapté à de nombreuses applications, quatre options intéressantes s'offrent à vous :
 
-   - Open Voice OS: L'expérience classique Open Voice OS
-   - HiveMind Satellite: Exécute les composants audio sur un appareil
-   - HiveMind Listener: Hub auquel HiveMind Satellite peut se connecter
-   - Serveur: Open Voice OS Core et HiveMind Core uniquement, aucune fonctions audio
+- Open Voice OS Master : L'expérience classique d'Open Voice OS
 
-Chacun de ces profils offre des fonctionnalités et des capacités uniques qui pourraient grandement améliorer votre expérience numérique.
+- HiveMind Satellite : Composants audio Open Voice OS connectés à HiveMind Listener
 
-La question est de savoir lequel correspond le mieux à vos besoins et préférences?
+- HiveMind Listener : Plateforme permettant de connecter HiveMind Satellite, des bots, etc.
 
-Veuillez sélectionner un profil:
+- Serveur : Open Voice OS Core et HiveMind Core uniquement, sans fonctionnalités audio
+
+Chacun de ces profils offre des fonctionnalités uniques susceptibles d'enrichir considérablement votre expérience numérique.
+
+La question est : lequel correspond le mieux à vos besoins et préférences ?
+
+Veuillez sélectionner un profil :
 "
 TITLE="Open Voice OS Installation - Profil d'installation"
 

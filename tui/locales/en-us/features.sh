@@ -1,10 +1,6 @@
 #!/bin/env bash
 
 CONTENT="
-When choosing between GUI (Graphical User Interface) and skills in Open Voice OS, consider your preference and needs.
-
-The GUI is an open source visual and display framework for OVOS running on top of KDE Plasma and built using Kirigami empowered by Qt.
-
 Skills enable interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.
 
 Please choose the features to enable:

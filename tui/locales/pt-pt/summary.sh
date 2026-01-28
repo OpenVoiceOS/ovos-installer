@@ -6,7 +6,6 @@ Quase a terminar. Um breve resumo:
     - Implementação: $METHOD
     - Versão:      $CHANNEL
     - Perfil:      $PROFILE
-    - GUI:         $FEATURE_GUI
     - Skills:      $FEATURE_SKILLS
     - Otimização:  $TUNING
 

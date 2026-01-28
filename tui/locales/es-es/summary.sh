@@ -6,7 +6,6 @@ CONTENT="
 - Method: $METHOD
 - Version: $CHANNEL
 - Profile: $PROFILE
-- GUI: $FEATURE_GUI
 - Skills: $FEATURE_SKILLS
 - Tuning: $TUNING
 

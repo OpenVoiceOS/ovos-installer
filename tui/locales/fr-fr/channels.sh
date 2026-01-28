@@ -1,10 +1,10 @@
 #!/bin/env bash
 
 CONTENT="
-Open Voice OS propose trois principaux canaux de publication :
+Open Voice OS propose quatre principaux canaux de publication :
 
-- stable (par défaut)
-- test (plutôt stable)
+- stable (stable mais vieux)
+- test (par défaut)
 - alpha (à la pointe de la technologie)
 
 La version stable d'Open Voice OS est la version recommandée pour la plupart des utilisateurs. Elle a été testée avec soin et inclut toutes les dernières fonctionnalités et améliorations jugées stables.

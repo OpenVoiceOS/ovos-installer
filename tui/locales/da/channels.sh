@@ -1,14 +1,17 @@
 #!/bin/env bash
 
 CONTENT="
-Open Voice OS har to hovedudgivelseskanaler:
+Open Voice OS har tre primære udgivelseskanaler:
 
-  - stabil (anbefalet, men ikke tilgængelig endnu)
-  - udvikling
+- stabil (standard)
+- test (ret stabil)
+- alfa (nyeste version)
 
-Den stabile udgivelse af Open Voice OS er en velafprøvet og pålidelig version, der er velegnet til daglig brug.
+Den stabile udgivelse af Open Voice OS er den anbefalede version til de fleste brugere. Den er veltestet og indeholder alle de nyeste funktioner og forbedringer, der er blevet anset for at være stabile.
 
-Udviklingsudgivelsen af ​​Open Voice OS er beregnet til udviklere og entusiaster, der ønsker at eksperimentere med banebrydende funktioner og bidrage til platformens udvikling.
+Testversionen af ​​Open Voice OS er en mere eksperimentel version, der indeholder nye funktioner og forbedringer, der stadig testes. Den er generelt stabil, men kan have nogle fejl eller problemer.
+
+Alfaversionen af ​​Open Voice OS er den mest eksperimentelle version, der indeholder de nyeste funktioner og ændringer, der stadig er under udvikling. Den kan være ustabil og anbefales ikke til daglig brug.
 
 Vælg venligst en kanal:
 "

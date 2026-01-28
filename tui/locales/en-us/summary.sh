@@ -6,7 +6,6 @@ You are almost done, here is a summary of choices you made to install Open Voice
     - Method:   $METHOD
     - Version:  $CHANNEL
     - Profile:  $PROFILE
-    - GUI:      $FEATURE_GUI
     - Skills:   $FEATURE_SKILLS
     - Tuning:   $TUNING
 

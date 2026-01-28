@@ -3,7 +3,7 @@
 CONTENT="
 La instal·lació s'ha completat correctament! 🎉
 
-L'assistent de veu ja és a punt. Ens complau que exploreu l'ampli ventall de funcions i capacitats que ofereix aquest assistent de veu.
+L'assistent de veu ja està a punt. Ens complau que exploreu l'ampli ventall de funcions i capacitats que ofereix aquest assistent de veu.
 
 Si heu activat la característica d'habilitats predeterminades, podeu començar a interactuar amb el vostre assistent dient:
 
@@ -15,7 +15,7 @@ Si heu activat la característica d'habilitats predeterminades, podeu començar 
 
 La configuració del vostre assistent es pot canviar al fitxer de configuració $CONFIG_FILE.
 
-Si us cal ajuda o actualitzacions en el futur, no dubteu de posar-vos en contacte. Gaudiu de l'experiència amb Open Voice OS!
+Si us cal ajuda o actualitzacions en el futur, no dubteu a posar-vos en contacte amb nosaltres. Gaudiu de l'experiència amb Open Voice OS!
 "
 TITLE="Instal·lació de l'Open Voice OS - Finalització"
 

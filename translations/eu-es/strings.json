@@ -15,7 +15,7 @@
   },
   "features.sh": {
     "title": "Ireki Voice OS Instalazioa - Ezaugarriak",
-    "content": "GUI (erabiltzailearen interfaze grafikoa) eta Open Voice OS-en trebetasunen artean aukeratzerakoan, kontuan hartu zure hobespenak eta beharrak.\n\nGUI KDE Plasma-ren gainean exekutatzen den OVOSentzako kode irekiko bisual eta bistaratze-esparru bat da eta Qt-ek ahalbidetutako Kirigami erabiliz eraikia.\n\nTrebetasunek hizkeraren bidez interakzioa ahalbidetzen dute, eta eraginkorra egiten dute etxeko automatizazioa, informazioa berreskuratzea eta gailu adimendunak kontrolatzea hizkuntza naturaleko komandoak erabiliz.\n\nMesedez, aukeratu gaitzeko eginbideak:",
+    "content": "Trebetasunek hizkeraren bidez interakzioa ahalbidetzen dute, eta eraginkorra egiten dute etxeko automatizazioa, informazioa berreskuratzea eta gailu adimendunak kontrolatzea hizkuntza naturaleko komandoak erabiliz.\n\nMesedez, aukeratu gaitzeko eginbideak:",
     "skill_description": "Kargatu OVOS trebetasun lehenetsiak",
     "extra_skill_description": "Kargatu OVOS trebetasun gehigarriak",
     "gui_description": "Gaitu erabiltzailearen interfaze grafikoa"
@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "Ireki Voice OS instalazioa - Laburpena",
-    "content": "Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:\n\n    - Metodoa: $METHOD\n    - Bertsioa: $CHANNEL\n    - Profila: $PROFILE\n    - GUI: $FEATURE_GUI\n    - Trebetasunak: $FEATURE_SKILLS\n    - Afinazioa: $TUNING\n\nOpen Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.\n\nLaburpen hau zuzena iruditzen zaizu? Hala ez bada, atzera egin dezakezu aldaketak."
+    "content": "Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:\n\n    - Metodoa: $METHOD\n    - Bertsioa: $CHANNEL\n    - Profila: $PROFILE\n    - Trebetasunak: $FEATURE_SKILLS\n    - Afinazioa: $TUNING\n\nOpen Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.\n\nLaburpen hau zuzena iruditzen zaizu? Hala ez bada, atzera egin dezakezu aldaketak."
   },
   "telemetry.sh": {
     "title": "Ireki Voice OS instalazioa - Telemetria",
