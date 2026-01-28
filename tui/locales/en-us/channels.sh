@@ -3,8 +3,8 @@
 CONTENT="
 Open Voice OS has three main release channels:
 
-  - stable (default)
-  - testing (pretty stable)
+  - stable (stable but old)
+  - testing (default)
   - alpha (bleeding edge)
 
 The stable release of Open Voice OS is the recommended version for most users. It is well-tested and includes all the latest features and improvements that have been deemed stable.
