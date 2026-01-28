@@ -1,7 +1,7 @@
 #!/bin/env bash
 
 CONTENT="
-Open Voice OS propose quatre principaux canaux de publication :
+Open Voice OS propose trois principaux canaux de publication :
 
 - stable (stable mais vieux)
 - test (par défaut)
