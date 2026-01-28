@@ -15,7 +15,7 @@
   },
   "features.sh": {
     "title": "OpenVoice OS Installatie - Kenmerken",
-    "content": "OpenVoice OS biedt een GUI (Grafische gebruikersinterface) naast voice skills.\n\nDe GUI is een open-source, grafische gebruiksinterface voor OVOS dat draait op KDE Plasma en is ontwikkeld met Kirigami, ondersteund door Qt.\n\nSkills maken interactie via spraak mogelijk, waardoor ze efficiënt zijn voor taken zoals domotica, informatie ophalen en slimme apparaten bedienen via spraakopdrachten.\n\nKies welke functies je wil activeren (meerdere opties tegelijkertijd zijn mogelijk):",
+    "content": "Skills maken interactie via spraak mogelijk, waardoor ze efficiënt zijn voor taken zoals domotica, informatie ophalen en slimme apparaten bedienen via spraakopdrachten.\n\nKies welke functies je wil activeren (meerdere opties tegelijkertijd zijn mogelijk):",
     "skill_description": "Standaard OVOS skills",
     "extra_skill_description": "Extra OVOS skills",
     "gui_description": "Grafische gebruikersinterface"
@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "OpenVoice OS Installatie - Samenvatting",
-    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving: $METHOD\n    - Versie:   $CHANNEL\n    - Profiel:  $PROFILE\n    - GUI:      $FEATURE_GUI\n    - Skills:   $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen in orde zo?"
+    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving: $METHOD\n    - Versie:   $CHANNEL\n    - Profiel:  $PROFILE\n    - Skills:   $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen in orde zo?"
   },
   "telemetry.sh": {
     "title": "OpenVoice OS Installatie - Telemetrie",

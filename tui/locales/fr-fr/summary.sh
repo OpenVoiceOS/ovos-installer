@@ -6,7 +6,6 @@ Vous y êtes presque ! Voici un résumé des choix que vous avez effectués pour
     - Méthode d'installation :   $METHOD
     - Canal de déploiement :      $CHANNEL
     - Profil d'installation :    $PROFILE
-    - Interface graphique :      $FEATURE_GUI
     - Compétences par défaut :   $FEATURE_SKILLS
     - Réglages Raspberry Pi :    $TUNING
 

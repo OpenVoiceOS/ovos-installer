@@ -15,7 +15,7 @@
   },
   "features.sh": {
     "title": "Open Voice OS Instalação - Características",
-    "content": "Ao escolher entre GUI (Interface gráfica do utilizador) e Skills no Open Voice OS, deve ter em conta as suas preferências e necessidades.\n\nA GUI é uma interface visual de código aberto para o OVOS que corre no KDE Plasma e foi desenvolvida com o Kirigami, suportado pelo Qt.\n\nSkills permitem a interação através da voz, tornando-as eficientes para tarefas como a domótica, a obtenção de informações e o controlo de dispositivos inteligentes através de comandos de voz.\n\nSeleccione as funções a ativar:",
+    "content": "Skills permitem a interação através da voz, tornando-as eficientes para tarefas como a domótica, a obtenção de informações e o controlo de dispositivos inteligentes através de comandos de voz.\n\nSeleccione as funções a ativar:",
     "skill_description": "Descarregar uma seleção de skills OVOS",
     "extra_skill_description": "Carregar skills OVOS adicionais",
     "gui_description": "Com interface gráfica do utilizador"
@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Instalação - Resumo",
-    "content": "Quase a terminar. Um breve resumo:\n\n    - Implementação: $METHOD\n    - Versão:      $CHANNEL\n    - Perfil:      $PROFILE\n    - GUI:         $FEATURE_GUI\n    - Skills:      $FEATURE_SKILLS\n    - Otimização:  $TUNING\n\nAs decisões tomadas durante o processo de instalação do Open Voice OS foram cuidadosamente consideradas para personalizar o nosso sistema de acordo com as suas necessidades e preferências individuais.\n\nAs definições estão correctas?"
+    "content": "Quase a terminar. Um breve resumo:\n\n    - Implementação: $METHOD\n    - Versão:      $CHANNEL\n    - Perfil:      $PROFILE\n    - Skills:      $FEATURE_SKILLS\n    - Otimização:  $TUNING\n\nAs decisões tomadas durante o processo de instalação do Open Voice OS foram cuidadosamente consideradas para personalizar o nosso sistema de acordo com as suas necessidades e preferências individuais.\n\nAs definições estão correctas?"
   },
   "telemetry.sh": {
     "title": "Open Voice OS Instalação - Telemetria",

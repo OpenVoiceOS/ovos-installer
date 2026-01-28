@@ -15,7 +15,7 @@
   },
   "features.sh": {
     "title": "Open Voice OS Installation - Features",
-    "content": "When choosing between GUI (Graphical User Interface) and skills in Open Voice OS, consider your preference and needs.\n\nThe GUI is an open source visual and display framework for OVOS running on top of KDE Plasma and built using Kirigami empowered by Qt.\n\nSkills enable interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.\n\nPlease choose the features to enable:",
+    "content": "Skills enable interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.\n\nPlease choose the features to enable:",
     "skill_description": "Load default OVOS skills",
     "extra_skill_description": "Load extra OVOS skills",
     "gui_description": "Enable graphical user interface"
@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Summary",
-    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   $METHOD\n    - Version:  $CHANNEL\n    - Profile:  $PROFILE\n    - GUI:      $FEATURE_GUI\n    - Skills:   $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, you can go back and make changes."
+    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   $METHOD\n    - Version:  $CHANNEL\n    - Profile:  $PROFILE\n    - Skills:   $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, you can go back and make changes."
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Telemetry",

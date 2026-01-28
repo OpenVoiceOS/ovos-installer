@@ -15,7 +15,7 @@
   },
   "features.sh": {
     "title": "Instalación de Open Voice OS - Características",
-    "content": "A la hora de elegir entre GUI (Interfaz gráfica de usuario) y Skills en Open Voice OS, debes tener en cuenta tus preferencias y necesidades.\n\nLa GUI es un marco visual y de visualización de código abierto para OVOS que se ejecuta en KDE Plasma y fue desarrollado con Kirigami, con el apoyo de Qt.\n\nLas habilidades permiten la interacción a través de la voz, lo que las hace eficaces para tareas como la domótica, la recuperación de información y el control de dispositivos inteligentes mediante comandos de voz.\n\nSelecciona las funciones que quieres activar:",
+    "content": "Las habilidades permiten la interacción a través de la voz, lo que las hace eficaces para tareas como la domótica, la recuperación de información y el control de dispositivos inteligentes mediante comandos de voz.\n\nSelecciona las funciones que quieres activar:",
     "skill_description": "Descargar una selección de competencias (skills) OVOS",
     "extra_skill_description": "Descargar habilidades OVOS adicionales",
     "gui_description": "Con interfaz gráfica de usuario"
@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "Instalación de Open Voice OS - Resumen",
-    "content": "¡Ya casi has terminado! Aquí tienes un resumen de las opciones que has elegido para instalar Open Voice OS:\n\n- Method: $METHOD\n- Version: $CHANNEL\n- Profile: $PROFILE\n- GUI: $FEATURE_GUI\n- Skills: $FEATURE_SKILLS\n- Tuning: $TUNING\n\nLas decisiones que has tomado durante el proceso de instalación de Open Voice OS han sido cuidadosamente consideradas para adaptar el sistema a tus necesidades y preferencias.\n\n¿Este resumen es correcto? Si no es así, puedes volver atrás y hacer cambios."
+    "content": "¡Ya casi has terminado! Aquí tienes un resumen de las opciones que has elegido para instalar Open Voice OS:\n\n- Method: $METHOD\n- Version: $CHANNEL\n- Profile: $PROFILE\n- Skills: $FEATURE_SKILLS\n- Tuning: $TUNING\n\nLas decisiones que has tomado durante el proceso de instalación de Open Voice OS han sido cuidadosamente consideradas para adaptar el sistema a tus necesidades y preferencias.\n\n¿Este resumen es correcto? Si no es así, puedes volver atrás y hacer cambios."
   },
   "telemetry.sh": {
     "title": "Instalación de Open Voice OS - Telemetría",

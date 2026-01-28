@@ -15,7 +15,7 @@
   },
   "features.sh": {
     "title": "Open Voice OS Installation - Funktioner",
-    "content": "Når du vælger mellem GUI (Graphical User Interface) og færdigheder i Open Voice OS, skal du overveje dine præferencer og behov.\n\nGUI'en er en open source visuel og displayramme for OVOS, der kører oven på KDE Plasma og bygget ved hjælp af Kirigami bemyndiget af Qt.\n\nFærdigheder muliggør interaktion gennem tale, hvilket gør det effektivt til opgaver som hjemmeautomatisering, informationssøgning og styring af smarte enheder ved hjælp af naturlige sprogkommandoer.\n\nVælg venligst funktionerne for at aktivere:",
+    "content": "Færdigheder muliggør interaktion gennem tale, hvilket gør det effektivt til opgaver som hjemmeautomatisering, informationssøgning og styring af smarte enheder ved hjælp af naturlige sprogkommandoer.\n\nVælg venligst funktionerne for at aktivere:",
     "skill_description": "Indlæs standard OVOS-færdigheder",
     "extra_skill_description": "Indlæs ekstra OVOS-færdigheder",
     "gui_description": "Aktiver grafisk brugergrænseflade"
@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Resume",
-    "content": "Du er næsten færdig, her er en oversigt over de valg, du har truffet for at installere Open Voice OS:\n\n    - Metode: $METHOD\n    - Version: $CHANNEL\n    - Profil: $PROFILE\n    - GUI: $FEATURE_GUI\n    - Færdigheder: $FEATURE_SKILLS\n    - Tuning: $TUNING\n\nDe valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.\n\nSer denne oversigt korrekt ud for dig? Hvis ikke, kan du gå tilbage og foretage ændringer."
+    "content": "Du er næsten færdig, her er en oversigt over de valg, du har truffet for at installere Open Voice OS:\n\n    - Metode: $METHOD\n    - Version: $CHANNEL\n    - Profil: $PROFILE\n    - Færdigheder: $FEATURE_SKILLS\n    - Tuning: $TUNING\n\nDe valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.\n\nSer denne oversigt korrekt ud for dig? Hvis ikke, kan du gå tilbage og foretage ændringer."
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Telemetri",

@@ -7,7 +7,7 @@ Ihr Sprachassistent ist jetzt einsatzbereit. Wir freuen uns darauf, dass Sie das
 
 Wenn Sie die Skill-Funktion aktiviert haben, können Sie mit Ihrem Assistenten interagieren, indem Sie sagen:
 
-  - Hey Mycroft, wieviel Uhr ist es?
+  - Hey Mycroft, wie spät ist es?
   - Hey Mycroft, wie ist die Temperatur?
   - Hey Mycroft, stelle einen Timer für drei Minuten!
   - Hey Mycroft, wer hat dich gemacht?

@@ -1,10 +1,6 @@
 #!/bin/env bash
 
 CONTENT="
-OpenVoice OS biedt een GUI (Grafische gebruikersinterface) naast voice skills.
-
-De GUI is een open-source, grafische gebruiksinterface voor OVOS dat draait op KDE Plasma en is ontwikkeld met Kirigami, ondersteund door Qt.
-
 Skills maken interactie via spraak mogelijk, waardoor ze efficiënt zijn voor taken zoals domotica, informatie ophalen en slimme apparaten bedienen via spraakopdrachten.
 
 Kies welke functies je wil activeren (meerdere opties tegelijkertijd zijn mogelijk):

@@ -6,7 +6,6 @@ Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare 
     - Distribuzione: $METHOD
     - Versione: $CHANNEL
     - Profilo: $PROFILE
-    - Interfaccia grafica: $FEATURE_GUI
     - Competenze: $FEATURE_SKILLS
     - Ottimizzazione: $TUNING
 

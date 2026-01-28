@@ -15,7 +15,7 @@
   },
   "features.sh": {
     "title": "Instalación de Open Voice OS - Funcionalidades",
-    "content": "Ao escolleres entre a Interface Gráfica de Usuario (GUI) e as habilidades en Open Voice OS, ten en conta as túas necesidades e preferencias.\n\nA GUI é un contorno visual e de renderización de código aberto para OVOS, que se executa sobre KDE Plasma e foi desenvolvido con Kirigami, baseado en Qt.\n\nAs habilidades permiten a interacción por voz, facéndoo eficiente para tarefas coma a automatización do fogar (domótica), a recuperación de información e o control de dispositivos intelixentes mediante comandos en linguaxe natural.\n\nEscolle as funcionalidades que queres activar:",
+    "content": "As habilidades permiten a interacción por voz, facéndoo eficiente para tarefas coma a automatización do fogar (domótica), a recuperación de información e o control de dispositivos intelixentes mediante comandos en linguaxe natural.\n\nEscolle as funcionalidades que queres activar:",
     "skill_description": "Cargar as habilidades predeterminadas de OVOS",
     "extra_skill_description": "Cargar habilidades adicionais de OVOS",
     "gui_description": "Activar a interface gráfica de usuario"
@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "Instalación de Open Voice OS - Recapitulación",
-    "content": "Estás a piques de rematar. Aquí tes un resumo das opcións que escolliches para instalar Open Voice OS:\n\n    - Método:   $METHOD\n    - Versión:  $CHANNEL\n    - Perfil:   $PROFILE\n    - GUI:      $FEATURE_GUI\n    - Habilidades:   $FEATURE_SKILLS\n    - Axustes:   $TUNING\n\nAs decisións tomadas durante a instalación de Open Voice OS foron coidadosamente pensadas para adaptar o noso sistema ás túas necesidades e preferencias.\n\nÉ correcto este resumo? Se non, podes volver atrás e facer cambios."
+    "content": "Estás a piques de rematar. Aquí tes un resumo das opcións que escolliches para instalar Open Voice OS:\n\n    - Método:   $METHOD\n    - Versión:  $CHANNEL\n    - Perfil:   $PROFILE\n    - Habilidades:   $FEATURE_SKILLS\n    - Axustes:   $TUNING\n\nAs decisións tomadas durante a instalación de Open Voice OS foron coidadosamente pensadas para adaptar o noso sistema ás túas necesidades e preferencias.\n\nÉ correcto este resumo? Se non, podes volver atrás e facer cambios."
   },
   "telemetry.sh": {
     "title": "Instalación de Open Voice OS - Telemetría",

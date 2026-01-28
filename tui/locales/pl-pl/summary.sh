@@ -6,7 +6,6 @@ Już prawie skończyłeś, oto podsumowanie wyborów dokonanych podczas instalac
 - Metoda: $METHOD
 - Wersja: $CHANNEL
 - Profil: $PROFILE
-- GUI: $FEATURE_GUI
 - Umiejętności: $FEATURE_SKILLS
 - Strojenie: $TUNING
 

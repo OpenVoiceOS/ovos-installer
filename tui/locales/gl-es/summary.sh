@@ -6,7 +6,6 @@ Estás a piques de rematar. Aquí tes un resumo das opcións que escolliches par
     - Método:   $METHOD
     - Versión:  $CHANNEL
     - Perfil:   $PROFILE
-    - GUI:      $FEATURE_GUI
     - Habilidades:   $FEATURE_SKILLS
     - Axustes:   $TUNING
 

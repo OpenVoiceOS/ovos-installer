@@ -6,7 +6,6 @@ Du er næsten færdig, her er en oversigt over de valg, du har truffet for at in
     - Metode: $METHOD
     - Version: $CHANNEL
     - Profil: $PROFILE
-    - GUI: $FEATURE_GUI
     - Færdigheder: $FEATURE_SKILLS
     - Tuning: $TUNING
 

@@ -15,7 +15,7 @@
   },
   "features.sh": {
     "title": "Instalacja Open Voice OS - Funkcje",
-    "content": "Wybierając między GUI (Graphical User Interface) a umiejętnościami w Open Voice OS, weź pod uwagę swoje preferencje i potrzeby.\n\nGUI to otwarte źródło wizualnego i wyświetlającego frameworka dla OVOS działającego na KDE Plasma i zbudowanego przy użyciu Kirigami wspieranego przez Qt.\n\nUmiejętności umożliwiają interakcję za pomocą mowy, co czyni ją wydajną w przypadku zadań takich jak automatyzacja domu, wyszukiwanie informacji i sterowanie inteligentnymi urządzeniami za pomocą poleceń języka naturalnego.\n\nWybierz funkcje, które chcesz włączyć:",
+    "content": "Umiejętności umożliwiają interakcję za pomocą mowy, co czyni ją wydajną w przypadku zadań takich jak automatyzacja domu, wyszukiwanie informacji i sterowanie inteligentnymi urządzeniami za pomocą poleceń języka naturalnego.\n\nWybierz funkcje, które chcesz włączyć:",
     "skill_description": "Załaduj domyślne umiejętności OVOS",
     "extra_skill_description": "Załaduj dodatkowe umiejętności OVOS",
     "gui_description": "Włącz graficzny interfejs użytkownika"
@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "Instalacja Open Voice OS – Podsumowanie",
-    "content": "Już prawie skończyłeś, oto podsumowanie wyborów dokonanych podczas instalacji Open Voice OS:\n\n- Metoda: $METHOD\n- Wersja: $CHANNEL\n- Profil: $PROFILE\n- GUI: $FEATURE_GUI\n- Umiejętności: $FEATURE_SKILLS\n- Strojenie: $TUNING\n\nWybory dokonane podczas instalacji Open Voice OS zostały starannie rozważone, aby dostosować nasz system do Twoich unikalnych potrzeb i preferencji.\n\nCzy to podsumowanie wydaje Ci się poprawne? Jeśli nie, możesz wrócić i wprowadzić zmiany."
+    "content": "Już prawie skończyłeś, oto podsumowanie wyborów dokonanych podczas instalacji Open Voice OS:\n\n- Metoda: $METHOD\n- Wersja: $CHANNEL\n- Profil: $PROFILE\n- Umiejętności: $FEATURE_SKILLS\n- Strojenie: $TUNING\n\nWybory dokonane podczas instalacji Open Voice OS zostały starannie rozważone, aby dostosować nasz system do Twoich unikalnych potrzeb i preferencji.\n\nCzy to podsumowanie wydaje Ci się poprawne? Jeśli nie, możesz wrócić i wprowadzić zmiany."
   },
   "telemetry.sh": {
     "title": "Instalacja Open Voice OS - Telemetria",

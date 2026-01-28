@@ -15,7 +15,7 @@
   },
   "features.sh": {
     "title": "Instal·lació de l'Open Voice OS - Característiques",
-    "content": "Quan trieu entre la IGU (interfície gràfica d'usuari) i les habilitats a Open Voice OS, tingueu en compte les vostres preferències i necessitats.\n\nLa IGU és un marc de visualització de codi obert per a OVOS que s'executa a sobre de KDE Plasma i és construït amb Kirigami potenciat per Qt.\n\nLes habilitats permeten la interacció a través de la parla, i la fan eficient per a tasques com la domòtica, la recuperació d'informació i el control de dispositius intel·ligents mitjançant ordres de llenguatge natural.\n\nSi us plau, trieu les funcions que voleu activar:",
+    "content": "Les habilitats permeten la interacció a través de la parla, i la fan eficient per a tasques com la domòtica, la recuperació d'informació i el control de dispositius intel·ligents mitjançant ordres de llenguatge natural.\n\nSi us plau, trieu les funcions que voleu activar:",
     "skill_description": "Carrega les habilitats d'OVOS predeterminades",
     "extra_skill_description": "Carrega habilitats d'OVOS addicionals",
     "gui_description": "Habilita la interfície gràfica d'usuari"
@@ -45,7 +45,7 @@
   },
   "summary.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Resum",
-    "content": "Gairebé heu acabat, aquí teniu un resum de les opcions que heu triat en instal·lar l'Open Voice OS:\n\n    - Mètode: $METHOD\n    - Versió: $CHANNEL\n    - Perfil: $PROFILE\n    - IGU: $FEATURE_GUI\n    - Habilitats: $FEATURE_SKILLS\n    - Afinació: $TUNING\n\nLes opcions seleccionades durant el procés d'instal·lació de l'Open Voice OS s'han considerat acuradament per a adaptar el nostre sistema a les vostres necessitats i preferències úniques.\n\nUs sembla correcte aquest resum? Si no, podeu tornar enrere i fer-hi canvis."
+    "content": "Gairebé heu acabat, aquí teniu un resum de les opcions que heu triat en instal·lar l'Open Voice OS:\n\n    - Mètode: $METHOD\n    - Versió: $CHANNEL\n    - Perfil: $PROFILE\n    - Habilitats: $FEATURE_SKILLS\n    - Afinació: $TUNING\n\nLes opcions seleccionades durant el procés d'instal·lació de l'Open Voice OS s'han considerat acuradament per a adaptar el nostre sistema a les vostres necessitats i preferències úniques.\n\nUs sembla correcte aquest resum? Si no, podeu tornar enrere i fer-hi canvis."
   },
   "telemetry.sh": {
     "title": "Instal·lació de l'Open Voice OS - Telemetria",

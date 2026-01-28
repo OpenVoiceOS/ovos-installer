@@ -6,7 +6,6 @@ Fast fertig. Eine kurze Zusammenfassung:
     - Umgebung: $METHOD
     - Version:  $CHANNEL
     - Profil:   $PROFILE
-    - GUI:      $FEATURE_GUI
     - Skills:   $FEATURE_SKILLS
     - Tuning:   $TUNING
 
