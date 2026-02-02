@@ -13,6 +13,19 @@
   "listener": {
     "VAD": {
       "module": "{{ 'ovos-vad-plugin-silero' if ovos_installer_cpu_is_capable | bool else 'ovos-vad-plugin-webrtcvad' }}"
+      {% if ovos_installer_tuning | bool %}
+      ,"ovos-vad-plugin-silero": {
+        "silence_duration": 0.5
+      },
+      "ovos-vad-plugin-webrtcvad": {
+        "silence_duration": 0.5
+      }
+      {% endif %}
+    }
+    {% if ovos_installer_tuning | bool %}
+    ,"wake_word": "openwakeword",
+    "patience": 0.5
+    {% endif %}
     }
   },
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
@@ -21,6 +34,11 @@
       "allow_pip": true,
       "allow_alphas": true
     }
+  },
+{% endif %}
+{% if ovos_installer_tuning | bool %}
+  "tts": {
+    "module": "ovos-tts-plugin-piper"
   },
 {% endif %}
 {% if 'tas5806' in ovos_installer_i2c_devices %}

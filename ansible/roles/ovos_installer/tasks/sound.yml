@@ -75,24 +75,33 @@
 - name: Flush handlers sound
   ansible.builtin.meta: flush_handlers
 
+- name: Check for pipewire-pulse
+  ansible.builtin.command: pgrep -x pipewire-pulse
+  register: ovos_installer_pipewire_pulse_pgrep
+  changed_when: false
+  failed_when: false
+
+- name: Check for pulseaudio
+  ansible.builtin.command: pgrep -x pulseaudio
+  register: ovos_installer_pulseaudio_pgrep
+  changed_when: false
+  failed_when: false
+
+- name: Check for pipewire
+  ansible.builtin.command: pgrep -x pipewire
+  register: ovos_installer_pipewire_pgrep
+  changed_when: false
+  failed_when: false
+
 - name: Re-detect sound server
-  ansible.builtin.shell:
-    cmd: |
-      if pgrep -x "pipewire-pulse$" &>/dev/null; then
-        echo "pipewire"
-      elif pgrep -x "pulseaudio$" &>/dev/null; then
-        echo "pulseaudio"
-      elif pgrep -x "pipewire$" &>/dev/null; then
-        echo "pipewire"
-      else
-        if [[ "{{ ansible_kernel }}" =~ "microsoft" ]]; then
-          echo "pulseaudio"
-        else
-          echo "n/a"
-        fi
-      fi
-    executable: /bin/bash
-  register: ovos_installer_detect_sound_server
+  ansible.builtin.set_fact:
+    ovos_installer_detect_sound_server: >-
+      {{ {'stdout': (
+        'pipewire' if ovos_installer_pipewire_pulse_pgrep.rc == 0 else
+        'pulseaudio' if ovos_installer_pulseaudio_pgrep.rc == 0 else
+        'pipewire' if ovos_installer_pipewire_pgrep.rc == 0 else
+        ('pulseaudio' if (ansible_kernel is search('microsoft')) else 'n/a')
+      ) } }}
   changed_when: false
 
 - name: Generate .asoundrc based on detected sound server (Raspberry Pi only)

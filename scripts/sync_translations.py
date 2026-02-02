@@ -14,6 +14,17 @@ export CONTENT TITLE
 
 """
 
+OVERCLOCK_TEMPLATE = """
+#!/bin/env bash
+
+OVERCLOCK_CONTENT="
+{content}
+"
+OVERCLOCK_TITLE="{title}"
+
+export OVERCLOCK_CONTENT OVERCLOCK_TITLE
+"""
+
 MISC_TEMPLATE = """
 #!/bin/env bash
 
@@ -89,6 +100,7 @@ TEMPLATES = {
     "features.sh": FEATURES_TEMPLATE,
     "finish.sh": TEMPLATE,
     "methods.sh": TEMPLATE,
+    "overclock.sh": OVERCLOCK_TEMPLATE,
     "profiles.sh": TEMPLATE,
     "satellite.sh": SAT_TEMPLATE,
     "summary.sh": TEMPLATE,
@@ -123,4 +135,3 @@ def update_locale(lang):
 
 for lang in os.listdir(TRANSLATIONS_FOLDER):
     update_locale(lang)
-

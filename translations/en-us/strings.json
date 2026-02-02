@@ -55,6 +55,10 @@
     "title": "Open Voice OS Installation - Tuning",
     "content": "Using Open Voice OS Tuning for Raspberry Pi involves optimizing the operating system to run efficiently on the Raspberry Pi hardware.\n\nThis tuning process aims to enhance performance, reduce resource usage, and ensure a smoother user experience, making it an excellent choice for resource-constrained devices like the Raspberry Pi.\n\nEnable tuning for Raspberry Pi (recommended)?"
   },
+  "overclock.sh": {
+    "title": "Open Voice OS Installation - Overclocking",
+    "content": "Overclocking increases CPU/GPU frequency for maximum performance but can reduce stability and increase heat.\n\nThis requires adequate cooling and a reliable power supply.\n\nOpen Voice OS is not responsible for any issues related to overclocking.\n\nEnable overclocking?"
+  },
   "uninstall.sh": {
     "title": "Open Voice OS Installation - Uninstall",
     "content": "An existing instance of Open Voice OS has been detected.\n\nBecause Docker and PipeWire might have been installed by the system or manually, the installer will not remove the following packages:\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - pipewire\n  - pipewire-alsa\n\nDo you want to uninstall Open Voice OS?"

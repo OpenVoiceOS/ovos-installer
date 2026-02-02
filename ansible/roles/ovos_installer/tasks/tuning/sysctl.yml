@@ -21,8 +21,30 @@
     - { "option": "net.core.optmem_max", "value": 40960 }
     - { "option": "fs.inotify.max_user_instances", "value": 8192 }
     - { "option": "fs.inotify.max_user_watches", "value": 524288 }
+
+    # Ultra Snappy Tuning
+    - { "option": "net.ipv4.tcp_fastopen", "value": 3 } # Enable TCP Fast Open (client/server)
+    - { "option": "kernel.sched_rt_runtime_us", "value": 980000 } # Increase RT runtime limit (default 950000)
+    - { "option": "net.core.default_qdisc", "value": "fq" } # Required for BBR
+    - { "option": "net.ipv4.tcp_congestion_control", "value": "bbr" } # BBR Congestion Control
+    - { "option": "vm.min_free_kbytes", "value": 65536 } # Safety reserve to prevent network stalls (64MB)
+    - { "option": "kernel.sched_autogroup_enabled", "value": 0 } # Improve service latency vs interactive shells
+    # Advanced I/O Latency Tuning
+    - { "option": "kernel.nmi_watchdog", "value": 0 } # Disable NMI watchdog (stops periodic CPU interrupts)
+    - { "option": "vm.dirty_background_ratio", "value": 5 } # Write to disk early (avoid bufferbloat)
+    - { "option": "vm.dirty_ratio", "value": 10 } # Throttle early to prevent massive system freezes
   tags:
     - always
+
+- name: Disable Transparent Hugepages (THP) - Persistent
+  ansible.builtin.copy:
+    dest: /etc/tmpfiles.d/thp.conf
+    content: |
+      w /sys/kernel/mm/transparent_hugepage/enabled - - - - never
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload Systemd
 
 - name: Remove 99-ovos.conf file
   ansible.builtin.file:

@@ -62,5 +62,9 @@
   "welcome.sh": {
     "title": "Open Voice OS Instalação - Bem-vindo",
     "content": "Olá e bem-vindo à instalação do Open Voice OS!\n\nTemos o prazer de lhe apresentar o Open Voice OS, o assistente de voz de código aberto.\n\nA instalação do Open Voice OS é muito fácil e abre um mundo de possibilidades para a conveniência do controlo por voz. Quer seja um entusiasta da tecnologia ou apenas queira simplificar as suas tarefas diárias, o Open Voice OS está aqui para tornar a sua vida mais fácil.\n\nInstale hoje e deixe a sua voz guiá-lo através do futuro da tecnologia!🌟"
+  },
+  "overclock.sh": {
+    "title": "Instalação do Open Voice OS - Overclocking",
+    "content": "O overclocking aumenta a frequência da CPU/GPU para máximo desempenho, mas pode reduzir a estabilidade e aumentar o calor.\n\nIsto requer arrefecimento adequado e uma fonte de alimentação fiável.\n\nO Open Voice OS não se responsabiliza por quaisquer problemas relacionados com o overclocking.\n\nAtivar o overclocking?"
   }
 }

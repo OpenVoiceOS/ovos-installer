@@ -1,10 +1,10 @@
 ---
 # Thanks to https://www.xephixus.com/2019/12/11/testing/
-- name: Add noatime option
+- name: Add noatime and commit options
   ansible.builtin.replace:
     path: /etc/fstab
-    regexp: '^(\S+)(\s+)(\S+)(\s+)(ext4|xfs|btrfs)(\s+)(((?!noatime)\S)*)(\s+)(\d)(\s+)(\d)$'
-    replace: '\1\2\3\4\5\6\7,noatime\9\10\11\12'
+    regexp: '^(\S+)(\s+)(\S+)(\s+)(ext4|btrfs)(\s+)(((?!noatime)\S)*)(\s+)(\d)(\s+)(\d)$'
+    replace: '\1\2\3\4\5\6\7,noatime,commit=60\9\10\11\12'
     backup: true
   notify: Reload Systemd
 
@@ -15,6 +15,24 @@
     replace: '\1\2\3\4\5\6\7,nodiratime\9\10\11\12'
     backup: true
   notify: Reload Systemd
+
+
+
+
+- name: Optimize I/O Latency (tmpfs for /tmp)
+  ansible.posix.mount:
+    path: /tmp
+    src: tmpfs
+    fstype: tmpfs
+    opts: "defaults,noatime,nosuid,nodev"
+    state: mounted
+- name: Optimize I/O Latency (tmpfs for /var/log)
+  ansible.posix.mount:
+    path: /var/log
+    src: tmpfs
+    fstype: tmpfs
+    opts: "defaults,noatime,nosuid,nodev,size=100m"
+    state: mounted
 
 - name: Flush handlers fstab
   ansible.builtin.meta: flush_handlers

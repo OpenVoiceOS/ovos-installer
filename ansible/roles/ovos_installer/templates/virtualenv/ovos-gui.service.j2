@@ -24,7 +24,7 @@ ExecStart=/usr/bin/{{ 'ovos-shell' if ovos_installer_display_server == "N/A" els
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
-RestartSec=5s
+RestartSec={{ '1s' if ovos_installer_tuning | bool else '5s' }}
 
 [Install]
 WantedBy=ovos.service

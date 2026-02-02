@@ -140,7 +140,7 @@ EOF
   - `skills`: Install default voice skills
   - `extra_skills`: Install additional community skills
   - `gui`: Enable graphical user interface
-- `raspberry_pi_tuning`: Optimize performance for Raspberry Pi hardware
+- `raspberry_pi_tuning`: Enable maximum-performance tuning for Raspberry Pi hardware (includes an overclocking prompt)
 - `share_telemetry`: Allow sharing anonymous usage statistics
 - `share_usage_telemetry`: Allow sharing detailed usage data
 

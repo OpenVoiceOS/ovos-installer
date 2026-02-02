@@ -8,8 +8,7 @@
     - ansible_wlan0 is defined
     - ansible_wlan0.active | bool
 
-- name: Include tuning/udev.yml
-  ansible.builtin.import_tasks: tuning/udev.yml
+
 
 - name: Include tuning/io.yml
   ansible.builtin.import_tasks: tuning/io.yml
@@ -26,9 +25,22 @@
 - name: Include tuning/sysctl.yml
   ansible.builtin.import_tasks: tuning/sysctl.yml
 
+- name: Include tuning/dns.yml
+  ansible.builtin.import_tasks: tuning/dns.yml
+
 - name: Include tuning/fstab.yml
   ansible.builtin.import_tasks: tuning/fstab.yml
 
-- name: Include tuning/numa.yml
-  ansible.builtin.import_tasks: tuning/numa.yml
-  when: "'Raspberry Pi 4' in ovos_installer_raspberrypi or 'Raspberry Pi 5' in ovos_installer_raspberrypi"
+
+
+- name: Include tuning/audio.yml
+  ansible.builtin.import_tasks: tuning/audio.yml
+
+- name: Include tuning/python.yml
+  ansible.builtin.import_tasks: tuning/python.yml
+
+- name: Include tuning/memory.yml
+  ansible.builtin.import_tasks: tuning/memory.yml
+
+- name: Include tuning/limits.yml
+  ansible.builtin.import_tasks: tuning/limits.yml

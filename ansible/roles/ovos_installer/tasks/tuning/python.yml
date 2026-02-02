@@ -1,0 +1,52 @@
+---
+- name: Install mimalloc (High Performance Memory Allocator)
+  ansible.builtin.package:
+    name: libmimalloc-dev
+    state: present
+  ignore_errors: true
+  register: ovos_installer_mimalloc_install
+
+- name: Find libmimalloc path
+  ansible.builtin.find:
+    paths: /usr/lib
+    patterns: "libmimalloc.so*"
+    file_type: file
+  register: ovos_installer_mimalloc_find
+  changed_when: false
+  when:
+    - ovos_installer_mimalloc_install is success
+
+- name: Set libmimalloc path
+  ansible.builtin.set_fact:
+    ovos_installer_mimalloc_path: >-
+      {{ {'stdout': (ovos_installer_mimalloc_find.files | sort(attribute='path'))[0].path } }}
+  when:
+    - ovos_installer_mimalloc_find is defined
+    - ovos_installer_mimalloc_find.files | length > 0
+
+- name: Ensure systemd user environment directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.config/environment.d"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0755'
+
+- name: Configure Python Optimization (environment.d)
+  ansible.builtin.copy:
+    dest: "{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tuning.conf"
+    content: |
+      # Open Voice OS - High Performance Tuning
+      PYTHONOPTIMIZE=1
+      OMP_NUM_THREADS=1
+      MKL_NUM_THREADS=1
+      MIMALLOC_PAGE_RESET=0
+      {% if ovos_installer_mimalloc_path.stdout is defined and ovos_installer_mimalloc_path.stdout | length > 0 %}
+      LD_PRELOAD={{ ovos_installer_mimalloc_path.stdout }}
+      {% endif %}
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0644'
+  notify:
+    - Reload systemd daemon
+    - Restart OVOS services

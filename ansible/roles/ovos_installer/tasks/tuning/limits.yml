@@ -1,0 +1,40 @@
+---
+- name: Grant Real-Time Permissions to OVOS user
+  ansible.builtin.copy:
+    dest: /etc/security/limits.d/99-ovos.conf
+    content: |
+      # Allow OVOS user to run real-time audio threads and lock memory
+      {{ ovos_installer_user }}   soft    rtprio  99
+      {{ ovos_installer_user }}   hard    rtprio  99
+      {{ ovos_installer_user }}   soft    memlock unlimited
+      {{ ovos_installer_user }}   hard    memlock unlimited
+      {{ ovos_installer_user }}   soft    nice    -20
+      {{ ovos_installer_user }}   hard    nice    -20
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reload systemd daemon
+    - Restart OVOS services
+
+- name: Enable PAM limits for systemd sessions
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-session
+    line: "session required pam_limits.so"
+    state: present
+
+- name: Block uninstall limits
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Remove 99-ovos.conf limits file
+      ansible.builtin.file:
+        path: /etc/security/limits.d/99-ovos.conf
+        state: absent
+
+    - name: Remove PAM limits from common-session
+      ansible.builtin.lineinfile:
+        path: /etc/pam.d/common-session
+        line: "session required pam_limits.so"
+        state: absent

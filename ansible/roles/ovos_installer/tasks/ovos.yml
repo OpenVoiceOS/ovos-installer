@@ -10,6 +10,7 @@
       - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS/*"
       - "{{ ovos_installer_user_home }}/.config/ovos_persona/*"
       - "{{ ovos_installer_user_home }}/.config/wireplumber/*"
+      - "{{ ovos_installer_user_home }}/.config/pipewire/*"
       - "{{ ovos_installer_user_home }}/.local/share/hivemind/*"
       - "{{ ovos_installer_user_home }}/.local/state/ovos/*"
       - "{{ ovos_installer_user_home }}/.local/state/mycroft/*"

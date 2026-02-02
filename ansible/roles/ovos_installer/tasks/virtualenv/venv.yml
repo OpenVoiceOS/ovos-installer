@@ -174,15 +174,20 @@
 - name: Generate _identity.json
   become: true
   become_user: "{{ ovos_installer_user }}"
-  ansible.builtin.shell:
-    cmd: |
-      hivemind-client set-identity \
-        --key {{ ovos_installer_satellite_key }} \
-        --password {{ ovos_installer_satellite_password }} \
-        --host {{ ovos_installer_listener_host }} \
-        --port {{ ovos_installer_listener_port | default(5678) }} \
-        --siteid {{ ovos_installer_site_id | default("voice-sat-1") }}
-    executable: /bin/bash
+  ansible.builtin.command:
+    argv:
+      - hivemind-client
+      - set-identity
+      - --key
+      - "{{ ovos_installer_satellite_key }}"
+      - --password
+      - "{{ ovos_installer_satellite_password }}"
+      - --host
+      - "{{ ovos_installer_listener_host }}"
+      - --port
+      - "{{ ovos_installer_listener_port | default(5678) }}"
+      - --siteid
+      - "{{ ovos_installer_site_id | default('voice-sat-1') }}"
   environment:
     PATH: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
     VIRTUAL_ENV: "{{ ovos_installer_user_home }}/.venvs/ovos"
@@ -194,10 +199,13 @@
     _ovos_config_tts_gender: "{{ '--female' if ovos_installer_locale in ['eu-ES', 'gl-ES'] else '--male' }}"
   become: true
   become_user: "{{ ovos_installer_user }}"
-  ansible.builtin.shell:
-    cmd: |
-      ovos-config autoconfigure --lang {{ ovos_installer_locale }} {{ _ovos_config_tts_gender }}
-    executable: /bin/bash
+  ansible.builtin.command:
+    argv:
+      - ovos-config
+      - autoconfigure
+      - --lang
+      - "{{ ovos_installer_locale }}"
+      - "{{ _ovos_config_tts_gender }}"
   environment:
     PATH: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
     VIRTUAL_ENV: "{{ ovos_installer_user_home }}/.venvs/ovos"

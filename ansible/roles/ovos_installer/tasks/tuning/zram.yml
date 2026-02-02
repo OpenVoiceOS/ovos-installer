@@ -61,8 +61,6 @@
     - { "option": "vm.swappiness", "value": 100 }
     - { "option": "vm.page-cluster", "value": 0 }
     - { "option": "vm.vfs_cache_pressure", "value": 500 }
-    - { "option": "vm.dirty_background_ratio", "value": 1 }
-    - { "option": "vm.dirty_ratio", "value": 50 }
   tags:
     - always
 

@@ -10,7 +10,12 @@ ExecStart=%h/.venvs/ovos/bin/ovos-dinkum-listener
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
-RestartSec=5s
+RestartSec={{ '1s' if ovos_installer_tuning | bool else '5s' }}
+{% if ovos_installer_tuning_performance | bool %}
+Nice=-10
+IOSchedulingClass=realtime
+IOSchedulingPriority=0
+{% endif %}
 
 [Install]
 WantedBy=ovos.service

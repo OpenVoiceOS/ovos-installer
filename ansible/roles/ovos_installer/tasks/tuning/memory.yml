@@ -1,0 +1,110 @@
+---
+- name: Ensure systemd drop-in directories exist
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.config/systemd/user/{{ item }}.service.d"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0755'
+  loop:
+    - ovos-core
+    - ovos-audio
+    - ovos-listener
+    - ovos-messagebus
+    - ovos-phal
+    - wireplumber
+
+- name: Apply Zero-Swap Policy to critical services
+  ansible.builtin.copy:
+    dest: "{{ ovos_installer_user_home }}/.config/systemd/user/{{ item }}.service.d/99-noswap.conf"
+    content: |
+      [Service]
+      # Prevent swapping of critical voice services
+      MemorySwapMax=0
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0644'
+  notify:
+    - Reload systemd daemon
+    - Restart OVOS services
+  loop:
+    - ovos-core
+    - ovos-audio
+    - ovos-listener
+    - ovos-messagebus
+    - ovos-phal
+    - wireplumber
+
+- name: Calculate CPU affinity for latency-critical services
+  vars:
+    _vcpus: "{{ ansible_facts.processor_vcpus | default(ansible_facts.processor_count | default(1)) | int }}"
+  ansible.builtin.set_fact:
+    ovos_installer_rt_cpu_affinity: >-
+      {{ (_vcpus >= 4) | ternary((range(_vcpus // 2, _vcpus) | list) | join(' '), '') }}
+
+- name: Apply RT scheduling and CPU affinity to latency-critical services
+  ansible.builtin.copy:
+    dest: "{{ ovos_installer_user_home }}/.config/systemd/user/{{ item }}.service.d/98-performance.conf"
+    content: |
+      [Service]
+      CPUSchedulingPolicy=fifo
+      CPUSchedulingPriority=70
+      LimitRTPRIO=95
+      LimitMEMLOCK=infinity
+      {% if ovos_installer_rt_cpu_affinity | length > 0 %}
+      CPUAffinity={{ ovos_installer_rt_cpu_affinity }}
+      {% endif %}
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0644'
+  notify:
+    - Reload systemd daemon
+    - Restart OVOS services
+  loop:
+    - ovos-audio
+    - ovos-listener
+    - ovos-core
+    - wireplumber
+
+- name: Block uninstall memory tuning
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Remove Zero-Swap Policy drop-ins
+      ansible.builtin.file:
+        path: "{{ ovos_installer_user_home }}/.config/systemd/user/{{ item }}.service.d/99-noswap.conf"
+        state: absent
+      notify:
+        - Reload systemd daemon
+      loop:
+        - ovos-core
+        - ovos-audio
+        - ovos-listener
+        - ovos-messagebus
+        - ovos-phal
+        - wireplumber
+
+    - name: Remove RT scheduling drop-ins
+      ansible.builtin.file:
+        path: "{{ ovos_installer_user_home }}/.config/systemd/user/{{ item }}.service.d/98-performance.conf"
+        state: absent
+      notify:
+        - Reload systemd daemon
+      loop:
+        - ovos-audio
+        - ovos-listener
+        - ovos-core
+        - wireplumber
+
+    - name: Remove empty drop-in directories
+      ansible.builtin.file:
+        path: "{{ ovos_installer_user_home }}/.config/systemd/user/{{ item }}.service.d"
+        state: absent
+      loop:
+        - ovos-core
+        - ovos-audio
+        - ovos-listener
+        - ovos-messagebus
+        - ovos-phal
+        - wireplumber

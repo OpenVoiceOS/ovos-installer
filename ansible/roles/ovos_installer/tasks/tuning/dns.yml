@@ -1,0 +1,55 @@
+---
+- name: Check for NetworkManager
+  ansible.builtin.stat:
+    path: /etc/NetworkManager
+  register: ovos_installer_networkmanager_dir
+
+- name: Install dnsmasq for NetworkManager caching
+  ansible.builtin.package:
+    name: dnsmasq
+    state: present
+  when: ovos_installer_networkmanager_dir.stat.exists | bool
+
+- name: Enable NetworkManager dnsmasq caching
+  ansible.builtin.copy:
+    dest: /etc/NetworkManager/conf.d/90-dnsmasq.conf
+    content: |
+      [main]
+      dns=dnsmasq
+    owner: root
+    group: root
+    mode: "0644"
+  when: ovos_installer_networkmanager_dir.stat.exists | bool
+  notify: Restart NetworkManager
+
+- name: Configure dnsmasq cache TTLs
+  ansible.builtin.copy:
+    dest: /etc/NetworkManager/dnsmasq.d/ovos.conf
+    content: |
+      cache-size=1000
+      min-cache-ttl=60
+      max-cache-ttl=3600
+    owner: root
+    group: root
+    mode: "0644"
+  when: ovos_installer_networkmanager_dir.stat.exists | bool
+  notify: Restart NetworkManager
+
+- name: Block uninstall DNS caching
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Remove NetworkManager dnsmasq config
+      ansible.builtin.file:
+        path: /etc/NetworkManager/conf.d/90-dnsmasq.conf
+        state: absent
+      when: ovos_installer_networkmanager_dir.stat.exists | bool
+      notify: Restart NetworkManager
+
+    - name: Remove dnsmasq cache config
+      ansible.builtin.file:
+        path: /etc/NetworkManager/dnsmasq.d/ovos.conf
+        state: absent
+      when: ovos_installer_networkmanager_dir.stat.exists | bool
+      notify: Restart NetworkManager

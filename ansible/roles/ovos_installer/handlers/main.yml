@@ -2,6 +2,40 @@
 - name: Start Sound Server
   ansible.builtin.include_tasks: block-sound.yml
 
+- name: Reload systemd daemon
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: Reload systemd daemon (user)
+  listen: Reload systemd daemon
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+    scope: user
+
+- name: Restart OVOS services
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.systemd_service:
+    name: ovos.service
+    scope: user
+    state: restarted
+  when: ovos_installer_method == "virtualenv"
+
+- name: Restart WirePlumber
+  listen: Restart OVOS services
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.systemd_service:
+    name: wireplumber
+    scope: user
+    state: restarted
+  when:
+    - ovos_installer_method == "virtualenv"
+    - ovos_installer_detect_sound_server is defined
+    - ovos_installer_detect_sound_server.stdout == "pipewire"
+
 - name: Reload Systemd User
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -13,9 +47,24 @@
   ansible.builtin.systemd_service:
     daemon_reload: true
 
-- name: Reload Udev
-  ansible.builtin.shell:
-    cmd: |
-      udevadm control --reload-rules && udevadm trigger
-    executable: /bin/bash
+- name: Set Reboot
+  ansible.builtin.set_fact:
+    ovos_installer_reboot: true  # noqa var-naming
+
+- name: Reload Udev rules
+  listen: Reload Udev
+  ansible.builtin.command: udevadm control --reload-rules
   changed_when: false
+
+- name: Trigger Udev
+  listen: Reload Udev
+  ansible.builtin.command: udevadm trigger
+  changed_when: false
+
+- name: Restart NetworkManager
+  ansible.builtin.systemd_service:
+    name: NetworkManager
+    state: restarted
+  when:
+    - ovos_installer_networkmanager_dir is defined
+    - ovos_installer_networkmanager_dir.stat.exists | bool

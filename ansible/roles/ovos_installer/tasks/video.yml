@@ -26,51 +26,61 @@
 - name: Block DISPLAY server & Wayland socket
   when: ovos_installer_display_server != "N/A"
   block:
-    # The find module doesn't support the socket type and it could generate a
-    # "permission denied" error depending the content of /run/user/UID
     - name: Check for wayland socket
-      ansible.builtin.shell:
-        cmd: |
-          set -e -o pipefail
-          ls -1 /run/user/{{ ovos_installer_uid }} | grep -E '^wayland-[0-9]$'
-        executable: /bin/bash
+      ansible.builtin.find:
+        paths: "/run/user/{{ ovos_installer_uid }}"
+        patterns: "wayland-[0-9]"
+        file_type: any
       register: ovos_installer_ovos_wayland_display
       changed_when: false
+      failed_when: false
       when: ovos_installer_display_server == 'wayland'
 
     - name: Set ovos_installer_wayland_display fact
       ansible.builtin.set_fact:
-        ovos_installer_wayland_display: "{{ ovos_installer_ovos_wayland_display.stdout }}"
+        ovos_installer_wayland_display: >-
+          {{ (ovos_installer_ovos_wayland_display.files | map(attribute='path') | map('basename') | list | sort)[0] | default('') }}
       when:
         - ovos_installer_ovos_wayland_display is defined
         - ovos_installer_display_server == 'wayland'
 
     - name: Detect DISPLAY server number
-      ansible.builtin.shell:
-        cmd: |
-          set -o pipefail
+      ansible.builtin.command:
+        argv:
+          - python3
+          - -c
+          - |
+            import collections
+            import glob
+            import os
+            import re
 
-          # From process environments; pick the most frequent value
-          env_choice=$(
-            grep -zsoh '^DISPLAY=:[0-9]\(\.[0-9]\+\)\?' /proc/*/environ 2>/dev/null \
-            | tr '\0' '\n' \
-            | sed 's/^DISPLAY=//' \
-            | awk 'NF{c[$0]++} END{m=0;b=""; for (k in c) if (c[k]>m){m=c[k]; b=k}; if (b!="") print b}'
-          )
+            display_re = re.compile(r'^DISPLAY=(:[0-9](?:\.[0-9]+)?)$')
+            counts = collections.Counter()
 
-          if [ -n "$env_choice" ]; then
-            printf '%s\n' "$env_choice"
-            exit 0
-          fi
+            for path in glob.glob('/proc/[0-9]*/environ'):
+                try:
+                    with open(path, 'rb') as fh:
+                        for item in fh.read().split(b'\0'):
+                            if item.startswith(b'DISPLAY='):
+                                m = display_re.match(item.decode('utf-8', 'ignore'))
+                                if m:
+                                    counts[m.group(1)] += 1
+                except Exception:
+                    continue
 
-          # Fallback: infer from X11 sockets (rarely needed)
-          if [ -d /tmp/.X11-unix ]; then
-            ls -1 /tmp/.X11-unix 2>/dev/null \
-              | sed -n 's/^X\([0-9]\+\)$/:\1/p' \
-              | sort -u \
-              | head -n 1
-          fi
-        executable: /bin/bash
+            if counts:
+                print(counts.most_common(1)[0][0])
+            else:
+                xdir = '/tmp/.X11-unix'
+                if os.path.isdir(xdir):
+                    candidates = []
+                    for name in os.listdir(xdir):
+                        m = re.match(r'^X([0-9]+)$', name)
+                        if m:
+                            candidates.append(int(m.group(1)))
+                    if candidates:
+                        print(f':{sorted(candidates)[0]}')
       register: ovos_installer_ovos_display_server_number
       changed_when: false
 

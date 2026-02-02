@@ -50,6 +50,16 @@ create_python_venv
 install_ansible
 download_yq
 detect_scenario
+
+if [ -z "${OVERCLOCK_ARM_FREQ:-}" ] && [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
+  if [[ "$RASPBERRYPI_MODEL" == *"Raspberry Pi 5"* ]]; then
+    OVERCLOCK_ARM_FREQ="2400"
+  else
+    OVERCLOCK_ARM_FREQ="2000"
+  fi
+  export OVERCLOCK_ARM_FREQ
+fi
+
 i2c_scan
 state_directory
 trap "" ERR
@@ -115,6 +125,12 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_feature_skills=${FEATURE_SKILLS}" \
   -e "ovos_installer_feature_extra_skills=${FEATURE_EXTRA_SKILLS}" \
   -e "ovos_installer_tuning=${TUNING}" \
+  -e "ovos_installer_tuning_overclock=${TUNING_OVERCLOCK}" \
+  -e "ovos_installer_overclock_arm_boost=${OVERCLOCK_ARM_BOOST}" \
+  -e "ovos_installer_overclock_initial_turbo=${OVERCLOCK_INITIAL_TURBO}" \
+  -e "ovos_installer_overclock_over_voltage=${OVERCLOCK_OVER_VOLTAGE}" \
+  -e "ovos_installer_overclock_arm_freq=${OVERCLOCK_ARM_FREQ}" \
+  -e "ovos_installer_overclock_gpu_freq=${OVERCLOCK_GPU_FREQ}" \
   -e "ovos_installer_listener_host=${HIVEMIND_HOST}" \
   -e "ovos_installer_listener_port=${HIVEMIND_PORT}" \
   -e "ovos_installer_satellite_key=${SATELLITE_KEY}" \

@@ -11,7 +11,7 @@ ExecStart=/usr/local/bin/wrapper-ovos-phal-admin.sh
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
-RestartSec=5s
+RestartSec={{ '1s' if ovos_installer_tuning | bool else '5s' }}
 
 [Install]
 WantedBy=default.target
