@@ -8,6 +8,82 @@
     mode: "0755"
   when: ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server'
 
+- name: Define OVOS managed units
+  ansible.builtin.set_fact:
+    ovos_installer_managed_units:
+      - ovos.service
+      - ovos-messagebus.service
+      - ovos-core.service
+      - ovos-phal.service
+      - ovos-listener.service
+      - ovos-audio.service
+      - ovos-gui-websocket.service
+      - ovos-gui.service
+      - ovos-ggwave-listener.service
+      - hivemind-listener.service
+      - hivemind-satellite.service
+
+- name: Remove user scope units when using system scope
+  when: (ovos_installer_systemd_scope | default('user')) == 'system'
+  block:
+    - name: Stop and disable OVOS user units from previous installs
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: false
+        state: stopped
+        scope: user
+      loop: "{{ ovos_installer_managed_units }}"
+      failed_when: false
+
+    - name: Remove OVOS user unit files from previous installs
+      ansible.builtin.file:
+        path: "{{ ovos_installer_user_home }}/.config/systemd/user/{{ item }}"
+        state: absent
+      loop: "{{ ovos_installer_managed_units }}"
+      notify: Reload Systemd User
+
+- name: Remove system scope units when using user scope
+  when: (ovos_installer_systemd_scope | default('user')) == 'user'
+  block:
+    - name: Stop and disable OVOS system units from previous installs
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        enabled: false
+        state: stopped
+        scope: system
+      loop: "{{ ovos_installer_managed_units }}"
+      failed_when: false
+
+    - name: Remove OVOS system unit files from previous installs
+      ansible.builtin.file:
+        path: "/etc/systemd/system/{{ item }}"
+        state: absent
+      loop: "{{ ovos_installer_managed_units }}"
+      notify: Reload Systemd
+
+- name: Ensure user runtime directory exists for system scope
+  when: (ovos_installer_systemd_scope | default('user')) == 'system'
+  block:
+    - name: Enable lingering for {{ ovos_installer_user }}
+      ansible.builtin.command: "loginctl enable-linger {{ ovos_installer_user }}"
+      changed_when: false
+      failed_when: false
+
+    - name: Ensure /run/user/{{ ovos_installer_uid }} exists
+      ansible.builtin.file:
+        path: "/run/user/{{ ovos_installer_uid }}"
+        state: directory
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: "0700"
+
+    - name: Ensure user systemd instance is running
+      ansible.builtin.systemd_service:
+        name: "user@{{ ovos_installer_uid }}"
+        state: started
+
 - name: Copy OVOS systemd unit files
   vars:
     ovos_installer_systemd_path_user: "{{ ovos_installer_user_home }}/.config/systemd/user"

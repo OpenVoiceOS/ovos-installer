@@ -2,18 +2,6 @@
 - name: Start Sound Server
   ansible.builtin.include_tasks: block-sound.yml
 
-- name: Reload systemd daemon
-  ansible.builtin.systemd_service:
-    daemon_reload: true
-
-- name: Reload systemd daemon (user)
-  listen: Reload systemd daemon
-  become: true
-  become_user: "{{ ovos_installer_user }}"
-  ansible.builtin.systemd_service:
-    daemon_reload: true
-    scope: user
-
 - name: Restart OVOS services (user)
   listen: Restart OVOS services
   become: true

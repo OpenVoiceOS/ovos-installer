@@ -191,8 +191,14 @@
     creates: "{{ item.marker }}"
   loop: "{{ ovos_installer_gui_components }}"
 
+- name: Define GUI build parallelism
+  vars:
+    _vcpus: "{{ ansible_processor_vcpus | default(ansible_facts.processor_vcpus | default(1)) | int }}"
+  ansible.builtin.set_fact:
+    ovos_installer_gui_make_jobs: "{{ [ _vcpus - 1, 1 ] | max }}"
+
 - name: Build GUI components
-  ansible.builtin.command: "make -j {{ ansible_processor_vcpus - 1 }}"
+  ansible.builtin.command: "make -j {{ ovos_installer_gui_make_jobs }}"
   args:
     chdir: "{{ item.build_dir }}"
     creates: "{{ item.marker }}"

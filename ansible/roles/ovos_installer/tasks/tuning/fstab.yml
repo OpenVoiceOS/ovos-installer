@@ -16,8 +16,143 @@
     backup: true
   notify: Reload Systemd
 
+- name: Install log2ram for /var/log persistence (Debian)
+  ansible.builtin.package:
+    name: log2ram
+    state: present
+  register: ovos_installer_log2ram_install
+  failed_when: false
+  when: ansible_os_family == "Debian"
 
+- name: Set log2ram installed fact
+  ansible.builtin.set_fact:
+    ovos_installer_log2ram_installed: "{{ ovos_installer_log2ram_install is defined and ovos_installer_log2ram_install is succeeded }}"
+  when: ansible_os_family == "Debian"
 
+- name: Configure log2ram size
+  ansible.builtin.lineinfile:
+    path: /etc/log2ram.conf
+    regexp: '^SIZE='
+    line: 'SIZE=100M'
+  when: ovos_installer_log2ram_installed | default(false) | bool
+
+- name: Enable log2ram service
+  ansible.builtin.systemd_service:
+    name: log2ram
+    enabled: true
+    state: started
+  when: ovos_installer_log2ram_installed | default(false) | bool
+
+- name: Configure persistent tmpfs for Mycroft state
+  when:
+    - ovos_installer_tuning_mycroft_state_tmpfs | bool
+    - not ovos_installer_cleaning | bool
+  block:
+    - name: Ensure rsync is installed
+      ansible.builtin.package:
+        name: rsync
+        state: present
+
+    - name: Ensure Mycroft state directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: "0755"
+      loop:
+        - "{{ ovos_installer_tuning_mycroft_state_dir }}"
+        - "{{ ovos_installer_tuning_mycroft_state_persist_dir }}"
+
+    - name: Mount tmpfs for Mycroft state
+      ansible.posix.mount:
+        path: "{{ ovos_installer_tuning_mycroft_state_dir }}"
+        src: tmpfs
+        fstype: tmpfs
+        opts: "defaults,noatime,nosuid,nodev,size={{ ovos_installer_tuning_mycroft_state_tmpfs_size }},uid={{ ovos_installer_uid }},gid={{ ovos_installer_gid | default(ovos_installer_uid) }},mode=0755"
+        state: mounted
+
+    - name: Install Mycroft state restore service
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/ovos-mycroft-state-restore.service
+        content: |
+          [Unit]
+          Description=Open Voice OS - Restore Mycroft state tmpfs
+          After=local-fs.target
+          RequiresMountsFor={{ ovos_installer_tuning_mycroft_state_dir }} {{ ovos_installer_tuning_mycroft_state_persist_dir }}
+          Before=ovos.service
+
+          [Service]
+          Type=oneshot
+          User={{ ovos_installer_user }}
+          Group={{ ovos_installer_group }}
+          ExecStart=/usr/bin/rsync -a --delete "{{ ovos_installer_tuning_mycroft_state_persist_dir }}/" "{{ ovos_installer_tuning_mycroft_state_dir }}/"
+
+          [Install]
+          WantedBy=multi-user.target
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload Systemd
+
+    - name: Install Mycroft state sync service
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/ovos-mycroft-state-sync.service
+        content: |
+          [Unit]
+          Description=Open Voice OS - Sync Mycroft state tmpfs
+          After=local-fs.target
+          RequiresMountsFor={{ ovos_installer_tuning_mycroft_state_dir }} {{ ovos_installer_tuning_mycroft_state_persist_dir }}
+
+          [Service]
+          Type=oneshot
+          User={{ ovos_installer_user }}
+          Group={{ ovos_installer_group }}
+          ExecStart=/usr/bin/rsync -a --delete "{{ ovos_installer_tuning_mycroft_state_dir }}/" "{{ ovos_installer_tuning_mycroft_state_persist_dir }}/"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload Systemd
+
+    - name: Install Mycroft state sync timer
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/ovos-mycroft-state-sync.timer
+        content: |
+          [Unit]
+          Description=Open Voice OS - Periodic Mycroft state sync
+
+          [Timer]
+          OnBootSec=2min
+          OnUnitActiveSec={{ ovos_installer_tuning_mycroft_state_sync_interval }}
+          AccuracySec=1min
+          Persistent=true
+
+          [Install]
+          WantedBy=timers.target
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload Systemd
+
+    - name: Enable Mycroft state restore service
+      ansible.builtin.systemd_service:
+        name: ovos-mycroft-state-restore.service
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Enable Mycroft state sync timer
+      ansible.builtin.systemd_service:
+        name: ovos-mycroft-state-sync.timer
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Seed Mycroft state persistence
+      ansible.builtin.systemd_service:
+        name: ovos-mycroft-state-sync.service
+        state: started
+        daemon_reload: true
 
 - name: Optimize I/O Latency (tmpfs for /tmp)
   ansible.posix.mount:
@@ -26,13 +161,41 @@
     fstype: tmpfs
     opts: "defaults,noatime,nosuid,nodev"
     state: mounted
-- name: Optimize I/O Latency (tmpfs for /var/log)
-  ansible.posix.mount:
-    path: /var/log
-    src: tmpfs
-    fstype: tmpfs
-    opts: "defaults,noatime,nosuid,nodev,size=100m"
-    state: mounted
+
+- name: Block uninstall Mycroft state tmpfs
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Stop Mycroft state sync timer
+      ansible.builtin.systemd_service:
+        name: ovos-mycroft-state-sync.timer
+        enabled: false
+        state: stopped
+      failed_when: false
+
+    - name: Sync Mycroft state back to disk
+      ansible.builtin.command: >-
+        /usr/bin/rsync -a --delete
+        "{{ ovos_installer_tuning_mycroft_state_dir }}/"
+        "{{ ovos_installer_tuning_mycroft_state_persist_dir }}/"
+      changed_when: false
+      failed_when: false
+
+    - name: Unmount Mycroft state tmpfs
+      ansible.posix.mount:
+        path: "{{ ovos_installer_tuning_mycroft_state_dir }}"
+        state: absent
+
+    - name: Remove Mycroft state systemd units
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      notify: Reload Systemd
+      loop:
+        - /etc/systemd/system/ovos-mycroft-state-restore.service
+        - /etc/systemd/system/ovos-mycroft-state-sync.service
+        - /etc/systemd/system/ovos-mycroft-state-sync.timer
 
 - name: Flush handlers fstab
   ansible.builtin.meta: flush_handlers

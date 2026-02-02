@@ -49,5 +49,5 @@
     group: "{{ ovos_installer_group }}"
     mode: '0644'
   notify:
-    - Reload systemd daemon
+    - Reload Systemd User
     - Restart OVOS services

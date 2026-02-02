@@ -96,7 +96,7 @@
       {% if ovos_installer_devfreq_gpu_path | length > 0 %}
       {{ (ovos_installer_gpu_max_freq_devfreq.content | b64decode | trim) }}
       {% elif ovos_installer_gpu_max_freq_vcgencmd.stdout is defined %}
-      {{ (ovos_installer_gpu_max_freq_vcgencmd.stdout | regex_search('=([0-9]+)', '\\1')) | default('0') }}
+      {{ (ovos_installer_gpu_max_freq_vcgencmd.stdout | regex_findall('=([0-9]+)') | first | default('0')) }}
       {% else %}
       0
       {% endif %}
@@ -178,3 +178,42 @@
         path: /etc/udev/rules.d/60-scheduler.rules
         state: absent
       notify: Reload Udev
+
+    - name: Remove persistent kernel module loading
+      community.general.modprobe:
+        name: "{{ item }}"
+        persistent: absent
+      loop:
+        - i2c-dev
+        - spidev
+
+    - name: Remove I2C/SPI/I2S boot config entries
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_installer_boot_directory }}/config.txt"
+        regexp: "^{{ item }}="
+        state: absent
+      notify: Set Reboot
+      loop:
+        - dtparam=i2c_arm
+        - dtparam=spi
+        - dtparam=i2s
+
+    - name: Remove overclock boot config entries
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_installer_boot_directory }}/config.txt"
+        regexp: "^{{ item }}="
+        state: absent
+      notify: Set Reboot
+      loop:
+        - arm_boost
+        - initial_turbo
+        - over_voltage
+        - arm_freq
+        - gpu_freq
+
+    - name: Remove USB autosuspend override (cmdline.txt)
+      ansible.builtin.replace:
+        path: "{{ ovos_installer_boot_directory }}/cmdline.txt"
+        regexp: "(^|\\s)usbcore\\.autosuspend=-1(?=\\s|$)"
+        replace: ""
+      notify: Set Reboot

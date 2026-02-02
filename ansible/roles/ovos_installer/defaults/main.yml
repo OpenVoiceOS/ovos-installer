@@ -21,6 +21,11 @@ ovos_installer_tuning_audio_low_latency: "{{ ovos_installer_tuning_performance |
 ovos_installer_tuning_overclock: "{{ ovos_installer_tuning_performance | bool }}"
 ovos_installer_tuning_numa: "{{ ovos_installer_tuning_performance | bool }}"
 ovos_installer_systemd_scope: "{{ 'system' if ovos_installer_tuning_performance | bool else 'user' }}"
+ovos_installer_tuning_mycroft_state_tmpfs: false
+ovos_installer_tuning_mycroft_state_tmpfs_size: "100M"
+ovos_installer_tuning_mycroft_state_sync_interval: "5m"
+ovos_installer_tuning_mycroft_state_dir: "{{ ovos_installer_user_home }}/.local/state/mycroft"
+ovos_installer_tuning_mycroft_state_persist_dir: "{{ ovos_installer_user_home }}/.local/state/mycroft-persistent"
 ovos_installer_overclock_arm_boost: "1"
 ovos_installer_overclock_initial_turbo: "60"
 ovos_installer_overclock_over_voltage: "6"

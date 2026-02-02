@@ -7,6 +7,7 @@
     ovos_installer_systemd_dropin_owner: "{{ 'root' if (ovos_installer_systemd_scope | default('user')) == 'system' else ovos_installer_user }}"
     ovos_installer_systemd_dropin_group: "{{ 'root' if (ovos_installer_systemd_scope | default('user')) == 'system' else ovos_installer_group }}"
     ovos_installer_systemd_dropin_user_path: "{{ ovos_installer_user_home }}/.config/systemd/user"
+    ovos_installer_systemd_reload_handler: "{{ 'Reload Systemd' if (ovos_installer_systemd_scope | default('user')) == 'system' else 'Reload Systemd User' }}"
 
 - name: Ensure OVOS systemd drop-in directories exist
   ansible.builtin.file:
@@ -41,7 +42,7 @@
     group: "{{ ovos_installer_systemd_dropin_group }}"
     mode: '0644'
   notify:
-    - Reload systemd daemon
+    - "{{ ovos_installer_systemd_reload_handler }}"
     - Restart OVOS services
   loop:
     - ovos-core
@@ -61,9 +62,8 @@
     group: "{{ ovos_installer_group }}"
     mode: '0644'
   notify:
-    - Reload systemd daemon
+    - Reload Systemd User
     - Restart OVOS services
-    - wireplumber
 
 - name: Calculate CPU affinity for latency-critical services
   vars:
@@ -88,7 +88,7 @@
     group: "{{ ovos_installer_systemd_dropin_group }}"
     mode: '0644'
   notify:
-    - Reload systemd daemon
+    - "{{ ovos_installer_systemd_reload_handler }}"
     - Restart OVOS services
   loop:
     - ovos-audio
@@ -111,7 +111,7 @@
     group: "{{ ovos_installer_group }}"
     mode: '0644'
   notify:
-    - Reload systemd daemon
+    - Reload Systemd User
     - Restart OVOS services
 
 - name: Block uninstall memory tuning
@@ -124,7 +124,7 @@
         path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/99-noswap.conf"
         state: absent
       notify:
-        - Reload systemd daemon
+        - "{{ ovos_installer_systemd_reload_handler }}"
       loop:
         - ovos-core
         - ovos-audio
@@ -137,14 +137,14 @@
         path: "{{ ovos_installer_systemd_dropin_user_path }}/wireplumber.service.d/99-noswap.conf"
         state: absent
       notify:
-        - Reload systemd daemon
+        - Reload Systemd User
 
     - name: Remove RT scheduling drop-ins
       ansible.builtin.file:
         path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/98-performance.conf"
         state: absent
       notify:
-        - Reload systemd daemon
+        - "{{ ovos_installer_systemd_reload_handler }}"
       loop:
         - ovos-audio
         - ovos-listener
@@ -155,7 +155,7 @@
         path: "{{ ovos_installer_systemd_dropin_user_path }}/wireplumber.service.d/98-performance.conf"
         state: absent
       notify:
-        - Reload systemd daemon
+        - Reload Systemd User
 
     - name: Remove empty drop-in directories
       ansible.builtin.file:

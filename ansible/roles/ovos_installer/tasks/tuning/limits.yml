@@ -14,7 +14,7 @@
     group: root
     mode: '0644'
   notify:
-    - Reload systemd daemon
+    - Reload Systemd
     - Restart OVOS services
 
 - name: Enable PAM limits for systemd sessions
