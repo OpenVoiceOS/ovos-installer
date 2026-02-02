@@ -52,6 +52,17 @@
   tags:
     - uninstall
   block:
+    - name: Remove user PipeWire low-latency config
+      ansible.builtin.file:
+        path: "{{ ovos_installer_user_home }}/.config/pipewire/pipewire.conf.d/99-low-latency.conf"
+        state: absent
+
+    - name: Remove rtkit package
+      ansible.builtin.package:
+        name: rtkit
+        state: absent
+      failed_when: false
+
     - name: Remove USB Audio configuration
       ansible.builtin.file:
         path: /etc/modprobe.d/snd-usb-audio.conf

@@ -8,7 +8,9 @@
 
 - name: Find libmimalloc path
   ansible.builtin.find:
-    paths: /usr/lib
+    paths:
+      - /usr/lib
+      - /usr/lib64
     patterns: "libmimalloc.so*"
     file_type: file
     recurse: true
