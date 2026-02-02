@@ -42,7 +42,7 @@
       OMP_NUM_THREADS=1
       MKL_NUM_THREADS=1
       MIMALLOC_PAGE_RESET=0
-      {% if ovos_installer_mimalloc_path.stdout is defined and ovos_installer_mimalloc_path.stdout | length > 0 %}
+      {% if ovos_installer_mimalloc_path is defined and (ovos_installer_mimalloc_path.stdout | default('') | length > 0) %}
       LD_PRELOAD={{ ovos_installer_mimalloc_path.stdout }}
       {% endif %}
     owner: "{{ ovos_installer_user }}"

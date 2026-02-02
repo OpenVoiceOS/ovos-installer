@@ -51,6 +51,7 @@
     paths: /sys/class/devfreq
     patterns: name
     file_type: file
+    recurse: true
   register: ovos_installer_devfreq_name_files
   changed_when: false
   failed_when: false

@@ -77,6 +77,8 @@
     dest: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/98-performance.conf"
     content: |
       [Service]
+      AmbientCapabilities=CAP_SYS_NICE
+      CapabilityBoundingSet=CAP_SYS_NICE
       CPUSchedulingPolicy=fifo
       CPUSchedulingPriority=70
       LimitRTPRIO=95
@@ -87,6 +89,7 @@
     owner: "{{ ovos_installer_systemd_dropin_owner }}"
     group: "{{ ovos_installer_systemd_dropin_group }}"
     mode: '0644'
+  when: (ovos_installer_systemd_scope | default('user')) == 'system'
   notify:
     - "{{ ovos_installer_systemd_reload_handler }}"
     - Restart OVOS services
@@ -100,6 +103,8 @@
     dest: "{{ ovos_installer_systemd_dropin_user_path }}/wireplumber.service.d/98-performance.conf"
     content: |
       [Service]
+      AmbientCapabilities=CAP_SYS_NICE
+      CapabilityBoundingSet=CAP_SYS_NICE
       CPUSchedulingPolicy=fifo
       CPUSchedulingPriority=70
       LimitRTPRIO=95
@@ -110,6 +115,7 @@
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     mode: '0644'
+  when: (ovos_installer_systemd_scope | default('user')) == 'system'
   notify:
     - Reload Systemd User
     - Restart OVOS services

@@ -21,7 +21,7 @@ Restart=on-failure
 RestartSec={{ '1s' if ovos_installer_tuning | bool else '5s' }}
 {% if ovos_installer_tuning_performance | bool and (ovos_installer_systemd_scope | default('user')) == 'system' %}
 Nice=-10
-IOSchedulingClass=realtime
+IOSchedulingClass=best-effort
 IOSchedulingPriority=0
 {% endif %}
 
