@@ -69,7 +69,7 @@
     ovos_installer_devfreq_gpu_path: >-
       {% set ns = namespace(matches=[]) %}
       {% for item in ovos_installer_devfreq_name_contents.results | default([]) %}
-      {% set name = (item.content | b64decode | trim) %}
+      {% set name = item.content | b64decode | trim %}
       {% if name is match('(?i).*?(v3d|gpu).*?') %}
       {% set _ = ns.matches.append(item.source | regex_replace('/name$', '')) %}
       {% endif %}

@@ -158,6 +158,7 @@
     line: "build-testing/"
     create: true
     state: present
+    mode: "0644"
   loop: "{{ ovos_installer_gui_components }}"
 
 - name: Ensure GUI build marker directory exists
@@ -172,8 +173,7 @@
   ansible.builtin.file:
     path: "{{ item.item.marker }}"
     state: absent
-  loop: "{{ ovos_installer_gui_checkout.results | default([]) }}"
-  when: item.changed | default(false)
+  loop: "{{ ovos_installer_gui_checkout.results | selectattr('changed', 'equalto', true) | list }}"
 
 - name: Create GUI directories
   ansible.builtin.file:
@@ -195,7 +195,7 @@
   vars:
     _vcpus: "{{ ansible_processor_vcpus | default(ansible_facts.processor_vcpus | default(1)) | int }}"
   ansible.builtin.set_fact:
-    ovos_installer_gui_make_jobs: "{{ [ _vcpus - 1, 1 ] | max }}"
+    ovos_installer_gui_make_jobs: "{{ [(_vcpus | int) - 1, 1] | max }}"
 
 - name: Build GUI components
   ansible.builtin.command: "make -j {{ ovos_installer_gui_make_jobs }}"

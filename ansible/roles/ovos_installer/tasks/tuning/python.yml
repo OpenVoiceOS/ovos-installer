@@ -20,7 +20,7 @@
 - name: Set libmimalloc path
   ansible.builtin.set_fact:
     ovos_installer_mimalloc_path: >-
-      {{ {'stdout': (ovos_installer_mimalloc_find.files | sort(attribute='path'))[0].path } }}
+      {{ {'stdout': (ovos_installer_mimalloc_find.files | sort(attribute='path'))[0].path} }}
   when:
     - ovos_installer_mimalloc_find is defined
     - ovos_installer_mimalloc_find.files | length > 0

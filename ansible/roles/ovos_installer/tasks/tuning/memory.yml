@@ -70,7 +70,7 @@
     _vcpus: "{{ ansible_facts.processor_vcpus | default(ansible_facts.processor_count | default(1)) | int }}"
   ansible.builtin.set_fact:
     ovos_installer_rt_cpu_affinity: >-
-      {{ (_vcpus >= 4) | ternary((range(_vcpus // 2, _vcpus) | list) | join(' '), '') }}
+      {{ ((_vcpus | int) >= 4) | ternary((range((_vcpus | int) // 2, (_vcpus | int)) | list) | join(' '), '') }}
 
 - name: Apply RT scheduling and CPU affinity to OVOS services
   ansible.builtin.copy:

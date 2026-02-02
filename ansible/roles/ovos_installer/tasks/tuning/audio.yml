@@ -30,7 +30,7 @@
       ansible.builtin.package:
         name: rtkit
         state: present
-      ignore_errors: true
+      failed_when: false
 
     - name: Remove system-wide PipeWire tuning (Cleanup)
       ansible.builtin.file:

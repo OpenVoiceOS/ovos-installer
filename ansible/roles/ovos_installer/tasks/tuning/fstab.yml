@@ -188,7 +188,7 @@
         state: stopped
       failed_when: false
 
-    - name: Sync Mycroft state back to disk
+    - name: Sync Mycroft state back to disk  # noqa command-instead-of-module
       ansible.builtin.command: >-
         /usr/bin/rsync -a --delete
         "{{ ovos_installer_tuning_mycroft_state_dir }}/"
