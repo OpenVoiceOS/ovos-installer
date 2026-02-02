@@ -22,6 +22,7 @@
     path: /etc/pam.d/common-session
     line: "session required pam_limits.so"
     state: present
+  when: ansible_os_family == "Debian"
 
 - name: Block uninstall limits
   when: ovos_installer_cleaning | bool
@@ -38,3 +39,4 @@
         path: /etc/pam.d/common-session
         line: "session required pam_limits.so"
         state: absent
+      when: ansible_os_family == "Debian"

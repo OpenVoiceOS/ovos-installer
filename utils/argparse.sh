@@ -54,7 +54,7 @@ function handle_options() {
     export PROFILE="${PROFILE:-ovos}"
     export CHANNEL="${CHANNEL:-stable}"
     export TUNING="${TUNING:-no}"
-    export TUNING_OVERCLOCK="${TUNING_OVERCLOCK:-yes}"
+    export TUNING_OVERCLOCK="${TUNING_OVERCLOCK:-no}"
     export OVERCLOCK_ARM_BOOST="${OVERCLOCK_ARM_BOOST:-1}"
     export OVERCLOCK_INITIAL_TURBO="${OVERCLOCK_INITIAL_TURBO:-60}"
     export OVERCLOCK_OVER_VOLTAGE="${OVERCLOCK_OVER_VOLTAGE:-6}"

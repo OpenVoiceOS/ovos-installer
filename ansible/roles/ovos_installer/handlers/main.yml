@@ -14,14 +14,27 @@
     daemon_reload: true
     scope: user
 
-- name: Restart OVOS services
+- name: Restart OVOS services (user)
+  listen: Restart OVOS services
   become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.systemd_service:
     name: ovos.service
     scope: user
     state: restarted
-  when: ovos_installer_method == "virtualenv"
+  when:
+    - ovos_installer_method == "virtualenv"
+    - (ovos_installer_systemd_scope | default('user')) == 'user'
+
+- name: Restart OVOS services (system)
+  listen: Restart OVOS services
+  ansible.builtin.systemd_service:
+    name: ovos.service
+    scope: system
+    state: restarted
+  when:
+    - ovos_installer_method == "virtualenv"
+    - (ovos_installer_systemd_scope | default('user')) == 'system'
 
 - name: Restart WirePlumber
   listen: Restart OVOS services

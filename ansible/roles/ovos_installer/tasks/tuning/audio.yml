@@ -1,49 +1,51 @@
 ---
-- name: Ensure user PipeWire config directory exists
-  ansible.builtin.file:
-    path: "{{ ovos_installer_user_home }}/.config/pipewire/pipewire.conf.d"
-    state: directory
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    mode: '0755'
+- name: Configure audio tuning
+  when: not ovos_installer_cleaning | bool
+  block:
+    - name: Ensure user PipeWire config directory exists
+      ansible.builtin.file:
+        path: "{{ ovos_installer_user_home }}/.config/pipewire/pipewire.conf.d"
+        state: directory
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: '0755'
 
-- name: Configure PipeWire for Low Latency (User Scope)
-  ansible.builtin.copy:
-    dest: "{{ ovos_installer_user_home }}/.config/pipewire/pipewire.conf.d/99-low-latency.conf"
-    content: |
-      context.properties = {
-          default.clock.rate = 48000
-          default.clock.allowed-rates = [ 44100, 48000 ]
-          default.clock.quantum = {{ 256 if ovos_installer_tuning_audio_low_latency | bool else 512 }}
-          default.clock.min-quantum = {{ 128 if ovos_installer_tuning_audio_low_latency | bool else 256 }}
-          default.clock.max-quantum = {{ 1024 if ovos_installer_tuning_audio_low_latency | bool else 2048 }}
-      }
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    mode: '0644'
-  notify: Start Sound Server
+    - name: Configure PipeWire for Low Latency (User Scope)
+      ansible.builtin.copy:
+        dest: "{{ ovos_installer_user_home }}/.config/pipewire/pipewire.conf.d/99-low-latency.conf"
+        content: |
+          context.properties = {
+              default.clock.rate = 48000
+              default.clock.allowed-rates = [ 44100, 48000 ]
+              default.clock.quantum = {{ 256 if ovos_installer_tuning_audio_low_latency | bool else 512 }}
+              default.clock.min-quantum = {{ 128 if ovos_installer_tuning_audio_low_latency | bool else 256 }}
+              default.clock.max-quantum = {{ 1024 if ovos_installer_tuning_audio_low_latency | bool else 2048 }}
+          }
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: '0644'
+      notify: Start Sound Server
 
-- name: Install rtkit for real-time audio scheduling
-  ansible.builtin.package:
-    name: rtkit
-    state: present
-  ignore_errors: true
+    - name: Install rtkit for real-time audio scheduling
+      ansible.builtin.package:
+        name: rtkit
+        state: present
+      ignore_errors: true
 
-- name: Remove system-wide PipeWire tuning (Cleanup)
-  ansible.builtin.file:
-    path: /etc/pipewire/pipewire.conf.d/99-low-latency.conf
-    state: absent
+    - name: Remove system-wide PipeWire tuning (Cleanup)
+      ansible.builtin.file:
+        path: /etc/pipewire/pipewire.conf.d/99-low-latency.conf
+        state: absent
 
-- name: Configure USB Audio Driver for Low Latency
-  ansible.builtin.copy:
-    dest: /etc/modprobe.d/snd-usb-audio.conf
-    content: |
-      # Force USB scheduler to process packets ASAP (Default is 8)
-      options snd-usb-audio nrpacks=1
-    owner: root
-    group: root
-    mode: '0644'
-  notify: Reload systemd daemon
+    - name: Configure USB Audio Driver for Low Latency
+      ansible.builtin.copy:
+        dest: /etc/modprobe.d/snd-usb-audio.conf
+        content: |
+          # Force USB scheduler to process packets ASAP (Default is 8)
+          options snd-usb-audio nrpacks=1
+        owner: root
+        group: root
+        mode: '0644'
 
 - name: Block uninstall usb audio tuning
   when: ovos_installer_cleaning | bool

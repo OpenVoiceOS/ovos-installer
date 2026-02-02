@@ -25,6 +25,9 @@
 - name: Include tuning/sysctl.yml
   ansible.builtin.import_tasks: tuning/sysctl.yml
 
+- name: Include tuning/numa.yml
+  ansible.builtin.import_tasks: tuning/numa.yml
+
 - name: Include tuning/dns.yml
   ansible.builtin.import_tasks: tuning/dns.yml
 

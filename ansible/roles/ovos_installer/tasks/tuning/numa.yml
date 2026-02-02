@@ -1,0 +1,23 @@
+---
+- name: Check for /boot/firmware directory
+  ansible.builtin.stat:
+    path: /boot/firmware
+  register: ovos_installer_boot_config_status
+
+- name: Set ovos_installer_boot_directory fact
+  ansible.builtin.set_fact:
+    ovos_installer_boot_directory: "{{ '/boot/firmware' if ovos_installer_boot_config_status.stat.exists | bool else '/boot' }}"
+
+- name: Enable NUMA for Raspberry Pi 4 & 5
+  vars:
+    _fake_number: "{{ '4' if 'Raspberry Pi 5' in ovos_installer_raspberrypi else '2' }}"
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_installer_boot_directory }}/cmdline.txt"
+    regexp: "^((?!.*{{ item }}).*console.*)$"
+    line: '\\1 {{ item }}'
+    backrefs: true
+  loop:
+    - "numa=fake={{ _fake_number }}"
+  when:
+    - ovos_installer_tuning_numa | bool
+    - "'Raspberry Pi 4' in ovos_installer_raspberrypi or 'Raspberry Pi 5' in ovos_installer_raspberrypi"

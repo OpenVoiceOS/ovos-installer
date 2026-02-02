@@ -19,8 +19,10 @@ ovos_installer_tuning_performance: >-
   {{ ovos_installer_tuning | bool and (ovos_installer_raspberrypi | default('N/A')) != 'N/A' }}
 ovos_installer_tuning_audio_low_latency: "{{ ovos_installer_tuning_performance | bool }}"
 ovos_installer_tuning_overclock: "{{ ovos_installer_tuning_performance | bool }}"
+ovos_installer_tuning_numa: "{{ ovos_installer_tuning_performance | bool }}"
+ovos_installer_systemd_scope: "{{ 'system' if ovos_installer_tuning_performance | bool else 'user' }}"
 ovos_installer_overclock_arm_boost: "1"
 ovos_installer_overclock_initial_turbo: "60"
 ovos_installer_overclock_over_voltage: "6"
-ovos_installer_overclock_arm_freq: "{{ '2400' if 'Raspberry Pi 5' in ovos_installer_raspberrypi else '2000' }}"
+ovos_installer_overclock_arm_freq: "{{ '2400' if 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default('')) else '2000' }}"
 ovos_installer_overclock_gpu_freq: "750"

@@ -39,7 +39,7 @@
     - name: Set ovos_installer_wayland_display fact
       ansible.builtin.set_fact:
         ovos_installer_wayland_display: >-
-          {{ (ovos_installer_ovos_wayland_display.files | map(attribute='path') | map('basename') | list | sort)[0] | default('') }}
+          {{ (ovos_installer_ovos_wayland_display.files | default([]) | map(attribute='path') | map('basename') | list | sort | first) | default('') }}
       when:
         - ovos_installer_ovos_wayland_display is defined
         - ovos_installer_display_server == 'wayland'
@@ -55,7 +55,7 @@
             import os
             import re
 
-            display_re = re.compile(r'^DISPLAY=(:[0-9](?:\.[0-9]+)?)$')
+            display_re = re.compile(r'^DISPLAY=(:[0-9]+(?:\.[0-9]+)?)$')
             counts = collections.Counter()
 
             for path in glob.glob('/proc/[0-9]*/environ'):

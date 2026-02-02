@@ -5,13 +5,21 @@ PartOf=ovos.service
 Requires=ovos.service ovos-messagebus.service ovos-phal.service
 
 [Service]
+{% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
+User={{ ovos_installer_user }}
+Group={{ ovos_installer_group }}
+Environment=HOME={{ ovos_installer_user_home }}
+Environment=XDG_RUNTIME_DIR=/run/user/{{ ovos_installer_uid }}
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{{ ovos_installer_uid }}/bus
+EnvironmentFile=-{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tuning.conf
+{% endif %}
 WorkingDirectory=%h/.venvs/ovos
 ExecStart=%h/.venvs/ovos/bin/ovos-dinkum-listener
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec={{ '1s' if ovos_installer_tuning | bool else '5s' }}
-{% if ovos_installer_tuning_performance | bool %}
+{% if ovos_installer_tuning_performance | bool and (ovos_installer_systemd_scope | default('user')) == 'system' %}
 Nice=-10
 IOSchedulingClass=realtime
 IOSchedulingPriority=0

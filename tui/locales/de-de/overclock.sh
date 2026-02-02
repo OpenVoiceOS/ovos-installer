@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 OVERCLOCK_CONTENT="
 Übertaktung erhöht die CPU/GPU-Frequenz für maximale Leistung, kann aber die Stabilität verringern und die Wärmeentwicklung erhöhen.

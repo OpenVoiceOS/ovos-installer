@@ -4,36 +4,38 @@
     path: /etc/NetworkManager
   register: ovos_installer_networkmanager_dir
 
-- name: Install dnsmasq for NetworkManager caching
-  ansible.builtin.package:
-    name: dnsmasq
-    state: present
-  when: ovos_installer_networkmanager_dir.stat.exists | bool
+- name: Configure NetworkManager DNS caching
+  when:
+    - ovos_installer_networkmanager_dir.stat.exists | bool
+    - not ovos_installer_cleaning | bool
+  block:
+    - name: Install dnsmasq for NetworkManager caching
+      ansible.builtin.package:
+        name: dnsmasq
+        state: present
 
-- name: Enable NetworkManager dnsmasq caching
-  ansible.builtin.copy:
-    dest: /etc/NetworkManager/conf.d/90-dnsmasq.conf
-    content: |
-      [main]
-      dns=dnsmasq
-    owner: root
-    group: root
-    mode: "0644"
-  when: ovos_installer_networkmanager_dir.stat.exists | bool
-  notify: Restart NetworkManager
+    - name: Enable NetworkManager dnsmasq caching
+      ansible.builtin.copy:
+        dest: /etc/NetworkManager/conf.d/90-dnsmasq.conf
+        content: |
+          [main]
+          dns=dnsmasq
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart NetworkManager
 
-- name: Configure dnsmasq cache TTLs
-  ansible.builtin.copy:
-    dest: /etc/NetworkManager/dnsmasq.d/ovos.conf
-    content: |
-      cache-size=1000
-      min-cache-ttl=60
-      max-cache-ttl=3600
-    owner: root
-    group: root
-    mode: "0644"
-  when: ovos_installer_networkmanager_dir.stat.exists | bool
-  notify: Restart NetworkManager
+    - name: Configure dnsmasq cache TTLs
+      ansible.builtin.copy:
+        dest: /etc/NetworkManager/dnsmasq.d/ovos.conf
+        content: |
+          cache-size=1000
+          min-cache-ttl=60
+          max-cache-ttl=3600
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart NetworkManager
 
 - name: Block uninstall DNS caching
   when: ovos_installer_cleaning | bool

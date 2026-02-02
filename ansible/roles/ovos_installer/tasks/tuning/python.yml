@@ -11,6 +11,7 @@
     paths: /usr/lib
     patterns: "libmimalloc.so*"
     file_type: file
+    recurse: true
   register: ovos_installer_mimalloc_find
   changed_when: false
   when:

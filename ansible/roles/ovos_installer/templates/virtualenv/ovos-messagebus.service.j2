@@ -5,6 +5,14 @@ PartOf=ovos.service
 Requires=ovos.service
 
 [Service]
+{% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
+User={{ ovos_installer_user }}
+Group={{ ovos_installer_group }}
+Environment=HOME={{ ovos_installer_user_home }}
+Environment=XDG_RUNTIME_DIR=/run/user/{{ ovos_installer_uid }}
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{{ ovos_installer_uid }}/bus
+EnvironmentFile=-{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tuning.conf
+{% endif %}
 ExecStart=%h/.local/bin/ovos_messagebus-{{ ansible_architecture }}-unknown-linux-gnu
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
