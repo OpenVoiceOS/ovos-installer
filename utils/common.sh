@@ -13,6 +13,7 @@ fail_format="\e[31mfail\e[0m"
 function ask_optin() {
     # If not running interactively, assume NO to avoid hanging CI/CD pipelines
     if [ ! -t 0 ]; then
+        OVOS_INSTALLER_LOG_OPTIN="no"
         return 1
     fi
 
@@ -20,11 +21,12 @@ function ask_optin() {
         read -rp "Upload the log on ${PASTE_URL} website? (yes/no) " yn
         case $yn in
         [Yy]*)
+            OVOS_INSTALLER_LOG_OPTIN="yes"
             return 0
             ;;
         [Nn]*)
-            printf '%s\n' "Unable to continue the process, please check $LOG_FILE for more details."
-            exit 1
+            OVOS_INSTALLER_LOG_OPTIN="no"
+            return 1
             ;;
         *) printf '%s\n' "Please answer (y)es or (n)o." ;;
         esac
@@ -35,12 +37,59 @@ function ask_optin() {
 function upload_logs() {
     local debug_url=""
 
+    if [ ! -f "$LOG_FILE" ]; then
+        echo ""
+        return 1
+    fi
+
     if command -v curl >/dev/null 2>&1; then
-        debug_url="$(curl -sSf -m 10 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" 2>/dev/null || true)"
+        debug_url="$(curl -sSf -m 20 -F "content=@${LOG_FILE}" "${PASTE_URL}/api/" 2>/dev/null || true)"
+        if [ -z "$debug_url" ]; then
+            debug_url="$(curl -sSf -m 20 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" 2>/dev/null || true)"
+        fi
         if [ -z "$debug_url" ]; then
             # Retry without certificate verification to tolerate self-signed paste endpoints
-            debug_url="$(curl -sSkf -m 10 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" 2>/dev/null || true)"
+            debug_url="$(curl -sSkf -m 20 -F "content=@${LOG_FILE}" "${PASTE_URL}/api/" 2>/dev/null || true)"
         fi
+        if [ -z "$debug_url" ]; then
+            debug_url="$(curl -sSkf -m 20 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" 2>/dev/null || true)"
+        fi
+    fi
+
+    if [ -z "$debug_url" ] && command -v python3 >/dev/null 2>&1; then
+        debug_url="$(python3 - <<'PY' 2>/dev/null || true
+import os
+import uuid
+import urllib.request
+
+paste_url = os.environ.get("PASTE_URL", "")
+log_file = os.environ.get("LOG_FILE", "")
+if not paste_url or not log_file or not os.path.isfile(log_file):
+    raise SystemExit(0)
+
+boundary = uuid.uuid4().hex
+with open(log_file, "rb") as fh:
+    body = b"\r\n".join(
+        [
+            b"--" + boundary.encode(),
+            b'Content-Disposition: form-data; name="content"; filename="ovos-installer.log"',
+            b"Content-Type: text/plain",
+            b"",
+            fh.read(),
+            b"--" + boundary.encode() + b"--",
+            b"",
+        ]
+    )
+
+req = urllib.request.Request(
+    paste_url.rstrip("/") + "/api/",
+    data=body,
+    headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
+)
+with urllib.request.urlopen(req, timeout=20) as resp:
+    print(resp.read().decode("utf-8", "ignore"))
+PY
+)"
     fi
 
     echo "$debug_url"
@@ -51,16 +100,30 @@ function upload_logs() {
 # execution.
 function on_error() {
     echo -e "[$fail_format]"
-    ask_optin
+    local upload_optin="false"
+    if ask_optin; then
+        upload_optin="true"
+    fi
     if [ -n "${ANSIBLE_LOG_FILE:-}" ] && [ -f "$ANSIBLE_LOG_FILE" ]; then
         cat "$ANSIBLE_LOG_FILE" >>"$LOG_FILE"
     fi
-    debug_url="$(upload_logs)"
+    if [ "$upload_optin" = "true" ]; then
+        debug_url="$(upload_logs)"
+    else
+        debug_url=""
+    fi
     printf '\n%s\n' "➤ Unable to finalize the process, please check $LOG_FILE for more details."
     if [ -n "${debug_url:-}" ]; then
         printf '%s\n' "➤ Please share this URL with us $debug_url"
     else
-        printf '%s\n' "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
+        if [ "$upload_optin" != "true" ]; then
+            printf '%s\n' "➤ Log upload skipped (no consent or non-interactive session). Please attach $LOG_FILE."
+        else
+            printf '%s\n' "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
+            if command -v curl >/dev/null 2>&1; then
+                printf '%s\n' "➤ Manual upload: curl -F \"content=@${LOG_FILE}\" ${PASTE_URL}/api/"
+            fi
+        fi
     fi
     exit "${EXIT_FAILURE}"
 }
