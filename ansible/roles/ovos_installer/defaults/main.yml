@@ -23,7 +23,7 @@ ovos_installer_tuning_numa: "{{ ovos_installer_tuning_performance | bool }}"
 ovos_installer_systemd_scope: "{{ 'system' if ovos_installer_tuning_performance | bool else 'user' }}"
 ovos_installer_tuning_mycroft_state_tmpfs: true
 ovos_installer_tuning_mycroft_state_tmpfs_size: "100M"
-ovos_installer_tuning_tmpfs_size: "256M"
+ovos_installer_tuning_tmpfs_size: "512M"
 ovos_installer_tuning_mycroft_state_sync_interval: "5m"
 ovos_installer_tuning_mycroft_state_dir: "{{ ovos_installer_user_home }}/.local/state/mycroft"
 ovos_installer_tuning_mycroft_state_persist_dir: "{{ ovos_installer_user_home }}/.local/state/mycroft-persistent"
