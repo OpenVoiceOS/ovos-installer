@@ -1,12 +1,7 @@
 ---
-- name: Check for NetworkManager
-  ansible.builtin.stat:
-    path: /etc/NetworkManager
-  register: ovos_installer_networkmanager_dir
-
 - name: Configure NetworkManager DNS caching
   when:
-    - ovos_installer_networkmanager_dir.stat.exists | bool
+    - ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
     - not ovos_installer_cleaning | bool
   block:
     - name: Install dnsmasq for NetworkManager caching
@@ -42,21 +37,16 @@
   tags:
     - uninstall
   block:
-    - name: Check for NetworkManager (uninstall)
-      ansible.builtin.stat:
-        path: /etc/NetworkManager
-      register: ovos_installer_networkmanager_dir
-
     - name: Remove NetworkManager dnsmasq config
       ansible.builtin.file:
         path: /etc/NetworkManager/conf.d/90-dnsmasq.conf
         state: absent
-      when: ovos_installer_networkmanager_dir.stat.exists | bool
+      when: ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
       notify: Restart NetworkManager
 
     - name: Remove dnsmasq cache config
       ansible.builtin.file:
         path: /etc/NetworkManager/dnsmasq.d/ovos.conf
         state: absent
-      when: ovos_installer_networkmanager_dir.stat.exists | bool
+      when: ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
       notify: Restart NetworkManager

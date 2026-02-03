@@ -7,15 +7,6 @@
     - i2c-dev
     - spidev
 
-- name: Check for /boot/firmware directory
-  ansible.builtin.stat:
-    path: /boot/firmware
-  register: ovos_installer_boot_config_status
-
-- name: Set boot directory fact
-  ansible.builtin.set_fact:
-    ovos_installer_boot_directory: "{{ '/boot/firmware' if ovos_installer_boot_config_status.stat.exists | bool else '/boot' }}"
-
 - name: Manage I2C, SPI and I2S buses
   ansible.builtin.lineinfile:
     path: "{{ ovos_installer_boot_directory }}/config.txt"
@@ -174,15 +165,6 @@
   tags:
     - uninstall
   block:
-    - name: Check for /boot/firmware directory (uninstall)
-      ansible.builtin.stat:
-        path: /boot/firmware
-      register: ovos_installer_boot_config_status
-
-    - name: Set boot directory fact (uninstall)
-      ansible.builtin.set_fact:
-        ovos_installer_boot_directory: "{{ '/boot/firmware' if ovos_installer_boot_config_status.stat.exists | bool else '/boot' }}"
-
     - name: Remove udev scheduler rules
       ansible.builtin.file:
         path: /etc/udev/rules.d/60-scheduler.rules

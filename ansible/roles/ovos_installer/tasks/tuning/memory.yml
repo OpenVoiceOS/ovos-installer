@@ -1,14 +1,4 @@
 ---
-- name: Define systemd drop-in paths
-  ansible.builtin.set_fact:
-    ovos_installer_systemd_dropin_path: >-
-      {{ '/etc/systemd/system' if (ovos_installer_systemd_scope | default('user')) == 'system'
-         else ovos_installer_user_home + '/.config/systemd/user' }}
-    ovos_installer_systemd_dropin_owner: "{{ 'root' if (ovos_installer_systemd_scope | default('user')) == 'system' else ovos_installer_user }}"
-    ovos_installer_systemd_dropin_group: "{{ 'root' if (ovos_installer_systemd_scope | default('user')) == 'system' else ovos_installer_group }}"
-    ovos_installer_systemd_dropin_user_path: "{{ ovos_installer_user_home }}/.config/systemd/user"
-    ovos_installer_systemd_reload_handler: "{{ 'Reload Systemd' if (ovos_installer_systemd_scope | default('user')) == 'system' else 'Reload Systemd User' }}"
-
 - name: Ensure OVOS systemd drop-in directories exist
   ansible.builtin.file:
     path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d"
@@ -16,12 +6,7 @@
     owner: "{{ ovos_installer_systemd_dropin_owner }}"
     group: "{{ ovos_installer_systemd_dropin_group }}"
     mode: '0755'
-  loop:
-    - ovos-core
-    - ovos-audio
-    - ovos-listener
-    - ovos-messagebus
-    - ovos-phal
+  loop: "{{ ovos_installer_core_services }}"
 
 - name: Ensure WirePlumber drop-in directory exists
   ansible.builtin.file:
@@ -44,12 +29,7 @@
   notify:
     - "{{ ovos_installer_systemd_reload_handler }}"
     - Restart OVOS services
-  loop:
-    - ovos-core
-    - ovos-audio
-    - ovos-listener
-    - ovos-messagebus
-    - ovos-phal
+  loop: "{{ ovos_installer_core_services }}"
 
 - name: Apply Zero-Swap Policy to WirePlumber
   ansible.builtin.copy:
@@ -93,10 +73,7 @@
   notify:
     - "{{ ovos_installer_systemd_reload_handler }}"
     - Restart OVOS services
-  loop:
-    - ovos-audio
-    - ovos-listener
-    - ovos-core
+  loop: "{{ ovos_installer_rt_services }}"
 
 - name: Apply RT scheduling and CPU affinity to WirePlumber
   ansible.builtin.copy:
@@ -123,28 +100,13 @@
   tags:
     - uninstall
   block:
-    - name: Define systemd drop-in paths (uninstall)
-      ansible.builtin.set_fact:
-        ovos_installer_systemd_dropin_path: >-
-          {{ '/etc/systemd/system' if (ovos_installer_systemd_scope | default('user')) == 'system'
-             else ovos_installer_user_home + '/.config/systemd/user' }}
-        ovos_installer_systemd_dropin_owner: "{{ 'root' if (ovos_installer_systemd_scope | default('user')) == 'system' else ovos_installer_user }}"
-        ovos_installer_systemd_dropin_group: "{{ 'root' if (ovos_installer_systemd_scope | default('user')) == 'system' else ovos_installer_group }}"
-        ovos_installer_systemd_dropin_user_path: "{{ ovos_installer_user_home }}/.config/systemd/user"
-        ovos_installer_systemd_reload_handler: "{{ 'Reload Systemd' if (ovos_installer_systemd_scope | default('user')) == 'system' else 'Reload Systemd User' }}"
-
     - name: Remove Zero-Swap Policy drop-ins
       ansible.builtin.file:
         path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/99-noswap.conf"
         state: absent
       notify:
         - "{{ ovos_installer_systemd_reload_handler }}"
-      loop:
-        - ovos-core
-        - ovos-audio
-        - ovos-listener
-        - ovos-messagebus
-        - ovos-phal
+      loop: "{{ ovos_installer_core_services }}"
 
     - name: Remove WirePlumber Zero-Swap drop-in
       ansible.builtin.file:
@@ -159,10 +121,7 @@
         state: absent
       notify:
         - "{{ ovos_installer_systemd_reload_handler }}"
-      loop:
-        - ovos-audio
-        - ovos-listener
-        - ovos-core
+      loop: "{{ ovos_installer_rt_services }}"
 
     - name: Remove WirePlumber RT scheduling drop-in
       ansible.builtin.file:
@@ -175,12 +134,7 @@
       ansible.builtin.file:
         path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d"
         state: absent
-      loop:
-        - ovos-core
-        - ovos-audio
-        - ovos-listener
-        - ovos-messagebus
-        - ovos-phal
+      loop: "{{ ovos_installer_core_services }}"
 
     - name: Remove WirePlumber drop-in directory
       ansible.builtin.file:

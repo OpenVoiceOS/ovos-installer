@@ -1,4 +1,9 @@
 ---
+- name: Include tuning/facts.yml
+  ansible.builtin.import_tasks: tuning/facts.yml
+  tags:
+    - always
+
 - name: Include tuning/governor.yml
   ansible.builtin.import_tasks: tuning/governor.yml
 
@@ -7,8 +12,6 @@
   when:
     - ansible_wlan0 is defined
     - ansible_wlan0.active | bool
-
-
 
 - name: Include tuning/io.yml
   ansible.builtin.import_tasks: tuning/io.yml
@@ -33,8 +36,6 @@
 
 - name: Include tuning/fstab.yml
   ansible.builtin.import_tasks: tuning/fstab.yml
-
-
 
 - name: Include tuning/audio.yml
   ansible.builtin.import_tasks: tuning/audio.yml

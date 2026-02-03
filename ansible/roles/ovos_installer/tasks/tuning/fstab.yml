@@ -69,7 +69,17 @@
         path: "{{ ovos_installer_tuning_mycroft_state_dir }}"
         src: tmpfs
         fstype: tmpfs
-        opts: "defaults,noatime,nosuid,nodev,size={{ ovos_installer_tuning_mycroft_state_tmpfs_size }},uid={{ ovos_installer_uid }},gid={{ ovos_installer_gid | default(ovos_installer_uid) }},mode=0755"
+        opts: >-
+          {{ [
+            'defaults',
+            'noatime',
+            'nosuid',
+            'nodev',
+            'size=' ~ ovos_installer_tuning_mycroft_state_tmpfs_size,
+            'uid=' ~ ovos_installer_uid,
+            'gid=' ~ (ovos_installer_gid | default(ovos_installer_uid)),
+            'mode=0755'
+          ] | join(',') }}
         state: mounted
 
     - name: Install Mycroft state restore service

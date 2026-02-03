@@ -41,7 +41,14 @@
           monitor.alsa.rules = [
             {
               matches = [ { node.name = "~alsa_output.*" } ]
-              actions = { update-props = { session.suspend-timeout-seconds = 0, node.pause-on-idle = false, node.suspend-on-idle = false, node.always-process = true } }
+              actions = {
+                update-props = {
+                  session.suspend-timeout-seconds = 0
+                  node.pause-on-idle = false
+                  node.suspend-on-idle = false
+                  node.always-process = true
+                }
+              }
             }
           ]
         owner: "{{ ovos_installer_user }}"

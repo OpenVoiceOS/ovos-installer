@@ -71,7 +71,7 @@
       changed_when: false
       failed_when: false
 
-    - name: Ensure /run/user/{{ ovos_installer_uid }} exists
+    - name: Ensure /run/user exists for {{ ovos_installer_uid }}
       ansible.builtin.file:
         path: "/run/user/{{ ovos_installer_uid }}"
         state: directory
