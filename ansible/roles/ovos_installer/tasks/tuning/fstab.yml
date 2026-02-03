@@ -16,9 +16,15 @@
   failed_when: false
   when: ansible_os_family == "Debian"
 
+- name: Gather package facts for log2ram
+  ansible.builtin.package_facts:
+    manager: auto
+  failed_when: false
+  when: ansible_os_family == "Debian"
+
 - name: Set log2ram installed fact
   ansible.builtin.set_fact:
-    ovos_installer_log2ram_installed: "{{ ovos_installer_log2ram_install is defined and ovos_installer_log2ram_install is succeeded }}"
+    ovos_installer_log2ram_installed: "{{ ansible_facts.packages is defined and 'log2ram' in ansible_facts.packages }}"
   when: ansible_os_family == "Debian"
 
 - name: Configure log2ram size

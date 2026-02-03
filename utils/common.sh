@@ -37,6 +37,7 @@ function upload_logs() {
     local temp_log=""
     local max_upload_bytes="${OVOS_INSTALLER_LOG_UPLOAD_MAX:-1500000}"
     local log_size=0
+    local tmpdir="${TMPDIR:-/tmp}"
 
     if [ ! -f "$LOG_FILE" ]; then
         echo ""
@@ -45,11 +46,22 @@ function upload_logs() {
 
     log_size=$(wc -c <"$LOG_FILE" 2>/dev/null || echo 0)
     if [ "${log_size:-0}" -gt "$max_upload_bytes" ]; then
-        temp_log="$(mktemp /tmp/ovos-installer-log.XXXXXX)"
-        tail -c "$max_upload_bytes" "$LOG_FILE" >"$temp_log"
-        upload_log_path="$temp_log"
-        export OVOS_INSTALLER_LOG_TRUNCATED="true"
-        export OVOS_INSTALLER_LOG_TRUNCATED_BYTES="$max_upload_bytes"
+        if temp_log="$(mktemp "${tmpdir%/}/ovos-installer-log.XXXXXX" 2>/dev/null)"; then
+            if tail -c "$max_upload_bytes" "$LOG_FILE" >"$temp_log" 2>/dev/null; then
+                upload_log_path="$temp_log"
+                export OVOS_INSTALLER_LOG_TRUNCATED="true"
+                export OVOS_INSTALLER_LOG_TRUNCATED_BYTES="$max_upload_bytes"
+            else
+                rm -f "$temp_log"
+                temp_log=""
+                upload_log_path="$LOG_FILE"
+                unset OVOS_INSTALLER_LOG_TRUNCATED OVOS_INSTALLER_LOG_TRUNCATED_BYTES
+            fi
+        else
+            temp_log=""
+            upload_log_path="$LOG_FILE"
+            unset OVOS_INSTALLER_LOG_TRUNCATED OVOS_INSTALLER_LOG_TRUNCATED_BYTES
+        fi
     else
         unset OVOS_INSTALLER_LOG_TRUNCATED OVOS_INSTALLER_LOG_TRUNCATED_BYTES
     fi
@@ -124,7 +136,7 @@ function on_error() {
         cat "$ANSIBLE_LOG_FILE" >>"$LOG_FILE"
     fi
     if [ "$upload_optin" = "true" ]; then
-        debug_url="$(upload_logs)"
+        debug_url="$(upload_logs || true)"
     else
         debug_url=""
     fi
