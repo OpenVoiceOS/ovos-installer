@@ -42,6 +42,11 @@
   tags:
     - uninstall
   block:
+    - name: Check for NetworkManager (uninstall)
+      ansible.builtin.stat:
+        path: /etc/NetworkManager
+      register: ovos_installer_networkmanager_dir
+
     - name: Remove NetworkManager dnsmasq config
       ansible.builtin.file:
         path: /etc/NetworkManager/conf.d/90-dnsmasq.conf
