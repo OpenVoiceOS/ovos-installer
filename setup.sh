@@ -157,6 +157,7 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
       fi
       if [ -f "$REBOOT_FILE_PATH" ]; then
         rm -f "$REBOOT_FILE_PATH"
+        printf '\n%s\n' "➤ Rebooting Raspberry Pi now..."
         shutdown -r now
       fi
     fi
