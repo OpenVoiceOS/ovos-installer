@@ -7,6 +7,11 @@ function setup() {
     load ../../utils/common.sh
     LOG_FILE=/tmp/ovos-installer.log
     RUN_AS_HOME="/home/testuser"
+    DETECT_SOUND_BACKUP=""
+    if [ -f "utils/detect_sound.py" ]; then
+        DETECT_SOUND_BACKUP="$(mktemp)"
+        cp "utils/detect_sound.py" "$DETECT_SOUND_BACKUP"
+    fi
 }
 
 # Test utility functions
@@ -214,5 +219,11 @@ function teardown() {
     [ -n "$WSL_FILE" ] && [ "$WSL_FILE" != "/etc/wsl.conf" ] && rm -f "$WSL_FILE"
     [ -n "$DT_FILE" ] && [ "$DT_FILE" != "/sys/firmware/devicetree/base/model" ] && rm -f "$DT_FILE"
     [ -n "$OS_RELEASE" ] && [ "$OS_RELEASE" != "/etc/os-release" ] && rm -f "$OS_RELEASE"
+    if [ -n "$DETECT_SOUND_BACKUP" ]; then
+        cp "$DETECT_SOUND_BACKUP" "utils/detect_sound.py"
+        rm -f "$DETECT_SOUND_BACKUP"
+    else
+        rm -f "utils/detect_sound.py"
+    fi
     unset RUN_AS SOUND_SERVER CPU_IS_CAPABLE
 }

@@ -40,6 +40,12 @@
       ansible.builtin.set_fact:
         ovos_installer_cpu_max_mhz: "{{ (ovos_installer_cpu_max_freq.stdout | default('0') | int) // 1000 }}"
 
+    - name: Check for devfreq directory
+      ansible.builtin.stat:
+        path: /sys/class/devfreq
+      register: ovos_installer_devfreq_dir
+      changed_when: false
+
     - name: Find devfreq name files
       ansible.builtin.find:
         paths: /sys/class/devfreq
@@ -49,6 +55,7 @@
       register: ovos_installer_devfreq_name_files
       changed_when: false
       failed_when: false
+      when: ovos_installer_devfreq_dir.stat.isdir | default(false)
 
     - name: Read devfreq name files
       ansible.builtin.slurp:
@@ -57,6 +64,7 @@
       register: ovos_installer_devfreq_name_contents
       changed_when: false
       failed_when: false
+      when: ovos_installer_devfreq_name_files is defined
 
     - name: Detect GPU devfreq path
       ansible.builtin.set_fact:

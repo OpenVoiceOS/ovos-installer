@@ -8,6 +8,11 @@ function setup() {
     LOG_FILE=/tmp/ovos-installer.log
     RUN_AS="testuser"
     RASPBERRYPI_MODEL="N/A"
+    DETECT_DISPLAY_BACKUP=""
+    if [ -f "utils/detect_display.py" ]; then
+        DETECT_DISPLAY_BACKUP="$(mktemp)"
+        cp "utils/detect_display.py" "$DETECT_DISPLAY_BACKUP"
+    fi
 }
 
 @test "function_detect_display_x11" {
@@ -63,4 +68,10 @@ function setup() {
 
 function teardown() {
     rm -f "$LOG_FILE"
+    if [ -n "$DETECT_DISPLAY_BACKUP" ]; then
+        cp "$DETECT_DISPLAY_BACKUP" "utils/detect_display.py"
+        rm -f "$DETECT_DISPLAY_BACKUP"
+    else
+        rm -f "utils/detect_display.py"
+    fi
 }

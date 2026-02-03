@@ -40,23 +40,40 @@
     PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
   when: not ovos_installer_cleaning | bool
 
-- name: Ensure uv is available in user PATH
-  become: true
-  become_user: "{{ ovos_installer_user }}"
-  ansible.builtin.pip:
-    name: >-
-      {{
-        ('uv==' ~ ovos_installer_uv_version)
-        if (ovos_installer_uv_version | default('') | length > 0)
-        else 'uv'
-      }}
-    state: present
-    executable: pip3
-    extra_args: --user
-  environment:
-    HOME: "{{ ovos_installer_user_home }}"
-    PATH: "{{ ovos_installer_user_home }}/.local/bin:/usr/local/bin:/usr/bin:/bin"
+- name: Check installer uv binary
+  ansible.builtin.stat:
+    path: "{{ ovos_installer_venv }}/bin/uv"
+  register: ovos_installer_uv_bin
+  changed_when: false
   when: not ovos_installer_cleaning | bool
+
+- name: Ensure user local bin exists
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.local/bin"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0755'
+  when: not ovos_installer_cleaning | bool
+
+- name: Install uv for user from installer venv
+  ansible.builtin.copy:
+    src: "{{ ovos_installer_venv }}/bin/uv"
+    dest: "{{ ovos_installer_user_home }}/.local/bin/uv"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0755'
+    remote_src: true
+  when:
+    - not ovos_installer_cleaning | bool
+    - ovos_installer_uv_bin.stat.exists | default(false)
+
+- name: Warn if installer uv binary missing
+  ansible.builtin.debug:
+    msg: "uv binary not found in installer venv; skipping user install."
+  when:
+    - not ovos_installer_cleaning | bool
+    - not (ovos_installer_uv_bin.stat.exists | default(false))
 
 - name: Ensure ovos Python venv exists with requested Python
   become: true

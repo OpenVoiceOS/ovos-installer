@@ -18,7 +18,7 @@ ovos_installer_tuning: false
 ovos_installer_tuning_performance: >-
   {{ ovos_installer_tuning | bool and (ovos_installer_raspberrypi | default('N/A')) != 'N/A' }}
 ovos_installer_tuning_audio_low_latency: "{{ ovos_installer_tuning_performance | bool }}"
-ovos_installer_tuning_overclock: "{{ ovos_installer_tuning_performance | bool }}"
+ovos_installer_tuning_overclock: false
 ovos_installer_tuning_numa: "{{ ovos_installer_tuning_performance | bool }}"
 ovos_installer_systemd_scope: "{{ 'system' if ovos_installer_tuning_performance | bool else 'user' }}"
 ovos_installer_tuning_mycroft_state_tmpfs: true
@@ -35,7 +35,7 @@ ovos_installer_overclock_gpu_freq: "750"
 ovos_installer_uv_version: ""
 ovos_installer_hotword_sensitivity: 0.7
 ovos_installer_hotword_trigger_level: 2
-ovos_installer_geoip_enabled: true
+ovos_installer_geoip_enabled: false
 ovos_installer_geoip_url: "https://ipapi.co/json/"
 ovos_installer_system_unit: "metric"
 ovos_installer_temperature_unit: "celsius"
