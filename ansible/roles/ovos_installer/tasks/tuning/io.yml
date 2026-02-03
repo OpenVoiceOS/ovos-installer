@@ -15,6 +15,8 @@
         path: "{{ ovos_installer_boot_directory }}/config.txt"
         regexp: "^{{ item.key }}="
         line: "{{ item.key }}={{ item.value }}"
+        state: present
+      notify: Set Reboot
       loop:
         - { key: "dtparam=i2c_arm", value: "on" }
         - { key: "dtparam=spi", value: "on" }
