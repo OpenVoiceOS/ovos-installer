@@ -46,6 +46,14 @@
   tags:
     - uninstall
 
+- name: Remove installer logs on uninstall
+  ansible.builtin.file:
+    path: /var/log/ovos-installer.log
+    state: absent
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+
 - name: Create container directories
   ansible.builtin.file:
     path: "{{ item.directory }}"

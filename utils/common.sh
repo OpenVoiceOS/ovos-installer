@@ -36,34 +36,49 @@ function ask_optin() {
 # Upload the installer log to the paste service and return the URL (empty on failure).
 function upload_logs() {
     local debug_url=""
+    local upload_log_path="$LOG_FILE"
+    local temp_log=""
+    local max_upload_bytes="${OVOS_INSTALLER_LOG_UPLOAD_MAX:-1500000}"
+    local log_size=0
 
     if [ ! -f "$LOG_FILE" ]; then
         echo ""
         return 1
     fi
 
+    log_size=$(wc -c <"$LOG_FILE" 2>/dev/null || echo 0)
+    if [ "${log_size:-0}" -gt "$max_upload_bytes" ]; then
+        temp_log="$(mktemp /tmp/ovos-installer-log.XXXXXX)"
+        tail -c "$max_upload_bytes" "$LOG_FILE" >"$temp_log"
+        upload_log_path="$temp_log"
+        export OVOS_INSTALLER_LOG_TRUNCATED="true"
+        export OVOS_INSTALLER_LOG_TRUNCATED_BYTES="$max_upload_bytes"
+    else
+        unset OVOS_INSTALLER_LOG_TRUNCATED OVOS_INSTALLER_LOG_TRUNCATED_BYTES
+    fi
+
     if command -v curl >/dev/null 2>&1; then
-        debug_url="$(curl -sSf -m 20 -F "content=@${LOG_FILE}" "${PASTE_URL}/api/" 2>/dev/null || true)"
+        debug_url="$(curl -sSf -m 20 -F "content=<${upload_log_path}" "${PASTE_URL}/api/" 2>/dev/null || true)"
         if [ -z "$debug_url" ]; then
-            debug_url="$(curl -sSf -m 20 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" 2>/dev/null || true)"
+            debug_url="$(curl -sSf -m 20 -F "content=@${upload_log_path}" "${PASTE_URL}/api/" 2>/dev/null || true)"
         fi
         if [ -z "$debug_url" ]; then
             # Retry without certificate verification to tolerate self-signed paste endpoints
-            debug_url="$(curl -sSkf -m 20 -F "content=@${LOG_FILE}" "${PASTE_URL}/api/" 2>/dev/null || true)"
+            debug_url="$(curl -sSkf -m 20 -F "content=<${upload_log_path}" "${PASTE_URL}/api/" 2>/dev/null || true)"
         fi
         if [ -z "$debug_url" ]; then
-            debug_url="$(curl -sSkf -m 20 -F 'content=<-' "${PASTE_URL}/api/" <"$LOG_FILE" 2>/dev/null || true)"
+            debug_url="$(curl -sSkf -m 20 -F "content=@${upload_log_path}" "${PASTE_URL}/api/" 2>/dev/null || true)"
         fi
     fi
 
     if [ -z "$debug_url" ] && command -v python3 >/dev/null 2>&1; then
-        debug_url="$(python3 - <<'PY' 2>/dev/null || true
+        debug_url="$(UPLOAD_LOG_FILE="${upload_log_path}" python3 - <<'PY' 2>/dev/null || true
 import os
 import uuid
 import urllib.request
 
 paste_url = os.environ.get("PASTE_URL", "")
-log_file = os.environ.get("LOG_FILE", "")
+log_file = os.environ.get("UPLOAD_LOG_FILE", os.environ.get("LOG_FILE", ""))
 if not paste_url or not log_file or not os.path.isfile(log_file):
     raise SystemExit(0)
 
@@ -72,7 +87,7 @@ with open(log_file, "rb") as fh:
     body = b"\r\n".join(
         [
             b"--" + boundary.encode(),
-            b'Content-Disposition: form-data; name="content"; filename="ovos-installer.log"',
+            b'Content-Disposition: form-data; name="content"',
             b"Content-Type: text/plain",
             b"",
             fh.read(),
@@ -90,6 +105,10 @@ with urllib.request.urlopen(req, timeout=20) as resp:
     print(resp.read().decode("utf-8", "ignore"))
 PY
 )"
+    fi
+
+    if [ -n "$temp_log" ]; then
+        rm -f "$temp_log"
     fi
 
     echo "$debug_url"
@@ -115,6 +134,9 @@ function on_error() {
     printf '\n%s\n' "➤ Unable to finalize the process, please check $LOG_FILE for more details."
     if [ -n "${debug_url:-}" ]; then
         printf '%s\n' "➤ Please share this URL with us $debug_url"
+        if [ "${OVOS_INSTALLER_LOG_TRUNCATED:-}" = "true" ]; then
+            printf '%s\n' "➤ Note: log upload truncated to the last ${OVOS_INSTALLER_LOG_TRUNCATED_BYTES} bytes."
+        fi
     else
         if [ "$upload_optin" != "true" ]; then
             printf '%s\n' "➤ Log upload skipped (no consent or non-interactive session). Please attach $LOG_FILE."
