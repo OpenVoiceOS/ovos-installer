@@ -5,7 +5,7 @@
   ansible.builtin.lineinfile:
     path: "{{ ovos_installer_boot_directory }}/cmdline.txt"
     regexp: "^((?!.*{{ item }}).*console.*)$"
-    line: '\\1 {{ item }}'
+    line: '\1 {{ item }}'
     backrefs: true
   loop:
     - "numa=fake={{ _fake_number }}"

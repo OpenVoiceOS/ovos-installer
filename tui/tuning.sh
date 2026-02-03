@@ -33,7 +33,7 @@ fi
 
 if [ -z "${OVERCLOCK_ARM_FREQ:-}" ]; then
   if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 5"* ]]; then
-    OVERCLOCK_ARM_FREQ="2400"
+    OVERCLOCK_ARM_FREQ="2800"
   else
     OVERCLOCK_ARM_FREQ="2000"
   fi
@@ -85,7 +85,10 @@ while true; do
   if [ "$exit_status" -eq 0 ]; then
     export TUNING
     if [ "$TUNING" == "yes" ]; then
-      overclock_option="yes"
+      overclock_option="${TUNING_OVERCLOCK:-no}"
+      if [[ "$overclock_option" != "yes" && "$overclock_option" != "no" ]]; then
+        overclock_option="no"
+      fi
       overclock_options=(yes no)
       overclock_args=(
         --title "$OVERCLOCK_TITLE"
