@@ -206,10 +206,30 @@
       changed_when: false
       failed_when: false
 
-    - name: Unmount Mycroft state tmpfs
-      ansible.posix.mount:
-        path: "{{ ovos_installer_tuning_mycroft_state_dir }}"
-        state: unmounted
+    - name: Check if Mycroft state tmpfs is mounted  # noqa command-instead-of-module
+      ansible.builtin.command: mountpoint -q "{{ ovos_installer_tuning_mycroft_state_dir }}"
+      register: ovos_installer_mycroft_state_mount
+      changed_when: false
+      failed_when: false
+
+    - name: Unmount Mycroft state tmpfs  # noqa command-instead-of-module
+      ansible.builtin.command: umount "{{ ovos_installer_tuning_mycroft_state_dir }}"
+      register: ovos_installer_mycroft_state_umount
+      when: ovos_installer_mycroft_state_mount.rc == 0
+      changed_when: false
+      failed_when: false
+
+    - name: Recheck Mycroft state tmpfs mount  # noqa command-instead-of-module
+      ansible.builtin.command: mountpoint -q "{{ ovos_installer_tuning_mycroft_state_dir }}"
+      register: ovos_installer_mycroft_state_mount_after
+      changed_when: false
+      failed_when: false
+
+    - name: Lazy unmount Mycroft state tmpfs if still busy  # noqa command-instead-of-module
+      ansible.builtin.command: umount -l "{{ ovos_installer_tuning_mycroft_state_dir }}"
+      when: ovos_installer_mycroft_state_mount_after.rc == 0
+      changed_when: false
+      failed_when: false
 
     - name: Remove Mycroft state tmpfs fstab entry
       ansible.builtin.lineinfile:
