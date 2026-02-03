@@ -13,7 +13,6 @@ fail_format="\e[31mfail\e[0m"
 function ask_optin() {
     # If not running interactively, assume NO to avoid hanging CI/CD pipelines
     if [ ! -t 0 ]; then
-        OVOS_INSTALLER_LOG_OPTIN="no"
         return 1
     fi
 
@@ -21,11 +20,9 @@ function ask_optin() {
         read -rp "Upload the log on ${PASTE_URL} website? (yes/no) " yn
         case $yn in
         [Yy]*)
-            OVOS_INSTALLER_LOG_OPTIN="yes"
             return 0
             ;;
         [Nn]*)
-            OVOS_INSTALLER_LOG_OPTIN="no"
             return 1
             ;;
         *) printf '%s\n' "Please answer (y)es or (n)o." ;;
@@ -551,6 +548,8 @@ function required_packages() {
 function create_python_venv() {
     printf '%s' "➤ Creating installer Python virtualenv... "
 
+    ensure_installer_tmpdir
+
     # Make sure Python version is higher then 3.8.
     if [ "$(ver "$PYTHON")" -lt "$(ver 3.9)" ]; then
         echo "python $PYTHON is not supported" &>>"$LOG_FILE"
@@ -595,6 +594,33 @@ function create_python_venv() {
     chown "$RUN_AS":"$(id -ng "$RUN_AS" 2>>"$LOG_FILE" || echo "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
     unset -f ansible-galaxy pip3
     echo -e "[$done_format]"
+}
+
+# Ensure temp directory has enough space for large wheel extraction.
+function ensure_installer_tmpdir() {
+    local min_mb="${OVOS_INSTALLER_TMPDIR_MIN_MB:-256}"
+    local current_tmp="${TMPDIR:-/tmp}"
+    local avail_mb
+    if ! avail_mb=$(df -Pm "$current_tmp" 2>>"$LOG_FILE" | awk 'NR==2 {print $4}'); then
+        avail_mb=""
+    fi
+    if [ -z "$avail_mb" ]; then
+        avail_mb=0
+    fi
+    if [ "$avail_mb" -lt "$min_mb" ]; then
+        local fallback="${OVOS_INSTALLER_TMPDIR:-/var/tmp}"
+        local fallback_avail
+        if ! fallback_avail=$(df -Pm "$fallback" 2>>"$LOG_FILE" | awk 'NR==2 {print $4}'); then
+            fallback_avail=""
+        fi
+        if [ -n "$fallback_avail" ] && [ "$fallback_avail" -ge "$min_mb" ]; then
+            export TMPDIR="$fallback"
+            export UV_TEMP_DIR="$fallback"
+            echo "Using TMPDIR=$fallback; $current_tmp has ${avail_mb}MB free (min ${min_mb}MB)." &>>"$LOG_FILE"
+        else
+            echo "Warning: low temp space in $current_tmp (${avail_mb}MB). Fallback $fallback has ${fallback_avail:-0}MB." &>>"$LOG_FILE"
+        fi
+    fi
 }
 
 # Install Ansible into the new Python virtual environment and install the
