@@ -132,7 +132,7 @@
       ansible.builtin.set_fact:
         ovos_installer_overclock_arm_freq_effective: >-
           {{ ovos_installer_overclock_arm_freq | default(
-            ('2400' if 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default('')) else '2000'),
+            ('2800' if 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default('')) else '2000'),
             true) }}
 
     - name: Decide whether to apply CPU/GPU overclocking

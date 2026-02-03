@@ -53,7 +53,7 @@ detect_scenario
 
 if [ "${TUNING_OVERCLOCK:-no}" == "yes" ] && [ -z "${OVERCLOCK_ARM_FREQ:-}" ] && [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
   if [[ "$RASPBERRYPI_MODEL" == *"Raspberry Pi 5"* ]]; then
-    OVERCLOCK_ARM_FREQ="2400"
+    OVERCLOCK_ARM_FREQ="2800"
   else
     OVERCLOCK_ARM_FREQ="2000"
   fi
