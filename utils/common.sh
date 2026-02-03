@@ -679,7 +679,7 @@ function detect_scenario() {
         "$YQ_BINARY_PATH" "$SCENARIO_PATH" &>>"$LOG_FILE"
 
         SCENARIO_NOT_SUPPORTED="false"
-        # shellcheck source=scenario.sh
+        # shellcheck source=utils/scenario.sh
         source utils/scenario.sh
 
         # Check scenario status

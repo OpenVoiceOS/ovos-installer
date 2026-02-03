@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-# shellcheck source=locales/en-us/methods.sh
+# shellcheck source=tui/locales/en-us/methods.sh
 source "tui/locales/$LOCALE/methods.sh"
 
 declare -a available_methods

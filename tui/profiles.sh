@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-# shellcheck source=locales/en-us/profiles.sh
+# shellcheck source=tui/locales/en-us/profiles.sh
 source "tui/locales/$LOCALE/profiles.sh"
 
 # Default active and available profiles

@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-# shellcheck source=../locales/en-us/satellite.sh
+# shellcheck source=tui/locales/en-us/satellite.sh
 source "tui/locales/$LOCALE/satellite.sh"
 
 BACK_STATUS=0
@@ -12,7 +12,7 @@ while :; do
         break
     fi
 
-    # shellcheck source="${scripts[$current_index]}"
+    # shellcheck disable=SC1091
     source "${scripts[$current_index]}"
 
     if [ "$BACK_STATUS" -eq 1 ]; then

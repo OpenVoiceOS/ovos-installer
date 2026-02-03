@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-# shellcheck source=locales/en-us/channels.sh
+# shellcheck source=tui/locales/en-us/channels.sh
 source "tui/locales/$LOCALE/channels.sh"
 
 active_channel="testing"

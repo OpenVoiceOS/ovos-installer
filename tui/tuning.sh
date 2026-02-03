@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# shellcheck source=locales/en-us/tuning.sh
+# shellcheck source=tui/locales/en-us/tuning.sh
 source "tui/locales/$LOCALE/tuning.sh"
 
 if [ -f "tui/locales/$LOCALE/overclock.sh" ]; then
-  # shellcheck source=locales/en-us/overclock.sh
+  # shellcheck source=tui/locales/en-us/overclock.sh
   source "tui/locales/$LOCALE/overclock.sh"
 fi
 
