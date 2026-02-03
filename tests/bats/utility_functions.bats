@@ -175,8 +175,10 @@ EOF
         yn="yes"
     }
     export -f read
+    export OVOS_INSTALLER_ASSUME_INTERACTIVE="true"
     run ask_optin
     assert_success
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
     unset -f read
 }
 
@@ -185,9 +187,11 @@ EOF
         yn="no"
     }
     export -f read
+    export OVOS_INSTALLER_ASSUME_INTERACTIVE="true"
     run ask_optin
     assert_failure
     assert_equal "$status" 1
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
     unset -f read
 }
 

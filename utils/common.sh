@@ -12,7 +12,7 @@ fail_format="\e[31mfail\e[0m"
 # agreement this could lead to security infringement.
 function ask_optin() {
     # If not running interactively, assume NO to avoid hanging CI/CD pipelines
-    if [ ! -t 0 ]; then
+    if [ ! -t 0 ] && [ "${OVOS_INSTALLER_ASSUME_INTERACTIVE:-}" != "true" ]; then
         return 1
     fi
 
