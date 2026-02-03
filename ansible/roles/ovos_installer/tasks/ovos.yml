@@ -112,6 +112,83 @@
     - item.status | bool
     - ovos_installer_method == "virtualenv"
 
+- name: Resolve locale units based on public IP
+  when:
+    - ovos_installer_profile != "server"
+    - ovos_installer_geoip_enabled | bool
+  block:
+    - name: Fetch geoip metadata
+      ansible.builtin.uri:
+        url: "{{ ovos_installer_geoip_url }}"
+        return_content: true
+        timeout: 5
+      register: ovos_installer_geoip_response
+      failed_when: false
+      changed_when: false
+
+    - name: Set geoip country code
+      ansible.builtin.set_fact:
+        ovos_installer_geoip_country: >-
+          {{
+            (ovos_installer_geoip_response.json.country_code
+             | default(ovos_installer_geoip_response.json.country | default(''))) | upper
+          }}
+      when: ovos_installer_geoip_response.json is defined
+
+    - name: Apply imperial unit defaults for select countries
+      ansible.builtin.set_fact:
+        ovos_installer_system_unit: "imperial"
+        ovos_installer_temperature_unit: "fahrenheit"
+        ovos_installer_precipitation_unit: "inch"
+        ovos_installer_windspeed_unit: "mph"
+      vars:
+        _imperial_countries:
+          - US
+          - LR
+          - MM
+      when: ovos_installer_geoip_country | default('') in _imperial_countries
+
+    - name: Apply date format defaults (MDY)
+      ansible.builtin.set_fact:
+        ovos_installer_date_format: "MDY"
+      vars:
+        _mdy_countries:
+          - US
+      when: ovos_installer_geoip_country | default('') in _mdy_countries
+
+    - name: Apply date format defaults (YMD)
+      ansible.builtin.set_fact:
+        ovos_installer_date_format: "YMD"
+      vars:
+        _ymd_countries:
+          - CN
+          - JP
+          - KR
+          - TW
+      when: ovos_installer_geoip_country | default('') in _ymd_countries
+
+    - name: Apply time format defaults for 12-hour regions
+      ansible.builtin.set_fact:
+        ovos_installer_time_format: "half"
+        ovos_installer_spoken_time_format: "half"
+      vars:
+        _half_time_countries:
+          - US
+          - CA
+          - AU
+          - NZ
+          - PH
+          - IN
+          - IE
+          - MY
+          - PK
+          - SA
+          - ZA
+          - EG
+          - CO
+          - GB
+      when: ovos_installer_geoip_country | default('') in _half_time_countries
+
 - name: Generate mycroft.conf
   vars:
     _configuration_path: "{{ '.config/mycroft' if ovos_installer_method == 'virtualenv' else 'ovos/config' }}"

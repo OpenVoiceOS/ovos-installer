@@ -131,6 +131,7 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_overclock_over_voltage=${OVERCLOCK_OVER_VOLTAGE}" \
   -e "ovos_installer_overclock_arm_freq=${OVERCLOCK_ARM_FREQ}" \
   -e "ovos_installer_overclock_gpu_freq=${OVERCLOCK_GPU_FREQ}" \
+  -e "ovos_installer_uv_version=${OVOS_INSTALLER_UV_VERSION:-}" \
   -e "ovos_installer_listener_host=${HIVEMIND_HOST}" \
   -e "ovos_installer_listener_port=${HIVEMIND_PORT}" \
   -e "ovos_installer_satellite_key=${SATELLITE_KEY}" \

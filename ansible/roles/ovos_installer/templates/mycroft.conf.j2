@@ -10,6 +10,13 @@
   "play_wav_cmdline": "play %1",
   "play_mp3_cmdline": "play %1",
   "lang": "{{ ovos_installer_locale }}",
+  "system_unit": "{{ ovos_installer_system_unit }}",
+  "temperature_unit": "{{ ovos_installer_temperature_unit }}",
+  "precipitation_unit": "{{ ovos_installer_precipitation_unit }}",
+  "windspeed_unit": "{{ ovos_installer_windspeed_unit }}",
+  "time_format": "{{ ovos_installer_time_format }}",
+  "spoken_time_format": "{{ ovos_installer_spoken_time_format }}",
+  "date_format": "{{ ovos_installer_date_format }}",
   "listener": {
     "VAD": {
       "module": "{{ 'ovos-vad-plugin-silero' if ovos_installer_cpu_is_capable | bool else 'ovos-vad-plugin-webrtcvad' }}"
@@ -24,7 +31,14 @@
     }
     {% if ovos_installer_tuning | bool %}
     ,"wake_word": "openwakeword",
-    "patience": 0.5
+    "patience": 0.5,
+    "hotwords": {
+      "hey_mycroft": {
+        "module": "ovos-ww-plugin-precise-onnx",
+        "sensitivity": {{ ovos_installer_hotword_sensitivity }},
+        "trigger_level": {{ ovos_installer_hotword_trigger_level }}
+      }
+    }
     {% endif %}
     }
   },
@@ -34,11 +48,6 @@
       "allow_pip": true,
       "allow_alphas": true
     }
-  },
-{% endif %}
-{% if ovos_installer_tuning | bool %}
-  "tts": {
-    "module": "ovos-tts-plugin-piper"
   },
 {% endif %}
 {% if 'tas5806' in ovos_installer_i2c_devices %}

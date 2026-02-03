@@ -40,6 +40,24 @@
     PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
   when: not ovos_installer_cleaning | bool
 
+- name: Ensure uv is available in user PATH
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.pip:
+    name: >-
+      {{
+        ('uv==' ~ ovos_installer_uv_version)
+        if (ovos_installer_uv_version | default('') | length > 0)
+        else 'uv'
+      }}
+    state: present
+    executable: pip3
+    extra_args: --user
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_installer_user_home }}/.local/bin:/usr/local/bin:/usr/bin:/bin"
+  when: not ovos_installer_cleaning | bool
+
 - name: Ensure ovos Python venv exists with requested Python
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -55,6 +73,31 @@
     HOME: "{{ ovos_installer_user_home }}"
     PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
   when: not ovos_installer_cleaning | bool
+
+- name: Ensure pip is available in OVOS venv
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    cmd: "{{ ovos_installer_user_home }}/.venvs/ovos/bin/python -m ensurepip --upgrade"
+  args:
+    creates: "{{ ovos_installer_user_home }}/.venvs/ovos/bin/pip"
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+  register: ovos_installer_venv_pip_bootstrap
+  when: not ovos_installer_cleaning | bool
+
+- name: Upgrade pip tooling in OVOS venv
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    cmd: "{{ ovos_installer_user_home }}/.venvs/ovos/bin/python -m pip install -U pip setuptools wheel"
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+  changed_when: false
+  when:
+    - not ovos_installer_cleaning | bool
+    - ovos_installer_venv_pip_bootstrap is defined
+    - ovos_installer_venv_pip_bootstrap is changed
 
 - name: Create ovos Python venv with tflite_runtime
   moreati.uv.pip:
@@ -158,16 +201,18 @@
   tags:
     - always
 
-- name: Add auto Python virtualenv loading on auto-detected devices
-  ansible.builtin.lineinfile:
+- name: Ensure OVOS virtualenv auto-activates for interactive shells
+  ansible.builtin.blockinfile:
     path: "{{ ovos_installer_user_home }}/.bashrc"
-    line: "source {{ ovos_installer_user_home }}/.venvs/ovos/bin/activate"
-    regexp: "^source {{ ovos_installer_user_home }}/.venvs/ovos/bin/activate"
+    marker: "# {mark} OVOS VENV"
+    block: |
+      if [[ $- == *i* ]] && [ -f "{{ ovos_installer_user_home }}/.venvs/ovos/bin/activate" ]; then
+        source "{{ ovos_installer_user_home }}/.venvs/ovos/bin/activate"
+      fi
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     mode: "0644"
     state: "{{ ovos_installer_uninstall }}"
-  when: ovos_installer_i2c_devices | from_json | length >= 1
   tags:
     - always
 

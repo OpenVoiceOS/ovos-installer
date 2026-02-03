@@ -32,6 +32,18 @@ ovos_installer_overclock_initial_turbo: "60"
 ovos_installer_overclock_over_voltage: "6"
 ovos_installer_overclock_arm_freq: "{{ '2400' if 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default('')) else '2000' }}"
 ovos_installer_overclock_gpu_freq: "750"
+ovos_installer_uv_version: ""
+ovos_installer_hotword_sensitivity: 0.7
+ovos_installer_hotword_trigger_level: 2
+ovos_installer_geoip_enabled: true
+ovos_installer_geoip_url: "https://ipapi.co/json/"
+ovos_installer_system_unit: "metric"
+ovos_installer_temperature_unit: "celsius"
+ovos_installer_precipitation_unit: "mm"
+ovos_installer_windspeed_unit: "kph"
+ovos_installer_time_format: "full"
+ovos_installer_spoken_time_format: "full"
+ovos_installer_date_format: "DMY"
 ovos_installer_core_services:
   - ovos-core
   - ovos-audio

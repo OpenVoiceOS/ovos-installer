@@ -601,6 +601,8 @@ function create_python_venv() {
         echo "uv is required but was not found after installation. Check $LOG_FILE for details." | tee -a "$LOG_FILE"
         exit "${EXIT_MISSING_DEPENDENCY}"
     fi
+    OVOS_INSTALLER_UV_VERSION="$(uv --version 2>>"$LOG_FILE" | awk '{print $2}')"
+    export OVOS_INSTALLER_UV_VERSION
 
     $PIP_COMMAND install --no-cache-dir --upgrade pip setuptools &>>"$LOG_FILE"
     chown "$RUN_AS":"$(id -ng "$RUN_AS" 2>>"$LOG_FILE" || echo "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"

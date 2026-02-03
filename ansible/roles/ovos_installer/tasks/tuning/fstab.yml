@@ -32,6 +32,7 @@
     path: /etc/log2ram.conf
     regexp: '^SIZE='
     line: 'SIZE=100M'
+  register: ovos_installer_log2ram_size
   when: ovos_installer_log2ram_installed | default(false) | bool
 
 - name: Enable log2ram service
@@ -40,6 +41,15 @@
     enabled: true
     state: started
   when: ovos_installer_log2ram_installed | default(false) | bool
+
+- name: Restart log2ram after size change
+  ansible.builtin.systemd_service:
+    name: log2ram
+    state: restarted
+  when:
+    - ovos_installer_log2ram_installed | default(false) | bool
+    - ovos_installer_log2ram_size is defined
+    - ovos_installer_log2ram_size is changed
 
 - name: Configure persistent tmpfs for Mycroft state
   when:
