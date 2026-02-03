@@ -83,7 +83,6 @@ while true; do
   exit_status=$?
 
   if [ "$exit_status" -eq 0 ]; then
-    export TUNING
     if [ "$TUNING" == "yes" ]; then
       overclock_option="${TUNING_OVERCLOCK:-no}"
       if [[ "$overclock_option" != "yes" && "$overclock_option" != "no" ]]; then
@@ -111,12 +110,14 @@ while true; do
       TUNING_OVERCLOCK=$(whiptail "${overclock_args[@]}" 3>&1 1>&2 2>&3)
       overclock_exit_status=$?
       if [ "$overclock_exit_status" -eq 0 ]; then
+        export TUNING
         export TUNING_OVERCLOCK
         break
       else
         continue
       fi
     else
+      export TUNING
       export TUNING_OVERCLOCK="no"
       break
     fi
