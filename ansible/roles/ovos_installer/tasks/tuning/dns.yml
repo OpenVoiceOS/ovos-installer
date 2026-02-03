@@ -9,6 +9,14 @@
         name: dnsmasq
         state: present
 
+    - name: Stop system dnsmasq to avoid port conflicts
+      ansible.builtin.systemd_service:
+        name: dnsmasq
+        state: stopped
+        enabled: false
+      failed_when: false
+      notify: Restart NetworkManager
+
     - name: Enable NetworkManager dnsmasq caching
       ansible.builtin.copy:
         dest: /etc/NetworkManager/conf.d/90-dnsmasq.conf

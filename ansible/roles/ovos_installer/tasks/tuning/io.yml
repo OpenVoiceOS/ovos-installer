@@ -128,11 +128,18 @@
         - ovos_installer_tuning_overclock | bool
         - (ovos_installer_cpu_max_mhz | int) == 0 or (ovos_installer_gpu_max_mhz | int) == 0
 
+    - name: Normalize overclock arm frequency
+      ansible.builtin.set_fact:
+        ovos_installer_overclock_arm_freq_effective: >-
+          {{ ovos_installer_overclock_arm_freq | default(
+            ('2400' if 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default('')) else '2000'),
+            true) }}
+
     - name: Decide whether to apply CPU/GPU overclocking
       ansible.builtin.set_fact:
         ovos_installer_apply_overclock_cpu: >-
           {{ ovos_installer_tuning_overclock | bool and
-             ((ovos_installer_cpu_max_mhz | int) == 0 or (ovos_installer_cpu_max_mhz | int) <= (ovos_installer_overclock_arm_freq | int)) }}
+             ((ovos_installer_cpu_max_mhz | int) == 0 or (ovos_installer_cpu_max_mhz | int) <= (ovos_installer_overclock_arm_freq_effective | int)) }}
         ovos_installer_apply_overclock_gpu: >-
           {{ ovos_installer_tuning_overclock | bool and
              ((ovos_installer_gpu_max_mhz | int) == 0 or (ovos_installer_gpu_max_mhz | int) <= (ovos_installer_overclock_gpu_freq | int)) }}
@@ -159,7 +166,7 @@
       notify: Set Reboot
       when: ovos_installer_apply_overclock_cpu | bool
       loop:
-        - { key: "arm_freq", value: "{{ ovos_installer_overclock_arm_freq }}" }
+        - { key: "arm_freq", value: "{{ ovos_installer_overclock_arm_freq_effective }}" }
 
     - name: Apply GPU overclocking (config.txt)
       ansible.builtin.lineinfile:

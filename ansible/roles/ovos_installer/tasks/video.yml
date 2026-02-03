@@ -40,7 +40,15 @@
     - name: Set ovos_installer_wayland_display fact
       ansible.builtin.set_fact:
         ovos_installer_wayland_display: >-
-          {{ (ovos_installer_ovos_wayland_display.files | default([]) | map(attribute='path') | map('basename') | list | sort | first) | default('') }}
+          {{
+            ovos_installer_ovos_wayland_display.files | default([])
+            | map(attribute='path')
+            | map('basename')
+            | list
+            | community.general.natural_sort
+            | first
+            | default('')
+          }}
       when:
         - ovos_installer_ovos_wayland_display is defined
         - ovos_installer_display_server == 'wayland'

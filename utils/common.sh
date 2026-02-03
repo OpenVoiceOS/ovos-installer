@@ -40,6 +40,7 @@ function upload_logs() {
     local tmpdir="${TMPDIR:-/tmp}"
 
     if [ ! -f "$LOG_FILE" ]; then
+        unset OVOS_INSTALLER_LOG_TRUNCATED OVOS_INSTALLER_LOG_TRUNCATED_BYTES
         echo ""
         return 1
     fi

@@ -11,4 +11,4 @@
     - "numa=fake={{ _fake_number }}"
   when:
     - ovos_installer_tuning_numa | bool
-    - "'Raspberry Pi 4' in ovos_installer_raspberrypi or 'Raspberry Pi 5' in ovos_installer_raspberrypi"
+    - "'Raspberry Pi 4' in (ovos_installer_raspberrypi | default('')) or 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default(''))"

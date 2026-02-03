@@ -51,7 +51,7 @@
                   node.always-process = true
                 }
               }
-            }
+            },
             {
               matches = [ { node.name = "~alsa_input.*" } ]
               actions = {
