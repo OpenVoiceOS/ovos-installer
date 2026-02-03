@@ -125,6 +125,16 @@
   tags:
     - uninstall
   block:
+    - name: Define systemd drop-in paths (uninstall)
+      ansible.builtin.set_fact:
+        ovos_installer_systemd_dropin_path: >-
+          {{ '/etc/systemd/system' if (ovos_installer_systemd_scope | default('user')) == 'system'
+             else ovos_installer_user_home + '/.config/systemd/user' }}
+        ovos_installer_systemd_dropin_owner: "{{ 'root' if (ovos_installer_systemd_scope | default('user')) == 'system' else ovos_installer_user }}"
+        ovos_installer_systemd_dropin_group: "{{ 'root' if (ovos_installer_systemd_scope | default('user')) == 'system' else ovos_installer_group }}"
+        ovos_installer_systemd_dropin_user_path: "{{ ovos_installer_user_home }}/.config/systemd/user"
+        ovos_installer_systemd_reload_handler: "{{ 'Reload Systemd' if (ovos_installer_systemd_scope | default('user')) == 'system' else 'Reload Systemd User' }}"
+
     - name: Remove Zero-Swap Policy drop-ins
       ansible.builtin.file:
         path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/99-noswap.conf"
