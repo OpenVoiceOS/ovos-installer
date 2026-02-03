@@ -282,7 +282,7 @@
           scope: "{{ ovos_installer_ovos_scope }}"
           user: "{{ ovos_installer_ovos_unit_user }}"
       register: ovos_installer_systemd_stop
-      failed_when: ovos_installer_systemd_stop is not defined # We never want it to fail even if systemd unit doesn't exist
+      failed_when: false # Never fail - units may not exist
 
     - name: Remove OVOS systemd unit files
       ansible.builtin.file:

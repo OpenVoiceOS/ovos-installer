@@ -73,6 +73,6 @@
   },
   "overclock.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Overclocking",
-    "content": "L'overclocking augmenta la freqüència de la CPU/GPU per obtenir el màxim rendiment, però pot reduir l'estabilitat i augmentar la calor.\n\nAixò requereix una refrigeració adequada i una font d'alimentació fiable.\n\nOpen Voice OS no és responsable de cap problema relacionat amb l'overclocking.\n\nVoleu habilitar l'overclocking?"
+    "content": "L'overclocking augmenta la freqüència de la CPU/GPU per obtenir el màxim rendiment, però pot reduir l'estabilitat i augmentar la calor.\n\nRequisits:\n- Refrigeració activa (dissipador/ventilador) i bon flux d'aire\n- Font d'alimentació estable adequada al teu model de Pi\n- Supervisa les temperatures i atura si hi ha throttling o fallades\n\nRiscos:\n- Reinicis aleatoris, fallades d'àudio, corrupció de dades\n- Més consum i vida útil més curta\n\nOpen Voice OS no és responsable de cap problema relacionat amb l'overclocking.\n\nVoleu habilitar l'overclocking?"
   }
 }

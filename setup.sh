@@ -51,7 +51,7 @@ install_ansible
 download_yq
 detect_scenario
 
-if [ -z "${OVERCLOCK_ARM_FREQ:-}" ] && [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
+if [ "${TUNING_OVERCLOCK:-no}" == "yes" ] && [ -z "${OVERCLOCK_ARM_FREQ:-}" ] && [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
   if [[ "$RASPBERRYPI_MODEL" == *"Raspberry Pi 5"* ]]; then
     OVERCLOCK_ARM_FREQ="2400"
   else

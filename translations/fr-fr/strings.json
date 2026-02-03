@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Open Voice OS Installation - Canaux d'installation",
-    "content": "Open Voice OS propose quatre principaux canaux de publication :\n\n- stable (stable mais vieux)\n- test (par défaut)\n- alpha (à la pointe de la technologie)\n\nLa version stable d'Open Voice OS est la version recommandée pour la plupart des utilisateurs. Elle a été testée avec soin et inclut toutes les dernières fonctionnalités et améliorations jugées stables.\n\nLa version de test d'Open Voice OS est une version plus expérimentale qui inclut de nouvelles fonctionnalités et améliorations encore en cours de test. Elle est globalement stable, mais peut présenter des bugs ou des problèmes.\n\nLa version alpha d'Open Voice OS est la version la plus expérimentale, contenant les dernières fonctionnalités et modifications encore en développement. Elle peut être instable et n'est pas recommandée pour une utilisation quotidienne.\n\nVeuillez sélectionner un canal :"
+    "content": "Open Voice OS propose trois principaux canaux de publication :\n\n- stable (stable mais vieux)\n- test (par défaut)\n- alpha (à la pointe de la technologie)\n\nLa version stable d'Open Voice OS est la version recommandée pour la plupart des utilisateurs. Elle a été testée avec soin et inclut toutes les dernières fonctionnalités et améliorations jugées stables.\n\nLa version de test d'Open Voice OS est une version plus expérimentale qui inclut de nouvelles fonctionnalités et améliorations encore en cours de test. Elle est globalement stable, mais peut présenter des bugs ou des problèmes.\n\nLa version alpha d'Open Voice OS est la version la plus expérimentale, contenant les dernières fonctionnalités et modifications encore en développement. Elle peut être instable et n'est pas recommandée pour une utilisation quotidienne.\n\nVeuillez sélectionner un canal :"
   },
   "detection.sh": {
     "title": "Open Voice OS Installation - Détecté",
@@ -73,6 +73,6 @@
   },
   "overclock.sh": {
     "title": "Installation d'Open Voice OS - Overclocking",
-    "content": "L’overclocking augmente la fréquence CPU/GPU pour des performances maximales, mais peut réduire la stabilité et augmenter la chaleur.\n\nCela nécessite un refroidissement adéquat et une alimentation fiable.\n\nOpen Voice OS n’est pas responsable des problèmes liés à l’overclocking.\n\nActiver l’overclocking ?"
+    "content": "L’overclocking augmente la fréquence CPU/GPU pour des performances maximales, mais peut réduire la stabilité et augmenter la chaleur.\n\nPrérequis :\n- Refroidissement actif (radiateur/ventilateur) et bon flux d’air\n- Alimentation stable adaptée à votre modèle de Pi\n- Surveillez les températures et arrêtez en cas de throttling ou de crash\n\nRisques :\n- Redémarrages aléatoires, problèmes audio, corruption de données\n- Consommation plus élevée et durée de vie réduite\n\nOpen Voice OS n’est pas responsable des problèmes liés à l’overclocking.\n\nActiver l’overclocking ?"
   }
 }

@@ -72,7 +72,7 @@
     "content": "Hallo en welkom bij het installatieprogramma van OpenVoice OS!\n\nWe stellen je graag voor aan OpenVoice OS, de open source stemassistent.\n\nHet installeren van OpenVoice OS is een fluitje van een cent en opent een wereld aan mogelijkheden voor spraakgestuurd gemak. Of je nu een tech liefhebber bent of gewoon je dagelijkse taken wilt vereenvoudigen, OpenVoice OS is er om je leven makkelijker te maken.\n\nBegin vandaag nog met installeren en laat je stemassistant je leiden door de toekomst van technologie! 🌟"
   },
   "overclock.sh": {
-    "title": "OpenVoice OS Installatie - Overclocking",
-    "content": "Overclocking verhoogt de CPU/GPU-frequentie voor maximale prestaties, maar kan de stabiliteit verminderen en de warmteontwikkeling verhogen.\n\nDit vereist voldoende koeling en een betrouwbare voeding.\n\nOpen Voice OS is niet verantwoordelijk voor problemen die verband houden met overclocking.\n\nOverclocking inschakelen?"
+    "title": "Open Voice OS Installatie - Overclocking",
+    "content": "Overclocking verhoogt de CPU/GPU-frequentie voor maximale prestaties, maar kan de stabiliteit verminderen en de warmteontwikkeling verhogen.\n\nVereisten:\n- Actieve koeling (heatsink/ventilator) en goede airflow\n- Een stabiele voeding passend bij je Pi-model\n- Monitor temperaturen en stop bij throttling of crashes\n\nRisico's:\n- Willekeurige herstarts, audioproblemen, gegevenscorruptie\n- Hoger stroomverbruik en kortere levensduur\n\nOpen Voice OS is niet verantwoordelijk voor problemen die verband houden met overclocking.\n\nOverclocking inschakelen?"
   }
 }

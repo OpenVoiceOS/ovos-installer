@@ -20,6 +20,14 @@
         mode: "0644"
       notify: Restart NetworkManager
 
+    - name: Ensure NetworkManager dnsmasq config directory exists
+      ansible.builtin.file:
+        path: /etc/NetworkManager/dnsmasq.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
     - name: Configure dnsmasq cache TTLs
       ansible.builtin.copy:
         dest: /etc/NetworkManager/dnsmasq.d/ovos.conf

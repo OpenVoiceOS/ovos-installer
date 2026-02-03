@@ -8,14 +8,6 @@
     backup: true
   notify: Reload Systemd
 
-- name: Add nodiratime option
-  ansible.builtin.replace:
-    path: /etc/fstab
-    regexp: '^(\S+)(\s+)(\S+)(\s+)(ext4|xfs|btrfs)(\s+)(((?!nodiratime)\S)*)(\s+)(\d)(\s+)(\d)$'
-    replace: '\1\2\3\4\5\6\7,nodiratime\9\10\11\12'
-    backup: true
-  notify: Reload Systemd
-
 - name: Install log2ram for /var/log persistence (Debian)
   ansible.builtin.package:
     name: log2ram
@@ -96,7 +88,7 @@
           Type=oneshot
           User={{ ovos_installer_user }}
           Group={{ ovos_installer_group }}
-          ExecStart=/usr/bin/rsync -a --delete "{{ ovos_installer_tuning_mycroft_state_persist_dir }}/" "{{ ovos_installer_tuning_mycroft_state_dir }}/"
+          ExecStart=/usr/bin/rsync -a "{{ ovos_installer_tuning_mycroft_state_persist_dir }}/" "{{ ovos_installer_tuning_mycroft_state_dir }}/"
 
           [Install]
           WantedBy=multi-user.target
@@ -169,7 +161,15 @@
     path: /tmp
     src: tmpfs
     fstype: tmpfs
-    opts: "defaults,noatime,nosuid,nodev"
+    opts: >-
+      {{ [
+        'defaults',
+        'noatime',
+        'nosuid',
+        'nodev',
+        'size=' ~ ovos_installer_tuning_tmpfs_size,
+        'mode=1777'
+      ] | join(',') }}
     state: mounted
 
 - name: Block uninstall Mycroft state tmpfs

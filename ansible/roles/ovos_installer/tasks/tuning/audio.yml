@@ -60,7 +60,8 @@
       ansible.builtin.package:
         name: rtkit
         state: present
-      failed_when: false
+      register: ovos_installer_rtkit_install_result
+      ignore_errors: true
 
     - name: Remove system-wide PipeWire tuning (Cleanup)
       ansible.builtin.file:
@@ -76,6 +77,7 @@
         owner: root
         group: root
         mode: '0644'
+      notify: Set Reboot
 
 - name: Block uninstall usb audio tuning
   when: ovos_installer_cleaning | bool

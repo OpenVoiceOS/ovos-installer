@@ -65,6 +65,6 @@
   },
   "overclock.sh": {
     "title": "Instalacja Open Voice OS - Podkręcanie",
-    "content": "Podkręcanie zwiększa częstotliwość CPU/GPU dla maksymalnej wydajności, ale może obniżyć stabilność i zwiększyć temperaturę.\n\nWymaga to odpowiedniego chłodzenia i niezawodnego zasilania.\n\nOpen Voice OS nie ponosi odpowiedzialności za problemy związane z podkręcaniem.\n\nWłączyć podkręcanie?"
+    "content": "Podkręcanie zwiększa częstotliwość CPU/GPU dla maksymalnej wydajności, ale może obniżyć stabilność i zwiększyć temperaturę.\n\nWymagania:\n- Aktywne chłodzenie (radiator/wentylator) i dobry przepływ powietrza\n- Stabilne zasilanie odpowiednie dla modelu Pi\n- Monitoruj temperatury i przerwij w razie throttlingu lub awarii\n\nRyzyka:\n- Losowe restarty, problemy z dźwiękiem, uszkodzenie danych\n- Większy pobór mocy i krótsza żywotność\n\nOpen Voice OS nie ponosi odpowiedzialności za problemy związane z podkręcaniem.\n\nWłączyć podkręcanie?"
   }
 }

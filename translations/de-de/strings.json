@@ -73,6 +73,6 @@
   },
   "overclock.sh": {
     "title": "Open Voice OS Installation - Übertaktung",
-    "content": "Übertaktung erhöht die CPU/GPU-Frequenz für maximale Leistung, kann aber die Stabilität verringern und die Wärmeentwicklung erhöhen.\n\nDies erfordert ausreichende Kühlung und eine zuverlässige Stromversorgung.\n\nOpen Voice OS übernimmt keine Verantwortung für Probleme im Zusammenhang mit der Übertaktung.\n\nÜbertaktung aktivieren?"
+    "content": "Übertakten erhöht die CPU/GPU-Frequenz für maximale Leistung, kann aber die Stabilität verringern und die Wärmeentwicklung erhöhen.\n\nVoraussetzungen:\n- Aktive Kühlung (Kühlkörper/Lüfter) und guter Luftstrom\n- Stabile Stromversorgung passend zu deinem Pi-Modell\n- Temperaturen überwachen und bei Throttling oder Abstürzen stoppen\n\nRisiken:\n- Zufällige Neustarts, Audioprobleme, Datenkorruption\n- Höherer Stromverbrauch und verkürzte Lebensdauer\n\nOpen Voice OS ist nicht verantwortlich für Probleme im Zusammenhang mit Übertaktung.\n\nÜbertaktung aktivieren?"
   }
 }

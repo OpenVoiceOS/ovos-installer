@@ -29,7 +29,8 @@
     - name: Check for wayland socket
       ansible.builtin.find:
         paths: "/run/user/{{ ovos_installer_uid }}"
-        patterns: "wayland-[0-9]"
+        patterns: "wayland-[0-9]+"
+        use_regex: true
         file_type: any
       register: ovos_installer_ovos_wayland_display
       changed_when: false

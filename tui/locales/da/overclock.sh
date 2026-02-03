@@ -16,6 +16,6 @@ Open Voice OS er ikke ansvarlig for problemer relateret til overclocking.
 
 Aktiver overclocking?
 "
-OVERCLOCK_TITLE="Open Voice OS Installation - Overclocking"
+OVERCLOCK_TITLE="Open Voice OS-installation - Overclocking"
 
 export OVERCLOCK_CONTENT OVERCLOCK_TITLE

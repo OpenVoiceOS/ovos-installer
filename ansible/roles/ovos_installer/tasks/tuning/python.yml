@@ -1,7 +1,7 @@
 ---
 - name: Install mimalloc (High Performance Memory Allocator)
   ansible.builtin.package:
-    name: libmimalloc-dev
+    name: "{{ 'mimalloc-devel' if ansible_os_family == 'RedHat' else 'libmimalloc-dev' }}"
     state: present
   ignore_errors: true
   register: ovos_installer_mimalloc_install
@@ -22,7 +22,7 @@
 - name: Set libmimalloc path
   ansible.builtin.set_fact:
     ovos_installer_mimalloc_path: >-
-      {{ {'stdout': (ovos_installer_mimalloc_find.files | sort(attribute='path'))[0].path} }}
+      {{ (ovos_installer_mimalloc_find.files | sort(attribute='path'))[0].path }}
   when:
     - ovos_installer_mimalloc_find is defined
     - ovos_installer_mimalloc_find.files | length > 0
@@ -44,8 +44,8 @@
       OMP_NUM_THREADS=1
       MKL_NUM_THREADS=1
       MIMALLOC_PAGE_RESET=0
-      {% if ovos_installer_mimalloc_path is defined and (ovos_installer_mimalloc_path.stdout | default('') | length > 0) %}
-      LD_PRELOAD={{ ovos_installer_mimalloc_path.stdout }}
+      {% if ovos_installer_mimalloc_path | default('') | length > 0 %}
+      LD_PRELOAD={{ ovos_installer_mimalloc_path }}
       {% endif %}
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"

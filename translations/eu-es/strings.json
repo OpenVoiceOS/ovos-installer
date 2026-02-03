@@ -65,6 +65,6 @@
   },
   "overclock.sh": {
     "title": "Open Voice OS Instalazioa - Overclocking",
-    "content": "Overclocking-ek CPU/GPU maiztasuna handitzen du errendimendu maximoa lortzeko, baina egonkortasuna murriztu eta beroa handitu dezake.\n\nHorrek hozte egokia eta elikatze-iturri fidagarria eskatzen du.\n\nOpen Voice OS ez da overclockingarekin lotutako arazoen erantzule.\n\nOverclocking aktibatu?"
+    "content": "Overclocking-ek CPU/GPU maiztasuna handitzen du errendimendu maximoa lortzeko, baina egonkortasuna murriztu eta beroa handitu dezake.\n\nBaldintzak:\n- Hozte aktiboa (dissipagailua/haizagailua) eta aireztapen ona\n- Zure Pi modelorako egokia den elikatze-iturri egonkorra\n- Tenperaturak kontrolatu eta throttling termikoa edo akatsak badaude gelditu\n\nArriskuak:\n- Berrezarpen ausazkoak, audio arazoak, datuen ustelkeria\n- Energia kontsumo handiagoa eta bizitza erabilgarriaren murrizketa\n\nOpen Voice OS ez da overclockingarekin lotutako arazoen erantzule.\n\nOverclocking aktibatu?"
   }
 }

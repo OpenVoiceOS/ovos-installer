@@ -1,164 +1,177 @@
 ---
-- name: Load i2c-dev and spidev kernel modules
-  community.general.modprobe:
-    name: "{{ item }}"
-    persistent: present
-  loop:
-    - i2c-dev
-    - spidev
+- name: Configure I/O tuning
+  when: not ovos_installer_cleaning | bool
+  block:
+    - name: Load i2c-dev and spidev kernel modules
+      community.general.modprobe:
+        name: "{{ item }}"
+        persistent: present
+      loop:
+        - i2c-dev
+        - spidev
 
-- name: Manage I2C, SPI and I2S buses
-  ansible.builtin.lineinfile:
-    path: "{{ ovos_installer_boot_directory }}/config.txt"
-    regexp: "^{{ item.key }}="
-    line: "{{ item.key }}={{ item.value }}"
-  loop:
-    - { key: "dtparam=i2c_arm", value: "on" }
-    - { key: "dtparam=spi", value: "on" }
-    - { key: "dtparam=i2s", value: "on" }
+    - name: Manage I2C, SPI and I2S buses
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_installer_boot_directory }}/config.txt"
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+      loop:
+        - { key: "dtparam=i2c_arm", value: "on" }
+        - { key: "dtparam=spi", value: "on" }
+        - { key: "dtparam=i2s", value: "on" }
 
-- name: Disable USB Autosuspend (cmdline.txt)
-  ansible.builtin.lineinfile:
-    path: "{{ ovos_installer_boot_directory }}/cmdline.txt"
-    regexp: "^((?!.*{{ item }}).*console.*)$"
-    line: '\1 {{ item }}'
-    backrefs: true
-  notify: Set Reboot
-  loop:
-    - "usbcore.autosuspend=-1"
+    - name: Disable USB Autosuspend (cmdline.txt)
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_installer_boot_directory }}/cmdline.txt"
+        regexp: "^((?!.*{{ item }}).*console.*)$"
+        line: '\1 {{ item }}'
+        backrefs: true
+      notify: Set Reboot
+      loop:
+        - "usbcore.autosuspend=-1"
 
-- name: Read current max CPU frequency (kHz)
-  ansible.builtin.command: cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq
-  register: ovos_installer_cpu_max_freq
-  changed_when: false
-  failed_when: false
+    - name: Read current max CPU frequency (kHz)
+      ansible.builtin.command: cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq
+      register: ovos_installer_cpu_max_freq
+      changed_when: false
+      failed_when: false
 
-- name: Normalize current max CPU frequency (MHz)
-  ansible.builtin.set_fact:
-    ovos_installer_cpu_max_mhz: "{{ (ovos_installer_cpu_max_freq.stdout | default('0') | int) // 1000 }}"
+    - name: Normalize current max CPU frequency (MHz)
+      ansible.builtin.set_fact:
+        ovos_installer_cpu_max_mhz: "{{ (ovos_installer_cpu_max_freq.stdout | default('0') | int) // 1000 }}"
 
-- name: Find devfreq name files
-  ansible.builtin.find:
-    paths: /sys/class/devfreq
-    patterns: name
-    file_type: file
-    recurse: true
-  register: ovos_installer_devfreq_name_files
-  changed_when: false
-  failed_when: false
+    - name: Find devfreq name files
+      ansible.builtin.find:
+        paths: /sys/class/devfreq
+        patterns: name
+        file_type: file
+        recurse: true
+      register: ovos_installer_devfreq_name_files
+      changed_when: false
+      failed_when: false
 
-- name: Read devfreq name files
-  ansible.builtin.slurp:
-    src: "{{ item.path }}"
-  loop: "{{ ovos_installer_devfreq_name_files.files | default([]) }}"
-  register: ovos_installer_devfreq_name_contents
-  changed_when: false
-  failed_when: false
+    - name: Read devfreq name files
+      ansible.builtin.slurp:
+        src: "{{ item.path }}"
+      loop: "{{ ovos_installer_devfreq_name_files.files | default([]) }}"
+      register: ovos_installer_devfreq_name_contents
+      changed_when: false
+      failed_when: false
 
-- name: Detect GPU devfreq path
-  ansible.builtin.set_fact:
-    ovos_installer_devfreq_gpu_path: >-
-      {% set ns = namespace(matches=[]) %}
-      {% for item in ovos_installer_devfreq_name_contents.results | default([]) %}
-      {% set name = item.content | b64decode | trim %}
-      {% if name is match('(?i).*?(v3d|gpu).*?') %}
-      {% set _ = ns.matches.append(item.source | regex_replace('/name$', '')) %}
-      {% endif %}
-      {% endfor %}
-      {{ ns.matches[0] if ns.matches | length > 0 else '' }}
+    - name: Detect GPU devfreq path
+      ansible.builtin.set_fact:
+        ovos_installer_devfreq_gpu_path: >-
+          {% set ns = namespace(matches=[]) %}
+          {% for item in ovos_installer_devfreq_name_contents.results | default([]) %}
+          {% set name = item.content | b64decode | trim %}
+          {% if name is match('(?i).*?(v3d|gpu).*?') %}
+          {% set _ = ns.matches.append(item.source | regex_replace('/name$', '')) %}
+          {% endif %}
+          {% endfor %}
+          {{ ns.matches[0] if ns.matches | length > 0 else '' }}
 
-- name: Read max GPU frequency from devfreq
-  ansible.builtin.slurp:
-    src: "{{ ovos_installer_devfreq_gpu_path }}/max_freq"
-  register: ovos_installer_gpu_max_freq_devfreq
-  changed_when: false
-  failed_when: false
-  when: ovos_installer_devfreq_gpu_path | length > 0
+    - name: Read max GPU frequency from devfreq
+      ansible.builtin.slurp:
+        src: "{{ ovos_installer_devfreq_gpu_path }}/max_freq"
+      register: ovos_installer_gpu_max_freq_devfreq
+      changed_when: false
+      failed_when: false
+      when: ovos_installer_devfreq_gpu_path | length > 0
 
-- name: Read max GPU frequency via vcgencmd
-  ansible.builtin.command: vcgencmd measure_clock core
-  register: ovos_installer_gpu_max_freq_vcgencmd
-  changed_when: false
-  failed_when: false
-  when: ovos_installer_devfreq_gpu_path | length == 0
+    - name: Read max GPU frequency via vcgencmd
+      ansible.builtin.command: vcgencmd measure_clock core
+      register: ovos_installer_gpu_max_freq_vcgencmd
+      changed_when: false
+      failed_when: false
+      when: ovos_installer_devfreq_gpu_path | length == 0
 
-- name: Normalize GPU max frequency raw value
-  ansible.builtin.set_fact:
-    ovos_installer_gpu_max_raw: >-
-      {% if ovos_installer_devfreq_gpu_path | length > 0 and ovos_installer_gpu_max_freq_devfreq.content is defined %}
-      {{ (ovos_installer_gpu_max_freq_devfreq.content | b64decode | trim) }}
-      {% elif ovos_installer_gpu_max_freq_vcgencmd.stdout is defined %}
-      {{ (ovos_installer_gpu_max_freq_vcgencmd.stdout | regex_findall('=([0-9]+)') | first | default('0')) }}
-      {% else %}
-      0
-      {% endif %}
+    - name: Normalize GPU max frequency raw value
+      ansible.builtin.set_fact:
+        ovos_installer_gpu_max_raw: >-
+          {% if ovos_installer_devfreq_gpu_path | length > 0 and ovos_installer_gpu_max_freq_devfreq.content is defined %}
+          {{ (ovos_installer_gpu_max_freq_devfreq.content | b64decode | trim) }}
+          {% elif ovos_installer_gpu_max_freq_vcgencmd.stdout is defined %}
+          {{ (ovos_installer_gpu_max_freq_vcgencmd.stdout | regex_findall('=([0-9]+)') | first | default('0')) }}
+          {% else %}
+          0
+          {% endif %}
 
-- name: Normalize current max GPU frequency (MHz)
-  ansible.builtin.set_fact:
-    ovos_installer_gpu_max_mhz: >-
-      {% set raw = ovos_installer_gpu_max_raw | default('0') | int %}
-      {% if raw >= 100000000 %}
-      {{ (raw // 1000000) | int }}
-      {% elif raw >= 100000 %}
-      {{ (raw // 1000) | int }}
-      {% else %}
-      {{ raw | int }}
-      {% endif %}
+    - name: Normalize current max GPU frequency (MHz)
+      ansible.builtin.set_fact:
+        ovos_installer_gpu_max_mhz: >-
+          {% set raw = ovos_installer_gpu_max_raw | default('0') | int %}
+          {% if raw >= 100000000 %}
+          {{ (raw // 1000000) | int }}
+          {% elif raw >= 100000 %}
+          {{ (raw // 1000) | int }}
+          {% else %}
+          {{ raw | int }}
+          {% endif %}
 
-- name: Decide whether to apply CPU/GPU overclocking
-  ansible.builtin.set_fact:
-    ovos_installer_apply_overclock_cpu: >-
-      {{ ovos_installer_tuning_overclock | bool and
-         ((ovos_installer_cpu_max_mhz | int) == 0 or (ovos_installer_cpu_max_mhz | int) <= (ovos_installer_overclock_arm_freq | int)) }}
-    ovos_installer_apply_overclock_gpu: >-
-      {{ ovos_installer_tuning_overclock | bool and
-         ((ovos_installer_gpu_max_mhz | int) == 0 or (ovos_installer_gpu_max_mhz | int) <= (ovos_installer_overclock_gpu_freq | int)) }}
+    - name: Log frequency detection fallback
+      ansible.builtin.debug:
+        msg: >-
+          CPU/GPU max frequency detection returned 0; overclock decisions will
+          treat this as unknown and may still apply tuning.
+        verbosity: 1
+      when:
+        - ovos_installer_tuning_overclock | bool
+        - (ovos_installer_cpu_max_mhz | int) == 0 or (ovos_installer_gpu_max_mhz | int) == 0
 
-- name: Apply CPU boost/voltage settings (config.txt)
-  ansible.builtin.lineinfile:
-    path: "{{ ovos_installer_boot_directory }}/config.txt"
-    regexp: "^{{ item.key }}="
-    line: "{{ item.key }}={{ item.value }}"
-    state: present
-  notify: Set Reboot
-  when: ovos_installer_tuning_overclock | bool
-  loop:
-    - { key: "arm_boost", value: "{{ ovos_installer_overclock_arm_boost }}" }
-    - { key: "initial_turbo", value: "{{ ovos_installer_overclock_initial_turbo }}" }
-    - { key: "over_voltage", value: "{{ ovos_installer_overclock_over_voltage }}" }
+    - name: Decide whether to apply CPU/GPU overclocking
+      ansible.builtin.set_fact:
+        ovos_installer_apply_overclock_cpu: >-
+          {{ ovos_installer_tuning_overclock | bool and
+             ((ovos_installer_cpu_max_mhz | int) == 0 or (ovos_installer_cpu_max_mhz | int) <= (ovos_installer_overclock_arm_freq | int)) }}
+        ovos_installer_apply_overclock_gpu: >-
+          {{ ovos_installer_tuning_overclock | bool and
+             ((ovos_installer_gpu_max_mhz | int) == 0 or (ovos_installer_gpu_max_mhz | int) <= (ovos_installer_overclock_gpu_freq | int)) }}
 
-- name: Apply CPU frequency overclock (config.txt)
-  ansible.builtin.lineinfile:
-    path: "{{ ovos_installer_boot_directory }}/config.txt"
-    regexp: "^{{ item.key }}="
-    line: "{{ item.key }}={{ item.value }}"
-    state: present
-  notify: Set Reboot
-  when: ovos_installer_apply_overclock_cpu | bool
-  loop:
-    - { key: "arm_freq", value: "{{ ovos_installer_overclock_arm_freq }}" }
+    - name: Apply CPU boost/voltage settings (config.txt)
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_installer_boot_directory }}/config.txt"
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+        state: present
+      notify: Set Reboot
+      when: ovos_installer_tuning_overclock | bool
+      loop:
+        - { key: "arm_boost", value: "{{ ovos_installer_overclock_arm_boost }}" }
+        - { key: "initial_turbo", value: "{{ ovos_installer_overclock_initial_turbo }}" }
+        - { key: "over_voltage", value: "{{ ovos_installer_overclock_over_voltage }}" }
 
-- name: Apply GPU overclocking (config.txt)
-  ansible.builtin.lineinfile:
-    path: "{{ ovos_installer_boot_directory }}/config.txt"
-    regexp: "^{{ item.key }}="
-    line: "{{ item.key }}={{ item.value }}"
-    state: present
-  notify: Set Reboot
-  when: ovos_installer_apply_overclock_gpu | bool
-  loop:
-    - { key: "gpu_freq", value: "{{ ovos_installer_overclock_gpu_freq }}" }
+    - name: Apply CPU frequency overclock (config.txt)
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_installer_boot_directory }}/config.txt"
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+        state: present
+      notify: Set Reboot
+      when: ovos_installer_apply_overclock_cpu | bool
+      loop:
+        - { key: "arm_freq", value: "{{ ovos_installer_overclock_arm_freq }}" }
 
-- name: Optimize I/O Scheduler (BFQ for SD/USB) - Persistent
-  ansible.builtin.copy:
-    dest: /etc/udev/rules.d/60-scheduler.rules
-    content: |
-      ACTION=="add|change", KERNEL=="mmcblk[0-9]*|sd[a-z]*", ATTR{queue/scheduler}="bfq"
-    owner: root
-    group: root
-    mode: "0644"
-  notify:
-    - Reload Udev
+    - name: Apply GPU overclocking (config.txt)
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_installer_boot_directory }}/config.txt"
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+        state: present
+      notify: Set Reboot
+      when: ovos_installer_apply_overclock_gpu | bool
+      loop:
+        - { key: "gpu_freq", value: "{{ ovos_installer_overclock_gpu_freq }}" }
+
+    - name: Optimize I/O Scheduler (BFQ for SD/USB) - Persistent
+      ansible.builtin.copy:
+        dest: /etc/udev/rules.d/60-scheduler.rules
+        content: |
+          ACTION=="add|change", KERNEL=="mmcblk[0-9]*|sd[a-z]*", ATTR{queue/scheduler}="bfq"
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Reload Udev
 
 - name: Block uninstall io tuning
   when: ovos_installer_cleaning | bool

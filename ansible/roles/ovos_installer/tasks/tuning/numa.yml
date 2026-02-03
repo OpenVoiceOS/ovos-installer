@@ -1,7 +1,7 @@
 ---
 - name: Enable NUMA for Raspberry Pi 4 & 5
   vars:
-    _fake_number: "{{ '4' if 'Raspberry Pi 5' in ovos_installer_raspberrypi else '2' }}"
+    _fake_number: "{{ '4' if 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default('')) else '2' }}"
   ansible.builtin.lineinfile:
     path: "{{ ovos_installer_boot_directory }}/cmdline.txt"
     regexp: "^((?!.*{{ item }}).*console.*)$"

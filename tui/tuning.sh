@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # shellcheck source=locales/en-us/tuning.sh
 source "tui/locales/$LOCALE/tuning.sh"
@@ -87,44 +87,47 @@ for option in "${available_options[@]}"; do
   fi
 done
 
-TUNING=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
+while true; do
+  TUNING=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
+  exit_status=$?
 
-exit_status=$?
+  if [ "$exit_status" -eq 0 ]; then
+    export TUNING
+    if [ "$TUNING" == "yes" ]; then
+      overclock_option="yes"
+      overclock_options=(yes no)
+      overclock_args=(
+        --title "$OVERCLOCK_TITLE"
+        --radiolist "$OVERCLOCK_CONTENT"
+        --cancel-button "$BACK_BUTTON"
+        --ok-button "$OK_BUTTON"
+        --yes-button "$OK_BUTTON"
+        "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#overclock_options[@]}"
+      )
 
-if [ "$exit_status" -eq 0 ]; then
-  export TUNING
-  if [ "$TUNING" == "yes" ]; then
-    overclock_option="yes"
-    overclock_options=(yes no)
-    overclock_args=(
-      --title "$OVERCLOCK_TITLE"
-      --radiolist "$OVERCLOCK_CONTENT"
-      --cancel-button "$BACK_BUTTON"
-      --ok-button "$OK_BUTTON"
-      --yes-button "$OK_BUTTON"
-      "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#overclock_options[@]}"
-    )
+      for option in "${overclock_options[@]}"; do
+        overclock_args+=("$option" "")
+        if [[ $option = "$overclock_option" ]]; then
+          overclock_args+=("on")
+        else
+          overclock_args+=("off")
+        fi
+      done
 
-    for option in "${overclock_options[@]}"; do
-      overclock_args+=("$option" "")
-      if [[ $option = "$overclock_option" ]]; then
-        overclock_args+=("on")
+      TUNING_OVERCLOCK=$(whiptail "${overclock_args[@]}" 3>&1 1>&2 2>&3)
+      overclock_exit_status=$?
+      if [ "$overclock_exit_status" -eq 0 ]; then
+        export TUNING_OVERCLOCK
+        break
       else
-        overclock_args+=("off")
+        continue
       fi
-    done
-
-    TUNING_OVERCLOCK=$(whiptail "${overclock_args[@]}" 3>&1 1>&2 2>&3)
-    overclock_exit_status=$?
-    if [ "$overclock_exit_status" -eq 0 ]; then
-      export TUNING_OVERCLOCK
     else
-      source tui/tuning.sh
+      export TUNING_OVERCLOCK="no"
+      break
     fi
   else
-    export TUNING_OVERCLOCK="no"
+    source tui/features.sh
+    break
   fi
-else
-  source tui/features.sh
-  source tui/tuning.sh
-fi
+done

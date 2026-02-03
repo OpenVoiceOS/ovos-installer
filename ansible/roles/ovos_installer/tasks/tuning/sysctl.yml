@@ -70,13 +70,14 @@
     reload: false
     state: "{{ ovos_installer_uninstall }}"
   when:
-    - "'bbr' in (ovos_installer_tcp_cc.stdout | default('')) or ovos_installer_uninstall == 'absent'"
+    - "'bbr' in (ovos_installer_tcp_cc.stdout | default(''))"
   tags:
     - always
 
 - name: Reload sysctl tuning
   ansible.builtin.command: sysctl -p /etc/sysctl.d/99-ovos.conf
-  changed_when: false
+  register: ovos_installer_sysctl_reload
+  changed_when: ovos_installer_sysctl_reload.rc == 0
   when: not ovos_installer_cleaning | bool
   tags:
     - always
@@ -96,5 +97,14 @@
     path: /etc/sysctl.d/99-ovos.conf
     state: absent
   when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+
+- name: Remove THP tmpfiles configuration
+  ansible.builtin.file:
+    path: /etc/tmpfiles.d/thp.conf
+    state: absent
+  when: ovos_installer_cleaning | bool
+  notify: Reload Systemd
   tags:
     - uninstall

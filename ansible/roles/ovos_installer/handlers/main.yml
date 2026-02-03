@@ -34,6 +34,7 @@
     name: wireplumber
     scope: user
     state: restarted
+  failed_when: false
   when:
     - ovos_installer_method == "virtualenv"
     - ovos_installer_detect_sound_server is defined
