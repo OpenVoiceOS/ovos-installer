@@ -35,6 +35,7 @@ ovos_installer_overclock_gpu_freq: "750"
 ovos_installer_uv_version: ""
 ovos_installer_hotword_sensitivity: 0.7
 ovos_installer_hotword_trigger_level: 2
+ovos_installer_run_ovos_config: false
 ovos_installer_geoip_enabled: false
 ovos_installer_geoip_url: "https://ipapi.co/json/"
 ovos_installer_system_unit: "metric"

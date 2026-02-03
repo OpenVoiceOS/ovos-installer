@@ -256,6 +256,13 @@
   changed_when: false
   when: ovos_installer_profile == "satellite"
 
+- name: Check for existing mycroft.conf
+  ansible.builtin.stat:
+    path: >-
+      {{ ovos_installer_user_home }}/{{ '.config/mycroft' if ovos_installer_method == 'virtualenv' else 'ovos/config' }}/mycroft.conf
+  register: ovos_installer_mycroft_conf
+  changed_when: false
+
 - name: Run ovos-config for auto-configuration of STT and TTS based on language
   vars:
     _ovos_config_tts_gender: "{{ '--female' if ovos_installer_locale in ['eu-ES', 'gl-ES'] else '--male' }}"
@@ -272,7 +279,10 @@
     PATH: "{{ ovos_installer_user_home }}/.venvs/ovos/bin"
     VIRTUAL_ENV: "{{ ovos_installer_user_home }}/.venvs/ovos"
   changed_when: false
-  when: ovos_installer_profile != "server"
+  when:
+    - ovos_installer_profile != "server"
+    - ovos_installer_run_ovos_config | bool
+    - not (ovos_installer_mycroft_conf.stat.exists | default(false))
 
 - name: Remove ovos Python virtualenv and requirements.txt files
   ansible.builtin.file:
