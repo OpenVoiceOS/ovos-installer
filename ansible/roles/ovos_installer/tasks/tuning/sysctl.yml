@@ -14,12 +14,23 @@
   tags:
     - always
 
+- name: Remove kernel.nmi_watchdog sysctl when unsupported
+  ansible.posix.sysctl:
+    name: kernel.nmi_watchdog
+    state: absent
+    sysctl_file: /etc/sysctl.d/99-ovos.conf
+    reload: false
+  when:
+    - not ovos_installer_nmi_watchdog_sysctl.stat.exists | default(false) | bool
+  tags:
+    - always
+
 - name: Handle sysctl tuning for Open Voice OS
   ansible.posix.sysctl:
     name: "{{ item.option }}"
     value: "{{ item.value }}"
     sysctl_file: /etc/sysctl.d/99-ovos.conf
-    reload: true
+    reload: false
     state: "{{ ovos_installer_uninstall }}"
   loop:
     - { "option": "net.ipv4.tcp_slow_start_after_idle", "value": 0 }
@@ -56,10 +67,17 @@
     name: net.ipv4.tcp_congestion_control
     value: bbr
     sysctl_file: /etc/sysctl.d/99-ovos.conf
-    reload: true
+    reload: false
     state: "{{ ovos_installer_uninstall }}"
   when:
     - "'bbr' in (ovos_installer_tcp_cc.stdout | default('')) or ovos_installer_uninstall == 'absent'"
+  tags:
+    - always
+
+- name: Reload sysctl tuning
+  ansible.builtin.command: sysctl -p /etc/sysctl.d/99-ovos.conf
+  changed_when: false
+  when: not ovos_installer_cleaning | bool
   tags:
     - always
 
