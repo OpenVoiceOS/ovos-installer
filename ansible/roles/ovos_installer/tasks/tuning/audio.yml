@@ -34,7 +34,7 @@
         group: "{{ ovos_installer_group }}"
         mode: '0755'
 
-    - name: Disable WirePlumber idle suspend for audio outputs
+    - name: Disable WirePlumber idle suspend for audio devices
       ansible.builtin.copy:
         dest: "{{ ovos_installer_user_home }}/.config/wireplumber/wireplumber.conf.d/99-disable-idle.conf"
         content: |
@@ -50,11 +50,41 @@
                 }
               }
             }
+            {
+              matches = [ { node.name = "~alsa_input.*" } ]
+              actions = {
+                update-props = {
+                  session.suspend-timeout-seconds = 0
+                  node.pause-on-idle = false
+                  node.suspend-on-idle = false
+                  node.always-process = true
+                  node.latency = {{ '256/48000' if ovos_installer_tuning_audio_low_latency | bool else '512/48000' }}
+                }
+              }
+            }
           ]
         owner: "{{ ovos_installer_user }}"
         group: "{{ ovos_installer_group }}"
         mode: '0644'
       notify: Restart OVOS services
+
+    - name: Bump PipeWire default source volume
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        argv:
+          - wpctl
+          - set-volume
+          - "@DEFAULT_AUDIO_SOURCE@"
+          - "{{ ovos_installer_tuning_source_volume }}"
+      environment:
+        XDG_RUNTIME_DIR: "/run/user/{{ ovos_installer_uid }}"
+        DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ ovos_installer_uid }}/bus"
+      changed_when: false
+      failed_when: false
+      when:
+        - ovos_installer_detect_sound_server is defined
+        - ovos_installer_detect_sound_server.stdout == "pipewire"
 
     - name: Install rtkit for real-time audio scheduling
       ansible.builtin.package:
