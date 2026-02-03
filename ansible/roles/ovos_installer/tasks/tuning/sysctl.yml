@@ -5,6 +5,15 @@
   changed_when: false
   failed_when: false
 
+- name: Check for kernel.nmi_watchdog sysctl
+  ansible.builtin.stat:
+    path: /proc/sys/kernel/nmi_watchdog
+  register: ovos_installer_nmi_watchdog_sysctl
+  changed_when: false
+  failed_when: false
+  tags:
+    - always
+
 - name: Handle sysctl tuning for Open Voice OS
   ansible.posix.sysctl:
     name: "{{ item.option }}"
@@ -38,6 +47,7 @@
     - { "option": "kernel.nmi_watchdog", "value": 0 } # Disable NMI watchdog (stops periodic CPU interrupts)
     - { "option": "vm.dirty_background_ratio", "value": 5 } # Write to disk early (avoid bufferbloat)
     - { "option": "vm.dirty_ratio", "value": 10 } # Throttle early to prevent massive system freezes
+  when: item.option != 'kernel.nmi_watchdog' or ovos_installer_nmi_watchdog_sysctl.stat.exists | default(false) | bool
   tags:
     - always
 
