@@ -103,8 +103,6 @@
     dest: "{{ ovos_installer_systemd_dropin_user_path }}/wireplumber.service.d/98-performance.conf"
     content: |
       [Service]
-      AmbientCapabilities=CAP_SYS_NICE
-      CapabilityBoundingSet=CAP_SYS_NICE
       CPUSchedulingPolicy=fifo
       CPUSchedulingPriority=70
       LimitRTPRIO=95
