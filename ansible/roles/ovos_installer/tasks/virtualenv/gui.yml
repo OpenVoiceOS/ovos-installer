@@ -220,6 +220,31 @@
     mode: "0644"
   loop: "{{ ovos_installer_gui_components }}"
 
+- name: Define GUI build components (uninstall)
+  ansible.builtin.set_fact:
+    ovos_installer_gui_components:
+      - name: mycroft-gui
+        url: https://github.com/OpenVoiceOS/mycroft-gui-qt5.git
+        dest: /opt/mycroft-gui
+        branch: dev
+        build_dir: /opt/mycroft-gui/build-testing
+        marker: "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-mycroft-gui.built"
+      - name: ovos-shell
+        url: https://github.com/OpenVoiceOS/ovos-shell.git
+        dest: /opt/ovos-shell
+        branch: master
+        build_dir: /opt/ovos-shell/build-testing
+        marker: "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-ovos-shell.built"
+      - name: lottie
+        url: https://github.com/kbroulik/lottie-qml.git
+        dest: /opt/lottie
+        branch: master
+        build_dir: /opt/lottie/build-testing
+        marker: "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-lottie.built"
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+
 - name: Remove GUI source directories
   ansible.builtin.file:
     path: "{{ item.dest }}"
