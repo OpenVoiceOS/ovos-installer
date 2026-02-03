@@ -16,11 +16,19 @@ if [ -z "${OVERCLOCK_CONTENT:-}" ]; then
   OVERCLOCK_CONTENT="
 Overclocking increases CPU/GPU frequency for maximum performance but can reduce stability and increase heat.
 
-This requires adequate cooling and a reliable power supply.
+Requirements:
+- Active cooling (heatsink/fan) and good airflow
+- A stable power supply appropriate for your Pi model
+- Monitor temperatures and stop if throttling or crashes
+
+Risks:
+- Random reboots, audio glitches, data corruption
+- Higher power draw and reduced lifespan
 
 Open Voice OS is not responsible for any issues related to overclocking.
 
-Enable overclocking?"
+Enable overclocking?
+"
 fi
 
 if [ -z "${OVERCLOCK_ARM_FREQ:-}" ]; then

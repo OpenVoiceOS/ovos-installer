@@ -3,7 +3,14 @@
 OVERCLOCK_CONTENT="
 O overclocking aumenta a frequência da CPU/GPU para máximo desempenho, mas pode reduzir a estabilidade e aumentar o calor.
 
-Isto requer arrefecimento adequado e uma fonte de alimentação fiável.
+Requisitos:
+- Arrefecimento ativo (dissipador/ventoinha) e boa ventilação
+- Fonte de alimentação estável adequada ao seu modelo de Pi
+- Monitorize as temperaturas e pare se houver limitação térmica ou falhas
+
+Riscos:
+- Reinícios aleatórios, falhas de áudio, corrupção de dados
+- Maior consumo e redução da vida útil
 
 O Open Voice OS não se responsabiliza por quaisquer problemas relacionados com o overclocking.
 

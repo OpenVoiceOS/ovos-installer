@@ -1,11 +1,18 @@
 #!/usr/bin/env bash
 
 OVERCLOCK_CONTENT="
-Übertaktung erhöht die CPU/GPU-Frequenz für maximale Leistung, kann aber die Stabilität verringern und die Wärmeentwicklung erhöhen.
+Übertakten erhöht die CPU/GPU-Frequenz für maximale Leistung, kann aber die Stabilität verringern und die Wärmeentwicklung erhöhen.
 
-Dies erfordert ausreichende Kühlung und eine zuverlässige Stromversorgung.
+Voraussetzungen:
+- Aktive Kühlung (Kühlkörper/Lüfter) und guter Luftstrom
+- Stabile Stromversorgung passend zu deinem Pi-Modell
+- Temperaturen überwachen und bei Throttling oder Abstürzen stoppen
 
-Open Voice OS übernimmt keine Verantwortung für Probleme im Zusammenhang mit der Übertaktung.
+Risiken:
+- Zufällige Neustarts, Audioprobleme, Datenkorruption
+- Höherer Stromverbrauch und verkürzte Lebensdauer
+
+Open Voice OS ist nicht verantwortlich für Probleme im Zusammenhang mit Übertaktung.
 
 Übertaktung aktivieren?
 "
