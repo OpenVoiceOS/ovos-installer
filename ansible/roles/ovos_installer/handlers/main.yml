@@ -68,4 +68,5 @@
     state: restarted
   when:
     - ovos_installer_networkmanager_dir is defined
-    - ovos_installer_networkmanager_dir.stat.exists | bool
+    - ovos_installer_networkmanager_dir.stat is defined
+    - ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
