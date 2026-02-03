@@ -6,11 +6,18 @@
   ignore_errors: true
   register: ovos_installer_mimalloc_install
 
+- name: Check if /usr/lib64 exists
+  ansible.builtin.stat:
+    path: /usr/lib64
+  register: ovos_installer_lib64_stat
+  changed_when: false
+  when:
+    - ovos_installer_mimalloc_install is success
+
 - name: Find libmimalloc path
   ansible.builtin.find:
-    paths:
-      - /usr/lib
-      - /usr/lib64
+    paths: >-
+      {{ ['/usr/lib'] + ((ovos_installer_lib64_stat.stat.isdir | default(false)) | ternary(['/usr/lib64'], [])) }}
     patterns: "libmimalloc.so*"
     file_type: file
     recurse: true
@@ -53,3 +60,52 @@
   notify:
     - Reload Systemd User
     - Restart OVOS services
+
+- name: Ensure OVOS systemd drop-in directories exist (mimalloc)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d"
+    state: directory
+    owner: "{{ ovos_installer_systemd_dropin_owner }}"
+    group: "{{ ovos_installer_systemd_dropin_group }}"
+    mode: '0755'
+  loop: "{{ ovos_installer_core_services }}"
+  when:
+    - (ovos_installer_systemd_scope | default('user')) == 'system'
+    - ovos_installer_mimalloc_path | default('') | length > 0
+
+- name: Apply mimalloc preload to OVOS services
+  ansible.builtin.copy:
+    dest: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/97-mimalloc.conf"
+    content: |
+      [Service]
+      Environment=LD_PRELOAD={{ ovos_installer_mimalloc_path }}
+    owner: "{{ ovos_installer_systemd_dropin_owner }}"
+    group: "{{ ovos_installer_systemd_dropin_group }}"
+    mode: '0644'
+  loop: "{{ ovos_installer_core_services }}"
+  when:
+    - (ovos_installer_systemd_scope | default('user')) == 'system'
+    - ovos_installer_mimalloc_path | default('') | length > 0
+  notify:
+    - "{{ ovos_installer_systemd_reload_handler }}"
+    - Restart OVOS services
+
+- name: Block uninstall python tuning
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall
+  block:
+    - name: Remove mimalloc drop-ins
+      ansible.builtin.file:
+        path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/97-mimalloc.conf"
+        state: absent
+      loop: "{{ ovos_installer_core_services }}"
+      notify:
+        - "{{ ovos_installer_systemd_reload_handler }}"
+        - Restart OVOS services
+
+    - name: Remove Python tuning environment.d file
+      ansible.builtin.file:
+        path: "{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tuning.conf"
+        state: absent
+      notify: Reload Systemd User
