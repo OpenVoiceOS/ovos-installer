@@ -209,7 +209,14 @@
     - name: Unmount Mycroft state tmpfs
       ansible.posix.mount:
         path: "{{ ovos_installer_tuning_mycroft_state_dir }}"
+        state: unmounted
+
+    - name: Remove Mycroft state tmpfs fstab entry
+      ansible.builtin.lineinfile:
+        path: /etc/fstab
+        regexp: "^[^#]\\S*\\s+{{ ovos_installer_tuning_mycroft_state_dir | regex_escape }}\\s+tmpfs\\s"
         state: absent
+      notify: Reload Systemd
 
     - name: Remove Mycroft state systemd units
       ansible.builtin.file:
