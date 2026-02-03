@@ -17,20 +17,25 @@
   "time_format": "{{ ovos_installer_time_format }}",
   "spoken_time_format": "{{ ovos_installer_spoken_time_format }}",
   "date_format": "{{ ovos_installer_date_format }}",
+{% if _ovos_installer_timezone is defined %}
+  "location": {
+    "timezone": {
+      "code": "{{ _ovos_installer_timezone }}",
+      "name": "{{ _ovos_installer_timezone }}"
+    }
+  },
+{% endif %}
   "listener": {
     "VAD": {
-      "module": "{{ 'ovos-vad-plugin-silero' if ovos_installer_cpu_is_capable | bool else 'ovos-vad-plugin-webrtcvad' }}"
-      {% if ovos_installer_tuning | bool %}
-      ,"ovos-vad-plugin-silero": {
+      "module": "{{ 'ovos-vad-plugin-silero' if ovos_installer_cpu_is_capable | bool else 'ovos-vad-plugin-webrtcvad' }}"{% if ovos_installer_tuning | bool %},
+      "ovos-vad-plugin-silero": {
         "silence_duration": 0.5
       },
       "ovos-vad-plugin-webrtcvad": {
         "silence_duration": 0.5
-      }
-      {% endif %}
-    }
-    {% if ovos_installer_tuning | bool %}
-    ,"wake_word": "openwakeword",
+      }{% endif %}
+    }{% if ovos_installer_tuning | bool %},
+    "wake_word": "hey_mycroft",
     "patience": 0.5,
     "hotwords": {
       "hey_mycroft": {
@@ -40,7 +45,6 @@
       }
     }
     {% endif %}
-    }
   },
 {% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
   "skills": {

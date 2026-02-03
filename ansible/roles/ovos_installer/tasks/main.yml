@@ -9,6 +9,9 @@
   ansible.builtin.import_tasks: sound.yml
   when: ovos_installer_profile != "server"
 
+- name: Include timezone.yml
+  ansible.builtin.import_tasks: timezone.yml
+
 - name: Include ovos.yml
   ansible.builtin.import_tasks: ovos.yml
 
@@ -17,9 +20,6 @@
   when:
     - ovos_installer_feature_gui | bool
     - ovos_installer_profile != "server"
-
-- name: Include timezone.yml
-  ansible.builtin.import_tasks: timezone.yml
 
 - name: Include docker/main.yml
   ansible.builtin.import_tasks: docker/main.yml

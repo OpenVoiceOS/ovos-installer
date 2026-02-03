@@ -27,6 +27,13 @@
       ansible.builtin.debug:
         msg: "The installer was not able to set the timezone..."
 
-    - name: Set _ovos_installer_timezone fact to UTC (rescue)
+    - name: Read system timezone (rescue)
+      ansible.builtin.command: timedatectl show -p Timezone --value
+      register: ovos_installer_system_timezone
+      changed_when: false
+      failed_when: false
+
+    - name: Set _ovos_installer_timezone fact from system timezone (rescue)
       ansible.builtin.set_fact:
-        _ovos_installer_timezone: UTC
+        _ovos_installer_timezone: >-
+          {{ (ovos_installer_system_timezone.stdout | default('') | trim) | default('UTC', true) }}
