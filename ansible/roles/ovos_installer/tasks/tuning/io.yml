@@ -94,7 +94,7 @@
 - name: Normalize GPU max frequency raw value
   ansible.builtin.set_fact:
     ovos_installer_gpu_max_raw: >-
-      {% if ovos_installer_devfreq_gpu_path | length > 0 %}
+      {% if ovos_installer_devfreq_gpu_path | length > 0 and ovos_installer_gpu_max_freq_devfreq.content is defined %}
       {{ (ovos_installer_gpu_max_freq_devfreq.content | b64decode | trim) }}
       {% elif ovos_installer_gpu_max_freq_vcgencmd.stdout is defined %}
       {{ (ovos_installer_gpu_max_freq_vcgencmd.stdout | regex_findall('=([0-9]+)') | first | default('0')) }}
