@@ -10,6 +10,7 @@
     name: ovos.service
     scope: user
     state: restarted
+  failed_when: false
   when:
     - ovos_installer_method == "virtualenv"
     - (ovos_installer_systemd_scope | default('user')) == 'user'
@@ -20,6 +21,7 @@
     name: ovos.service
     scope: system
     state: restarted
+  failed_when: false
   when:
     - ovos_installer_method == "virtualenv"
     - (ovos_installer_systemd_scope | default('user')) == 'system'
