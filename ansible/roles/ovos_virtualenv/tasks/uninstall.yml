@@ -32,6 +32,7 @@
       - libjpeg-dev
     install_recommends: false
     state: absent
+  failed_when: false
   when: ansible_os_family in ['Debian', 'Zorin OS']
 
 - name: Remove virtualenv package requirements (RedHat)
@@ -53,6 +54,7 @@
       - portaudio-devel
       - espeak-ng
     state: absent
+  failed_when: false
   when: ansible_os_family == "RedHat"
 
 - name: Remove virtualenv package requirements (SUSE)
@@ -73,6 +75,7 @@
       - libopenblas_serial-devel
       - portaudio-devel
     state: absent
+  failed_when: false
   when: ansible_os_family == "Suse"
 
 - name: Remove virtualenv package requirements (Archlinux)
@@ -90,6 +93,7 @@
       - openblas
       - espeak-ng
     state: absent
+  failed_when: false
   when: ansible_os_family == "Archlinux"
 
 - name: Check for OVOS venv activation script
