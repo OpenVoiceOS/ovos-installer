@@ -4,15 +4,15 @@
     cmd: dnf config-manager --enable crb
   changed_when: false
   when:
-    - ansible_os_family == "RedHat"
-    - ansible_distribution != "Fedora"
+    - ansible_facts.os_family == "RedHat"
+    - ansible_facts.distribution != "Fedora"
 
 - name: Add EPEL repository
   ansible.builtin.dnf:
     name: epel-release
   when:
-    - ansible_os_family == "RedHat"
-    - ansible_distribution != "Fedora"
+    - ansible_facts.os_family == "RedHat"
+    - ansible_facts.distribution != "Fedora"
 
 - name: Handle virtualenv package requirements (ovos/hivemind)
   ansible.builtin.apt:
@@ -39,7 +39,7 @@
       - libjpeg-dev
     install_recommends: false
     state: present
-  when: ansible_os_family in ['Debian', 'Zorin OS']
+  when: ansible_facts.os_family in ['Debian', 'Zorin OS']
 
 - name: Handle virtualenv package requirements (ovos/hivemind)
   ansible.builtin.dnf:
@@ -60,7 +60,7 @@
       - portaudio-devel
       - espeak-ng
     state: present
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts.os_family == "RedHat"
 
 - name: Handle virtualenv package requirements (ovos/hivemind)
   community.general.zypper:
@@ -80,7 +80,7 @@
       - libopenblas_serial-devel
       - portaudio-devel
     state: present
-  when: ansible_os_family == "Suse"
+  when: ansible_facts.os_family == "Suse"
 
 - name: Handle virtualenv package requirements (ovos/hivemind)
   community.general.pacman:
@@ -97,13 +97,13 @@
       - openblas
       - espeak-ng
     state: present
-  when: ansible_os_family == "Archlinux"
+  when: ansible_facts.os_family == "Archlinux"
 
 - name: Handle fann package from AUR (Arch based only)
   become_user: "{{ ovos_installer_user }}"
   kewlfft.aur.aur:
     name: fann
     use: makepkg
-  when: ansible_os_family == "Archlinux"
+  when: ansible_facts.os_family == "Archlinux"
   tags:
     - skip_ansible_lint

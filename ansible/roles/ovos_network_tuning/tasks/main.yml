@@ -7,8 +7,8 @@
 - name: Include tuning/wireless.yml
   ansible.builtin.import_tasks: wireless.yml
   when:
-    - ansible_wlan0 is defined
-    - ansible_wlan0.active | bool
+    - ansible_facts['wlan0'] is defined
+    - ansible_facts['wlan0'].active | bool
 
 - name: Include tuning/dns.yml
   ansible.builtin.import_tasks: dns.yml

@@ -62,21 +62,21 @@
         - ovos_hardware_mark1
         - hardware
       when:
-        - ansible_distribution == "Debian"
-        - ansible_distribution_major_version is version('11', '>=')
+        - ansible_facts.distribution == "Debian"
+        - ansible_facts.distribution_major_version is version('11', '>=')
         - "'atmega328p' in ovos_installer_i2c_devices"
-        - ansible_architecture == "aarch64"
+        - ansible_facts.architecture == "aarch64"
 
     - role: ovos_hardware_mark2
       tags:
         - ovos_hardware_mark2
         - hardware
       when:
-        - ansible_distribution == "Debian"
-        - ansible_distribution_major_version is version('11', '>=')
+        - ansible_facts.distribution == "Debian"
+        - ansible_facts.distribution_major_version is version('11', '>=')
         - "'Raspberry Pi 4' in (ovos_installer_raspberrypi | default('')) or 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default(''))"
         - "'tas5806' in ovos_installer_i2c_devices"
-        - ansible_architecture == "aarch64"
+        - ansible_facts.architecture == "aarch64"
 
     - role: ovos_installer
       tags:

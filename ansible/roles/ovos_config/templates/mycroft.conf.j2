@@ -47,7 +47,7 @@
     }
     {% endif %}
   },
-{% if (ansible_architecture == "x86_64") or (ansible_architecture == "aarch64") %}
+{% if (ansible_facts.architecture == "x86_64") or (ansible_facts.architecture == "aarch64") %}
   "skills": {
     "installer": {
       "allow_pip": true,

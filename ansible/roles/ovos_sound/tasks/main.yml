@@ -7,9 +7,9 @@
 - name: Install PipeWire with ALSA support
   vars:
     # Debian Unstable hack
-    _distribution_version: "{{ '99' if ansible_distribution == 'Debian' and ansible_distribution_version == 'n/a' else ansible_distribution_version }}"
+    _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
     _pipewire_package: >-
-      {{ (ansible_distribution not in ovos_sound_pipewire_distributions_skip_alsa)
+      {{ (ansible_facts.distribution not in ovos_sound_pipewire_distributions_skip_alsa)
          | ternary(ovos_sound_pipewire_alsa_package, ovos_sound_pipewire_fallback_package) }}
   ansible.builtin.package:
     name:
@@ -17,21 +17,21 @@
       - "{{ ovos_sound_alsa_utils_package }}"
   register: ovos_sound_pipewire_install
   when:
-    not (ansible_distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
-    ansible_distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
+    not (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
+    ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
 
 - name: Install PulseAudio on older Debian and Ubuntu versions
   vars:
     # Debian Unstable hack
-    _distribution_version: "{{ '99' if ansible_distribution == 'Debian' and ansible_distribution_version == 'n/a' else ansible_distribution_version }}"
+    _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
   ansible.builtin.apt:
     name:
       - "{{ ovos_sound_pulseaudio_package }}"
       - "{{ ovos_sound_alsa_utils_package }}"
   register: ovos_sound_pulseaudio_install
   when:
-    (ansible_distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
-    ansible_distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
+    (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
+    ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
 
 - name: Determine available groups
   ansible.builtin.getent:
@@ -55,16 +55,16 @@
 - name: Add installer user to pipewire group
   vars:
     # Debian Unstable hack
-    _distribution_version: "{{ '99' if ansible_distribution == 'Debian' and ansible_distribution_version == 'n/a' else ansible_distribution_version }}"
+    _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
   ansible.builtin.user:
     name: "{{ ovos_installer_user }}"
     groups: "{{ ovos_sound_pipewire_group }}"
     append: true
   when:
-    - not (ansible_distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
-           ansible_distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
-    - ansible_os_family not in ovos_sound_pipewire_group_excluded_os_families
-    - ansible_distribution not in ovos_sound_pipewire_group_excluded_distributions
+    - not (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
+           ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
+    - ansible_facts.os_family not in ovos_sound_pipewire_group_excluded_os_families
+    - ansible_facts.distribution not in ovos_sound_pipewire_group_excluded_distributions
 
 - name: Enable lingering for {{ ovos_installer_user }}
   ansible.builtin.file:
@@ -105,7 +105,7 @@
         'pipewire' if ovos_sound_pipewire_pulse_pgrep.rc == 0 else
         'pulseaudio' if ovos_sound_pulseaudio_pgrep.rc == 0 else
         'pipewire' if ovos_sound_pipewire_pgrep.rc == 0 else
-        (ovos_sound_wsl_default_server if (ansible_kernel is search('microsoft')) else ovos_sound_detect_default_server)
+        (ovos_sound_wsl_default_server if (ansible_facts.kernel is search('microsoft')) else ovos_sound_detect_default_server)
       ) } }}
   changed_when: false
 

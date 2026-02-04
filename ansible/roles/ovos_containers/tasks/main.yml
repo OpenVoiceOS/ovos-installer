@@ -11,28 +11,28 @@
   ansible.builtin.import_tasks: setup-RedHat.yml
   when:
     - not ovos_installer_cleaning | bool
-    - ansible_os_family == "RedHat"
+    - ansible_facts.os_family == "RedHat"
     - ovos_containers_docker_package_check_redhat not in ansible_facts.packages
 
 - name: Include setup-Debian.yml
   ansible.builtin.import_tasks: setup-Debian.yml
   when:
     - not ovos_installer_cleaning | bool
-    - ansible_os_family == "Debian"
+    - ansible_facts.os_family == "Debian"
     - ovos_containers_docker_package_check_debian not in ansible_facts.packages
 
 - name: Include setup-Suse.yml
   ansible.builtin.import_tasks: setup-Suse.yml
   when:
     - not ovos_installer_cleaning | bool
-    - ansible_os_family == "Suse"
+    - ansible_facts.os_family == "Suse"
     - ovos_containers_docker_package_check_suse not in ansible_facts.packages
 
 - name: Include setup-Arch.yml
   ansible.builtin.import_tasks: setup-Arch.yml
   when:
     - not ovos_installer_cleaning | bool
-    - ansible_os_family == "Archlinux"
+    - ansible_facts.os_family == "Archlinux"
     - ovos_containers_docker_package_check_arch not in ansible_facts.packages
 
 - name: Include common.yml

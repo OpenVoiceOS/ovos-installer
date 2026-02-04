@@ -33,7 +33,7 @@
     install_recommends: false
     state: absent
   failed_when: false
-  when: ansible_os_family in ['Debian', 'Zorin OS']
+  when: ansible_facts.os_family in ['Debian', 'Zorin OS']
 
 - name: Remove virtualenv package requirements (RedHat)
   ansible.builtin.dnf:
@@ -55,7 +55,7 @@
       - espeak-ng
     state: absent
   failed_when: false
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts.os_family == "RedHat"
 
 - name: Remove virtualenv package requirements (SUSE)
   community.general.zypper:
@@ -76,7 +76,7 @@
       - portaudio-devel
     state: absent
   failed_when: false
-  when: ansible_os_family == "Suse"
+  when: ansible_facts.os_family == "Suse"
 
 - name: Remove virtualenv package requirements (Archlinux)
   community.general.pacman:
@@ -94,7 +94,7 @@
       - espeak-ng
     state: absent
   failed_when: false
-  when: ansible_os_family == "Archlinux"
+  when: ansible_facts.os_family == "Archlinux"
 
 - name: Check for OVOS venv activation script
   ansible.builtin.stat:

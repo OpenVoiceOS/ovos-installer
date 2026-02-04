@@ -9,28 +9,28 @@
 
 - name: Remove cpupower package on Debian family
   ansible.builtin.apt:
-    name: "{{ 'linux-tools-common' if ansible_distribution != 'Debian' else 'linux-cpupower' }}"
+    name: "{{ 'linux-tools-common' if ansible_facts.distribution != 'Debian' else 'linux-cpupower' }}"
     install_recommends: false
     state: absent
-  when: ansible_os_family == "Debian"
+  when: ansible_facts.os_family == "Debian"
 
 - name: Remove cpupower package on RedHat family
   ansible.builtin.dnf:
     name: kernel-tools
     state: absent
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts.os_family == "RedHat"
 
 - name: Remove cpupower package on SUSE family
   ansible.builtin.package:
     name: kernel-tools
     state: absent
-  when: ansible_os_family == "Suse"
+  when: ansible_facts.os_family == "Suse"
 
 - name: Remove cpupower package on Arch family
   community.general.pacman:
     name: linux-tools
     state: absent
-  when: ansible_os_family == "Archlinux"
+  when: ansible_facts.os_family == "Archlinux"
 
 - name: Remove cpu-governor systemd unit file
   ansible.builtin.file:
@@ -91,7 +91,7 @@
     path: "{{ ovos_performance_tuning_pam_limits_file }}"
     line: "{{ ovos_performance_tuning_pam_limits_line }}"
     state: absent
-  when: ansible_os_family == "Debian"
+  when: ansible_facts.os_family == "Debian"
 
 - name: Remove Zero-Swap Policy drop-ins (system scope)
   ansible.builtin.file:
@@ -195,26 +195,26 @@
     name: "{{ ovos_performance_tuning_zram_packages_debian }}"
     install_recommends: false
     state: absent
-  when: ansible_os_family == "Debian"
+  when: ansible_facts.os_family == "Debian"
 
 - name: Remove zram-generator-defaults (RedHat)
   ansible.builtin.dnf:
     name: "{{ ovos_performance_tuning_zram_packages_redhat }}"
     state: absent
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts.os_family == "RedHat"
 
 - name: Remove systemd-zram-generator (SUSE)
   community.general.zypper:
     name: "{{ ovos_performance_tuning_zram_packages_suse }}"
     disable_recommends: true
     state: absent
-  when: ansible_os_family == "Suse"
+  when: ansible_facts.os_family == "Suse"
 
 - name: Remove systemd-zram-generator (Arch Linux)
   community.general.pacman:
     name: "{{ ovos_performance_tuning_zram_packages_arch }}"
     state: absent
-  when: ansible_os_family == "Archlinux"
+  when: ansible_facts.os_family == "Archlinux"
 
 - name: Remove sysctl tuning for ZRAM
   ansible.posix.sysctl:

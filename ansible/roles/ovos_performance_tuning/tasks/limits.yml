@@ -19,4 +19,4 @@
     path: "{{ ovos_performance_tuning_pam_limits_file }}"
     line: "{{ ovos_performance_tuning_pam_limits_line }}"
     state: present
-  when: ansible_os_family == "Debian"
+  when: ansible_facts.os_family == "Debian"

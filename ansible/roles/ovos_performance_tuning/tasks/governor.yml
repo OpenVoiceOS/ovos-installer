@@ -1,10 +1,10 @@
 ---
 - name: Handle cpupower package on Debian family
   ansible.builtin.apt:
-    name: "{{ 'linux-tools-common' if ansible_distribution != 'Debian' else 'linux-cpupower' }}"
+    name: "{{ 'linux-tools-common' if ansible_facts.distribution != 'Debian' else 'linux-cpupower' }}"
     install_recommends: false
     state: present
-  when: ansible_os_family == "Debian"
+  when: ansible_facts.os_family == "Debian"
   tags:
     - always
 
@@ -12,7 +12,7 @@
   ansible.builtin.dnf:
     name: kernel-tools
     state: present
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts.os_family == "RedHat"
   tags:
     - always
 
@@ -20,7 +20,7 @@
   ansible.builtin.package:
     name: kernel-tools
     state: present
-  when: ansible_os_family == "Suse"
+  when: ansible_facts.os_family == "Suse"
   tags:
     - always
 
@@ -28,7 +28,7 @@
   community.general.pacman:
     name: linux-tools
     state: present
-  when: ansible_os_family == "Archlinux"
+  when: ansible_facts.os_family == "Archlinux"
   tags:
     - always
 

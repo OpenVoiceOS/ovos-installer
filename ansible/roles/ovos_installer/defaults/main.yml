@@ -61,7 +61,7 @@ ovos_installer_uninstall: "{{ 'present' if (not ovos_installer_cleaning | bool |
 ovos_installer_venv_python: "3.11"
 # ggwave stack doesn't support the ovos-audio >=1.1 move to plugin-manager >=2 yet,
 # so limit it to stable/testing on x86_64/aarch64 until an updated release lands.
-ovos_installer_enable_ggwave: "{{ (ovos_installer_channel | default('')) in ['stable', 'testing'] and ansible_architecture in ['x86_64', 'aarch64'] }}"
+ovos_installer_enable_ggwave: "{{ (ovos_installer_channel | default('')) in ['stable', 'testing'] and ansible_facts.architecture in ['x86_64', 'aarch64'] }}"
 ovos_installer_uv_allow_prerelease: "{{ ansible_facts.python.version.major == 3 and (ansible_facts.python.version.minor | int) >= 13 }}"
 ovos_installer_tuning: false
 ovos_installer_tuning_performance: >-

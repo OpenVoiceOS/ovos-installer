@@ -2,5 +2,5 @@
 - name: Run Depmod
   ansible.builtin.command:
     cmd: |
-      depmod -a {{ ansible_kernel }}
+      depmod -a {{ ansible_facts.kernel }}
   changed_when: false

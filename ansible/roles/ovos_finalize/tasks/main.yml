@@ -16,7 +16,7 @@
     line: "{{ ovos_finalize_pip_conf_extra_index_line }}"
     backrefs: true
   when:
-    - ansible_architecture == "aarch64" or "Raspberry Pi 5" in (ovos_installer_raspberrypi | default(""))
+    - ansible_facts.architecture == "aarch64" or "Raspberry Pi 5" in (ovos_installer_raspberrypi | default(""))
     - ovos_finalize_pip_conf.stat.exists | bool
 
 - name: Configuration drift detection

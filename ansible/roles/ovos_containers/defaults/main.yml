@@ -50,7 +50,7 @@ ovos_containers_suse_selinux_repo_url: >-
   https://download.opensuse.org/repositories/security:/SELinux/openSUSE_Factory/security:SELinux.repo
 ovos_containers_os_type: >-
   {{ ovos_containers_os_type_wsl_value
-     if ansible_kernel is search(ovos_containers_os_type_wsl_match)
+     if ansible_facts.kernel is search(ovos_containers_os_type_wsl_match)
      else ovos_containers_os_type_default }}
 
 ovos_containers_ovos_docker_repo_url: "{{ ovos_installer_ovos_docker_repo_url | default('https://github.com/OpenVoiceOS/ovos-docker.git') }}"
@@ -84,11 +84,11 @@ ovos_containers_compose_definitions:
     state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_raspberrypi | default('N/A')) != 'N/A' }}"
   - file: "{{ ovos_containers_compose_file_skills }}"
     state: >-
-      {{ not (ansible_memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+      {{ not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
          and ovos_installer_feature_skills | bool }}
   - file: "{{ ovos_containers_compose_file_skills_extra }}"
     state: >-
-      {{ not (ansible_memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+      {{ not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
          and ovos_installer_feature_extra_skills | bool }}
   - file: "{{ ovos_containers_compose_file_hivemind }}"
     state: "{{ ovos_installer_profile == 'listener' }}"

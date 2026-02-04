@@ -15,12 +15,12 @@
 - name: Include tuning/zram.yml
   vars:
     # Debian Unstable hack
-    _distribution_version: "{{ '99' if ansible_distribution == 'Debian' and ansible_distribution_version == 'n/a' else ansible_distribution_version }}"
+    _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
   ansible.builtin.import_tasks: zram.yml
   when:
     - not ovos_installer_cleaning | bool
-    - not (ansible_distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
-           ansible_distribution == 'Debian' and _distribution_version is version('12.0', '<='))
+    - not (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
+           ansible_facts.distribution == 'Debian' and _distribution_version is version('12.0', '<='))
 
 - name: Include tuning/sysctl.yml
   ansible.builtin.import_tasks: sysctl.yml

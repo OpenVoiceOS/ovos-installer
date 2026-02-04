@@ -38,7 +38,7 @@
     chdir: "{{ ovos_hardware_mark2_vocalfusion_driver_dir }}"
   changed_when: false
 
-- name: Copy vocalfusion-soundcard.ko to /lib/modules/{{ ansible_kernel }}
+- name: Copy vocalfusion-soundcard.ko to /lib/modules/{{ ansible_facts.kernel }}
   ansible.builtin.copy:
     src: "{{ ovos_hardware_mark2_vocalfusion_driver_dir }}/{{ ovos_hardware_mark2_vocalfusion_module_name }}.ko"
     dest: "{{ ovos_hardware_mark2_vocalfusion_module_path }}"
