@@ -13,6 +13,13 @@
   when: ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
   notify: Restart NetworkManager
 
+- name: Stop and disable wlan0-power systemd unit
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_network_tuning_wireless_unit_name }}"
+    enabled: false
+    state: stopped
+  failed_when: false
+
 - name: Remove wlan0-power systemd unit file
   ansible.builtin.file:
     path: "{{ ovos_network_tuning_wireless_unit_path }}"

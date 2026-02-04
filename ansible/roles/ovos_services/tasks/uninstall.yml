@@ -1,19 +1,27 @@
 ---
-- name: Stop and disable OVOS and/or HiveMind systemd units
-  vars:
-    ovos_installer_ovos_scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    ovos_installer_ovos_unit_user: "{{ 'root' if ovos_installer_ovos_scope == 'system' else ovos_installer_user }}"
-    ovos_services_unit_user: "{{ 'root' if item.scope == 'system' else ovos_installer_ovos_unit_user }}"
-  become: true
-  become_user: "{{ ovos_services_unit_user }}"
+- name: Build uninstall unit list
+  ansible.builtin.set_fact:
+    ovos_services_uninstall_units: "{{ (ovos_services_managed_units + [ovos_services_admin_unit]) | unique }}"
+
+- name: Stop and disable OVOS system units
   ansible.builtin.systemd_service:
-    name: "{{ item.unit }}"
+    name: "{{ item }}"
     enabled: false
     state: stopped
-    scope: "{{ item.scope }}"
-  loop: "{{ ovos_services_unit_definitions }}"
-  register: ovos_services_systemd_stop
-  failed_when: false # Never fail - units may not exist
+    scope: system
+  loop: "{{ ovos_services_uninstall_units }}"
+  failed_when: false
+
+- name: Stop and disable OVOS user units
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+    scope: user
+  loop: "{{ ovos_services_uninstall_units }}"
+  failed_when: false
 
 - name: Remove OVOS systemd unit files
   ansible.builtin.file:
@@ -24,6 +32,38 @@
     - Reload Systemd
     - Reload Systemd User
   loop: "{{ ovos_services_unit_files_system + ovos_services_unit_files_user }}"
+
+- name: Remove OVOS system drop-in directories
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.service.d"
+    state: absent
+  loop: "{{ ovos_services_uninstall_units }}"
+  notify: Reload Systemd
+
+- name: Remove OVOS user drop-in directories
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.service.d"
+    state: absent
+  loop: "{{ ovos_services_uninstall_units }}"
+  notify: Reload Systemd User
+
+- name: Remove OVOS system wants directories
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.wants"
+    state: absent
+  loop: "{{ ovos_services_uninstall_units }}"
+  notify: Reload Systemd
+
+- name: Remove OVOS user wants directories
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.wants"
+    state: absent
+  loop: "{{ ovos_services_uninstall_units }}"
+  notify: Reload Systemd User
 
 - name: Flush handlers ovos (uninstall)
   ansible.builtin.meta: flush_handlers

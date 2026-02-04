@@ -3,21 +3,25 @@
   ansible.builtin.file:
     path: "{{ ovos_audio_tuning_pipewire_conf_dir }}/{{ ovos_audio_tuning_pipewire_low_latency_conf }}"
     state: absent
+  notify: Restart PipeWire
 
 - name: Remove user PipeWire noise suppression config
   ansible.builtin.file:
     path: "{{ ovos_audio_tuning_pipewire_conf_dir }}/{{ ovos_audio_tuning_pipewire_noise_suppression_conf }}"
     state: absent
+  notify: Restart PipeWire
 
 - name: Remove WirePlumber idle suspend override
   ansible.builtin.file:
     path: "{{ ovos_audio_tuning_wireplumber_conf_dir }}/{{ ovos_audio_tuning_wireplumber_idle_conf }}"
     state: absent
+  notify: Restart WirePlumber
 
 - name: Remove WirePlumber default capture volume override
   ansible.builtin.file:
     path: "{{ ovos_audio_tuning_wireplumber_conf_dir }}/{{ ovos_audio_tuning_wireplumber_capture_volume_conf }}"
     state: absent
+  notify: Restart WirePlumber
 
 - name: Remove rtkit package
   ansible.builtin.package:

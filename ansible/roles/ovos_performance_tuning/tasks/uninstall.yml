@@ -85,45 +85,65 @@
     state: absent
   when: ansible_os_family == "Debian"
 
-- name: Remove Zero-Swap Policy drop-ins
+- name: Remove Zero-Swap Policy drop-ins (system scope)
   ansible.builtin.file:
-    path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_noswap_dropin_name }}"
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_noswap_dropin_name }}"
     state: absent
-  notify:
-    - "{{ ovos_installer_systemd_reload_handler }}"
+  notify: Reload Systemd
+  loop: "{{ ovos_performance_tuning_core_services }}"
+
+- name: Remove Zero-Swap Policy drop-ins (user scope)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_noswap_dropin_name }}"
+    state: absent
+  notify: Reload Systemd User
   loop: "{{ ovos_performance_tuning_core_services }}"
 
 - name: Remove WirePlumber Zero-Swap drop-in
   ansible.builtin.file:
-    path: "{{ ovos_installer_systemd_dropin_user_path }}/wireplumber.service.d/{{ ovos_performance_tuning_noswap_dropin_name }}"
+    path: "{{ ovos_installer_systemd_user_path }}/wireplumber.service.d/{{ ovos_performance_tuning_noswap_dropin_name }}"
     state: absent
   notify:
     - Reload Systemd User
 
-- name: Remove RT scheduling drop-ins
+- name: Remove RT scheduling drop-ins (system scope)
   ansible.builtin.file:
-    path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_rt_dropin_name }}"
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_rt_dropin_name }}"
     state: absent
-  notify:
-    - "{{ ovos_installer_systemd_reload_handler }}"
+  notify: Reload Systemd
+  loop: "{{ ovos_performance_tuning_rt_services }}"
+
+- name: Remove RT scheduling drop-ins (user scope)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_rt_dropin_name }}"
+    state: absent
+  notify: Reload Systemd User
   loop: "{{ ovos_performance_tuning_rt_services }}"
 
 - name: Remove WirePlumber RT scheduling drop-in
   ansible.builtin.file:
-    path: "{{ ovos_installer_systemd_dropin_user_path }}/wireplumber.service.d/{{ ovos_performance_tuning_rt_dropin_name }}"
+    path: "{{ ovos_installer_systemd_user_path }}/wireplumber.service.d/{{ ovos_performance_tuning_rt_dropin_name }}"
     state: absent
   notify:
     - Reload Systemd User
 
-- name: Remove empty drop-in directories
+- name: Remove empty drop-in directories (system scope)
   ansible.builtin.file:
-    path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d"
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.service.d"
     state: absent
+  notify: Reload Systemd
+  loop: "{{ ovos_performance_tuning_core_services }}"
+
+- name: Remove empty drop-in directories (user scope)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.service.d"
+    state: absent
+  notify: Reload Systemd User
   loop: "{{ ovos_performance_tuning_core_services }}"
 
 - name: Remove WirePlumber drop-in directory
   ansible.builtin.file:
-    path: "{{ ovos_installer_systemd_dropin_user_path }}/wireplumber.service.d"
+    path: "{{ ovos_installer_systemd_user_path }}/wireplumber.service.d"
     state: absent
 
 - name: Check for kernel.nmi_watchdog sysctl
