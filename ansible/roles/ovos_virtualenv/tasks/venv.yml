@@ -1,0 +1,256 @@
+- name: Copy Python requirements.txt files
+  ansible.builtin.template:
+    src: "{{ item.file }}.j2"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ ovos_virtualenv_requirements_files }}"
+  when: item.state | bool
+
+- name: Ensure uv has requested Python available
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    cmd: "uv python install {{ ovos_virtualenv_venv_python }}"
+  changed_when: false
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+  when: not ovos_installer_cleaning | bool
+
+- name: Check installer uv binary
+  ansible.builtin.stat:
+    path: "{{ ovos_installer_venv }}/bin/uv"
+  register: ovos_virtualenv_uv_bin
+  changed_when: false
+  when: not ovos_installer_cleaning | bool
+
+- name: Ensure user local bin exists
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.local/bin"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0755'
+  when: not ovos_installer_cleaning | bool
+
+- name: Install uv for user from installer venv
+  ansible.builtin.copy:
+    src: "{{ ovos_installer_venv }}/bin/uv"
+    dest: "{{ ovos_installer_user_home }}/.local/bin/uv"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0755'
+    remote_src: true
+  when:
+    - not ovos_installer_cleaning | bool
+    - ovos_virtualenv_uv_bin.stat.exists | default(false)
+
+- name: Warn if installer uv binary missing
+  ansible.builtin.debug:
+    msg: "uv binary not found in installer venv; skipping user install."
+  when:
+    - not ovos_installer_cleaning | bool
+    - not (ovos_virtualenv_uv_bin.stat.exists | default(false))
+
+- name: Ensure ovos Python venv exists with requested Python
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    cmd: >-
+      uv venv
+      --python {{ ovos_virtualenv_venv_python }}
+      --python-preference managed
+      {{ ovos_virtualenv_path }}
+  args:
+    creates: "{{ ovos_virtualenv_path }}/bin/activate"
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+  when: not ovos_installer_cleaning | bool
+
+- name: Ensure pip is available in OVOS venv
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    cmd: "{{ ovos_virtualenv_path }}/bin/python -m ensurepip --upgrade"
+  args:
+    creates: "{{ ovos_virtualenv_path }}/bin/pip"
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+  register: ovos_virtualenv_pip_bootstrap
+  when: not ovos_installer_cleaning | bool
+
+- name: Upgrade pip tooling in OVOS venv
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    cmd: "{{ ovos_virtualenv_path }}/bin/python -m pip install -U pip setuptools wheel"
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+  changed_when: false
+  when:
+    - not ovos_installer_cleaning | bool
+    - ovos_virtualenv_pip_bootstrap is defined
+    - ovos_virtualenv_pip_bootstrap is changed
+
+- name: Create ovos Python venv with tflite_runtime
+  moreati.uv.pip:
+    name: tflite_runtime
+    virtualenv: "{{ ovos_virtualenv_path }}"
+    extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
+  when: ovos_installer_cpu_is_capable | bool
+
+- name: Create ovos Python venv without tflite_runtime
+  moreati.uv.pip:
+    name: wheel
+    virtualenv: "{{ ovos_virtualenv_path }}"
+  when: not ovos_installer_cpu_is_capable | bool
+
+- name: Install ggwave Python library
+  moreati.uv.pip:
+    name: ggwave
+    virtualenv: "{{ ovos_virtualenv_path }}"
+    extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
+  when: ovos_installer_enable_ggwave | bool
+
+- name: Install Open Voice OS in Python venv
+  vars:
+    _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
+    _pip_constraints: "--constraint {{ _ovos_release }}"
+    _uv_extra_args: "{{ _pip_constraints }}{{ ' --prerelease=allow' if ovos_virtualenv_uv_allow_prerelease | bool else '' }}"
+  moreati.uv.pip:
+    requirements: "{{ item.dest }}"
+    virtualenv: "{{ ovos_virtualenv_path }}"
+    extra_args: "{{ _uv_extra_args }}"
+    state: latest
+  register: ovos_virtualenv_install
+  until: ovos_virtualenv_install is success
+  retries: 5
+  delay: 5
+  loop: "{{ ovos_virtualenv_requirements_files }}"
+  when: item.state | bool
+
+- name: Ensure numpy Python library is installed
+  moreati.uv.pip:
+    name: "{{ ovos_virtualenv_numpy_package }}"
+    virtualenv: "{{ ovos_virtualenv_path }}"
+    state: present
+
+- name: Change files ownership of ovos virtualenv
+  ansible.builtin.command:
+    cmd: |
+      chown -R {{ ovos_installer_user }}:{{ ovos_installer_group }} {{ ovos_virtualenv_path }}
+  changed_when: false
+
+- name: Check ovos virtualenv activate script exists
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_path }}/bin/activate"
+  register: ovos_virtualenv_activate_script
+
+- name: Add OVOS constraints to venv activation
+  vars:
+    _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_virtualenv_path }}/bin/activate"
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    insertafter: "{{ item.insertafter }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    state: present
+  loop:
+    - line: "export PIP_CONSTRAINT=\"{{ _ovos_release }}\""
+      regexp: "^export PIP_CONSTRAINT="
+      insertafter: "^VIRTUAL_ENV="
+    - line: "export UV_CONSTRAINT=\"{{ _ovos_release }}\""
+      regexp: "^export UV_CONSTRAINT="
+      insertafter: "^export PIP_CONSTRAINT="
+  when: ovos_virtualenv_activate_script.stat.exists | default(false)
+
+- name: Add VIRTUAL_ENV variable to .bashrc and update user PATH
+  vars:
+    _path: "{{ ovos_virtualenv_path }}/bin"
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_installer_user_home }}/.bashrc"
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+    state: present
+  loop:
+    - line: "VIRTUAL_ENV={{ _path }}"
+      regexp: "^VIRTUAL_ENV"
+    - line: "PATH=$PATH:{{ _path }}"
+      regexp: "^PATH"
+  when: (ovos_installer_i2c_devices | default([])) | length < 1
+  tags:
+    - always
+
+- name: Ensure OVOS virtualenv auto-activates for interactive shells
+  ansible.builtin.blockinfile:
+    path: "{{ ovos_installer_user_home }}/.bashrc"
+    marker: "# {mark} OVOS VENV"
+    block: |
+      if [[ $- == *i* ]] && [ -f "{{ ovos_virtualenv_path }}/bin/activate" ]; then
+        source "{{ ovos_virtualenv_path }}/bin/activate"
+      fi
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+    state: present
+  tags:
+    - always
+
+- name: Generate _identity.json
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv:
+      - hivemind-client
+      - set-identity
+      - --key
+      - "{{ ovos_installer_satellite_key }}"
+      - --password
+      - "{{ ovos_installer_satellite_password }}"
+      - --host
+      - "{{ ovos_installer_listener_host }}"
+      - --port
+      - "{{ ovos_installer_listener_port | default(5678) }}"
+      - --siteid
+      - "{{ ovos_installer_site_id | default('voice-sat-1') }}"
+  environment:
+    PATH: "{{ ovos_virtualenv_path }}/bin"
+    VIRTUAL_ENV: "{{ ovos_virtualenv_path }}"
+  changed_when: false
+  when: ovos_installer_profile == "satellite"
+
+- name: Check for existing mycroft.conf
+  ansible.builtin.stat:
+    path: >-
+      {{ ovos_installer_user_home }}/{{ '.config/mycroft' if ovos_installer_method == 'virtualenv' else 'ovos/config' }}/mycroft.conf
+  register: ovos_virtualenv_mycroft_conf
+  changed_when: false
+
+- name: Run ovos-config for auto-configuration of STT and TTS based on language
+  vars:
+    _ovos_config_tts_gender: "{{ '--female' if ovos_installer_locale in ['eu-ES', 'gl-ES'] else '--male' }}"
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv:
+      - ovos-config
+      - autoconfigure
+      - --lang
+      - "{{ ovos_installer_locale }}"
+      - "{{ _ovos_config_tts_gender }}"
+  environment:
+    PATH: "{{ ovos_virtualenv_path }}/bin"
+    VIRTUAL_ENV: "{{ ovos_virtualenv_path }}"
+  changed_when: false
+  when:
+    - ovos_installer_profile != "server"
+    - ovos_virtualenv_run_ovos_config | bool
+    - not (ovos_virtualenv_mycroft_conf.stat.exists | default(false))

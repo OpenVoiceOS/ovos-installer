@@ -1,0 +1,53 @@
+---
+ovos_storage_tuning_mycroft_state_tmpfs: "{{ ovos_installer_tuning_mycroft_state_tmpfs | default(true) }}"
+ovos_storage_tuning_mycroft_state_tmpfs_size: >-
+  {{ ovos_installer_tuning_mycroft_state_tmpfs_size | default('100M') }}
+ovos_storage_tuning_tmpfs_size: "{{ ovos_installer_tuning_tmpfs_size | default('512M') }}"
+ovos_storage_tuning_mycroft_state_sync_interval: >-
+  {{ ovos_installer_tuning_mycroft_state_sync_interval | default('5m') }}
+ovos_storage_tuning_mycroft_state_dir: >-
+  {{ ovos_installer_tuning_mycroft_state_dir
+     | default(ovos_installer_user_home + '/.local/state/mycroft') }}
+ovos_storage_tuning_mycroft_state_persist_dir: >-
+  {{ ovos_installer_tuning_mycroft_state_persist_dir
+     | default(ovos_installer_user_home + '/.local/state/mycroft-persistent') }}
+
+ovos_storage_tuning_fstab_path: /etc/fstab
+ovos_storage_tuning_noatime_fs_regex: "ext4|btrfs"
+ovos_storage_tuning_noatime_commit: "60"
+
+ovos_storage_tuning_log2ram_package: log2ram
+ovos_storage_tuning_log2ram_config_path: /etc/log2ram.conf
+ovos_storage_tuning_log2ram_size: 100M
+ovos_storage_tuning_log2ram_service: log2ram
+
+ovos_storage_tuning_tmpfs_path: /tmp
+ovos_storage_tuning_tmpfs_mode: "1777"
+ovos_storage_tuning_tmpfs_mount_options:
+  - defaults
+  - noatime
+  - nosuid
+  - nodev
+  - "size={{ ovos_storage_tuning_tmpfs_size }}"
+  - "mode={{ ovos_storage_tuning_tmpfs_mode }}"
+
+ovos_storage_tuning_mycroft_state_restore_unit: ovos-mycroft-state-restore.service
+ovos_storage_tuning_mycroft_state_sync_unit: ovos-mycroft-state-sync.service
+ovos_storage_tuning_mycroft_state_sync_timer: ovos-mycroft-state-sync.timer
+
+ovos_storage_tuning_mycroft_state_restore_path: >-
+  {{ (ovos_installer_systemd_system_path | default('/etc/systemd/system')) }}/ovos-mycroft-state-restore.service
+ovos_storage_tuning_mycroft_state_sync_path: >-
+  {{ (ovos_installer_systemd_system_path | default('/etc/systemd/system')) }}/ovos-mycroft-state-sync.service
+ovos_storage_tuning_mycroft_state_timer_path: >-
+  {{ (ovos_installer_systemd_system_path | default('/etc/systemd/system')) }}/ovos-mycroft-state-sync.timer
+
+ovos_storage_tuning_rsync_path: /usr/bin/rsync
+ovos_storage_tuning_mount_cmd: mountpoint -q
+ovos_storage_tuning_umount_cmd: umount
+
+ovos_storage_tuning_state_restore_before: ovos.service
+ovos_storage_tuning_state_restore_after: local-fs.target
+ovos_storage_tuning_state_sync_after: local-fs.target
+ovos_storage_tuning_timer_on_boot: 2min
+ovos_storage_tuning_timer_accuracy: 1min

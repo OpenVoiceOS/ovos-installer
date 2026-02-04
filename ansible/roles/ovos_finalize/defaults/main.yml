@@ -1,0 +1,7 @@
+---
+ovos_finalize_pip_conf_path: >-
+  {{ ovos_installer_pip_conf_path | default('/etc/pip.conf') }}
+ovos_finalize_pip_conf_extra_index_regex: >-
+  {{ ovos_installer_pip_conf_extra_index_regex | default('(?i)^\\s*#\\s*(extra-index.*)') }}
+ovos_finalize_pip_conf_extra_index_line: >-
+  {{ ovos_installer_pip_conf_extra_index_line | default('\\1') }}

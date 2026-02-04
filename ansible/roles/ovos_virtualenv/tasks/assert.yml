@@ -1,0 +1,18 @@
+---
+- name: Assert virtualenv configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_virtualenv_path | length > 0
+      - ovos_virtualenv_venv_python | length > 0
+      - ovos_virtualenv_requirements_files | length > 0
+      - ovos_virtualenv_venv_python is match('^[0-9]+(\\.[0-9]+)?$')
+    fail_msg: "Invalid virtualenv configuration."
+
+- name: Assert virtualenv path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Virtualenv path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_virtualenv_path }}"
+    - "{{ ovos_virtualenv_tmp_dir }}"

@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Gaëtan trellu (@goldyfruit)
+  author: Gaëtan Trellu (@goldyfruit)
   description: Open Voice OS installer Mark 1
   company: Smart'Gic
   standalone: true
@@ -14,9 +14,10 @@ galaxy_info:
   platforms:
     - name: Debian
       versions:
-        - bookworm
+        - buster
         - bullseye
-
+        - bookworm
+        - trixie
   galaxy_tags:
     - openvoiceos
     - ovos

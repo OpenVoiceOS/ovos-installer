@@ -17,8 +17,7 @@
     "title": "OpenVoice OS Installatie - Kenmerken",
     "content": "Skills maken interactie via spraak mogelijk, waardoor ze efficiënt zijn voor taken zoals domotica, informatie ophalen en slimme apparaten bedienen via spraakopdrachten.\n\nKies welke functies je wil activeren (meerdere opties tegelijkertijd zijn mogelijk):",
     "skill_description": "Standaard OVOS skills",
-    "extra_skill_description": "Extra OVOS skills",
-    "gui_description": "Grafische gebruikersinterface"
+    "extra_skill_description": "Extra OVOS skills"
   },
   "finish.sh": {
     "title": "OpenVoice OS Installatie - Voltooid",

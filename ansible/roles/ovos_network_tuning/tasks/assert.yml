@@ -1,0 +1,24 @@
+---
+- name: Assert network tuning configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_network_tuning_networkmanager_conf_dir | length > 0
+      - ovos_network_tuning_dnsmasq_conf_path | length > 0
+      - ovos_network_tuning_dnsmasq_dir | length > 0
+      - ovos_network_tuning_wireless_unit_path | length > 0
+      - (ovos_network_tuning_dnsmasq_cache_size | int) > 0
+      - (ovos_network_tuning_dnsmasq_min_ttl | int) >= 0
+      - (ovos_network_tuning_dnsmasq_max_ttl | int) >= (ovos_network_tuning_dnsmasq_min_ttl | int)
+    fail_msg: "Invalid network tuning configuration."
+
+- name: Assert network tuning path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Network tuning path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_network_tuning_networkmanager_conf_dir }}"
+    - "{{ ovos_network_tuning_dnsmasq_conf_path }}"
+    - "{{ ovos_network_tuning_dnsmasq_dir }}"
+    - "{{ ovos_network_tuning_dnsmasq_cache_conf_path }}"
+    - "{{ ovos_network_tuning_wireless_unit_path }}"

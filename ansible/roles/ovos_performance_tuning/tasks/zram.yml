@@ -1,0 +1,62 @@
+---
+- name: Handle systemd-zram-generator
+  ansible.builtin.apt:
+    name: "{{ ovos_performance_tuning_zram_packages_debian }}"
+    install_recommends: false
+    state: present
+  when: ansible_os_family == "Debian"
+  tags:
+    - always
+
+- name: Handle zram-generator-defaults
+  ansible.builtin.dnf:
+    name: "{{ ovos_performance_tuning_zram_packages_redhat }}"
+    state: present
+  when: ansible_os_family == "RedHat"
+  tags:
+    - always
+
+- name: Handle systemd-zram-generator
+  community.general.zypper:
+    name: "{{ ovos_performance_tuning_zram_packages_suse }}"
+    disable_recommends: true
+    state: present
+  when: ansible_os_family == "Suse"
+  tags:
+    - always
+
+- name: Handle systemd-zram-generator on Arch Linux
+  community.general.pacman:
+    name: "{{ ovos_performance_tuning_zram_packages_arch }}"
+    state: present
+  when: ansible_os_family == "Archlinux"
+  tags:
+    - always
+
+- name: Copy zram-generator.conf systemd configuration file
+  ansible.builtin.copy:
+    src: "{{ ovos_performance_tuning_zram_config_src }}"
+    dest: "{{ ovos_performance_tuning_zram_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload Systemd
+
+- name: Flush handlers zram
+  ansible.builtin.meta: flush_handlers
+
+- name: Start systemd zram unit
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_performance_tuning_zram_device }}"
+    state: started
+
+- name: Handle sysctl tuning for ZRAM
+  ansible.posix.sysctl:
+    name: "{{ item.option }}"
+    value: "{{ item.value }}"
+    sysctl_file: "{{ ovos_performance_tuning_zram_sysctl_file }}"
+    reload: true
+    state: present
+  loop: "{{ ovos_performance_tuning_zram_sysctl_settings }}"
+  tags:
+    - always

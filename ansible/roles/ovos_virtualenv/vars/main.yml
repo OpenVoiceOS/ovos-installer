@@ -1,0 +1,20 @@
+---
+_ovos_virtualenv_requirements_files:
+  - file: virtualenv/core-requirements.txt
+    dest: "{{ ovos_virtualenv_tmp_dir }}/core-requirements.txt"
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+  - file: virtualenv/skills-requirements.txt
+    dest: "{{ ovos_virtualenv_tmp_dir }}/skills-requirements.txt"
+    state: "{{ ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite' }}"
+  - file: virtualenv/extra-skills-requirements.txt
+    dest: "{{ ovos_virtualenv_tmp_dir }}/extra-skills-requirements.txt"
+    state: "{{ ovos_installer_feature_extra_skills | bool and ovos_installer_profile != 'satellite' }}"
+  - file: virtualenv/listener-requirements.txt
+    dest: "{{ ovos_virtualenv_tmp_dir }}/listener-requirements.txt"
+    state: "{{ ovos_installer_profile == 'listener' }}"
+  - file: virtualenv/satellite-requirements.txt
+    dest: "{{ ovos_virtualenv_tmp_dir }}/satellite-requirements.txt"
+    state: "{{ ovos_installer_profile == 'satellite' }}"
+  - file: virtualenv/server-requirements.txt
+    dest: "{{ ovos_virtualenv_tmp_dir }}/server-requirements.txt"
+    state: "{{ ovos_installer_profile == 'server' }}"

@@ -1,35 +1,56 @@
 ---
 - name: Check for /boot/firmware directory
   ansible.builtin.stat:
-    path: /boot/firmware
+    path: "{{ ovos_installer_boot_firmware_path | default('/boot/firmware') }}"
   register: ovos_hardware_mark1_boot_config_status
+  when: ovos_hardware_mark1_boot_directory is not defined
 
-- name: Set ovos_hardware_mark1_boot_directory fact
+- name: Set boot directory fact
   ansible.builtin.set_fact:
-    ovos_hardware_mark1_boot_directory: "{{ '/boot/firmware' if ovos_hardware_mark1_boot_config_status.stat.exists | bool else '/boot' }}"
+    ovos_hardware_mark1_boot_directory: >-
+      {{ (ovos_installer_boot_firmware_path | default('/boot/firmware'))
+         if ovos_hardware_mark1_boot_config_status.stat.exists | bool
+         else (ovos_installer_boot_default_path | default('/boot')) }}
+  when: ovos_hardware_mark1_boot_directory is not defined
+
+- name: Check required Mark 1 paths
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+  loop: "{{ ovos_hardware_mark1_required_paths }}"
+  register: ovos_hardware_mark1_required_paths_stat
+  changed_when: false
+
+- name: Assert required Mark 1 paths exist
+  ansible.builtin.assert:
+    that:
+      - item.stat.exists | default(false) | bool
+    fail_msg: >-
+      Mark 1 required path is missing: {{ item.item.path }} ({{ item.item.name }})
+    success_msg: >-
+      Mark 1 required path present: {{ item.item.path }} ({{ item.item.name }})
+  loop: "{{ ovos_hardware_mark1_required_paths_stat.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"
 
 - name: Manage TTY and soundcard overlays
   ansible.builtin.lineinfile:
-    path: "{{ ovos_hardware_mark1_boot_directory }}/config.txt"
+    path: "{{ ovos_hardware_mark1_boot_config_path }}"
     regexp: "^{{ item }}"
     line: "{{ item }}"
   notify: Set Reboot
-  loop:
-    - dtoverlay=miniuart-bt
-    - dtoverlay=proto-codec
+  loop: "{{ ovos_hardware_mark1_overlays }}"
 
 - name: Disable snd_bcm2835 audio interface
   ansible.builtin.lineinfile:
-    path: "{{ ovos_hardware_mark1_boot_directory }}/config.txt"
+    path: "{{ ovos_hardware_mark1_boot_config_path }}"
     regexp: "^{{ item.key }}="
     line: "{{ item.key }}={{ item.value }}"
   notify: Set Reboot
-  loop:
-    - { key: "dtparam=audio", value: "off" }
+  loop: "{{ ovos_hardware_mark1_audio_params }}"
 
 - name: Redirect console to tty1 only
   ansible.builtin.replace:
-    path: "{{ ovos_hardware_mark1_boot_directory }}/cmdline.txt"
-    regexp: '\bconsole=serial0,115200\b\s?'
+    path: "{{ ovos_hardware_mark1_cmdline_path }}"
+    regexp: "{{ ovos_hardware_mark1_cmdline_console_regex }}"
     replace: ""
   notify: Set Reboot

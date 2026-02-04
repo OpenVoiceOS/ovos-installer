@@ -17,8 +17,7 @@
     "title": "Installazione di Open Voice OS - Funzioni",
     "content": "Le competenze consentono l'interazione attraverso la voce, rendendole efficienti per attività quali la domotica, il reperimento di informazioni e il controllo di dispositivi intelligenti tramite comandi vocali.\n\nSeleziona le funzioni da attivare:",
     "skill_description": "Scarica le competenze predefinite per OVOS",
-    "extra_skill_description": "Scarica delle competenze extra per OVOS",
-    "gui_description": "Attiva l'interfaccia utente grafica"
+    "extra_skill_description": "Scarica delle competenze extra per OVOS"
   },
   "finish.sh": {
     "title": "Installazione di Open Voice OS - Conclusione",

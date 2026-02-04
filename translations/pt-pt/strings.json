@@ -17,8 +17,7 @@
     "title": "Open Voice OS Instalação - Características",
     "content": "Skills permitem a interação através da voz, tornando-as eficientes para tarefas como a domótica, a obtenção de informações e o controlo de dispositivos inteligentes através de comandos de voz.\n\nSeleccione as funções a ativar:",
     "skill_description": "Descarregar uma seleção de skills OVOS",
-    "extra_skill_description": "Carregar skills OVOS adicionais",
-    "gui_description": "Com interface gráfica do utilizador"
+    "extra_skill_description": "Carregar skills OVOS adicionais"
   },
   "finish.sh": {
     "title": "Open Voice OS Instalação - Conclusão",

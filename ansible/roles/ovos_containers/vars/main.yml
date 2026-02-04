@@ -1,0 +1,39 @@
+---
+ovos_containers_arch_map:
+  aarch64: arm64
+  x86_64: amd64
+ovos_containers_arch_default: amd64
+ovos_containers_linux_mint_release_map:
+  vanessa: jammy
+  vera: jammy
+  victoria: jammy
+  virginia: jammy
+  wilma: noble
+  zara: noble
+ovos_containers_linux_mint_major_map:
+  "21": jammy
+  "22": noble
+ovos_containers_ubuntu_release_map:
+  "25.10": questing
+  "25.04": plucky
+  "24.04": noble
+  "22.04": jammy
+ovos_containers_debian_release_map:
+  "13": trixie
+  "12": bookworm
+  "11": bullseye
+ovos_containers_os_type_wsl_match: microsoft
+ovos_containers_os_type_wsl_value: wsl2
+ovos_containers_os_type_default: linux
+ovos_containers_rhel_family_distros:
+  - CentOS
+  - Rocky
+  - AlmaLinux
+ovos_containers_docker_package_check_debian: docker-ce
+ovos_containers_docker_package_check_redhat: docker-ce
+ovos_containers_docker_package_check_suse: docker-ce
+ovos_containers_docker_package_check_arch: docker
+ovos_containers_docker_pull_policies:
+  - always
+  - missing
+  - never

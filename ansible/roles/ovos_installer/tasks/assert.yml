@@ -1,0 +1,48 @@
+---
+- name: Assert installer configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_user | length > 0
+      - ovos_installer_user_home | length > 0
+      - ovos_installer_group | length > 0
+      - ovos_installer_profile | length > 0
+      - ovos_installer_profile in ['ovos', 'listener', 'server', 'satellite']
+      - ovos_installer_method in ['virtualenv', 'containers']
+    fail_msg: "Invalid installer configuration: check required user/profile variables."
+
+- name: Assert containers required variables
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_display_server | default('') | length > 0
+    fail_msg: "Containers install requires ovos_installer_display_server (use 'N/A' for headless)."
+  when: ovos_installer_method == 'containers'
+
+- name: Assert satellite required variables
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_listener_host | default('') | length > 0
+      - ovos_installer_satellite_key | default('') | length > 0
+      - ovos_installer_satellite_password | default('') | length > 0
+    fail_msg: "Satellite profile requires listener host, satellite key, and satellite password."
+  when: ovos_installer_profile == 'satellite'
+
+- name: Assert virtualenv required variables
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_venv | default('') | length > 0
+      - ovos_installer_venv_python | default('') | length > 0
+    fail_msg: "Virtualenv install requires ovos_installer_venv and ovos_installer_venv_python."
+  when: ovos_installer_method == 'virtualenv'
+
+- name: Assert installer path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Installer path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_installer_user_home }}"
+    - "{{ ovos_installer_systemd_system_path }}"
+    - "{{ ovos_installer_systemd_user_path }}"
+    - "{{ ovos_installer_pip_conf_path }}"
+    - "{{ ovos_installer_boot_default_path }}"
+    - "{{ ovos_installer_boot_firmware_path }}"

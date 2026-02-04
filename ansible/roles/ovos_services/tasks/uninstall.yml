@@ -1,0 +1,35 @@
+---
+- name: Stop and disable OVOS and/or HiveMind systemd units
+  vars:
+    ovos_installer_ovos_scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    ovos_installer_ovos_unit_user: "{{ 'root' if ovos_installer_ovos_scope == 'system' else ovos_installer_user }}"
+    ovos_services_unit_user: "{{ 'root' if item.scope == 'system' else ovos_installer_ovos_unit_user }}"
+  become: true
+  become_user: "{{ ovos_services_unit_user }}"
+  ansible.builtin.systemd_service:
+    name: "{{ item.unit }}"
+    enabled: false
+    state: stopped
+    scope: "{{ item.scope }}"
+  loop: "{{ ovos_services_unit_definitions }}"
+  register: ovos_services_systemd_stop
+  failed_when: false # Never fail - units may not exist
+
+- name: Remove OVOS systemd unit files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  notify:
+    - Reload Udev
+    - Reload Systemd
+    - Reload Systemd User
+  loop: "{{ ovos_services_unit_files_system + ovos_services_unit_files_user }}"
+
+- name: Flush handlers ovos (uninstall)
+  ansible.builtin.meta: flush_handlers
+
+- name: Remove directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ ovos_services_remove_directories }}"

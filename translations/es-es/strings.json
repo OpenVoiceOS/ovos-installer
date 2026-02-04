@@ -17,8 +17,7 @@
     "title": "Instalación de Open Voice OS - Características",
     "content": "Las habilidades permiten la interacción a través de la voz, lo que las hace eficaces para tareas como la domótica, la recuperación de información y el control de dispositivos inteligentes mediante comandos de voz.\n\nSelecciona las funciones que quieres activar:",
     "skill_description": "Descargar una selección de competencias (skills) OVOS",
-    "extra_skill_description": "Descargar habilidades OVOS adicionales",
-    "gui_description": "Con interfaz gráfica de usuario"
+    "extra_skill_description": "Descargar habilidades OVOS adicionales"
   },
   "finish.sh": {
     "title": "Instalación de Open Voice OS - Finalización",

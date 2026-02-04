@@ -8,6 +8,5 @@ Vælg venligst funktionerne for at aktivere:
 TITLE="Open Voice OS Installation - Funktioner"
 SKILL_DESCRIPTION="Indlæs standard OVOS-færdigheder"
 EXTRA_SKILL_DESCRIPTION="Indlæs ekstra OVOS-færdigheder"
-GUI_DESCRIPTION="Aktiver grafisk brugergrænseflade"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION

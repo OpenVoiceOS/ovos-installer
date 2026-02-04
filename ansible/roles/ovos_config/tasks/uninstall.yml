@@ -1,0 +1,27 @@
+---
+- name: Check if directories to backup exist
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop: "{{ ovos_config_backup_paths }}"
+  register: ovos_config_directory_exists
+
+- name: Backup existing configurations before uninstall
+  community.general.archive:
+    path: "{{ ovos_config_backup_paths }}"
+    dest: "{{ ovos_config_backup_dest }}"
+    owner: "{{ ovos_config_backup_owner }}"
+    group: "{{ ovos_config_backup_group }}"
+    mode: "{{ ovos_config_backup_mode }}"
+    format: "{{ ovos_config_backup_format }}"
+    force_archive: true
+  when:
+    - ovos_config_directory_exists.results
+      | selectattr('stat.exists')
+      | list
+      | length
+      | int > 0
+
+- name: Remove installer logs on uninstall
+  ansible.builtin.file:
+    path: "{{ ovos_config_log_path }}"
+    state: absent

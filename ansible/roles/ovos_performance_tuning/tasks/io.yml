@@ -1,0 +1,193 @@
+---
+- name: Configure I/O tuning
+  when: not ovos_installer_cleaning | bool
+  block:
+    - name: Load i2c-dev and spidev kernel modules
+      community.general.modprobe:
+        name: "{{ item }}"
+        persistent: present
+      loop: "{{ ovos_performance_tuning_kernel_modules }}"
+
+    - name: Manage I2C, SPI and I2S buses
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_performance_tuning_boot_config_path }}"
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+        state: present
+      notify: Set Reboot
+      loop: "{{ ovos_performance_tuning_dtparams }}"
+
+    - name: Disable USB Autosuspend (cmdline.txt)
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_performance_tuning_cmdline_path }}"
+        regexp: "^((?!.*{{ item }}).*console.*)$"
+        line: '\1 {{ item }}'
+        backrefs: true
+      notify: Set Reboot
+      loop:
+        - "{{ ovos_performance_tuning_usb_autosuspend_param }}"
+
+    - name: Read current max CPU frequency (kHz)
+      ansible.builtin.command: "cat {{ ovos_performance_tuning_cpuinfo_max_freq_path }}"
+      register: ovos_performance_tuning_cpu_max_freq
+      changed_when: false
+      failed_when: false
+
+    - name: Normalize current max CPU frequency (MHz)
+      ansible.builtin.set_fact:
+        ovos_performance_tuning_cpu_max_mhz: "{{ (ovos_performance_tuning_cpu_max_freq.stdout | default('0') | int) // 1000 }}"
+
+    - name: Check for devfreq directory
+      ansible.builtin.stat:
+        path: "{{ ovos_performance_tuning_devfreq_path }}"
+      register: ovos_performance_tuning_devfreq_dir
+      changed_when: false
+
+    - name: Find devfreq name files
+      ansible.builtin.find:
+        paths: "{{ ovos_performance_tuning_devfreq_path }}"
+        patterns: name
+        file_type: file
+        recurse: true
+      register: ovos_performance_tuning_devfreq_name_files
+      changed_when: false
+      failed_when: false
+      when: ovos_performance_tuning_devfreq_dir.stat.isdir | default(false)
+
+    - name: Read devfreq name files
+      ansible.builtin.slurp:
+        src: "{{ item.path }}"
+      loop: "{{ ovos_performance_tuning_devfreq_name_files.files | default([]) }}"
+      register: ovos_performance_tuning_devfreq_name_contents
+      changed_when: false
+      failed_when: false
+      when: ovos_performance_tuning_devfreq_name_files is defined
+
+    - name: Detect GPU devfreq path
+      ansible.builtin.set_fact:
+        ovos_performance_tuning_devfreq_gpu_path: >-
+          {% set ns = namespace(matches=[]) %}
+          {% for item in ovos_performance_tuning_devfreq_name_contents.results | default([]) %}
+          {% set name = item.content | b64decode | trim %}
+          {% if name is match('(?i).*?(v3d|gpu).*?') %}
+          {% set _ = ns.matches.append(item.source | regex_replace('/name$', '')) %}
+          {% endif %}
+          {% endfor %}
+          {{ ns.matches[0] if ns.matches | length > 0 else '' }}
+
+    - name: Read max GPU frequency from devfreq
+      ansible.builtin.slurp:
+        src: "{{ ovos_performance_tuning_devfreq_gpu_path }}/max_freq"
+      register: ovos_performance_tuning_gpu_max_freq_devfreq
+      changed_when: false
+      failed_when: false
+      when: ovos_performance_tuning_devfreq_gpu_path | length > 0
+
+    - name: Read max GPU frequency via vcgencmd
+      ansible.builtin.command: "{{ ovos_performance_tuning_gpu_vcgencmd_cmd }}"
+      register: ovos_performance_tuning_gpu_max_freq_vcgencmd
+      changed_when: false
+      failed_when: false
+      when: ovos_performance_tuning_devfreq_gpu_path | length == 0
+
+    - name: Normalize GPU max frequency raw value
+      ansible.builtin.set_fact:
+        ovos_performance_tuning_gpu_max_raw: >-
+          {% if ovos_performance_tuning_devfreq_gpu_path | length > 0 and ovos_performance_tuning_gpu_max_freq_devfreq.content is defined %}
+          {{ (ovos_performance_tuning_gpu_max_freq_devfreq.content | b64decode | trim) }}
+          {% elif ovos_performance_tuning_gpu_max_freq_vcgencmd.stdout is defined %}
+          {{ (ovos_performance_tuning_gpu_max_freq_vcgencmd.stdout | regex_findall('=([0-9]+)') | first | default('0')) }}
+          {% else %}
+          0
+          {% endif %}
+
+    - name: Normalize current max GPU frequency (MHz)
+      ansible.builtin.set_fact:
+        ovos_performance_tuning_gpu_max_mhz: >-
+          {% set raw = ovos_performance_tuning_gpu_max_raw | default('0') | int %}
+          {% if raw >= 100000000 %}
+          {{ (raw // 1000000) | int }}
+          {% elif raw >= 100000 %}
+          {{ (raw // 1000) | int }}
+          {% else %}
+          {{ raw | int }}
+          {% endif %}
+
+    - name: Log frequency detection fallback
+      ansible.builtin.debug:
+        msg: >-
+          CPU/GPU max frequency detection returned 0; overclock decisions will
+          treat this as unknown and may still apply tuning.
+        verbosity: 1
+      when:
+        - ovos_performance_tuning_overclock_enabled | bool
+        - (ovos_performance_tuning_cpu_max_mhz | int) == 0 or (ovos_performance_tuning_gpu_max_mhz | int) == 0
+
+    - name: Normalize overclock arm frequency
+      ansible.builtin.set_fact:
+        ovos_performance_tuning_overclock_arm_freq_effective: >-
+          {{ ovos_performance_tuning_overclock_arm_freq | default(
+            ('2800' if 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default('')) else '2000'),
+            true) }}
+
+    - name: Decide whether to apply CPU/GPU overclocking
+      ansible.builtin.set_fact:
+        ovos_performance_tuning_apply_overclock_cpu: >-
+          {{ ovos_performance_tuning_overclock_enabled | bool and
+             (
+               (ovos_performance_tuning_cpu_max_mhz | int) == 0 or
+               (ovos_performance_tuning_cpu_max_mhz | int)
+               <= (ovos_performance_tuning_overclock_arm_freq_effective | int)
+             ) }}
+        ovos_performance_tuning_apply_overclock_gpu: >-
+          {{ ovos_performance_tuning_overclock_enabled | bool and
+             (
+               (ovos_performance_tuning_gpu_max_mhz | int) == 0 or
+               (ovos_performance_tuning_gpu_max_mhz | int)
+               <= (ovos_performance_tuning_overclock_gpu_freq | int)
+             ) }}
+
+    - name: Apply CPU boost/voltage settings (config.txt)
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_performance_tuning_boot_config_path }}"
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+        state: present
+      notify: Set Reboot
+      when: ovos_performance_tuning_overclock_enabled | bool
+      loop:
+        - { key: "arm_boost", value: "{{ ovos_performance_tuning_overclock_arm_boost }}" }
+        - { key: "initial_turbo", value: "{{ ovos_performance_tuning_overclock_initial_turbo }}" }
+        - { key: "over_voltage", value: "{{ ovos_performance_tuning_overclock_over_voltage }}" }
+
+    - name: Apply CPU frequency overclock (config.txt)
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_performance_tuning_boot_config_path }}"
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+        state: present
+      notify: Set Reboot
+      when: ovos_performance_tuning_apply_overclock_cpu | bool
+      loop:
+        - { key: "arm_freq", value: "{{ ovos_performance_tuning_overclock_arm_freq_effective }}" }
+
+    - name: Apply GPU overclocking (config.txt)
+      ansible.builtin.lineinfile:
+        path: "{{ ovos_performance_tuning_boot_config_path }}"
+        regexp: "^{{ item.key }}="
+        line: "{{ item.key }}={{ item.value }}"
+        state: present
+      notify: Set Reboot
+      when: ovos_performance_tuning_apply_overclock_gpu | bool
+      loop:
+        - { key: "gpu_freq", value: "{{ ovos_performance_tuning_overclock_gpu_freq }}" }
+
+    - name: Optimize I/O Scheduler (BFQ for SD/USB) - Persistent
+      ansible.builtin.copy:
+        dest: "{{ ovos_performance_tuning_scheduler_rule_path }}"
+        content: "{{ ovos_performance_tuning_scheduler_rule_content }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify:
+        - Reload Udev

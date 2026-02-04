@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Gaëtan trellu (@goldyfruit)
+  author: Gaëtan Trellu (@goldyfruit)
   description: Open Voice OS installer
   company: Smart'Gic
   standalone: true
@@ -12,24 +12,39 @@ galaxy_info:
   min_ansible_version: "2.12"
 
   platforms:
-    - name: Fedora
-      versions:
-        - "39"
-        - "38"
-        - "37"
-    - name: EL
-      versions:
-        - "9"
-    - name: Ubuntu
-      versions:
-        - mantic
-        - lunar
-        - focal
     - name: Debian
       versions:
-        - bookworm
+        - buster
         - bullseye
-
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+    - name: Fedora
+      versions:
+        - "37"
+        - "38"
+        - "39"
+        - "40"
+    - name: ArchLinux
+      versions:
+        - all
+    - name: opensuse
+      versions:
+        - '15.0'
+        - '15.1'
+        - '15.2'
+        - '15.3'
+        - '15.4'
+        - '15.5'
+        - all
   galaxy_tags:
     - openvoiceos
     - ovos

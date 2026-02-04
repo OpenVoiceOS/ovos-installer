@@ -1,0 +1,15 @@
+---
+- name: Retrieve SELinux.repo repository
+  community.general.zypper_repository:
+    repo: "{{ ovos_containers_suse_selinux_repo_url }}"
+    auto_import_keys: true
+    runrefresh: true
+
+- name: Install Docker Engine
+  community.general.zypper:
+    name: "{{ ovos_containers_docker_packages_suse }}"
+
+- name: Install xhost package
+  community.general.zypper:
+    name: "{{ ovos_containers_xhost_package_suse }}"
+  when: ovos_installer_display_server != "N/A"

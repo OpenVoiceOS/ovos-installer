@@ -1,0 +1,15 @@
+---
+- name: Remove mimalloc drop-ins
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/{{ ovos_python_mimalloc_dropin_name }}"
+    state: absent
+  loop: "{{ ovos_installer_core_services }}"
+  notify:
+    - "{{ ovos_installer_systemd_reload_handler }}"
+    - Restart OVOS services
+
+- name: Remove Python tuning environment.d file
+  ansible.builtin.file:
+    path: "{{ ovos_python_env_dir }}/{{ ovos_python_env_file }}"
+    state: absent
+  notify: Reload Systemd User

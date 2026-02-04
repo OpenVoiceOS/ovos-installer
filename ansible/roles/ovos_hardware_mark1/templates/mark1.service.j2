@@ -2,13 +2,13 @@
 Documentation=https://github.com/MycroftAI/enclosure-mark1
 Description=Mycroft Mark 1's atmega328p initialization
 After=network-online.target
-ConditionPathExists=/dev/ttyAMA0
+ConditionPathExists={{ ovos_hardware_mark1_serial_device }}
 
 [Service]
 Type=oneshot
-ExecStart=/opt/mark1/initialize.sh
+ExecStart={{ ovos_hardware_mark1_working_directory }}/{{ ovos_hardware_mark1_init_script_name }}
 Restart=on-failure
-RestartSec=5s
+RestartSec={{ ovos_hardware_mark1_unit_restart_sec }}
 RemainAfterExit=yes
 
 [Install]

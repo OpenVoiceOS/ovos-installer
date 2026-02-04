@@ -1,0 +1,164 @@
+---
+- name: Remove virtualenv package requirements (Debian/Zorin)
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - swig
+      - libfann-dev
+      - libasound2-dev
+      - libpulse-dev
+      - libportaudio2
+      - mpg123
+      - music123
+      - sox
+      - libsox-fmt-all
+      - libespeak-ng1
+      - espeak-ng
+      - flac
+      - mpv
+      - libxslt1-dev
+      - libopenblas-dev
+      - pkg-config
+      - libicu-dev
+      - portaudio19-dev
+      - libjpeg-dev
+    install_recommends: false
+    state: absent
+  when: ansible_os_family in ['Debian', 'Zorin OS']
+
+- name: Remove virtualenv package requirements (RedHat)
+  ansible.builtin.dnf:
+    name:
+      - gcc-c++
+      - swig
+      - fann-devel
+      - alsa-lib-devel
+      - pulseaudio-libs-devel
+      - portaudio
+      - mpg123
+      - sox
+      - flac
+      - mpv
+      - openblas-serial
+      - pkgconf-pkg-config
+      - libicu-devel
+      - portaudio-devel
+      - espeak-ng
+    state: absent
+  when: ansible_os_family == "RedHat"
+
+- name: Remove virtualenv package requirements (SUSE)
+  community.general.zypper:
+    name:
+      - gcc-c++
+      - swig
+      - libfann-devel
+      - alsa-lib-devel
+      - libpulse-devel
+      - libportaudio2
+      - libespeak-ng1
+      - espeak-ng
+      - mpg123
+      - sox
+      - flac
+      - mpv
+      - libopenblas_serial-devel
+      - portaudio-devel
+    state: absent
+  when: ansible_os_family == "Suse"
+
+- name: Remove virtualenv package requirements (Archlinux)
+  community.general.pacman:
+    name:
+      - base-devel
+      - swig
+      - alsa-lib
+      - portaudio
+      - mpg123
+      - sox
+      - flac
+      - mpv
+      - libxslt
+      - openblas
+      - espeak-ng
+    state: absent
+  when: ansible_os_family == "Archlinux"
+
+- name: Check for OVOS venv activation script
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_path }}/bin/activate"
+  register: ovos_virtualenv_activate_script
+  changed_when: false
+
+- name: Remove OVOS constraints from venv activation
+  vars:
+    _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_virtualenv_path }}/bin/activate"
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    insertafter: "{{ item.insertafter }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    state: absent
+  loop:
+    - line: "export PIP_CONSTRAINT=\"{{ _ovos_release }}\""
+      regexp: "^export PIP_CONSTRAINT="
+      insertafter: "^VIRTUAL_ENV="
+    - line: "export UV_CONSTRAINT=\"{{ _ovos_release }}\""
+      regexp: "^export UV_CONSTRAINT="
+      insertafter: "^export PIP_CONSTRAINT="
+  when: ovos_virtualenv_activate_script.stat.exists | default(false) | bool
+
+- name: Check for user .bashrc
+  ansible.builtin.stat:
+    path: "{{ ovos_installer_user_home }}/.bashrc"
+  register: ovos_virtualenv_bashrc
+  changed_when: false
+
+- name: Remove VIRTUAL_ENV variable and update PATH in .bashrc
+  vars:
+    _path: "{{ ovos_virtualenv_path }}/bin"
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_installer_user_home }}/.bashrc"
+    line: "{{ item.line }}"
+    regexp: "{{ item.regexp }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+    state: absent
+  loop:
+    - line: "VIRTUAL_ENV={{ _path }}"
+      regexp: "^VIRTUAL_ENV"
+    - line: "PATH=$PATH:{{ _path }}"
+      regexp: "^PATH"
+  when:
+    - ovos_virtualenv_bashrc.stat.exists | default(false) | bool
+    - (ovos_installer_i2c_devices | default([])) | length < 1
+
+- name: Remove OVOS virtualenv auto-activate block
+  ansible.builtin.blockinfile:
+    path: "{{ ovos_installer_user_home }}/.bashrc"
+    marker: "# {mark} OVOS VENV"
+    block: |
+      if [[ $- == *i* ]] && [ -f "{{ ovos_virtualenv_path }}/bin/activate" ]; then
+        source "{{ ovos_virtualenv_path }}/bin/activate"
+      fi
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+    state: absent
+  when: ovos_virtualenv_bashrc.stat.exists | default(false) | bool
+
+- name: Remove ovos Python virtualenv and requirements.txt files
+  vars:
+    _requirements_paths: "{{ ovos_virtualenv_requirements_files | map(attribute='dest') | list }}"
+    _uninstall_paths: >-
+      {{ [ovos_virtualenv_path]
+         + _requirements_paths
+         + ovos_virtualenv_uninstall_extra_paths
+         + [ovos_virtualenv_messagebus_path] }}
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ _uninstall_paths }}"

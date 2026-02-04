@@ -1,0 +1,10 @@
+---
+- name: Update package cache and install Docker Engine
+  community.general.pacman:
+    name: "{{ ovos_containers_docker_packages_arch }}"
+    update_cache: true
+
+- name: Install xorg-xhost package
+  community.general.pacman:
+    name: "{{ ovos_containers_xhost_package_arch }}"
+  when: ovos_installer_display_server != "N/A"

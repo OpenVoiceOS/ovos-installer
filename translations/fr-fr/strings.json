@@ -17,8 +17,7 @@
     "title": "Open Voice OS Installation - Fonctionnalités",
     "content": "Les compétences permettent le déclenchement d'actions par la parole, ce qui rend des tâches telles que la domotique, les nouvelles, la météo, etc. simples et intuitives.\n\nVeuillez sélectionner les fonctionnalités à activer :",
     "skill_description": "Chargement des compétences par défaut d'OVOS",
-    "extra_skill_description": "Chargement des compétences OVOS supplémentaires",
-    "gui_description": "Activation de l'interface graphique"
+    "extra_skill_description": "Chargement des compétences OVOS supplémentaires"
   },
   "finish.sh": {
     "title": "Open Voice OS Installation - Clap de fin",

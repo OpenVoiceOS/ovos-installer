@@ -1,0 +1,9 @@
+---
+- name: Assert timezone configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_timezone_geoip_url | length > 0
+      - ovos_timezone_fallback_timezone | length > 0
+      - ovos_timezone_geoip_url is match('^https?://')
+      - ovos_timezone_status_codes | length > 0
+    fail_msg: "Invalid timezone configuration."

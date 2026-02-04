@@ -17,8 +17,7 @@
     "title": "Open Voice OS Installation - Funktioner",
     "content": "Færdigheder muliggør interaktion gennem tale, hvilket gør det effektivt til opgaver som hjemmeautomatisering, informationssøgning og styring af smarte enheder ved hjælp af naturlige sprogkommandoer.\n\nVælg venligst funktionerne for at aktivere:",
     "skill_description": "Indlæs standard OVOS-færdigheder",
-    "extra_skill_description": "Indlæs ekstra OVOS-færdigheder",
-    "gui_description": "Aktiver grafisk brugergrænseflade"
+    "extra_skill_description": "Indlæs ekstra OVOS-færdigheder"
   },
   "finish.sh": {
     "title": "Open Voice OS Installation - Afslut",

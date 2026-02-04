@@ -1,0 +1,40 @@
+---
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
+- name: Block telemetry
+  block:
+    - name: Retrieve country based on ISP address
+      ansible.builtin.uri:
+        url: "{{ ovos_telemetry_geoip_url }}"
+        method: "{{ ovos_telemetry_geoip_method }}"
+        status_code: "{{ ovos_telemetry_geoip_status_codes }}"
+        return_content: true
+        headers: "{{ ovos_telemetry_geoip_headers }}"
+      register: ovos_telemetry_isp_data
+      until: ovos_telemetry_isp_data.status == ovos_telemetry_geoip_expected_status
+      retries: "{{ ovos_telemetry_geoip_retries }}"
+      delay: "{{ ovos_telemetry_geoip_delay }}"
+
+    - name: Share telemetry data
+      ansible.builtin.uri:
+        url: "{{ ovos_telemetry_url }}"
+        method: POST
+        body: "{{ lookup('ansible.builtin.template', 'telemetry.json.j2') }}"
+        status_code: "{{ ovos_telemetry_post_status_codes }}"
+        body_format: json
+        headers:
+          Content-Type: application/json
+          accept: application/json
+          user-agent: "{{ ovos_telemetry_user_agent }}"
+        validate_certs: "{{ ovos_telemetry_validate_certs }}"
+      register: ovos_telemetry_push_data
+      until: ovos_telemetry_push_data.status == ovos_telemetry_post_expected_status
+      retries: "{{ ovos_telemetry_retries }}"
+      delay: "{{ ovos_telemetry_delay }}"
+  rescue:
+    - name: Rescue telemetry
+      ansible.builtin.debug:
+        msg: "The installer was not able to share the telemetry, it's OK, maybe next time :)"

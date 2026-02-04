@@ -1,1 +1,40 @@
 ---
+ovos_hardware_mark1_working_directory: >-
+  {{ _ovos_hardware_mark1_working_directory | default('/opt/mark1') }}
+ovos_hardware_mark1_avrdude_binary: >-
+  {{ _ovos_hardware_mark1_avrdude_binary | default('/usr/local/bin/avrdude') }}
+ovos_hardware_mark1_dialout_group: dialout
+ovos_hardware_mark1_systemd_user_dir: "{{ ovos_installer_user_home }}/.config/systemd/user"
+ovos_hardware_mark1_init_script_name: initialize.sh
+ovos_hardware_mark1_serial_device: /dev/ttyAMA0
+ovos_hardware_mark1_alsa_card: sndrpiproto
+ovos_hardware_mark1_alsa_configured_path: "{{ ovos_hardware_mark1_working_directory }}/alsa.configured"
+ovos_hardware_mark1_eyes_color: "16760576"
+ovos_hardware_mark1_mouth_text: booting
+ovos_hardware_mark1_boot_config_path: >-
+  {{ (ovos_hardware_mark1_boot_directory
+      | default(ovos_installer_boot_directory
+      | default(ovos_installer_boot_default_path | default('/boot')))) }}/config.txt
+ovos_hardware_mark1_cmdline_path: >-
+  {{ (ovos_hardware_mark1_boot_directory
+      | default(ovos_installer_boot_directory
+      | default(ovos_installer_boot_default_path | default('/boot')))) }}/cmdline.txt
+ovos_hardware_mark1_overlays:
+  - dtoverlay=miniuart-bt
+  - dtoverlay=proto-codec
+ovos_hardware_mark1_audio_params:
+  - { key: "dtparam=audio", value: "off" }
+ovos_hardware_mark1_cmdline_console_regex: "\\\\bconsole=serial0,115200\\\\b\\\\s?"
+ovos_hardware_mark1_unit_name: mark1.service
+ovos_hardware_mark1_unit_path: "{{ ovos_hardware_mark1_systemd_user_dir }}/{{ ovos_hardware_mark1_unit_name }}"
+ovos_hardware_mark1_unit_mode: "0644"
+ovos_hardware_mark1_unit_restart_sec: 5s
+ovos_hardware_mark1_required_paths:
+  - path: "{{ ovos_hardware_mark1_serial_device }}"
+    name: Mark 1 serial device
+  - path: "{{ ovos_hardware_mark1_avrdude_binary }}"
+    name: avrdude binary
+  - path: "{{ ovos_hardware_mark1_boot_config_path }}"
+    name: boot config
+  - path: "{{ ovos_hardware_mark1_cmdline_path }}"
+    name: boot cmdline

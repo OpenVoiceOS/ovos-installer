@@ -1,0 +1,30 @@
+---
+- name: Remove docker-compose stack(s)
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ ovos_containers_composition_directory }}"
+    project_name: "{{ item.name }}"
+    files: "{{ item.file }}"
+    remove_orphans: "{{ ovos_containers_docker_compose_remove_orphans }}"
+    remove_images: "{{ ovos_containers_docker_compose_remove_images }}"
+    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
+    timeout: "{{ ovos_containers_compose_timeout }}"
+    state: absent
+  loop: "{{ ovos_containers_uninstall_compose_mapping }}"
+  environment:
+    DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
+  register: ovos_containers_composer_deletion
+  failed_when: ovos_containers_composer_deletion is not defined
+
+- name: Remove directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ ovos_containers_remove_directories }}"
+
+- name: Delete composer directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ ovos_containers_repo_directories }}"

@@ -1,0 +1,15 @@
+---
+ovos_sound_pipewire_alsa_package: pipewire-alsa
+ovos_sound_pipewire_fallback_package: pipewire
+ovos_sound_alsa_utils_package: alsa-utils
+ovos_sound_pulseaudio_package: pulseaudio
+ovos_sound_audio_group: audio
+ovos_sound_rtkit_group: rtkit
+ovos_sound_pipewire_group: pipewire
+ovos_sound_linger_path: "/var/lib/systemd/linger/{{ ovos_installer_user }}"
+ovos_sound_pgrep_cmd: pgrep
+ovos_sound_pipewire_pulse_process: pipewire-pulse
+ovos_sound_pulseaudio_process: pulseaudio
+ovos_sound_pipewire_process: pipewire
+ovos_sound_asoundrc_path: "{{ ovos_installer_user_home }}/.asoundrc"
+ovos_sound_asoundrc_mode: "0644"

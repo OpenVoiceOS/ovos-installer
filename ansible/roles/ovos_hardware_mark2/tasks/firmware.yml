@@ -7,13 +7,13 @@
 
 - name: Set EEPROM release
   ansible.builtin.lineinfile:
-    path: /etc/default/rpi-eeprom-update
+    path: "{{ ovos_hardware_mark2_eeprom_config_path }}"
     regexp: "^FIRMWARE_RELEASE_STATUS="
     line: 'FIRMWARE_RELEASE_STATUS="{{ ovos_hardware_mark2_eeprom_release }}"'
 
 - name: Update EEPROM
   ansible.builtin.command:
-    cmd: rpi-eeprom-update -a
+    cmd: "{{ ovos_hardware_mark2_eeprom_update_cmd }}"
   register: ovos_hardware_mark2_eeprom_status
   changed_when: false
 

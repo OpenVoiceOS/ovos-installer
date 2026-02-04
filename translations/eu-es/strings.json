@@ -17,8 +17,7 @@
     "title": "Ireki Voice OS Instalazioa - Ezaugarriak",
     "content": "Trebetasunek hizkeraren bidez interakzioa ahalbidetzen dute, eta eraginkorra egiten dute etxeko automatizazioa, informazioa berreskuratzea eta gailu adimendunak kontrolatzea hizkuntza naturaleko komandoak erabiliz.\n\nMesedez, aukeratu gaitzeko eginbideak:",
     "skill_description": "Kargatu OVOS trebetasun lehenetsiak",
-    "extra_skill_description": "Kargatu OVOS trebetasun gehigarriak",
-    "gui_description": "Gaitu erabiltzailearen interfaze grafikoa"
+    "extra_skill_description": "Kargatu OVOS trebetasun gehigarriak"
   },
   "finish.sh": {
     "title": "Ireki Voice OS instalazioa - Amaitu",

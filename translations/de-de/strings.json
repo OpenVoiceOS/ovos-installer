@@ -17,8 +17,7 @@
     "title": "Open Voice OS Funktionsauswahl",
     "content": "Skills ermöglichen die Interaktion durch Sprache, z. B. für Aufgaben wie Hausautomatisierung, Informationsabfrage und die Steuerung intelligenter Geräte durch Sprachbefehle.\n\nBitte wählen Sie die zu aktivierenden Funktionen aus:",
     "skill_description": "Laden Sie eine Auswahl an OVOS skills",
-    "extra_skill_description": "Laden Sie zusätzliche OVOS-Skills",
-    "gui_description": "Mit grafischer Benutzeroberfläche"
+    "extra_skill_description": "Laden Sie zusätzliche OVOS-Skills"
   },
   "finish.sh": {
     "title": "Open Voice OS Installations - Abschluß",

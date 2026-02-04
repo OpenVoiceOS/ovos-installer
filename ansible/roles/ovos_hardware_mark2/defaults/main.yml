@@ -1,4 +1,84 @@
 ---
 ovos_hardware_mark2_eeprom_release: latest
+ovos_hardware_mark2_shell_executable: /bin/bash
+ovos_hardware_mark2_sudo_path: /usr/bin/sudo
 ovos_hardware_mark2_vocalfusion_repo_url: https://github.com/OpenVoiceOS/VocalFusionDriver
 ovos_hardware_mark2_vocalfusion_branch: main
+ovos_hardware_mark2_kernel_headers_package: >-
+  {{
+    'linux-headers-rpi-v8'
+    if ansible_distribution == 'Debian' and ansible_distribution_major_version == '13'
+    else
+    'raspberrypi-kernel-headers'
+  }}
+ovos_hardware_mark2_working_dir: /opt/sj201
+ovos_hardware_mark2_systemd_user_dir: "{{ ovos_installer_user_home }}/.config/systemd/user"
+ovos_hardware_mark2_wireplumber_dir: "{{ ovos_installer_user_home }}/.config/wireplumber/main.lua.d"
+ovos_hardware_mark2_boot_overlays_dir: >-
+  {{ (ovos_hardware_mark2_boot_directory
+      | default(ovos_installer_boot_directory
+      | default(ovos_installer_boot_default_path | default('/boot')))) ~ '/overlays' }}
+ovos_hardware_mark2_boot_config_path: >-
+  {{ (ovos_hardware_mark2_boot_directory
+      | default(ovos_installer_boot_directory
+      | default(ovos_installer_boot_default_path | default('/boot')))) }}/config.txt
+ovos_hardware_mark2_eeprom_config_path: /etc/default/rpi-eeprom-update
+ovos_hardware_mark2_eeprom_update_cmd: rpi-eeprom-update -a
+ovos_hardware_mark2_vocalfusion_src_path: >-
+  {{ _ovos_hardware_mark2_vocalfusion_src_path | default('/usr/src/vocalfusion') }}
+ovos_hardware_mark2_vocalfusion_module_name: vocalfusion-soundcard
+ovos_hardware_mark2_vocalfusion_module_path: "/lib/modules/{{ ansible_kernel }}/{{ ovos_hardware_mark2_vocalfusion_module_name }}.ko"
+ovos_hardware_mark2_vocalfusion_driver_dir: "{{ ovos_hardware_mark2_vocalfusion_src_path }}/driver"
+ovos_hardware_mark2_vocalfusion_make_cmd: >-
+  sudo make -j {{ ansible_processor_count }}
+  KDIR=/lib/modules/{{ ansible_kernel }}/build
+  all
+ovos_hardware_mark2_sj201_flash_tool: xvf3510-flash
+ovos_hardware_mark2_sj201_firmware_image: app_xvf3510_int_spi_boot_v4_2_0.bin
+ovos_hardware_mark2_sj201_post_init_script: init_tas5806
+ovos_hardware_mark2_vocalfusion_dtbo_overlays:
+  - sj201
+  - sj201-buttons-overlay
+  - sj201-rev10-pwm-fan-overlay
+ovos_hardware_mark2_pi5_suffix: "-pi5"
+ovos_hardware_mark2_pi5_model_match: "Raspberry Pi 5"
+ovos_hardware_mark2_modules_load_path: /etc/modules-load.d/vocalfusion.conf
+ovos_hardware_mark2_modules_load_content: |
+  {{ ovos_hardware_mark2_vocalfusion_module_name }}
+ovos_hardware_mark2_sj201_venv_path: "{{ ovos_installer_user_home }}/.venvs/sj201"
+ovos_hardware_mark2_sj201_venv_command: "{{ ansible_python.executable }} -m venv"
+ovos_hardware_mark2_sj201_venv_packages:
+  - Adafruit-Blinka
+  - smbus2
+  - RPi.GPIO
+  - gpiod
+ovos_hardware_mark2_sj201_downloads:
+  - url: >-
+      https://raw.githubusercontent.com/OpenVoiceOS/ovos-buildroot/0e464466194f58553af11c34f7435dba76ec70a3/buildroot-external/package/vocalfusion/xvf3510-flash
+    dest: "{{ ovos_hardware_mark2_sj201_flash_tool }}"
+  - url: >-
+      https://raw.githubusercontent.com/OpenVoiceOS/ovos-buildroot/c67d7f0b7f2a3eff5faab96d6adf7495e9b48b93/buildroot-external/package/vocalfusion/app_xvf3510_int_spi_boot_v4_2_0.bin
+    dest: "{{ ovos_hardware_mark2_sj201_firmware_image }}"
+  - url: https://raw.githubusercontent.com/MycroftAI/mark-ii-hardware-testing/main/utils/init_tas5806.py
+    dest: "{{ ovos_hardware_mark2_sj201_post_init_script }}"
+ovos_hardware_mark2_sj201_unit_name: sj201.service
+ovos_hardware_mark2_sj201_unit_path: "{{ ovos_hardware_mark2_systemd_user_dir }}/{{ ovos_hardware_mark2_sj201_unit_name }}"
+ovos_hardware_mark2_sj201_unit_mode: "0644"
+ovos_hardware_mark2_sj201_unit_restart_sec: 5s
+ovos_hardware_mark2_required_paths:
+  - path: "{{ ovos_hardware_mark2_sudo_path }}"
+    name: sudo binary
+  - path: "{{ ovos_hardware_mark2_shell_executable }}"
+    name: shell executable
+  - path: "{{ ovos_hardware_mark2_boot_config_path }}"
+    name: boot config
+  - path: "{{ ovos_hardware_mark2_boot_overlays_dir }}"
+    name: boot overlays directory
+  - path: "{{ ovos_hardware_mark2_modules_load_path | dirname }}"
+    name: modules-load directory
+ovos_hardware_mark2_backlight_overlay: "dtoverlay=rpi-backlight"
+ovos_hardware_mark2_touchscreen_overlays:
+  - { overlay: "dtoverlay=vc4-kms-v3d", state: "absent" }
+  - { overlay: "dtoverlay=vc4-fkms-v3d", state: "present" }
+ovos_hardware_mark2_wireplumber_alsa_conf_src: 50-alsa-config.lua
+ovos_hardware_mark2_wireplumber_alsa_conf_mode: "0644"

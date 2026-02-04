@@ -1,0 +1,50 @@
+---
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
+- name: Block timezone
+  block:
+    - name: Auto-detect timezone
+      ansible.builtin.uri:
+        url: "{{ ovos_timezone_geoip_url }}"
+        method: "{{ ovos_timezone_geoip_method }}"
+        status_code: "{{ ovos_timezone_status_codes }}"
+        return_content: true
+        headers: "{{ ovos_timezone_headers }}"
+      register: ovos_timezone_detected
+      until: ovos_timezone_detected.status == ovos_timezone_expected_status
+      retries: "{{ ovos_timezone_retries }}"
+      delay: "{{ ovos_timezone_delay }}"
+
+    - name: Set system's timezone
+      community.general.timezone:
+        name: "{{ ovos_timezone_detected.get('json', {}).get('timezone', ovos_timezone_fallback_timezone) }}"
+
+    - name: Set detected timezone fact
+      ansible.builtin.set_fact:
+        ovos_timezone_value: "{{ ovos_timezone_detected.get('json', {}).get('timezone', ovos_timezone_fallback_timezone) }}"
+
+    - name: Set timezone name
+      ansible.builtin.set_fact:
+        ovos_timezone_name: "{{ ovos_timezone_value }}"
+  rescue:
+    - name: Rescue timezone
+      ansible.builtin.debug:
+        msg: "The installer was not able to set the timezone..."
+
+    - name: Read system timezone (rescue)
+      ansible.builtin.command: "{{ ovos_timezone_timedatectl_cmd }}"
+      register: ovos_timezone_system_timezone
+      changed_when: false
+      failed_when: false
+
+    - name: Set timezone fact from system timezone (rescue)
+      ansible.builtin.set_fact:
+        ovos_timezone_value: >-
+          {{ (ovos_timezone_system_timezone.stdout | default('') | trim) | default(ovos_timezone_fallback_timezone, true) }}
+
+    - name: Set timezone name (rescue)
+      ansible.builtin.set_fact:
+        ovos_timezone_name: "{{ ovos_timezone_value }}"

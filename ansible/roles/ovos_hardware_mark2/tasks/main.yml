@@ -1,6 +1,14 @@
 ---
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
 - name: Include prepare.yml
   ansible.builtin.import_tasks: prepare.yml
+
+- name: Include sanity.yml
+  ansible.builtin.import_tasks: sanity.yml
 
 - name: Include firmware.yml
   ansible.builtin.import_tasks: firmware.yml

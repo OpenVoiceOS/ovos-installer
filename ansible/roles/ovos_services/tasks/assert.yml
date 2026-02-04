@@ -1,0 +1,19 @@
+---
+- name: Assert services configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_services_systemd_user_path | length > 0
+      - ovos_services_systemd_system_path | length > 0
+      - ovos_services_unit_definitions | length > 0
+      - ovos_services_wrapper_path | length > 0
+    fail_msg: "Invalid services configuration."
+
+- name: Assert services path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Services path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_services_systemd_user_path }}"
+    - "{{ ovos_services_systemd_system_path }}"
+    - "{{ ovos_services_wrapper_path }}"

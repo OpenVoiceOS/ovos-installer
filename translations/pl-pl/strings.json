@@ -17,8 +17,7 @@
     "title": "Instalacja Open Voice OS - Funkcje",
     "content": "Umiejętności umożliwiają interakcję za pomocą mowy, co czyni ją wydajną w przypadku zadań takich jak automatyzacja domu, wyszukiwanie informacji i sterowanie inteligentnymi urządzeniami za pomocą poleceń języka naturalnego.\n\nWybierz funkcje, które chcesz włączyć:",
     "skill_description": "Załaduj domyślne umiejętności OVOS",
-    "extra_skill_description": "Załaduj dodatkowe umiejętności OVOS",
-    "gui_description": "Włącz graficzny interfejs użytkownika"
+    "extra_skill_description": "Załaduj dodatkowe umiejętności OVOS"
   },
   "finish.sh": {
     "title": "Instalacja Open Voice OS – Zakończ",

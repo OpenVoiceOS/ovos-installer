@@ -1,0 +1,67 @@
+---
+- name: Detect available TCP congestion control algorithms
+  ansible.builtin.command: "{{ ovos_performance_tuning_sysctl_tcp_cc_available_cmd }}"
+  register: ovos_performance_tuning_tcp_cc
+  changed_when: false
+  failed_when: false
+
+- name: Check for kernel.nmi_watchdog sysctl
+  ansible.builtin.stat:
+    path: "{{ ovos_performance_tuning_nmi_watchdog_path }}"
+  register: ovos_performance_tuning_nmi_watchdog_sysctl
+  changed_when: false
+  failed_when: false
+  tags:
+    - always
+
+- name: Remove kernel.nmi_watchdog sysctl when unsupported
+  ansible.posix.sysctl:
+    name: kernel.nmi_watchdog
+    state: absent
+    sysctl_file: "{{ ovos_performance_tuning_sysctl_file }}"
+    reload: false
+  when:
+    - not ovos_performance_tuning_nmi_watchdog_sysctl.stat.exists | default(false) | bool
+  tags:
+    - always
+
+- name: Handle sysctl tuning for Open Voice OS
+  ansible.posix.sysctl:
+    name: "{{ item.option }}"
+    value: "{{ item.value }}"
+    sysctl_file: "{{ ovos_performance_tuning_sysctl_file }}"
+    reload: false
+    state: present
+  loop: "{{ ovos_performance_tuning_sysctl_settings }}"
+  when: item.option != 'kernel.nmi_watchdog' or ovos_performance_tuning_nmi_watchdog_sysctl.stat.exists | default(false) | bool
+  tags:
+    - always
+
+- name: Enable BBR congestion control when available
+  ansible.posix.sysctl:
+    name: net.ipv4.tcp_congestion_control
+    value: "{{ ovos_performance_tuning_sysctl_congestion_control }}"
+    sysctl_file: "{{ ovos_performance_tuning_sysctl_file }}"
+    reload: false
+    state: present
+  when:
+    - "'bbr' in (ovos_performance_tuning_tcp_cc.stdout | default(''))"
+  tags:
+    - always
+
+- name: Reload sysctl tuning
+  ansible.builtin.command: "{{ ovos_performance_tuning_sysctl_reload_cmd }}"
+  register: ovos_performance_tuning_sysctl_reload
+  changed_when: ovos_performance_tuning_sysctl_reload.rc == 0
+  when: not ovos_installer_cleaning | bool
+  tags:
+    - always
+
+- name: Disable Transparent Hugepages (THP) - Persistent
+  ansible.builtin.copy:
+    dest: "{{ ovos_performance_tuning_thp_tmpfiles_path }}"
+    content: "{{ ovos_performance_tuning_thp_tmpfiles_content }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload Systemd

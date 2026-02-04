@@ -1,0 +1,24 @@
+---
+- name: Assert storage tuning configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_storage_tuning_fstab_path | length > 0
+      - ovos_storage_tuning_tmpfs_path | length > 0
+      - ovos_storage_tuning_tmpfs_mount_options | length > 0
+      - ovos_storage_tuning_mycroft_state_dir | length > 0
+      - ovos_storage_tuning_mycroft_state_persist_dir | length > 0
+      - ovos_storage_tuning_tmpfs_size is match('^[0-9]+[KMG]?$')
+      - ovos_storage_tuning_mycroft_state_tmpfs_size is match('^[0-9]+[KMG]?$')
+    fail_msg: "Invalid storage tuning configuration."
+
+- name: Assert storage tuning path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Storage tuning path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_storage_tuning_fstab_path }}"
+    - "{{ ovos_storage_tuning_tmpfs_path }}"
+    - "{{ ovos_storage_tuning_mycroft_state_dir }}"
+    - "{{ ovos_storage_tuning_mycroft_state_persist_dir }}"
+    - "{{ ovos_storage_tuning_log2ram_config_path }}"

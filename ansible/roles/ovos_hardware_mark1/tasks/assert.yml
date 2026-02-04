@@ -1,0 +1,19 @@
+---
+- name: Assert Mark 1 configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_hardware_mark1_working_directory | length > 0
+      - ovos_hardware_mark1_init_script_name | length > 0
+      - ovos_hardware_mark1_serial_device | length > 0
+    fail_msg: "Invalid Mark 1 configuration."
+
+- name: Assert Mark 1 path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Mark 1 path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_hardware_mark1_working_directory }}"
+    - "{{ ovos_hardware_mark1_boot_config_path }}"
+    - "{{ ovos_hardware_mark1_cmdline_path }}"
+    - "{{ ovos_hardware_mark1_serial_device }}"

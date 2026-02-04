@@ -1,0 +1,32 @@
+---
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
+- name: Check for /boot/firmware directory
+  ansible.builtin.stat:
+    path: "{{ ovos_facts_boot_firmware_path }}"
+  register: ovos_facts_boot_config_status
+
+- name: Set boot directory fact
+  ansible.builtin.set_fact:
+    ovos_facts_boot_directory: >-
+      {{ ovos_facts_boot_firmware_path
+         if ovos_facts_boot_config_status.stat.exists | bool
+         else ovos_facts_boot_default_path }}
+
+- name: Check for NetworkManager
+  ansible.builtin.stat:
+    path: "{{ ovos_facts_networkmanager_path }}"
+  register: ovos_facts_networkmanager_dir
+
+- name: Define systemd drop-in paths
+  ansible.builtin.set_fact:
+    ovos_facts_systemd_dropin_path: >-
+      {{ ovos_facts_systemd_system_path if ovos_facts_systemd_scope == 'system'
+         else ovos_facts_systemd_user_path }}
+    ovos_facts_systemd_dropin_owner: "{{ 'root' if ovos_facts_systemd_scope == 'system' else ovos_installer_user }}"
+    ovos_facts_systemd_dropin_group: "{{ 'root' if ovos_facts_systemd_scope == 'system' else ovos_installer_group }}"
+    ovos_facts_systemd_dropin_user_path: "{{ ovos_facts_systemd_user_path }}"
+    ovos_facts_systemd_reload_handler: "{{ 'Reload Systemd' if ovos_facts_systemd_scope == 'system' else 'Reload Systemd User' }}"

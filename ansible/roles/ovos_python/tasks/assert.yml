@@ -1,0 +1,18 @@
+---
+- name: Assert Python tuning configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_python_env_dir | length > 0
+      - ovos_python_env_file | length > 0
+      - ovos_python_mimalloc_pattern | length > 0
+      - ovos_python_env_pythonoptimize is not none
+      - ovos_python_env_omp_threads is not none
+    fail_msg: "Invalid Python tuning configuration."
+
+- name: Assert Python tuning path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Python tuning path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_python_env_dir }}"

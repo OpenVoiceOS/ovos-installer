@@ -1,0 +1,9 @@
+---
+- name: Assert telemetry configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_telemetry_url | length > 0
+      - ovos_telemetry_user_agent | length > 0
+      - ovos_telemetry_url is match('^https?://')
+      - ovos_telemetry_geoip_url is match('^https?://')
+    fail_msg: "Invalid telemetry configuration."

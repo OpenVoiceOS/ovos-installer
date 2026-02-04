@@ -1,0 +1,74 @@
+---
+- name: Stop Mycroft state sync timer
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_storage_tuning_mycroft_state_sync_timer }}"
+    enabled: false
+    state: stopped
+  failed_when: false
+
+- name: Stop Mycroft state restore service
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_storage_tuning_mycroft_state_restore_unit }}"
+    enabled: false
+    state: stopped
+  failed_when: false
+
+- name: Stop Mycroft state sync service
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_storage_tuning_mycroft_state_sync_unit }}"
+    enabled: false
+    state: stopped
+  failed_when: false
+
+- name: Sync Mycroft state back to disk  # noqa command-instead-of-module
+  ansible.builtin.command: >-
+    {{ ovos_storage_tuning_rsync_path }} -a --delete
+    "{{ ovos_storage_tuning_mycroft_state_dir }}/"
+    "{{ ovos_storage_tuning_mycroft_state_persist_dir }}/"
+  changed_when: false
+  failed_when: false
+
+- name: Check if Mycroft state tmpfs is mounted  # noqa command-instead-of-module
+  ansible.builtin.command: "{{ ovos_storage_tuning_mount_cmd }} \"{{ ovos_storage_tuning_mycroft_state_dir }}\""
+  register: ovos_storage_tuning_mycroft_state_mount
+  changed_when: false
+  failed_when: false
+
+- name: Unmount Mycroft state tmpfs  # noqa command-instead-of-module
+  ansible.builtin.command: "{{ ovos_storage_tuning_umount_cmd }} \"{{ ovos_storage_tuning_mycroft_state_dir }}\""
+  register: ovos_storage_tuning_mycroft_state_umount
+  when: ovos_storage_tuning_mycroft_state_mount.rc == 0
+  changed_when: false
+  failed_when: false
+
+- name: Recheck Mycroft state tmpfs mount  # noqa command-instead-of-module
+  ansible.builtin.command: "{{ ovos_storage_tuning_mount_cmd }} \"{{ ovos_storage_tuning_mycroft_state_dir }}\""
+  register: ovos_storage_tuning_mycroft_state_mount_after
+  changed_when: false
+  failed_when: false
+
+- name: Lazy unmount Mycroft state tmpfs if still busy  # noqa command-instead-of-module
+  ansible.builtin.command: "{{ ovos_storage_tuning_umount_cmd }} -l \"{{ ovos_storage_tuning_mycroft_state_dir }}\""
+  when: ovos_storage_tuning_mycroft_state_mount_after.rc == 0
+  changed_when: false
+  failed_when: false
+
+- name: Remove Mycroft state tmpfs fstab entry
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_storage_tuning_fstab_path }}"
+    regexp: "^[^#]\\S*\\s+{{ ovos_storage_tuning_mycroft_state_dir | regex_escape }}\\s+tmpfs\\s"
+    state: absent
+  notify: Reload Systemd
+
+- name: Remove Mycroft state systemd units
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  notify: Reload Systemd
+  loop:
+    - "{{ ovos_storage_tuning_mycroft_state_restore_path }}"
+    - "{{ ovos_storage_tuning_mycroft_state_sync_path }}"
+    - "{{ ovos_storage_tuning_mycroft_state_timer_path }}"
+
+- name: Flush handlers fstab
+  ansible.builtin.meta: flush_handlers

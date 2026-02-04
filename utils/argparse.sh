@@ -64,7 +64,7 @@ function handle_options() {
     export SHARE_USAGE_TELEMETRY="${SHARE_USAGE_TELEMETRY:-false}"
     export FEATURE_SKILLS="${FEATURE_SKILLS:-true}"
     export FEATURE_EXTRA_SKILLS="${FEATURE_EXTRA_SKILLS:-false}"
-    export FEATURE_GUI="${FEATURE_GUI:-false}"
+    export FEATURE_GUI="false"
     export OVOS_VENV_PYTHON="${OVOS_VENV_PYTHON:-3.11}"
     export HIVEMIND_HOST="${HIVEMIND_HOST:-}"
     export HIVEMIND_PORT="${HIVEMIND_PORT:-}"

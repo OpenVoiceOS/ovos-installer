@@ -1,8 +1,8 @@
 ---
 - name: Configure ALSA for WirePlumber
   ansible.builtin.copy:
-    src: 50-alsa-config.lua
-    dest: "{{ ovos_installer_user_home }}/.config/wireplumber/main.lua.d"
+    src: "{{ ovos_hardware_mark2_wireplumber_alsa_conf_src }}"
+    dest: "{{ ovos_hardware_mark2_wireplumber_dir }}/{{ ovos_hardware_mark2_wireplumber_alsa_conf_src }}"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
-    mode: "0644"
+    mode: "{{ ovos_hardware_mark2_wireplumber_alsa_conf_mode }}"

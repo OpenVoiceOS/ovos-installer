@@ -48,11 +48,11 @@ export OS_RELEASE=/etc/os-release
 export PASTE_URL="https://paste.uoi.io"
 export PULSE_SOCKET_WSL2=/mnt/wslg/PulseServer
 export REBOOT_FILE_PATH=/tmp/ovos.reboot
-declare -ra SCENARIO_ALLOWED_FEATURES=(skills extra_skills gui)
+declare -ra SCENARIO_ALLOWED_FEATURES=(skills extra_skills)
 export SCENARIO_ALLOWED_FEATURES
 declare -ra SCENARIO_ALLOWED_HIVEMIND_OPTIONS=(host port key password)
 export SCENARIO_ALLOWED_HIVEMIND_OPTIONS
-declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry share_usage_telemetry profile method uninstall rapsberry_pi_tuning hivemind)
+declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind)
 export SCENARIO_ALLOWED_OPTIONS
 export SCENARIO_NAME="scenario.yaml"
 export SCENARIO_PATH=""

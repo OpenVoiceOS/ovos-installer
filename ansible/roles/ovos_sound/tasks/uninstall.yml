@@ -1,0 +1,5 @@
+---
+- name: Remove .asoundrc file
+  ansible.builtin.file:
+    path: "{{ ovos_sound_asoundrc_path }}"
+    state: absent

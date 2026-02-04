@@ -1,0 +1,204 @@
+---
+# Thanks to https://www.xephixus.com/2019/12/11/testing/
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
+# Thanks to https://www.xephixus.com/2019/12/11/testing/
+- name: Add noatime and commit options
+  ansible.builtin.replace:
+    path: "{{ ovos_storage_tuning_fstab_path }}"
+    regexp: "^([\\S]+)(\\s+)(\\S+)(\\s+)({{ ovos_storage_tuning_noatime_fs_regex }})(\\s+)(((?!noatime)(?!commit=)\\S)*)(\\s+)(\\d)(\\s+)(\\d)$"
+    replace: "\\1\\2\\3\\4\\5\\6\\7,noatime,commit={{ ovos_storage_tuning_noatime_commit }}\\9\\10\\11\\12"
+    backup: true
+  notify: Reload Systemd
+
+- name: Install log2ram for /var/log persistence (Debian)
+  ansible.builtin.package:
+    name: "{{ ovos_storage_tuning_log2ram_package }}"
+    state: present
+  register: ovos_storage_tuning_log2ram_install
+  failed_when: false
+  when: ansible_os_family == "Debian"
+
+- name: Gather package facts for log2ram
+  ansible.builtin.package_facts:
+    manager: auto
+  failed_when: false
+  when: ansible_os_family == "Debian"
+
+- name: Set log2ram installed fact
+  ansible.builtin.set_fact:
+    ovos_storage_tuning_log2ram_installed: "{{ ansible_facts.packages is defined and 'log2ram' in ansible_facts.packages }}"
+  when: ansible_os_family == "Debian"
+
+- name: Configure log2ram size
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_storage_tuning_log2ram_config_path }}"
+    regexp: '^SIZE='
+    line: "SIZE={{ ovos_storage_tuning_log2ram_size }}"
+  register: ovos_storage_tuning_log2ram_size_result
+  when: ovos_storage_tuning_log2ram_installed | default(false) | bool
+
+- name: Enable log2ram service
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_storage_tuning_log2ram_service }}"
+    enabled: true
+    state: started
+  when: ovos_storage_tuning_log2ram_installed | default(false) | bool
+
+- name: Restart log2ram after size change
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_storage_tuning_log2ram_service }}"
+    state: restarted
+  when:
+    - ovos_storage_tuning_log2ram_installed | default(false) | bool
+    - ovos_storage_tuning_log2ram_size_result is defined
+    - ovos_storage_tuning_log2ram_size_result is changed
+
+- name: Configure persistent tmpfs for Mycroft state
+  when:
+    - ovos_storage_tuning_mycroft_state_tmpfs | bool
+    - not ovos_installer_cleaning | bool
+  block:
+    - name: Ensure rsync is installed
+      ansible.builtin.package:
+        name: rsync
+        state: present
+
+    - name: Ensure Mycroft state directories exist
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: "0755"
+      loop:
+        - "{{ ovos_storage_tuning_mycroft_state_dir }}"
+        - "{{ ovos_storage_tuning_mycroft_state_persist_dir }}"
+
+    - name: Mount tmpfs for Mycroft state
+      ansible.posix.mount:
+        path: "{{ ovos_storage_tuning_mycroft_state_dir }}"
+        src: tmpfs
+        fstype: tmpfs
+        opts: >-
+          {{ [
+            'defaults',
+            'noatime',
+            'nosuid',
+            'nodev',
+            'size=' ~ ovos_storage_tuning_mycroft_state_tmpfs_size,
+            'uid=' ~ ovos_installer_uid,
+            'gid=' ~ (ovos_installer_gid | default(ovos_installer_uid)),
+            'mode=0755'
+          ] | join(',') }}
+        state: mounted
+
+    - name: Install Mycroft state restore service
+      vars:
+        ovos_storage_tuning_state_restore_exec: >-
+          {{ ovos_storage_tuning_rsync_path }} -a
+          "{{ ovos_storage_tuning_mycroft_state_persist_dir }}/"
+          "{{ ovos_storage_tuning_mycroft_state_dir }}/"
+      ansible.builtin.copy:
+        dest: "{{ ovos_storage_tuning_mycroft_state_restore_path }}"
+        content: |
+          [Unit]
+          Description=Open Voice OS - Restore Mycroft state tmpfs
+          After={{ ovos_storage_tuning_state_restore_after }}
+          RequiresMountsFor={{ ovos_storage_tuning_mycroft_state_dir }} {{ ovos_storage_tuning_mycroft_state_persist_dir }}
+          Before={{ ovos_storage_tuning_state_restore_before }}
+
+          [Service]
+          Type=oneshot
+          User={{ ovos_installer_user }}
+          Group={{ ovos_installer_group }}
+          ExecStart={{ ovos_storage_tuning_state_restore_exec }}
+
+          [Install]
+          WantedBy=multi-user.target
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload Systemd
+
+    - name: Install Mycroft state sync service
+      vars:
+        ovos_storage_tuning_state_sync_exec: >-
+          {{ ovos_storage_tuning_rsync_path }} -a --delete
+          "{{ ovos_storage_tuning_mycroft_state_dir }}/"
+          "{{ ovos_storage_tuning_mycroft_state_persist_dir }}/"
+      ansible.builtin.copy:
+        dest: "{{ ovos_storage_tuning_mycroft_state_sync_path }}"
+        content: |
+          [Unit]
+          Description=Open Voice OS - Sync Mycroft state tmpfs
+          After={{ ovos_storage_tuning_state_sync_after }}
+          RequiresMountsFor={{ ovos_storage_tuning_mycroft_state_dir }} {{ ovos_storage_tuning_mycroft_state_persist_dir }}
+
+          [Service]
+          Type=oneshot
+          User={{ ovos_installer_user }}
+          Group={{ ovos_installer_group }}
+          ExecStart={{ ovos_storage_tuning_state_sync_exec }}
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload Systemd
+
+    - name: Install Mycroft state sync timer
+      ansible.builtin.copy:
+        dest: "{{ ovos_storage_tuning_mycroft_state_timer_path }}"
+        content: |
+          [Unit]
+          Description=Open Voice OS - Periodic Mycroft state sync
+
+          [Timer]
+          OnBootSec={{ ovos_storage_tuning_timer_on_boot }}
+          OnUnitActiveSec={{ ovos_storage_tuning_mycroft_state_sync_interval }}
+          AccuracySec={{ ovos_storage_tuning_timer_accuracy }}
+          Persistent=true
+
+          [Install]
+          WantedBy=timers.target
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload Systemd
+
+    - name: Enable Mycroft state restore service
+      ansible.builtin.systemd_service:
+        name: "{{ ovos_storage_tuning_mycroft_state_restore_unit }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Enable Mycroft state sync timer
+      ansible.builtin.systemd_service:
+        name: "{{ ovos_storage_tuning_mycroft_state_sync_timer }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Seed Mycroft state persistence
+      ansible.builtin.systemd_service:
+        name: "{{ ovos_storage_tuning_mycroft_state_sync_unit }}"
+        state: started
+        daemon_reload: true
+
+- name: Optimize I/O Latency (tmpfs for /tmp)
+  ansible.posix.mount:
+    path: "{{ ovos_storage_tuning_tmpfs_path }}"
+    src: tmpfs
+    fstype: tmpfs
+    opts: >-
+      {{ ovos_storage_tuning_tmpfs_mount_options | join(',') }}
+    state: mounted
+
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall

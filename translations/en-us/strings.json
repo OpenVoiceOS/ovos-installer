@@ -17,8 +17,7 @@
     "title": "Open Voice OS Installation - Features",
     "content": "Skills enable interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.\n\nPlease choose the features to enable:",
     "skill_description": "Load default OVOS skills",
-    "extra_skill_description": "Load extra OVOS skills",
-    "gui_description": "Enable graphical user interface"
+    "extra_skill_description": "Load extra OVOS skills"
   },
   "finish.sh": {
     "title": "Open Voice OS Installation - Finish",

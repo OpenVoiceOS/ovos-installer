@@ -1,0 +1,22 @@
+---
+- name: Grant Real-Time Permissions to OVOS user
+  ansible.builtin.copy:
+    dest: "{{ ovos_performance_tuning_limits_path }}"
+    content: |-
+      # Allow OVOS user to run real-time audio threads and lock memory
+      {% for entry in ovos_performance_tuning_limits_entries %}
+      {{ entry.domain }} {{ entry.type }} {{ entry.item }} {{ entry.value }}
+      {% endfor %}
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Reload Systemd
+    - Restart OVOS services
+
+- name: Enable PAM limits for systemd sessions
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_performance_tuning_pam_limits_file }}"
+    line: "{{ ovos_performance_tuning_pam_limits_line }}"
+    state: present
+  when: ansible_os_family == "Debian"

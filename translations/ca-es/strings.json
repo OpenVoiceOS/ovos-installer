@@ -17,8 +17,7 @@
     "title": "Instal·lació de l'Open Voice OS - Característiques",
     "content": "Les habilitats permeten la interacció a través de la parla, i la fan eficient per a tasques com la domòtica, la recuperació d'informació i el control de dispositius intel·ligents mitjançant ordres de llenguatge natural.\n\nSi us plau, trieu les funcions que voleu activar:",
     "skill_description": "Carrega les habilitats d'OVOS predeterminades",
-    "extra_skill_description": "Carrega habilitats d'OVOS addicionals",
-    "gui_description": "Habilita la interfície gràfica d'usuari"
+    "extra_skill_description": "Carrega habilitats d'OVOS addicionals"
   },
   "finish.sh": {
     "title": "Instal·lació de l'Open Voice OS - Finalització",

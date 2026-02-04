@@ -1,0 +1,422 @@
+---
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
+- name: Configure audio tuning
+  when: not ovos_installer_cleaning | bool
+  block:
+    - name: Ensure user PipeWire config directory exists
+      ansible.builtin.file:
+        path: "{{ ovos_audio_tuning_pipewire_conf_dir }}"
+        state: directory
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: '0755'
+
+    - name: Configure PipeWire for Low Latency (User Scope)
+      vars:
+        ovos_audio_tuning_allowed_rates_csv: >-
+          {{ ovos_audio_tuning_pipewire_allowed_rates | map('string') | join(', ') }}
+        ovos_audio_tuning_pipewire_quantum: >-
+          {{ ovos_audio_tuning_pipewire_quantum_low
+             if ovos_audio_tuning_low_latency | bool
+             else ovos_audio_tuning_pipewire_quantum_default }}
+        ovos_audio_tuning_pipewire_min_quantum: >-
+          {{ ovos_audio_tuning_pipewire_min_quantum_low
+             if ovos_audio_tuning_low_latency | bool
+             else ovos_audio_tuning_pipewire_min_quantum_default }}
+        ovos_audio_tuning_pipewire_max_quantum: >-
+          {{ ovos_audio_tuning_pipewire_max_quantum_low
+             if ovos_audio_tuning_low_latency | bool
+             else ovos_audio_tuning_pipewire_max_quantum_default }}
+      ansible.builtin.copy:
+        dest: "{{ ovos_audio_tuning_pipewire_conf_dir }}/{{ ovos_audio_tuning_pipewire_low_latency_conf }}"
+        content: |
+          context.properties = {
+              default.clock.rate = {{ ovos_audio_tuning_pipewire_clock_rate }}
+              default.clock.allowed-rates = [ {{ ovos_audio_tuning_allowed_rates_csv }} ]
+              default.clock.quantum = {{ ovos_audio_tuning_pipewire_quantum }}
+              default.clock.min-quantum = {{ ovos_audio_tuning_pipewire_min_quantum }}
+              default.clock.max-quantum = {{ ovos_audio_tuning_pipewire_max_quantum }}
+          }
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: '0644'
+      notify:
+        - Start Sound Server
+        - Restart PipeWire
+
+    - name: Read PipeWire status to detect default devices
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        argv:
+          - "{{ ovos_audio_tuning_wpctl_cmd }}"
+          - status
+      register: ovos_audio_tuning_pipewire_status
+      changed_when: false
+      failed_when: false
+      environment:
+        XDG_RUNTIME_DIR: "{{ ovos_audio_tuning_runtime_dir }}"
+        DBUS_SESSION_BUS_ADDRESS: "{{ ovos_audio_tuning_dbus_address }}"
+      when:
+        - ovos_sound_detect_sound_server is defined
+        - ovos_sound_detect_sound_server.stdout == "pipewire"
+
+    - name: Set PipeWire default device facts
+      ansible.builtin.set_fact:
+        ovos_audio_tuning_pipewire_default_source: >-
+          {{ (ovos_audio_tuning_pipewire_status.stdout | default('') | regex_search('Audio/Source\\s+([^\\s]+)', '\\1')) | default('') }}
+        ovos_audio_tuning_pipewire_default_sink: >-
+          {{ (ovos_audio_tuning_pipewire_status.stdout | default('') | regex_search('Audio/Sink\\s+([^\\s]+)', '\\1')) | default('') }}
+      when:
+        - ovos_audio_tuning_pipewire_status is defined
+        - ovos_audio_tuning_pipewire_status.stdout is defined
+
+    - name: Detect Bluetooth default source
+      ansible.builtin.set_fact:
+        ovos_audio_tuning_pipewire_default_source_is_bluetooth: >-
+          {{ (ovos_audio_tuning_pipewire_default_source | default('') | regex_search('^bluez_input')) | default('') != '' }}
+      when:
+        - ovos_audio_tuning_pipewire_default_source is defined
+
+    - name: Inspect Bluetooth default source for device id
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        argv:
+          - "{{ ovos_audio_tuning_wpctl_cmd }}"
+          - inspect
+          - "@DEFAULT_AUDIO_SOURCE@"
+      register: ovos_audio_tuning_pipewire_default_source_inspect
+      changed_when: false
+      failed_when: false
+      environment:
+        XDG_RUNTIME_DIR: "{{ ovos_audio_tuning_runtime_dir }}"
+        DBUS_SESSION_BUS_ADDRESS: "{{ ovos_audio_tuning_dbus_address }}"
+      when:
+        - ovos_sound_detect_sound_server is defined
+        - ovos_sound_detect_sound_server.stdout == "pipewire"
+        - ovos_audio_tuning_pipewire_default_source_is_bluetooth | bool
+
+    - name: Set Bluetooth device id fact
+      ansible.builtin.set_fact:
+        ovos_audio_tuning_pipewire_bluetooth_device_id: >-
+          {{ (ovos_audio_tuning_pipewire_default_source_inspect.stdout | default('') | regex_search('device.id\\s*=\\s*([0-9]+)', '\\1')) | default('') }}
+      when:
+        - ovos_audio_tuning_pipewire_default_source_inspect is defined
+        - ovos_audio_tuning_pipewire_default_source_inspect.stdout is defined
+
+    - name: Set Bluetooth headset profile
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        argv:
+          - "{{ ovos_audio_tuning_wpctl_cmd }}"
+          - set-profile
+          - "{{ ovos_audio_tuning_pipewire_bluetooth_device_id }}"
+          - "{{ ovos_audio_tuning_bluetooth_profile | default('headset-head-unit') }}"
+      register: ovos_audio_tuning_pipewire_bluetooth_profile_set
+      changed_when: false
+      failed_when: false
+      environment:
+        XDG_RUNTIME_DIR: "{{ ovos_audio_tuning_runtime_dir }}"
+        DBUS_SESSION_BUS_ADDRESS: "{{ ovos_audio_tuning_dbus_address }}"
+      when:
+        - ovos_sound_detect_sound_server is defined
+        - ovos_sound_detect_sound_server.stdout == "pipewire"
+        - ovos_audio_tuning_pipewire_bluetooth_device_id | default('') != ''
+        - ovos_audio_tuning_pipewire_default_source_is_bluetooth | bool
+        - ovos_audio_tuning_noise_suppression | default(false) | bool
+
+    - name: Set Bluetooth headset profile fallback
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        argv:
+          - "{{ ovos_audio_tuning_wpctl_cmd }}"
+          - set-profile
+          - "{{ ovos_audio_tuning_pipewire_bluetooth_device_id }}"
+          - "{{ ovos_audio_tuning_bluetooth_profile_fallback | default('handsfree_head_unit') }}"
+      changed_when: false
+      failed_when: false
+      environment:
+        XDG_RUNTIME_DIR: "{{ ovos_audio_tuning_runtime_dir }}"
+        DBUS_SESSION_BUS_ADDRESS: "{{ ovos_audio_tuning_dbus_address }}"
+      when:
+        - ovos_sound_detect_sound_server is defined
+        - ovos_sound_detect_sound_server.stdout == "pipewire"
+        - ovos_audio_tuning_pipewire_bluetooth_device_id | default('') != ''
+        - ovos_audio_tuning_pipewire_default_source_is_bluetooth | bool
+        - ovos_audio_tuning_noise_suppression | default(false) | bool
+        - ovos_audio_tuning_pipewire_bluetooth_profile_set is defined
+        - ovos_audio_tuning_pipewire_bluetooth_profile_set.rc | default(0) != 0
+
+    - name: Set PipeWire capture target when unset
+      ansible.builtin.set_fact:
+        ovos_audio_tuning_capture_target: >-
+          {{ ovos_audio_tuning_capture_target
+             | default(ovos_audio_tuning_pipewire_default_source, true) }}
+      when:
+        - ovos_audio_tuning_capture_target | default('') == ''
+        - ovos_audio_tuning_pipewire_default_source | default('') != ''
+        - not (ovos_audio_tuning_pipewire_default_source | regex_search('^echo-cancel'))
+
+    - name: Set PipeWire playback target when unset
+      ansible.builtin.set_fact:
+        ovos_audio_tuning_playback_target: >-
+          {{ ovos_audio_tuning_playback_target
+             | default(ovos_audio_tuning_pipewire_default_sink, true) }}
+      when:
+        - ovos_audio_tuning_playback_target | default('') == ''
+        - ovos_audio_tuning_pipewire_default_sink | default('') != ''
+        - not (ovos_audio_tuning_pipewire_default_sink | regex_search('^echo-cancel'))
+
+    - name: Configure PipeWire noise suppression (User Scope)
+      ansible.builtin.copy:
+        dest: "{{ ovos_audio_tuning_pipewire_conf_dir }}/{{ ovos_audio_tuning_pipewire_noise_suppression_conf }}"
+        content: |
+          context.modules = [
+              { name = {{ ovos_audio_tuning_pipewire_ns_module }}
+                args = {
+                  aec.method = {{ ovos_audio_tuning_pipewire_ns_aec_method }}
+                  aec.webrtc.noise_suppression = true
+                  aec.webrtc.noise_suppression_level = {{ ovos_audio_tuning_ns_level | int }}
+                  aec.webrtc.gain_control = {{ 'true' if ovos_audio_tuning_ns_agc | bool else 'false' }}
+                  source.name = "{{ ovos_audio_tuning_pipewire_ns_source_name }}"
+                  source.props = {
+                    node.description = "{{ ovos_audio_tuning_pipewire_ns_source_description }}"
+                  }
+                  sink.name = "{{ ovos_audio_tuning_pipewire_ns_sink_name }}"
+                  sink.props = {
+                    node.description = "{{ ovos_audio_tuning_pipewire_ns_sink_description }}"
+                  }
+          {% if ovos_audio_tuning_capture_target | default('') %}
+                  capture.props = {
+                    node.target = "{{ ovos_audio_tuning_capture_target }}"
+                  }
+          {% endif %}
+          {% if ovos_audio_tuning_playback_target | default('') %}
+                  playback.props = {
+                    node.target = "{{ ovos_audio_tuning_playback_target }}"
+                  }
+          {% endif %}
+                }
+              }
+          ]
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: '0644'
+      notify:
+        - Start Sound Server
+        - Restart PipeWire
+      when:
+        - ovos_audio_tuning_noise_suppression | default(false) | bool
+
+    - name: Ensure WirePlumber config directory exists
+      ansible.builtin.file:
+        path: "{{ ovos_audio_tuning_wireplumber_conf_dir }}"
+        state: directory
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: '0755'
+
+    - name: Disable WirePlumber idle suspend for audio devices
+      vars:
+        ovos_audio_tuning_wireplumber_latency: >-
+          {{ ovos_audio_tuning_wireplumber_latency_low
+             if ovos_audio_tuning_low_latency | bool
+             else ovos_audio_tuning_wireplumber_latency_default }}
+      ansible.builtin.copy:
+        dest: "{{ ovos_audio_tuning_wireplumber_conf_dir }}/{{ ovos_audio_tuning_wireplumber_idle_conf }}"
+        content: |
+          monitor.alsa.rules = [
+            {
+              matches = [ { node.name = "{{ ovos_audio_tuning_wireplumber_idle_output_match }}" } ]
+              actions = {
+                update-props = {
+                  session.suspend-timeout-seconds = 0
+                  node.pause-on-idle = false
+                  node.suspend-on-idle = false
+                  node.always-process = true
+                }
+              }
+            },
+            {
+              matches = [ { node.name = "{{ ovos_audio_tuning_wireplumber_idle_input_match }}" } ]
+              actions = {
+                update-props = {
+                  session.suspend-timeout-seconds = 0
+                  node.pause-on-idle = false
+                  node.suspend-on-idle = false
+                  node.always-process = true
+                  node.latency = {{ ovos_audio_tuning_wireplumber_latency }}
+                }
+              }
+            }
+          ]
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: '0644'
+      notify:
+        - Restart OVOS services
+        - Restart WirePlumber
+
+    - name: Set WirePlumber default capture volume
+      ansible.builtin.copy:
+        dest: "{{ ovos_audio_tuning_wireplumber_conf_dir }}/{{ ovos_audio_tuning_wireplumber_capture_volume_conf }}"
+        content: |
+          wireplumber.settings = {
+            device.routes.default-source-volume = {{ [ovos_audio_tuning_source_volume | float, 1.0] | min }}
+            node.stream.default-capture-volume = {{ [ovos_audio_tuning_source_volume | float, 1.0] | min }}
+          }
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: '0644'
+      notify: Restart WirePlumber
+
+    - name: Detect ALSA capture cards
+      ansible.builtin.command:
+        argv:
+          - "{{ ovos_audio_tuning_arecord_cmd }}"
+          - -l
+      register: ovos_audio_tuning_arecord_devices
+      changed_when: false
+      failed_when: false
+
+    - name: Set detected ALSA capture card index
+      ansible.builtin.set_fact:
+        ovos_audio_tuning_audio_card_index_detected: >-
+          {{ (ovos_audio_tuning_arecord_devices.stdout | default('') | regex_search('card\\s+([0-9]+):', '\\1')) | default('') }}
+      when:
+        - ovos_audio_tuning_audio_card_index | default('') == ''
+        - ovos_audio_tuning_arecord_devices is defined
+        - ovos_audio_tuning_arecord_devices.stdout is defined
+
+    - name: Read ALSA capture controls
+      ansible.builtin.command:
+        argv:
+          - "{{ ovos_audio_tuning_amixer_cmd }}"
+          - -c
+          - "{{ ovos_audio_tuning_audio_card_index | default(ovos_audio_tuning_audio_card_index_detected | default('')) }}"
+          - scontrols
+      register: ovos_audio_tuning_amixer_controls
+      changed_when: false
+      failed_when: false
+      when:
+        - ovos_audio_tuning_ns_agc | bool
+        - (ovos_audio_tuning_audio_card_index | default(ovos_audio_tuning_audio_card_index_detected | default(''))) != ''
+
+    - name: Enable ALSA auto gain control when available
+      ansible.builtin.command:
+        argv:
+          - "{{ ovos_audio_tuning_amixer_cmd }}"
+          - -c
+          - "{{ ovos_audio_tuning_audio_card_index | default(ovos_audio_tuning_audio_card_index_detected | default('')) }}"
+          - sset
+          - "{{ ovos_audio_tuning_auto_gain_control_label }}"
+          - "on"
+      changed_when: false
+      failed_when: false
+      when:
+        - ovos_audio_tuning_ns_agc | bool
+        - (ovos_audio_tuning_audio_card_index | default(ovos_audio_tuning_audio_card_index_detected | default(''))) != ''
+        - "ovos_audio_tuning_auto_gain_control_label in (ovos_audio_tuning_amixer_controls.stdout | default(''))"
+
+    - name: Flush PipeWire handlers before setting default source
+      ansible.builtin.meta: flush_handlers
+      when:
+        - ovos_audio_tuning_noise_suppression | default(false) | bool
+
+    - name: Read PipeWire status after noise suppression
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        argv:
+          - "{{ ovos_audio_tuning_wpctl_cmd }}"
+          - status
+      register: ovos_audio_tuning_pipewire_status_after_ns
+      changed_when: false
+      failed_when: false
+      environment:
+        XDG_RUNTIME_DIR: "{{ ovos_audio_tuning_runtime_dir }}"
+        DBUS_SESSION_BUS_ADDRESS: "{{ ovos_audio_tuning_dbus_address }}"
+      when:
+        - ovos_sound_detect_sound_server is defined
+        - ovos_sound_detect_sound_server.stdout == "pipewire"
+        - ovos_audio_tuning_noise_suppression | default(false) | bool
+
+    - name: Set PipeWire echo-cancel source id
+      ansible.builtin.set_fact:
+        ovos_audio_tuning_pipewire_ec_source_id: >-
+          {{ (ovos_audio_tuning_pipewire_status_after_ns.stdout | default('') | regex_search('([0-9]+)\\.\\s+echo-cancel-source', '\\1')) | default('') }}
+      when:
+        - ovos_audio_tuning_pipewire_status_after_ns is defined
+        - ovos_audio_tuning_pipewire_status_after_ns.stdout is defined
+
+    - name: Set PipeWire default source to noise-suppressed node
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        argv:
+          - "{{ ovos_audio_tuning_wpctl_cmd }}"
+          - set-default
+          - "{{ ovos_audio_tuning_pipewire_ec_source_id }}"
+      environment:
+        XDG_RUNTIME_DIR: "{{ ovos_audio_tuning_runtime_dir }}"
+        DBUS_SESSION_BUS_ADDRESS: "{{ ovos_audio_tuning_dbus_address }}"
+      changed_when: false
+      failed_when: false
+      when:
+        - ovos_sound_detect_sound_server is defined
+        - ovos_sound_detect_sound_server.stdout == "pipewire"
+        - ovos_audio_tuning_noise_suppression | default(false) | bool
+        - ovos_audio_tuning_pipewire_ec_source_id | default('') != ''
+
+    - name: Bump PipeWire default source volume
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        argv:
+          - "{{ ovos_audio_tuning_wpctl_cmd }}"
+          - set-volume
+          - "@DEFAULT_AUDIO_SOURCE@"
+          - "{{ ovos_audio_tuning_source_volume }}"
+      environment:
+        XDG_RUNTIME_DIR: "{{ ovos_audio_tuning_runtime_dir }}"
+        DBUS_SESSION_BUS_ADDRESS: "{{ ovos_audio_tuning_dbus_address }}"
+      changed_when: false
+      failed_when: false
+      when:
+        - ovos_sound_detect_sound_server is defined
+        - ovos_sound_detect_sound_server.stdout == "pipewire"
+
+    - name: Install rtkit for real-time audio scheduling
+      ansible.builtin.package:
+        name: "{{ ovos_audio_tuning_rtkit_package }}"
+        state: present
+      register: ovos_audio_tuning_rtkit_install_result
+      ignore_errors: true
+
+    - name: Remove system-wide PipeWire tuning (Cleanup)
+      ansible.builtin.file:
+        path: "{{ ovos_audio_tuning_system_pipewire_conf_dir }}/{{ ovos_audio_tuning_system_low_latency_conf }}"
+        state: absent
+
+    - name: Configure USB Audio Driver for Low Latency
+      ansible.builtin.copy:
+        dest: "{{ ovos_audio_tuning_usb_audio_conf_path }}"
+        content: "{{ ovos_audio_tuning_usb_audio_conf_content }}"
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Set Reboot
+
+
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_installer_cleaning | bool
+  tags:
+    - uninstall

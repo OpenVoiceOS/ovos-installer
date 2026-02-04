@@ -1,0 +1,24 @@
+#jinja2: lstrip_blocks: True
+{
+    "os_type": "{{ ansible_system | lower }}",
+    "os_name": "{{ ansible_distribution | lower }}",
+    "os_version": "{{ ansible_distribution_version }}",
+    "os_kernel": "{{ ansible_kernel }}",
+    "architecture": "{{ ansible_architecture }}",
+    "sound_server": "{{ ovos_sound_detect_sound_server.stdout }}",
+    "python_version": "{{ ansible_python_version }}",
+    "display_server": "{{ ovos_installer_display_server | lower }}",
+    "container": {{ true if ovos_installer_method == 'containers' else false }},
+    "venv": {{ true if ovos_installer_method == 'virtualenv' else false }},
+    "installed_at": "{{ ansible_date_time.iso8601_micro }}",
+    "channel": "{{ ovos_installer_channel }}",
+    "profile": "{{ ovos_installer_profile }}",
+    "raspberry_pi": "{{ 'n/a' if (ovos_installer_raspberrypi | default('N/A')) == 'N/A' else (ovos_installer_raspberrypi | default('N/A')) }}",
+    "skills_feature": {{ ovos_installer_feature_skills }},
+    "extra_skills_feature": {{ ovos_installer_feature_extra_skills }},
+    "gui_feature": {{ ovos_telemetry_feature_gui }},
+    "cpu_capable": {{ ovos_installer_cpu_is_capable }},
+    "tuning_enabled": {{ true if ovos_installer_tuning == 'yes' else false }},
+    "country": "{{ (ovos_installer_isp_data.json.country | default('unknown', true)) | lower }}",
+    "hardware": "{{ 'n/a' if (ovos_installer_i2c_devices | default([])) | length < 1 else (ovos_installer_i2c_devices | default([]) | first) }}"
+}
