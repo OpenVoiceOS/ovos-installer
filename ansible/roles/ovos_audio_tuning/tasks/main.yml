@@ -289,7 +289,11 @@
     - name: Set detected ALSA capture card index
       ansible.builtin.set_fact:
         ovos_audio_tuning_audio_card_index_detected: >-
-          {{ (ovos_audio_tuning_arecord_devices.stdout | default('') | regex_search('card\\s+([0-9]+):', '\\1')) | default('') }}
+          {{ (ovos_audio_tuning_arecord_devices.stdout
+              | default('')
+              | regex_findall('card\\s+([0-9]+):')
+              | first
+              | default('')) }}
       when:
         - ovos_audio_tuning_audio_card_index | default('') == ''
         - ovos_audio_tuning_arecord_devices is defined

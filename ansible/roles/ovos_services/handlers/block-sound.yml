@@ -1,6 +1,8 @@
 ---
 - name: Block Start Sound Server (PipeWire)
-  when: "'skipped' not in ovos_installer_pipewire_install.keys()"
+  when:
+    - ovos_sound_pipewire_install is defined
+    - "'skipped' not in ovos_sound_pipewire_install.keys()"
   block:
     - name: Start PipeWire systemd service
       become: true
@@ -17,10 +19,12 @@
         name: pipewire-pulse
         scope: user
         state: started
-      when: ovos_installer_sound_server == 'PulseAudio'
+      when: ovos_sound_expected_server == 'pulseaudio'
 
 - name: Block Start Sound Server (PulseAudio)
-  when: "'skipped' not in ovos_installer_pulseaudio_install.keys()"
+  when:
+    - ovos_sound_pulseaudio_install is defined
+    - "'skipped' not in ovos_sound_pulseaudio_install.keys()"
   block:
     - name: Start PulseAudio systemd service
       become: true

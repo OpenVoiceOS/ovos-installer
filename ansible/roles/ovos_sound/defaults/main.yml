@@ -13,3 +13,4 @@ ovos_sound_pulseaudio_process: pulseaudio
 ovos_sound_pipewire_process: pipewire
 ovos_sound_asoundrc_path: "{{ ovos_installer_user_home }}/.asoundrc"
 ovos_sound_asoundrc_mode: "0644"
+ovos_sound_expected_server: "{{ (ovos_installer_sound_server | default('N/A')) | lower }}"
