@@ -323,7 +323,7 @@
       when:
         - ovos_audio_tuning_ns_agc | bool
         - (ovos_audio_tuning_audio_card_index | default(ovos_audio_tuning_audio_card_index_detected | default(''))) != ''
-        - "ovos_audio_tuning_auto_gain_control_label in (ovos_audio_tuning_amixer_controls.stdout | default(''))"
+        - (ovos_audio_tuning_auto_gain_control_label | default('')) in (ovos_audio_tuning_amixer_controls.stdout | default(''))
 
     - name: Flush PipeWire handlers before setting default source
       ansible.builtin.meta: flush_handlers
