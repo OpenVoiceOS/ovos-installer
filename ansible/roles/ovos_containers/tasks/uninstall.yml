@@ -1,4 +1,12 @@
 ---
+- name: Assert uninstall mode
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_cleaning | default(false) | bool
+    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
+  tags:
+    - uninstall
+
 - name: Remove docker-compose stack(s)
   become: true
   become_user: "{{ ovos_installer_user }}"

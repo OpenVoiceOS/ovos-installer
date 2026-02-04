@@ -22,6 +22,7 @@ ovos_config_backup_group: "{{ ovos_installer_group }}"
 ovos_config_backup_mode: "0755"
 ovos_config_backup_format: gz
 ovos_config_log_path: /var/log/ovos-installer.log
+ovos_config_ansible_log_path: /var/log/ovos-ansible.log
 
 ovos_config_container_dir_owner: "{{ ovos_installer_user }}"
 ovos_config_container_dir_group: "{{ ovos_installer_group }}"

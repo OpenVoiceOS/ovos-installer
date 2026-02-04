@@ -1,4 +1,12 @@
 ---
+- name: Assert uninstall mode
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_cleaning | default(false) | bool
+    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
+  tags:
+    - uninstall
+
 - name: Remove cpupower package on Debian family
   ansible.builtin.apt:
     name: "{{ 'linux-tools-common' if ansible_distribution != 'Debian' else 'linux-cpupower' }}"

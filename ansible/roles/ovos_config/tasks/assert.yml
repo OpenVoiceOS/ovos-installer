@@ -16,6 +16,7 @@
   loop:
     - "{{ ovos_config_backup_dest }}"
     - "{{ ovos_config_log_path }}"
+    - "{{ ovos_config_ansible_log_path }}"
 
 - name: Assert GeoIP URL format when enabled
   ansible.builtin.assert:

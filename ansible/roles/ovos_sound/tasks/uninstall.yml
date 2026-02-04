@@ -1,4 +1,12 @@
 ---
+- name: Assert uninstall mode
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_cleaning | default(false) | bool
+    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
+  tags:
+    - uninstall
+
 - name: Remove .asoundrc file
   ansible.builtin.file:
     path: "{{ ovos_sound_asoundrc_path }}"

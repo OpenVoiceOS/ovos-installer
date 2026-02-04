@@ -1,4 +1,12 @@
 ---
+- name: Assert uninstall mode
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_cleaning | default(false) | bool
+    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
+  tags:
+    - uninstall
+
 - name: Remove NetworkManager dnsmasq config
   ansible.builtin.file:
     path: "{{ ovos_network_tuning_dnsmasq_conf_path }}"
