@@ -166,10 +166,10 @@
   vars:
     _requirements_paths: "{{ ovos_virtualenv_requirements_files | map(attribute='dest') | list }}"
     _uninstall_paths: >-
-      {{ [ovos_virtualenv_path]
+      {{ [ovos_virtualenv_path, ovos_virtualenv_root_dir, ovos_virtualenv_messagebus_path]
          + _requirements_paths
          + ovos_virtualenv_uninstall_extra_paths
-         + [ovos_virtualenv_messagebus_path] }}
+         | unique }}
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent

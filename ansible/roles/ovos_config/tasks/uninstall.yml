@@ -38,3 +38,8 @@
   ansible.builtin.file:
     path: "{{ ovos_config_ansible_log_path }}"
     state: absent
+
+- name: Remove ansible directory on uninstall
+  ansible.builtin.file:
+    path: "{{ ovos_config_ansible_dir }}"
+    state: absent

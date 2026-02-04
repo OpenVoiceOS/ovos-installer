@@ -15,4 +15,5 @@
     fail_msg: "Virtualenv path must be absolute: {{ item }}"
   loop:
     - "{{ ovos_virtualenv_path }}"
+    - "{{ ovos_virtualenv_root_dir }}"
     - "{{ ovos_virtualenv_tmp_dir }}"
