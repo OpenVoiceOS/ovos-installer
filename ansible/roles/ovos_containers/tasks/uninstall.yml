@@ -7,6 +7,18 @@
   tags:
     - uninstall
 
+- name: Check for Docker socket
+  ansible.builtin.stat:
+    path: "{{ ovos_containers_docker_socket_path | default('/var/run/docker.sock') }}"
+  register: ovos_containers_docker_socket_stat
+  changed_when: false
+
+- name: Check for docker-compose project directory
+  ansible.builtin.stat:
+    path: "{{ ovos_containers_composition_directory }}"
+  register: ovos_containers_compose_project_stat
+  changed_when: false
+
 - name: Remove docker-compose stack(s)
   become: true
   community.docker.docker_compose_v2:
@@ -22,63 +34,51 @@
   environment:
     DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
   register: ovos_containers_composer_deletion
-  failed_when: ovos_containers_composer_deletion is not defined
+  when:
+    - ovos_containers_docker_socket_stat.stat.exists | default(false) | bool
+    - ovos_containers_compose_project_stat.stat.isdir | default(false) | bool
 
-- name: List compose containers by project label
+- name: List all containers
   become: true
-  community.docker.docker_container_info:
-    filters:
-      label: "com.docker.compose.project={{ item }}"
-  loop: "{{ ovos_containers_uninstall_project_names }}"
-  register: ovos_containers_uninstall_containers
-  failed_when: false
+  community.docker.docker_host_info:
+    containers: true
+    containers_all: true
+  register: ovos_containers_host_info
+  failed_when: ovos_containers_host_info is failed
+  when: ovos_containers_docker_socket_stat.stat.exists | default(false) | bool
 
-- name: Flatten compose container list
+- name: Select containers to remove
   ansible.builtin.set_fact:
-    ovos_containers_uninstall_container_ids: >-
-      {{ ovos_containers_uninstall_containers.results
-         | selectattr('containers', 'defined')
-         | map(attribute='containers')
-         | sum(start=[]) }}
-  when: ovos_containers_uninstall_containers is defined
+    ovos_containers_uninstall_target_ids: >-
+      {% set prefixes = ovos_containers_uninstall_name_prefixes | default([]) %}
+      {% set projects = ovos_containers_uninstall_project_names | default([]) %}
+      {% set prefix_re = '' %}
+      {% if prefixes | length > 0 %}
+      {% set prefix_re = '^/?(' ~ (prefixes | map('regex_escape') | join('|')) ~ ')' %}
+      {% endif %}
+      {% set ns = namespace(ids=[]) %}
+      {% for c in (ovos_containers_host_info.containers | default([])) %}
+      {% set names = c.Names | default([]) %}
+      {% set labels = c.Labels | default({}) %}
+      {% set project = labels.get('com.docker.compose.project', '') %}
+      {% set match_project = (projects | length > 0 and project | length > 0 and project in projects) %}
+      {% set match_prefix = (prefix_re | length > 0 and (names | select('match', prefix_re) | list | length > 0)) %}
+      {% if match_project or match_prefix %}
+      {% set _ = ns.ids.append(c.Id) %}
+      {% endif %}
+      {% endfor %}
+      {{ ns.ids | unique | list }}
+  when: ovos_containers_host_info is defined
 
-- name: Remove compose containers
+- name: Remove containers
   become: true
   community.docker.docker_container:
-    container: "{{ item.Id }}"
+    name: "{{ item }}"
     state: absent
     force_kill: true
-    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
-  loop: "{{ ovos_containers_uninstall_container_ids | default([]) }}"
-  when: ovos_containers_uninstall_container_ids | default([]) | length > 0
-
-- name: List containers by name prefix
-  become: true
-  community.docker.docker_container_info:
-    filters:
-      name: "{{ item }}"
-  loop: "{{ ovos_containers_uninstall_name_prefixes }}"
-  register: ovos_containers_uninstall_name_info
-  failed_when: false
-
-- name: Flatten name prefix container list
-  ansible.builtin.set_fact:
-    ovos_containers_uninstall_name_ids: >-
-      {{ ovos_containers_uninstall_name_info.results
-         | selectattr('containers', 'defined')
-         | map(attribute='containers')
-         | sum(start=[]) }}
-  when: ovos_containers_uninstall_name_info is defined
-
-- name: Remove containers by name prefix
-  become: true
-  community.docker.docker_container:
-    container: "{{ item.Id }}"
-    state: absent
-    force_kill: true
-    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
-  loop: "{{ ovos_containers_uninstall_name_ids | default([]) }}"
-  when: ovos_containers_uninstall_name_ids | default([]) | length > 0
+    keep_volumes: "{{ not (ovos_containers_docker_compose_remove_volumes | bool) }}"
+  loop: "{{ ovos_containers_uninstall_target_ids | default([]) }}"
+  when: ovos_containers_uninstall_target_ids | default([]) | length > 0
 
 - name: Remove directories
   ansible.builtin.file:
