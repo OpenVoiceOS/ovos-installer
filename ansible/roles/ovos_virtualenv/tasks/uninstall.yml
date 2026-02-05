@@ -33,7 +33,9 @@
     install_recommends: false
     state: absent
   failed_when: false
-  when: ansible_facts.os_family in ['Debian', 'Zorin OS']
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family in ['Debian', 'Zorin OS']
 
 - name: Remove virtualenv package requirements (RedHat)
   ansible.builtin.dnf:
@@ -55,7 +57,9 @@
       - espeak-ng
     state: absent
   failed_when: false
-  when: ansible_facts.os_family == "RedHat"
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "RedHat"
 
 - name: Remove virtualenv package requirements (SUSE)
   community.general.zypper:
@@ -76,7 +80,9 @@
       - portaudio-devel
     state: absent
   failed_when: false
-  when: ansible_facts.os_family == "Suse"
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Suse"
 
 - name: Remove virtualenv package requirements (Archlinux)
   community.general.pacman:
@@ -94,7 +100,9 @@
       - espeak-ng
     state: absent
   failed_when: false
-  when: ansible_facts.os_family == "Archlinux"
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Archlinux"
 
 - name: Check for OVOS venv activation script
   ansible.builtin.stat:
@@ -165,7 +173,9 @@
 - name: Remove ovos Python virtualenv and requirements.txt files
   vars:
     _requirements_paths: "{{ ovos_virtualenv_requirements_files | map(attribute='dest') | list }}"
-    _venv_executable: "{{ ansible_facts.get('python', {}).get('executable', '') }}"
+    _venv_executable: >-
+      {{ ansible_playbook_python
+         | default(ansible_python_interpreter | default(ansible_facts.get('python', {}).get('executable', ''))) }}
     _running_from_ovos_venv: >-
       {{ _venv_executable is search('^' ~ (ovos_virtualenv_root_dir | regex_escape)) }}
     _remove_venv_paths: >-

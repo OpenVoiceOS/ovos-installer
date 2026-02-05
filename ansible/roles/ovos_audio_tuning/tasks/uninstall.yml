@@ -36,6 +36,7 @@
     name: "{{ ovos_audio_tuning_rtkit_package }}"
     state: absent
   failed_when: false
+  when: ovos_installer_uninstall_remove_packages | default(false) | bool
 
 - name: Remove USB Audio configuration
   ansible.builtin.file:
