@@ -106,7 +106,7 @@
     ovos_containers_cmdline_cleaned: "{{ _filtered_tokens | join(' ') }}"
   changed_when: false
   when:
-    - ovos_containers_cmdline_raw is defined
+    - ovos_containers_cmdline_stat.stat.exists | default(false) | bool
 
 - name: Assert cmdline will not be emptied by cgroup cleanup
   ansible.builtin.assert:
