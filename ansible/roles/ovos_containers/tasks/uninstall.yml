@@ -52,6 +52,34 @@
   loop: "{{ ovos_containers_uninstall_container_ids | default([]) }}"
   when: ovos_containers_uninstall_container_ids | default([]) | length > 0
 
+- name: List containers by name prefix
+  become: true
+  community.docker.docker_container_info:
+    filters:
+      name: "{{ item }}"
+  loop: "{{ ovos_containers_uninstall_name_prefixes }}"
+  register: ovos_containers_uninstall_name_info
+  failed_when: false
+
+- name: Flatten name prefix container list
+  ansible.builtin.set_fact:
+    ovos_containers_uninstall_name_ids: >-
+      {{ ovos_containers_uninstall_name_info.results
+         | selectattr('containers', 'defined')
+         | map(attribute='containers')
+         | sum(start=[]) }}
+  when: ovos_containers_uninstall_name_info is defined
+
+- name: Remove containers by name prefix
+  become: true
+  community.docker.docker_container:
+    container: "{{ item.Id }}"
+    state: absent
+    force_kill: true
+    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
+  loop: "{{ ovos_containers_uninstall_name_ids | default([]) }}"
+  when: ovos_containers_uninstall_name_ids | default([]) | length > 0
+
 - name: Remove directories
   ansible.builtin.file:
     path: "{{ item }}"

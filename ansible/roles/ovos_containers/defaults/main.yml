@@ -123,6 +123,9 @@ ovos_containers_uninstall_compose_mapping:
 ovos_containers_uninstall_project_names:
   - ovos
   - hivemind
+ovos_containers_uninstall_name_prefixes:
+  - ovos_
+  - hivemind_
 ovos_containers_remove_directories:
   - "{{ ovos_containers_ovos_base_dir }}"
   - "{{ ovos_containers_hivemind_base_dir }}"
