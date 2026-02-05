@@ -83,6 +83,9 @@
         - ovos_installer
 
   tasks:
+    - name: Flush handlers before reboot check
+      ansible.builtin.meta: flush_handlers
+
     - name: Checking for reboot requirement
       ansible.builtin.file:
         path: "{{ ovos_installer_reboot_file_path }}"

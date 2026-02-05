@@ -82,6 +82,59 @@
   loop: "{{ ovos_containers_uninstall_target_ids | default([]) }}"
   when: ovos_containers_uninstall_target_ids | default([]) | length > 0
 
+- name: Check for cmdline.txt (cgroup cleanup)
+  ansible.builtin.stat:
+    path: "{{ ovos_containers_cmdline_path }}"
+  register: ovos_containers_cmdline_stat
+  changed_when: false
+  when: ovos_containers_enable_cgroup_memory | bool
+
+- name: Read cmdline.txt (cgroup cleanup)
+  ansible.builtin.slurp:
+    src: "{{ ovos_containers_cmdline_path }}"
+  register: ovos_containers_cmdline_raw
+  changed_when: false
+  when:
+    - ovos_containers_enable_cgroup_memory | bool
+    - ovos_containers_cmdline_stat.stat.exists | default(false) | bool
+
+- name: Compute cmdline without memory cgroup parameters
+  vars:
+    _cmdline_text: "{{ ovos_containers_cmdline_raw.content | b64decode | trim }}"
+    _tokens: "{{ _cmdline_text | regex_findall('\\S+') }}"
+    _filtered_tokens: "{{ _tokens | reject('in', ovos_containers_cgroup_memory_params) | list }}"
+  ansible.builtin.set_fact:
+    ovos_containers_cmdline_original: "{{ _tokens | join(' ') }}"
+    ovos_containers_cmdline_cleaned: "{{ _filtered_tokens | join(' ') }}"
+  changed_when: false
+  when:
+    - ovos_containers_enable_cgroup_memory | bool
+    - ovos_containers_cmdline_raw is defined
+
+- name: Assert cmdline will not be emptied by cgroup cleanup
+  ansible.builtin.assert:
+    that:
+      - ovos_containers_cmdline_cleaned | length > 0
+    fail_msg: >-
+      Refusing to write an empty cmdline.txt after removing memory cgroup parameters.
+  when:
+    - ovos_containers_cmdline_original is defined
+    - ovos_containers_cmdline_cleaned is defined
+    - ovos_containers_cmdline_original != ovos_containers_cmdline_cleaned
+
+- name: Remove memory cgroup parameters (cmdline.txt)
+  ansible.builtin.copy:
+    dest: "{{ ovos_containers_cmdline_path }}"
+    content: "{{ ovos_containers_cmdline_cleaned }}\n"
+    owner: root
+    group: root
+    mode: "{{ ovos_containers_cmdline_stat.stat.mode | default('0644') }}"
+  when:
+    - ovos_containers_cmdline_original is defined
+    - ovos_containers_cmdline_cleaned is defined
+    - ovos_containers_cmdline_original != ovos_containers_cmdline_cleaned
+  notify: Set Reboot
+
 - name: Remove directories
   ansible.builtin.file:
     path: "{{ item }}"
