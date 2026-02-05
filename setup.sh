@@ -171,6 +171,11 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     if [ -f "$LOG_FILE" ]; then
       rm -f "$LOG_FILE"
     fi
+    if [ -f "$REBOOT_FILE_PATH" ]; then
+      rm -f "$REBOOT_FILE_PATH"
+      printf '\n%s\n' "➤ Rebooting Raspberry Pi now..."
+      shutdown -r now
+    fi
   fi
 else
   # Concatenate Ansible log with installer log
