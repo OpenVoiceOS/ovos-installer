@@ -20,7 +20,7 @@
     ovos_containers_cmdline_content: "{{ ovos_containers_cmdline_raw.content | b64decode | trim }}"
   when:
     - ovos_containers_enable_cgroup_memory | bool
-    - ovos_containers_cmdline_raw is defined
+    - ovos_containers_cmdline_stat.stat.exists | default(false) | bool
 
 - name: Compute missing cgroup parameters
   ansible.builtin.set_fact:
