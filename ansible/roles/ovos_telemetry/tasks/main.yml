@@ -19,10 +19,49 @@
       delay: "{{ ovos_telemetry_geoip_delay }}"
 
     - name: Share telemetry data
+      vars:
+        _python_version_parts: "{{ ((ansible_facts.python | default({})).version | default({})) }}"
+        _python_version: >-
+          {{ (_python_version_parts.major | default('')) ~ '.'
+             ~ (_python_version_parts.minor | default('')) ~ '.'
+             ~ (_python_version_parts.micro | default('')) }}
+        _python_version_final: >-
+          {{ _python_version
+             if _python_version is match('^\\d+\\.\\d+\\.\\d+$')
+             else (ansible_python_version | default('unknown')) }}
+        _telemetry_country: >-
+          {{ (((ovos_telemetry_isp_data | default({})).json | default({})).country | default('unknown')) | lower }}
       ansible.builtin.uri:
         url: "{{ ovos_telemetry_url }}"
         method: POST
-        body: "{{ lookup('ansible.builtin.template', 'telemetry.json.j2') }}"
+        body:
+          os_type: "{{ ansible_facts.system | lower }}"
+          os_name: "{{ ansible_facts.distribution | lower }}"
+          os_version: "{{ ansible_facts.distribution_version }}"
+          os_kernel: "{{ ansible_facts.kernel }}"
+          architecture: "{{ ansible_facts.architecture }}"
+          sound_server: "{{ ((ovos_sound_detect_sound_server | default({})).stdout | default('unknown')) }}"
+          python_version: "{{ _python_version_final }}"
+          display_server: "{{ ovos_installer_display_server | default('unknown') | lower }}"
+          container: "{{ ovos_installer_method == 'containers' }}"
+          venv: "{{ ovos_installer_method == 'virtualenv' }}"
+          installed_at: "{{ ansible_facts.date_time.iso8601_micro | default(ansible_facts.date_time.iso8601) }}"
+          channel: "{{ ovos_installer_channel }}"
+          profile: "{{ ovos_installer_profile }}"
+          raspberry_pi: >-
+            {{ 'n/a'
+               if (ovos_installer_raspberrypi | default('N/A')) == 'N/A'
+               else (ovos_installer_raspberrypi | default('N/A')) }}
+          skills_feature: "{{ ovos_installer_feature_skills | default(false) | bool }}"
+          extra_skills_feature: "{{ ovos_installer_feature_extra_skills | default(false) | bool }}"
+          gui_feature: "{{ ovos_telemetry_feature_gui | default(false) | bool }}"
+          cpu_capable: "{{ ovos_installer_cpu_is_capable | default(false) | bool }}"
+          tuning_enabled: "{{ (ovos_installer_tuning | default('no')) == 'yes' }}"
+          country: "{{ _telemetry_country }}"
+          hardware: >-
+            {{ 'n/a'
+               if (ovos_installer_i2c_devices | default([])) | length < 1
+               else (ovos_installer_i2c_devices | default([]) | first) }}
         status_code: "{{ ovos_telemetry_post_status_codes }}"
         body_format: json
         headers:
