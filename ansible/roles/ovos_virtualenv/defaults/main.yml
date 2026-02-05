@@ -4,6 +4,7 @@ ovos_virtualenv_path: >-
   {{ ovos_installer_ovos_venv_path
      | default(ovos_installer_user_home + '/.venvs/ovos') }}
 ovos_virtualenv_root_dir: "{{ ovos_installer_user_home }}/.venvs"
+ovos_virtualenv_force_remove: false
 ovos_virtualenv_requirements_files: >-
   {{ ovos_installer_requirements_files | default(_ovos_virtualenv_requirements_files) }}
 

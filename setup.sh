@@ -96,6 +96,7 @@ echo "➤ Starting Ansible playbook... ☕🍵🧋"
 
 # Execute the Ansible playbook on localhost
 export ANSIBLE_CONFIG=ansible/ansible.cfg
+export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_FILE}"
 case "${DISTRO_NAME:-}" in
   fedora | almalinux | rocky | centos | rhel)
     if [ -x /usr/libexec/platform-python ]; then
@@ -167,6 +168,12 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     fi
   else
     rm -rf "$VENV_PATH" /root/.ansible
+    if [ -n "${RUN_AS_HOME:-}" ]; then
+      venv_root="${RUN_AS_HOME}/.venvs"
+      if [ "$(dirname "$VENV_PATH")" = "$venv_root" ]; then
+        rm -rf "$venv_root"
+      fi
+    fi
     printf '\n%s\n' "➤ Open Voice OS has been successfully uninstalled."
     if [ -f "$LOG_FILE" ]; then
       rm -f "$LOG_FILE"
