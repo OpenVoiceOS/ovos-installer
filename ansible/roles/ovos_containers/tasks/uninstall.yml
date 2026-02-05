@@ -87,7 +87,6 @@
     path: "{{ ovos_containers_cmdline_path }}"
   register: ovos_containers_cmdline_stat
   changed_when: false
-  when: ovos_containers_enable_cgroup_memory | bool
 
 - name: Read cmdline.txt (cgroup cleanup)
   ansible.builtin.slurp:
@@ -95,7 +94,6 @@
   register: ovos_containers_cmdline_raw
   changed_when: false
   when:
-    - ovos_containers_enable_cgroup_memory | bool
     - ovos_containers_cmdline_stat.stat.exists | default(false) | bool
 
 - name: Compute cmdline without memory cgroup parameters
@@ -108,7 +106,6 @@
     ovos_containers_cmdline_cleaned: "{{ _filtered_tokens | join(' ') }}"
   changed_when: false
   when:
-    - ovos_containers_enable_cgroup_memory | bool
     - ovos_containers_cmdline_raw is defined
 
 - name: Assert cmdline will not be emptied by cgroup cleanup
