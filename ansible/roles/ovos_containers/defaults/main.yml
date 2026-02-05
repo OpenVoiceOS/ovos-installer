@@ -52,6 +52,15 @@ ovos_containers_os_type: >-
   {{ ovos_containers_os_type_wsl_value
      if ansible_facts.kernel is search(ovos_containers_os_type_wsl_match)
      else ovos_containers_os_type_default }}
+ovos_containers_boot_directory: >-
+  {{ ovos_installer_boot_directory
+     | default(ovos_facts_boot_directory
+     | default(ovos_installer_boot_default_path | default('/boot'))) }}
+ovos_containers_cmdline_path: "{{ ovos_containers_boot_directory }}/cmdline.txt"
+ovos_containers_enable_cgroup_memory: "{{ (ovos_installer_raspberrypi | default('N/A')) != 'N/A' }}"
+ovos_containers_cgroup_memory_params:
+  - cgroup_enable=memory
+  - cgroup_memory=1
 
 ovos_containers_ovos_docker_repo_url: "{{ ovos_installer_ovos_docker_repo_url | default('https://github.com/OpenVoiceOS/ovos-docker.git') }}"
 ovos_containers_ovos_docker_repo_branch: "{{ ovos_installer_ovos_docker_repo_branch | default('dev') }}"

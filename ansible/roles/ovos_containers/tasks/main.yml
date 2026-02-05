@@ -35,6 +35,10 @@
     - ansible_facts.os_family == "Archlinux"
     - ovos_containers_docker_package_check_arch not in ansible_facts.packages
 
+- name: Include cgroup.yml
+  ansible.builtin.import_tasks: cgroup.yml
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
 - name: Include common.yml
   ansible.builtin.import_tasks: common.yml
   when: not (ovos_installer_cleaning | default(false) | bool)

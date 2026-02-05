@@ -1,0 +1,43 @@
+---
+- name: Check for cmdline.txt
+  ansible.builtin.stat:
+    path: "{{ ovos_containers_cmdline_path }}"
+  register: ovos_containers_cmdline_stat
+  changed_when: false
+  when: ovos_containers_enable_cgroup_memory | bool
+
+- name: Read cmdline.txt
+  ansible.builtin.slurp:
+    src: "{{ ovos_containers_cmdline_path }}"
+  register: ovos_containers_cmdline_raw
+  changed_when: false
+  when:
+    - ovos_containers_enable_cgroup_memory | bool
+    - ovos_containers_cmdline_stat.stat.exists | default(false) | bool
+
+- name: Normalize cmdline content
+  ansible.builtin.set_fact:
+    ovos_containers_cmdline_content: "{{ ovos_containers_cmdline_raw.content | b64decode | trim }}"
+  when:
+    - ovos_containers_enable_cgroup_memory | bool
+    - ovos_containers_cmdline_raw is defined
+
+- name: Compute missing cgroup parameters
+  ansible.builtin.set_fact:
+    ovos_containers_cgroup_params_missing: >-
+      {{ ovos_containers_cgroup_memory_params
+         | reject('in', ovos_containers_cmdline_content | default('')) | list }}
+  when: ovos_containers_enable_cgroup_memory | bool
+
+- name: Enable memory cgroup support (cmdline.txt)
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_containers_cmdline_path }}"
+    regexp: "^((?!.*{{ item }}).*console.*)$"
+    line: '\1 {{ item }}'
+    backrefs: true
+  loop: "{{ ovos_containers_cgroup_params_missing | default([]) }}"
+  when:
+    - ovos_containers_enable_cgroup_memory | bool
+    - ovos_containers_cmdline_stat.stat.exists | default(false) | bool
+    - ovos_containers_cgroup_params_missing | default([]) | length > 0
+  notify: Set Reboot

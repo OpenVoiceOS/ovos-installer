@@ -32,3 +32,4 @@
     - "{{ ovos_containers_composition_directory }}"
     - "{{ ovos_containers_ovos_base_dir }}"
     - "{{ ovos_containers_hivemind_base_dir }}"
+    - "{{ ovos_containers_cmdline_path }}"
