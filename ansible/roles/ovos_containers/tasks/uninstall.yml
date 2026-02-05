@@ -48,8 +48,8 @@
   when: ovos_containers_docker_socket_stat.stat.exists | default(false) | bool
 
 - name: Select containers to remove
-  ansible.builtin.set_fact:
-    ovos_containers_uninstall_target_ids: >-
+  vars:
+    _ovos_containers_uninstall_target_ids_raw: >-
       {% set prefixes = ovos_containers_uninstall_name_prefixes | default([]) %}
       {% set projects = ovos_containers_uninstall_project_names | default([]) %}
       {% set prefix_re = '' %}
@@ -68,6 +68,8 @@
       {% endif %}
       {% endfor %}
       {{ ns.ids | unique | list }}
+  ansible.builtin.set_fact:
+    ovos_containers_uninstall_target_ids: "{{ _ovos_containers_uninstall_target_ids_raw | from_yaml }}"
   when: ovos_containers_host_info is defined
 
 - name: Remove containers
