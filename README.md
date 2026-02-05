@@ -17,7 +17,7 @@ Key benefits include:
 Before we begin, make sure you have `curl`, `git`, and `sudo` installed. `curl` is used to download the installer script, `git` is needed for cloning repositories during installation, and `sudo` provides administrative privileges required for system changes. Here's your installation incantation:
 
 ```shell
-sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
+curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh | sudo sh
 ```
 
 If you prefer to inspect before running, download the script first, review it, then execute it with `sudo sh installer.sh`.
