@@ -37,7 +37,9 @@
   ansible.builtin.set_fact:
     ovos_containers_uninstall_container_ids: >-
       {{ ovos_containers_uninstall_containers.results
-         | map(attribute='containers') | sum(start=[]) }}
+         | selectattr('containers', 'defined')
+         | map(attribute='containers')
+         | sum(start=[]) }}
   when: ovos_containers_uninstall_containers is defined
 
 - name: Remove compose containers
