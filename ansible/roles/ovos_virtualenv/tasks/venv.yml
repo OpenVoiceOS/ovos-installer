@@ -17,14 +17,14 @@
   environment:
     HOME: "{{ ovos_installer_user_home }}"
     PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
-  when: not ovos_installer_cleaning | bool
+  when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Check installer uv binary
   ansible.builtin.stat:
     path: "{{ ovos_installer_venv }}/bin/uv"
   register: ovos_virtualenv_uv_bin
   changed_when: false
-  when: not ovos_installer_cleaning | bool
+  when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Ensure user local bin exists
   ansible.builtin.file:
@@ -33,7 +33,7 @@
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     mode: '0755'
-  when: not ovos_installer_cleaning | bool
+  when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Install uv for user from installer venv
   ansible.builtin.copy:
@@ -44,14 +44,14 @@
     mode: '0755'
     remote_src: true
   when:
-    - not ovos_installer_cleaning | bool
+    - not (ovos_installer_cleaning | default(false) | bool)
     - ovos_virtualenv_uv_bin.stat.exists | default(false)
 
 - name: Warn if installer uv binary missing
   ansible.builtin.debug:
     msg: "uv binary not found in installer venv; skipping user install."
   when:
-    - not ovos_installer_cleaning | bool
+    - not (ovos_installer_cleaning | default(false) | bool)
     - not (ovos_virtualenv_uv_bin.stat.exists | default(false))
 
 - name: Ensure ovos Python venv exists with requested Python
@@ -68,7 +68,7 @@
   environment:
     HOME: "{{ ovos_installer_user_home }}"
     PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
-  when: not ovos_installer_cleaning | bool
+  when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Ensure pip is available in OVOS venv
   become: true
@@ -80,7 +80,7 @@
   environment:
     HOME: "{{ ovos_installer_user_home }}"
   register: ovos_virtualenv_pip_bootstrap
-  when: not ovos_installer_cleaning | bool
+  when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Upgrade pip tooling in OVOS venv
   become: true
@@ -91,7 +91,7 @@
     HOME: "{{ ovos_installer_user_home }}"
   changed_when: false
   when:
-    - not ovos_installer_cleaning | bool
+    - not (ovos_installer_cleaning | default(false) | bool)
     - ovos_virtualenv_pip_bootstrap is defined
     - ovos_virtualenv_pip_bootstrap is changed
 

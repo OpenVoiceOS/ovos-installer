@@ -5,7 +5,7 @@
     - always
 
 - name: Block OVOS systemd services
-  when: ovos_installer_method == "virtualenv" or ovos_installer_cleaning | bool
+  when: ovos_installer_method == "virtualenv" or ovos_installer_cleaning | default(false) | bool
   block:
     - name: Copy wrapper-ovos-phal-admin.sh file
       ansible.builtin.template:
@@ -121,6 +121,6 @@
 
     - name: Include uninstall tasks
       ansible.builtin.import_tasks: uninstall.yml
-      when: ovos_installer_cleaning | bool
+      when: ovos_installer_cleaning | default(false) | bool
       tags:
         - uninstall

@@ -2,7 +2,7 @@
 - name: Configure NetworkManager DNS caching
   when:
     - ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
-    - not ovos_installer_cleaning | bool
+    - not (ovos_installer_cleaning | default(false) | bool)
   block:
     - name: Install dnsmasq for NetworkManager caching
       ansible.builtin.package:

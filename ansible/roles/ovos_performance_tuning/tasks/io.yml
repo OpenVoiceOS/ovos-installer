@@ -1,6 +1,6 @@
 ---
 - name: Configure I/O tuning
-  when: not ovos_installer_cleaning | bool
+  when: not (ovos_installer_cleaning | default(false) | bool)
   block:
     - name: Load i2c-dev and spidev kernel modules
       community.general.modprobe:

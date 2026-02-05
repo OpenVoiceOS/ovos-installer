@@ -55,14 +55,14 @@
 - name: Include ovos_containers role
   ansible.builtin.import_role:
     name: ovos_containers
-  when: ovos_installer_method == "containers" or ovos_installer_cleaning | bool
+  when: ovos_installer_method == "containers" or ovos_installer_cleaning | default(false) | bool
   tags:
     - ovos_containers
 
 - name: Include ovos_virtualenv role
   ansible.builtin.import_role:
     name: ovos_virtualenv
-  when: ovos_installer_method == "virtualenv" or ovos_installer_cleaning | bool
+  when: ovos_installer_method == "virtualenv" or ovos_installer_cleaning | default(false) | bool
   tags:
     - ovos_virtualenv
 

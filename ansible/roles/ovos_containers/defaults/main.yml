@@ -15,11 +15,11 @@ ovos_containers_repo_definitions:
   - url: "{{ ovos_containers_ovos_docker_repo_url }}"
     branch: "{{ ovos_containers_ovos_docker_repo_branch }}"
     dest: "{{ ovos_containers_repo_dest_ovos }}"
-    state: "{{ ovos_installer_profile != 'satellite' or ovos_installer_cleaning | bool }}"
+    state: "{{ ovos_installer_profile != 'satellite' or ovos_installer_cleaning | default(false) | bool }}"
   - url: "{{ ovos_containers_hivemind_docker_repo_url }}"
     branch: "{{ ovos_containers_hivemind_docker_repo_branch }}"
     dest: "{{ ovos_containers_repo_dest_hivemind }}"
-    state: "{{ ovos_installer_profile == 'satellite' or ovos_installer_cleaning | bool }}"
+    state: "{{ ovos_installer_profile == 'satellite' or ovos_installer_cleaning | default(false) | bool }}"
 ovos_containers_composition_directory: "{{ ovos_containers_working_directory }}/{{ ovos_containers_project_name }}/compose"
 
 ovos_containers_gpg_binary: gpg

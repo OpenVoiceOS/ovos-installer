@@ -53,7 +53,7 @@
   ansible.builtin.command: "{{ ovos_performance_tuning_sysctl_reload_cmd }}"
   register: ovos_performance_tuning_sysctl_reload
   changed_when: ovos_performance_tuning_sysctl_reload.rc == 0
-  when: not ovos_installer_cleaning | bool
+  when: not (ovos_installer_cleaning | default(false) | bool)
   tags:
     - always
 

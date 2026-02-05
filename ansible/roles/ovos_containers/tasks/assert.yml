@@ -20,7 +20,7 @@
       - _compose_files | length > 0
     fail_msg: "No docker-compose files selected for the current profile."
     success_msg: "Docker-compose files selected."
-  when: not ovos_installer_cleaning | bool
+  when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Assert containers path formats
   ansible.builtin.assert:

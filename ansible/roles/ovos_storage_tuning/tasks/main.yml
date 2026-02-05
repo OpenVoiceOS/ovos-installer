@@ -60,7 +60,7 @@
 - name: Configure persistent tmpfs for Mycroft state
   when:
     - ovos_storage_tuning_mycroft_state_tmpfs | bool
-    - not ovos_installer_cleaning | bool
+    - not (ovos_installer_cleaning | default(false) | bool)
   block:
     - name: Ensure rsync is installed
       ansible.builtin.package:
@@ -199,6 +199,6 @@
 
 - name: Include uninstall tasks
   ansible.builtin.import_tasks: uninstall.yml
-  when: ovos_installer_cleaning | bool
+  when: ovos_installer_cleaning | default(false) | bool
   tags:
     - uninstall
