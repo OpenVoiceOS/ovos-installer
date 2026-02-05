@@ -1,0 +1,13 @@
+---
+ovos_telemetry_geoip_method: GET
+ovos_telemetry_geoip_status_codes: 200
+ovos_telemetry_geoip_headers:
+  Content-Type: application/json
+  accept: application/json
+ovos_telemetry_geoip_retries: 5
+ovos_telemetry_geoip_delay: 3
+ovos_telemetry_geoip_expected_status: 200
+ovos_telemetry_post_status_codes: 200
+ovos_telemetry_retries: 5
+ovos_telemetry_delay: 3
+ovos_telemetry_post_expected_status: 200

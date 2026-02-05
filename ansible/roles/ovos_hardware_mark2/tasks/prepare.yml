@@ -7,15 +7,20 @@
     group: "{{ ovos_installer_group }}"
     mode: "0755"
   loop:
-    - /opt/sj201
-    - "{{ ovos_installer_user_home }}/.config/systemd/user"
-    - "{{ ovos_installer_user_home }}/.config/wireplumber/main.lua.d"
+    - "{{ ovos_hardware_mark2_working_dir }}"
+    - "{{ ovos_hardware_mark2_systemd_user_dir }}"
+    - "{{ ovos_hardware_mark2_wireplumber_dir }}"
 
 - name: Check for /boot/firmware directory
   ansible.builtin.stat:
-    path: /boot/firmware
+    path: "{{ ovos_installer_boot_firmware_path | default('/boot/firmware') }}"
   register: ovos_hardware_mark2_boot_config_status
+  when: ovos_hardware_mark2_boot_directory is not defined
 
-- name: Set ovos_hardware_mark2_boot_directory fact
+- name: Set boot directory fact
   ansible.builtin.set_fact:
-    ovos_hardware_mark2_boot_directory: "{{ '/boot/firmware' if ovos_hardware_mark2_boot_config_status.stat.exists | bool else '/boot' }}"
+    ovos_hardware_mark2_boot_directory: >-
+      {{ (ovos_installer_boot_firmware_path | default('/boot/firmware'))
+         if ovos_hardware_mark2_boot_config_status.stat.exists | bool
+         else (ovos_installer_boot_default_path | default('/boot')) }}
+  when: ovos_hardware_mark2_boot_directory is not defined

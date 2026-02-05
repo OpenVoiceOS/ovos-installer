@@ -8,8 +8,6 @@
 
   vars:
     ovos_installer_reboot: false
-    # Just a simple JSON sanitize
-    ovos_installer_i2c_devices: "{{ ovos_installer_i2c_devices | from_json }}"
 
   pre_tasks:
     - name: Gather reduced subset of facts
@@ -19,26 +17,75 @@
           - "interfaces"
       tags:
         - always
+    - name: Normalize I2C devices list
+      vars:
+        _ovos_i2c_devices_raw: "{{ ovos_installer_i2c_devices | default('[]') }}"
+      ansible.builtin.set_fact:
+        ovos_installer_i2c_devices: >-
+          {{ _ovos_i2c_devices_raw
+             if _ovos_i2c_devices_raw is sequence and _ovos_i2c_devices_raw is not string
+             else (_ovos_i2c_devices_raw | from_json) }}
+      tags:
+        - always
+    - name: Lookup installer uid
+      ansible.builtin.command: "id -u {{ ovos_installer_user }}"
+      register: ovos_installer_uid_result
+      changed_when: false
+      check_mode: false
+      when: ovos_installer_uid is not defined
+      tags:
+        - always
+    - name: Lookup installer gid
+      ansible.builtin.command: "id -g {{ ovos_installer_user }}"
+      register: ovos_installer_gid_result
+      changed_when: false
+      check_mode: false
+      when: ovos_installer_gid is not defined
+      tags:
+        - always
+    - name: Set installer uid fact
+      ansible.builtin.set_fact:
+        ovos_installer_uid: "{{ ovos_installer_uid_result.stdout | int }}"
+      when: ovos_installer_uid is not defined
+      tags:
+        - always
+    - name: Set installer gid fact
+      ansible.builtin.set_fact:
+        ovos_installer_gid: "{{ ovos_installer_gid_result.stdout | int }}"
+      when: ovos_installer_gid is not defined
+      tags:
+        - always
 
   roles:
     - role: ovos_hardware_mark1
+      tags:
+        - ovos_hardware_mark1
+        - hardware
       when:
-        - ansible_distribution == "Debian"
-        - ansible_distribution_major_version is version('11', '>=')
+        - ansible_facts.distribution == "Debian"
+        - ansible_facts.distribution_major_version is version('11', '>=')
         - "'atmega328p' in ovos_installer_i2c_devices"
-        - ansible_architecture == "aarch64"
+        - ansible_facts.architecture == "aarch64"
 
     - role: ovos_hardware_mark2
+      tags:
+        - ovos_hardware_mark2
+        - hardware
       when:
-        - ansible_distribution == "Debian"
-        - ansible_distribution_major_version is version('11', '>=')
-        - "'Raspberry Pi 4' in ovos_installer_raspberrypi or 'Raspberry Pi 5' in ovos_installer_raspberrypi"
+        - ansible_facts.distribution == "Debian"
+        - ansible_facts.distribution_major_version is version('11', '>=')
+        - "'Raspberry Pi 4' in (ovos_installer_raspberrypi | default('')) or 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default(''))"
         - "'tas5806' in ovos_installer_i2c_devices"
-        - ansible_architecture == "aarch64"
+        - ansible_facts.architecture == "aarch64"
 
     - role: ovos_installer
+      tags:
+        - ovos_installer
 
   tasks:
+    - name: Flush handlers before reboot check
+      ansible.builtin.meta: flush_handlers
+
     - name: Checking for reboot requirement
       ansible.builtin.file:
         path: "{{ ovos_installer_reboot_file_path }}"

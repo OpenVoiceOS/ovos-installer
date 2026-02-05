@@ -2,10 +2,10 @@
 - name: Copy mark1 systemd unit file
   ansible.builtin.template:
     src: mark1.service.j2
-    dest: "{{ ovos_installer_user_home }}/.config/systemd/user/mark1.service"
+    dest: "{{ ovos_hardware_mark1_unit_path }}"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
-    mode: "0644"
+    mode: "{{ ovos_hardware_mark1_unit_mode }}"
   notify: Reload Systemd User
 
 - name: Flush handlers service
@@ -15,7 +15,7 @@
   become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.systemd_service:
-    name: mark1.service
+    name: "{{ ovos_hardware_mark1_unit_name }}"
     enabled: true
     force: true
     scope: user

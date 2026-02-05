@@ -1,0 +1,22 @@
+---
+ovos_virtualenv_tmp_dir: "{{ ovos_installer_tmp_dir | default('/tmp') }}"
+ovos_virtualenv_path: >-
+  {{ ovos_installer_ovos_venv_path
+     | default(ovos_installer_user_home + '/.venvs/ovos') }}
+ovos_virtualenv_root_dir: "{{ ovos_installer_user_home }}/.venvs"
+ovos_virtualenv_force_remove: false
+ovos_virtualenv_requirements_files: >-
+  {{ ovos_installer_requirements_files | default(_ovos_virtualenv_requirements_files) }}
+
+ovos_virtualenv_venv_python: "{{ ovos_installer_venv_python | default('3.11') }}"
+ovos_virtualenv_uv_allow_prerelease: >-
+  {{ ovos_installer_uv_allow_prerelease
+     | default(ansible_facts.python.version.major == 3
+     and (ansible_facts.python.version.minor | int) >= 13) }}
+ovos_virtualenv_uv_version: "{{ ovos_installer_uv_version | default('') }}"
+ovos_virtualenv_run_ovos_config: "{{ ovos_installer_run_ovos_config | default(false) }}"
+ovos_virtualenv_numpy_package: "{{ ovos_installer_numpy_package | default('numpy==1.26.4') }}"
+ovos_virtualenv_messagebus_path: "{{ ovos_installer_user_home }}/.local/bin/ovos-messagebus"
+ovos_virtualenv_uninstall_extra_paths:
+  - "{{ ovos_hardware_mark1_working_directory | default('/opt/mark1') }}"
+  - "{{ ovos_hardware_mark2_working_dir | default('/opt/sj201') }}"

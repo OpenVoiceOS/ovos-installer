@@ -1,0 +1,19 @@
+---
+- name: Copy wlan0-power systemd unit file
+  ansible.builtin.copy:
+    src: "{{ ovos_network_tuning_wireless_unit_src }}"
+    dest: "{{ ovos_network_tuning_wireless_unit_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload Systemd
+
+- name: Flush handlers wireless
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start systemd wlan0-power unit
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_network_tuning_wireless_unit_name }}"
+    enabled: true
+    force: true
+    state: started

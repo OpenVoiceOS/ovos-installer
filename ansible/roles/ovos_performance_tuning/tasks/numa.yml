@@ -1,0 +1,18 @@
+---
+- name: Enable NUMA for Raspberry Pi 4 & 5
+  vars:
+    _fake_number: >-
+      {{ ovos_performance_tuning_numa_fake_number_pi5
+         if 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default(''))
+         else ovos_performance_tuning_numa_fake_number_default }}
+    _numa_param: "{{ ovos_performance_tuning_numa_param_template }}"
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_installer_boot_directory }}/cmdline.txt"
+    regexp: "^((?!.*{{ item }}).*console.*)$"
+    line: '\1 {{ item }}'
+    backrefs: true
+  loop:
+    - "{{ _numa_param }}"
+  when:
+    - ovos_performance_tuning_numa_enabled | bool
+    - "'Raspberry Pi 4' in (ovos_installer_raspberrypi | default('')) or 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default(''))"

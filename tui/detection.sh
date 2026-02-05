@@ -17,7 +17,7 @@ for device in "${DETECTED_DEVICES[@]}"; do
 done
 export HARDWARE_DETECTED
 
-# shellcheck source=locales/en-us/detection.sh
+# shellcheck source=tui/locales/en-us/detection.sh
 source "tui/locales/$LOCALE/detection.sh"
 
 whiptail --msgbox --ok-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"

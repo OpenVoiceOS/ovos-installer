@@ -1,0 +1,12 @@
+---
+- name: Assert finalize configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_finalize_pip_conf_path | length > 0
+    fail_msg: "Invalid finalize configuration."
+
+- name: Assert finalize path formats
+  ansible.builtin.assert:
+    that:
+      - ovos_finalize_pip_conf_path is match('^/')
+    fail_msg: "Finalize path must be absolute: {{ ovos_finalize_pip_conf_path }}"

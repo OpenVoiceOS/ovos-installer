@@ -6,7 +6,6 @@ profile: satellite
 features:
   skills: false
   extra_skills: false
-  gui: false
-rapsberry_pi_tuning: false
+raspberry_pi_tuning: false
 share_telemetry: true
 share_usage_telemetry: true

@@ -1,0 +1,128 @@
+---
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
+- name: Install PipeWire with ALSA support
+  vars:
+    # Debian Unstable hack
+    _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
+    _pipewire_package: >-
+      {{ (ansible_facts.distribution not in ovos_sound_pipewire_distributions_skip_alsa)
+         | ternary(ovos_sound_pipewire_alsa_package, ovos_sound_pipewire_fallback_package) }}
+  ansible.builtin.package:
+    name:
+      - "{{ _pipewire_package }}"
+      - "{{ ovos_sound_alsa_utils_package }}"
+  register: ovos_sound_pipewire_install
+  when:
+    not (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
+    ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
+
+- name: Install PulseAudio on older Debian and Ubuntu versions
+  vars:
+    # Debian Unstable hack
+    _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
+  ansible.builtin.apt:
+    name:
+      - "{{ ovos_sound_pulseaudio_package }}"
+      - "{{ ovos_sound_alsa_utils_package }}"
+  register: ovos_sound_pulseaudio_install
+  when:
+    (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
+    ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
+
+- name: Determine available groups
+  ansible.builtin.getent:
+    database: group
+
+- name: Add installer user to audio group
+  ansible.builtin.user:
+    name: "{{ ovos_installer_user }}"
+    groups:
+      - "{{ ovos_sound_audio_group }}"
+    append: true
+
+- name: Add installer user to rtkit group
+  ansible.builtin.user:
+    name: "{{ ovos_installer_user }}"
+    groups:
+      - "{{ ovos_sound_rtkit_group }}"
+    append: true
+  when: ovos_sound_rtkit_group in ansible_facts.getent_group
+
+- name: Add installer user to pipewire group
+  vars:
+    # Debian Unstable hack
+    _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
+  ansible.builtin.user:
+    name: "{{ ovos_installer_user }}"
+    groups: "{{ ovos_sound_pipewire_group }}"
+    append: true
+  when:
+    - not (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
+           ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
+    - ansible_facts.os_family not in ovos_sound_pipewire_group_excluded_os_families
+    - ansible_facts.distribution not in ovos_sound_pipewire_group_excluded_distributions
+
+- name: Enable lingering for {{ ovos_installer_user }}
+  ansible.builtin.file:
+    path: "{{ ovos_sound_linger_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+    state: touch
+  notify: Start Sound Server
+
+- name: Flush handlers sound
+  ansible.builtin.meta: flush_handlers
+
+- name: Check for pipewire-pulse
+  ansible.builtin.command: "{{ ovos_sound_pgrep_cmd }} -x {{ ovos_sound_pipewire_pulse_process }}"
+  register: ovos_sound_pipewire_pulse_pgrep
+  changed_when: false
+  failed_when: false
+
+- name: Check for pulseaudio
+  ansible.builtin.command: "{{ ovos_sound_pgrep_cmd }} -x {{ ovos_sound_pulseaudio_process }}"
+  register: ovos_sound_pulseaudio_pgrep
+  changed_when: false
+  failed_when: false
+
+- name: Check for pipewire
+  ansible.builtin.command: "{{ ovos_sound_pgrep_cmd }} -x {{ ovos_sound_pipewire_process }}"
+  register: ovos_sound_pipewire_pgrep
+  changed_when: false
+  failed_when: false
+
+- name: Re-detect sound server
+  ansible.builtin.set_fact:
+    ovos_sound_detect_sound_server: >-
+      {{ {'stdout': (
+        'pipewire' if ovos_sound_pipewire_pulse_pgrep.rc == 0 else
+        'pulseaudio' if ovos_sound_pulseaudio_pgrep.rc == 0 else
+        'pipewire' if ovos_sound_pipewire_pgrep.rc == 0 else
+        (ovos_sound_wsl_default_server if (ansible_facts.kernel is search('microsoft')) else ovos_sound_detect_default_server)
+      ) } }}
+  changed_when: false
+
+- name: Generate .asoundrc based on detected sound server (Raspberry Pi only)
+  ansible.builtin.copy:
+    content: |
+      pcm.!default {{ ovos_sound_detect_sound_server.stdout }}
+      ctl.!default {{ ovos_sound_detect_sound_server.stdout }}
+    dest: "{{ ovos_sound_asoundrc_path }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "{{ ovos_sound_asoundrc_mode }}"
+    backup: true
+  when: ovos_installer_raspberrypi | default('N/A') != "N/A"
+
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_installer_cleaning | default(false) | bool
+  tags:
+    - uninstall

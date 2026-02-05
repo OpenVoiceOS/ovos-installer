@@ -1,0 +1,254 @@
+---
+- name: Assert uninstall mode
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_cleaning | default(false) | bool
+    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
+  tags:
+    - uninstall
+
+- name: Remove cpupower package on Debian family
+  ansible.builtin.apt:
+    name: "{{ 'linux-tools-common' if ansible_facts.distribution != 'Debian' else 'linux-cpupower' }}"
+    install_recommends: false
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Debian"
+
+- name: Remove cpupower package on RedHat family
+  ansible.builtin.dnf:
+    name: kernel-tools
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "RedHat"
+
+- name: Remove cpupower package on SUSE family
+  ansible.builtin.package:
+    name: kernel-tools
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Suse"
+
+- name: Remove cpupower package on Arch family
+  community.general.pacman:
+    name: linux-tools
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Archlinux"
+
+- name: Remove cpu-governor systemd unit file
+  ansible.builtin.file:
+    path: "{{ ovos_performance_tuning_cpu_governor_unit_path }}"
+    state: absent
+  notify: Reload Systemd
+
+- name: Flush handlers cpugovernor (uninstall)
+  ansible.builtin.meta: flush_handlers
+
+- name: Remove udev scheduler rules
+  ansible.builtin.file:
+    path: "{{ ovos_performance_tuning_scheduler_rule_path }}"
+    state: absent
+  notify: Reload Udev
+
+- name: Remove persistent kernel module loading
+  community.general.modprobe:
+    name: "{{ item }}"
+    persistent: absent
+  loop: "{{ ovos_performance_tuning_kernel_modules }}"
+
+- name: Remove I2C/SPI/I2S boot config entries
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_performance_tuning_boot_config_path }}"
+    regexp: "^{{ item }}="
+    state: absent
+  notify: Set Reboot
+  loop: "{{ ovos_performance_tuning_dtparam_keys }}"
+
+- name: Remove overclock boot config entries
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_performance_tuning_boot_config_path }}"
+    regexp: "^{{ item }}="
+    state: absent
+  notify: Set Reboot
+  loop:
+    - arm_boost
+    - initial_turbo
+    - over_voltage
+    - arm_freq
+    - gpu_freq
+
+- name: Remove USB autosuspend override (cmdline.txt)
+  ansible.builtin.replace:
+    path: "{{ ovos_performance_tuning_cmdline_path }}"
+    regexp: "{{ ovos_performance_tuning_usb_autosuspend_regex }}"
+    replace: ""
+  notify: Set Reboot
+
+- name: Remove 99-ovos.conf limits file
+  ansible.builtin.file:
+    path: "{{ ovos_performance_tuning_limits_path }}"
+    state: absent
+
+- name: Remove PAM limits from common-session
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_performance_tuning_pam_limits_file }}"
+    line: "{{ ovos_performance_tuning_pam_limits_line }}"
+    state: absent
+  when: ansible_facts.os_family == "Debian"
+
+- name: Remove Zero-Swap Policy drop-ins (system scope)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_noswap_dropin_name }}"
+    state: absent
+  notify: Reload Systemd
+  loop: "{{ ovos_performance_tuning_core_services }}"
+
+- name: Remove Zero-Swap Policy drop-ins (user scope)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_noswap_dropin_name }}"
+    state: absent
+  notify: Reload Systemd User
+  loop: "{{ ovos_performance_tuning_core_services }}"
+
+- name: Remove WirePlumber Zero-Swap drop-in
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/wireplumber.service.d/{{ ovos_performance_tuning_noswap_dropin_name }}"
+    state: absent
+  notify:
+    - Reload Systemd User
+
+- name: Remove RT scheduling drop-ins (system scope)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_rt_dropin_name }}"
+    state: absent
+  notify: Reload Systemd
+  loop: "{{ ovos_performance_tuning_rt_services }}"
+
+- name: Remove RT scheduling drop-ins (user scope)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_rt_dropin_name }}"
+    state: absent
+  notify: Reload Systemd User
+  loop: "{{ ovos_performance_tuning_rt_services }}"
+
+- name: Remove WirePlumber RT scheduling drop-in
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/wireplumber.service.d/{{ ovos_performance_tuning_rt_dropin_name }}"
+    state: absent
+  notify:
+    - Reload Systemd User
+
+- name: Remove empty drop-in directories (system scope)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.service.d"
+    state: absent
+  notify: Reload Systemd
+  loop: "{{ ovos_performance_tuning_core_services }}"
+
+- name: Remove empty drop-in directories (user scope)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.service.d"
+    state: absent
+  notify: Reload Systemd User
+  loop: "{{ ovos_performance_tuning_core_services }}"
+
+- name: Remove WirePlumber drop-in directory
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/wireplumber.service.d"
+    state: absent
+
+- name: Check for kernel.nmi_watchdog sysctl
+  ansible.builtin.stat:
+    path: "{{ ovos_performance_tuning_nmi_watchdog_path }}"
+  register: ovos_performance_tuning_nmi_watchdog_sysctl
+  changed_when: false
+  failed_when: false
+
+- name: Remove sysctl tuning for Open Voice OS
+  ansible.posix.sysctl:
+    name: "{{ item.option }}"
+    value: "{{ item.value }}"
+    sysctl_file: "{{ ovos_performance_tuning_sysctl_file }}"
+    reload: false
+    state: absent
+  loop: "{{ ovos_performance_tuning_sysctl_settings }}"
+  when: item.option != 'kernel.nmi_watchdog' or ovos_performance_tuning_nmi_watchdog_sysctl.stat.exists | default(false) | bool
+
+- name: Remove BBR congestion control override
+  ansible.posix.sysctl:
+    name: net.ipv4.tcp_congestion_control
+    value: "{{ ovos_performance_tuning_sysctl_congestion_control }}"
+    sysctl_file: "{{ ovos_performance_tuning_sysctl_file }}"
+    reload: false
+    state: absent
+
+- name: Remove 99-ovos.conf file
+  ansible.builtin.file:
+    path: "{{ ovos_performance_tuning_sysctl_file }}"
+    state: absent
+
+- name: Remove THP tmpfiles configuration
+  ansible.builtin.file:
+    path: "{{ ovos_performance_tuning_thp_tmpfiles_path }}"
+    state: absent
+  notify: Reload Systemd
+
+- name: Remove systemd-zram-generator (Debian)
+  ansible.builtin.apt:
+    name: "{{ ovos_performance_tuning_zram_packages_debian }}"
+    install_recommends: false
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Debian"
+
+- name: Remove zram-generator-defaults (RedHat)
+  ansible.builtin.dnf:
+    name: "{{ ovos_performance_tuning_zram_packages_redhat }}"
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "RedHat"
+
+- name: Remove systemd-zram-generator (SUSE)
+  community.general.zypper:
+    name: "{{ ovos_performance_tuning_zram_packages_suse }}"
+    disable_recommends: true
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Suse"
+
+- name: Remove systemd-zram-generator (Arch Linux)
+  community.general.pacman:
+    name: "{{ ovos_performance_tuning_zram_packages_arch }}"
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Archlinux"
+
+- name: Remove sysctl tuning for ZRAM
+  ansible.posix.sysctl:
+    name: "{{ item.option }}"
+    value: "{{ item.value }}"
+    sysctl_file: "{{ ovos_performance_tuning_zram_sysctl_file }}"
+    reload: true
+    state: absent
+  loop: "{{ ovos_performance_tuning_zram_sysctl_settings }}"
+
+- name: Remove ZRAM files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  notify: Reload Systemd
+  loop:
+    - "{{ ovos_performance_tuning_zram_sysctl_file }}"
+    - "{{ ovos_performance_tuning_zram_config_path }}"
+
+- name: Flush handlers zram (uninstall)
+  ansible.builtin.meta: flush_handlers

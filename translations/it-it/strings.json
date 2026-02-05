@@ -17,8 +17,7 @@
     "title": "Installazione di Open Voice OS - Funzioni",
     "content": "Le competenze consentono l'interazione attraverso la voce, rendendole efficienti per attività quali la domotica, il reperimento di informazioni e il controllo di dispositivi intelligenti tramite comandi vocali.\n\nSeleziona le funzioni da attivare:",
     "skill_description": "Scarica le competenze predefinite per OVOS",
-    "extra_skill_description": "Scarica delle competenze extra per OVOS",
-    "gui_description": "Attiva l'interfaccia utente grafica"
+    "extra_skill_description": "Scarica delle competenze extra per OVOS"
   },
   "finish.sh": {
     "title": "Installazione di Open Voice OS - Conclusione",
@@ -70,5 +69,9 @@
   "welcome.sh": {
     "title": "Installazione di Open Voice OS - Benvenuto",
     "content": "Ciao e benvenuto all'installazione di Open Voice OS!\n\nSiamo lieti di presentarti Open Voice OS, l'assistente vocale open source che sta cambiando il modo con cui si interagisce con la tecnologia.\n\nL'installazione di Open Voice OS è semplicissima e apre un mondo di possibilità attraverso il controllo vocale. Che siate appassionati di tecnologia o vogliate semplicemente semplificare le vostre attività quotidiane, Open Voice OS è qui per renderti la vita più facile.\n\nInizia l'installazione oggi stesso e lascia che la tua voce ti guidi nel futuro della tecnologia! 🌟"
+  },
+  "overclock.sh": {
+    "title": "Installazione di Open Voice OS - Overclocking",
+    "content": "L’overclocking aumenta la frequenza di CPU/GPU per ottenere le massime prestazioni, ma può ridurre la stabilità e aumentare il calore.\n\nRequisiti:\n- Raffreddamento attivo (dissipatore/ventola) e buon flusso d’aria\n- Alimentatore stabile adatto al tuo modello di Pi\n- Monitora le temperature e interrompi in caso di throttling o crash\n\nRischi:\n- Riavvii casuali, problemi audio, corruzione dei dati\n- Maggiore consumo e vita utile ridotta\n\nOpen Voice OS non è responsabile di eventuali problemi legati all’overclocking.\n\nAbilitare l’overclocking?"
   }
 }

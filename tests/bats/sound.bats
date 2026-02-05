@@ -9,6 +9,11 @@ function setup() {
     RUN_AS_UID="1000"
     RUN_AS_HOME="/home/testuser"
     RUN_AS="testuser"
+    DETECT_SOUND_BACKUP=""
+    if [ -f "utils/detect_sound.py" ]; then
+        DETECT_SOUND_BACKUP="$(mktemp)"
+        cp "utils/detect_sound.py" "$DETECT_SOUND_BACKUP"
+    fi
 }
 
 @test "function_detect_sound_pulseaudio" {
@@ -63,4 +68,10 @@ function setup() {
 
 function teardown() {
     rm -f "$LOG_FILE"
+    if [ -n "$DETECT_SOUND_BACKUP" ]; then
+        cp "$DETECT_SOUND_BACKUP" "utils/detect_sound.py"
+        rm -f "$DETECT_SOUND_BACKUP"
+    else
+        rm -f "utils/detect_sound.py"
+    fi
 }

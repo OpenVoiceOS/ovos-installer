@@ -1,0 +1,66 @@
+---
+ovos_config_hotword_sensitivity: "{{ ovos_installer_hotword_sensitivity | default(0.95) }}"
+ovos_config_hotword_trigger_level: "{{ ovos_installer_hotword_trigger_level | default(1) }}"
+ovos_config_listener_multiplier: "{{ ovos_installer_listener_multiplier | default(1.5) }}"
+
+ovos_config_backup_paths:
+  - "{{ ovos_installer_user_home }}/ovos/*"
+  - "{{ ovos_installer_user_home }}/hivemind/*"
+  - "{{ ovos_installer_user_home }}/.config/systemd/user/*"
+  - "{{ ovos_installer_user_home }}/.config/mycroft/*"
+  - "{{ ovos_installer_user_home }}/.config/hivemind/*"
+  - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS/*"
+  - "{{ ovos_installer_user_home }}/.config/ovos_persona/*"
+  - "{{ ovos_installer_user_home }}/.config/wireplumber/*"
+  - "{{ ovos_installer_user_home }}/.config/pipewire/*"
+  - "{{ ovos_installer_user_home }}/.local/share/hivemind/*"
+  - "{{ ovos_installer_user_home }}/.local/state/ovos/*"
+  - "{{ ovos_installer_user_home }}/.local/state/mycroft/*"
+ovos_config_backup_dest: "{{ ovos_installer_user_home }}/ovos-backup.tar.gz"
+ovos_config_backup_owner: "{{ ovos_installer_user }}"
+ovos_config_backup_group: "{{ ovos_installer_group }}"
+ovos_config_backup_mode: "0755"
+ovos_config_backup_format: gz
+ovos_config_log_path: /var/log/ovos-installer.log
+ovos_config_ansible_log_path: /var/log/ovos-ansible.log
+ovos_config_ansible_dir: "{{ ovos_installer_user_home }}/.ansible"
+
+ovos_config_container_dir_owner: "{{ ovos_installer_user }}"
+ovos_config_container_dir_group: "{{ ovos_installer_group }}"
+ovos_config_container_dir_mode: "0755"
+ovos_config_container_directories:
+  - { path: "{{ ovos_installer_user_home }}/.config/systemd/user", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/ovos", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/ovos/config", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/ovos/config/persona", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/ovos/config/phal", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/ovos/share", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/ovos/tmp", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/hivemind", enabled: "{{ ovos_installer_profile != 'ovos' }}" }
+  - { path: "{{ ovos_installer_user_home }}/hivemind/config", enabled: "{{ ovos_installer_profile != 'ovos' }}" }
+  - { path: "{{ ovos_installer_user_home }}/hivemind/share", enabled: "{{ ovos_installer_profile != 'ovos' }}" }
+
+ovos_config_virtualenv_dir_owner: "{{ ovos_installer_user }}"
+ovos_config_virtualenv_dir_group: "{{ ovos_installer_group }}"
+ovos_config_virtualenv_dir_mode: "0755"
+ovos_config_virtualenv_directories:
+  - { path: "{{ ovos_installer_user_home }}/.config/mycroft", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/.config/ovos_persona", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/.local", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/.local/bin", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/.config/hivemind", enabled: "{{ ovos_installer_profile != 'ovos' }}" }
+  - { path: "{{ ovos_installer_user_home }}/.config/systemd/user", enabled: true }
+  - { path: "{{ ovos_installer_user_home }}/nltk_data", enabled: true }
+
+ovos_config_geoip_url: "{{ ovos_installer_geoip_url }}"
+ovos_config_geoip_enabled: "{{ ovos_installer_geoip_enabled | default(false) }}"
+ovos_config_geoip_timeout: 5
+ovos_config_mycroft_conf_relpath: "{{ '.config/mycroft' if ovos_installer_method == 'virtualenv' else 'ovos/config' }}"
+ovos_config_mycroft_conf_mode: "0600"
+ovos_config_system_unit: "{{ ovos_installer_system_unit }}"
+ovos_config_temperature_unit: "{{ ovos_installer_temperature_unit }}"
+ovos_config_precipitation_unit: "{{ ovos_installer_precipitation_unit }}"
+ovos_config_windspeed_unit: "{{ ovos_installer_windspeed_unit }}"
+ovos_config_time_format: "{{ ovos_installer_time_format }}"
+ovos_config_spoken_time_format: "{{ ovos_installer_spoken_time_format }}"
+ovos_config_date_format: "{{ ovos_installer_date_format }}"

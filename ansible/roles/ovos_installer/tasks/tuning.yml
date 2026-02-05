@@ -1,0 +1,35 @@
+---
+- name: Include ovos_performance_tuning role
+  ansible.builtin.import_role:
+    name: ovos_performance_tuning
+  tags:
+    - tuning
+    - ovos_performance_tuning
+
+- name: Include ovos_network_tuning role
+  ansible.builtin.import_role:
+    name: ovos_network_tuning
+  tags:
+    - tuning
+    - ovos_network_tuning
+
+- name: Include ovos_storage_tuning role
+  ansible.builtin.import_role:
+    name: ovos_storage_tuning
+  tags:
+    - tuning
+    - ovos_storage_tuning
+
+- name: Include ovos_audio_tuning role
+  ansible.builtin.import_role:
+    name: ovos_audio_tuning
+  tags:
+    - tuning
+    - ovos_audio_tuning
+
+- name: Include ovos_python role
+  ansible.builtin.import_role:
+    name: ovos_python
+  tags:
+    - tuning
+    - ovos_python

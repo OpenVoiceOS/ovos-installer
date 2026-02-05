@@ -83,9 +83,8 @@ channel: testing
 profile: ovos
 features:
   skills: true
-  gui: true
   extra_skills: false
-rapsberry_pi_tuning: true
+raspberry_pi_tuning: true
 share_telemetry: true
 share_usage_telemetry: true
 EOF
@@ -103,14 +102,13 @@ case "$*" in
         echo "method=containers"
         echo "channel=testing"
         echo "profile=ovos"
-        echo "rapsberry_pi_tuning=true"
+        echo "raspberry_pi_tuning=true"
         echo "share_telemetry=true"
         echo "share_usage_telemetry=true"
         ;;
     *".features | to_entries | map([.key, .value] | join(\"=\")) | .[]"*)
         # Mock features output
         echo "skills=true"
-        echo "gui=true"
         echo "extra_skills=false"
         ;;
     *".hivemind | to_entries | map([.key, .value] | join(\"=\")) | .[]"*)
@@ -142,7 +140,6 @@ EOF
         export SHARE_TELEMETRY="true"
         export SHARE_USAGE_TELEMETRY="true"
         export FEATURE_SKILLS="true"
-        export FEATURE_GUI="true"
         export FEATURE_EXTRA_SKILLS="false"
     }
 
@@ -169,8 +166,7 @@ channel: testing
 profile: ovos
 features:
   skills: true
-  gui: true
-rapsberry_pi_tuning: true
+raspberry_pi_tuning: true
 share_telemetry: true
 share_usage_telemetry: true
 EOF
@@ -219,8 +215,7 @@ channel: testing
 profile: ovos
 features:
   skills: true
-  gui: true
-rapsberry_pi_tuning: true
+raspberry_pi_tuning: true
 share_telemetry: true
 share_usage_telemetry: true
 EOF
@@ -235,13 +230,12 @@ case "$*" in
         echo "method=invalid_method"
         echo "channel=testing"
         echo "profile=ovos"
-        echo "rapsberry_pi_tuning=true"
+        echo "raspberry_pi_tuning=true"
         echo "share_telemetry=true"
         echo "share_usage_telemetry=true"
         ;;
     *".features | to_entries | map([.key, .value] | join(\"=\")) | .[]"*)
         echo "skills=true"
-        echo "gui=true"
         ;;
     *)
         exit 0
@@ -290,8 +284,7 @@ channel: testing
 profile: ovos
 features:
   skills: true
-  gui: true
-rapsberry_pi_tuning: true
+raspberry_pi_tuning: true
 share_telemetry: true
 share_usage_telemetry: true
 hivemind:
@@ -311,14 +304,13 @@ case "$*" in
         echo "method=containers"
         echo "channel=testing"
         echo "profile=ovos"
-        echo "rapsberry_pi_tuning=true"
+        echo "raspberry_pi_tuning=true"
         echo "share_telemetry=true"
         echo "share_usage_telemetry=true"
         echo "hivemind=map[host:192.168.1.100 port:8000 key:test_key password:test_password]"
         ;;
     *".features | to_entries | map([.key, .value] | join(\"=\")) | .[]"*)
         echo "skills=true"
-        echo "gui=true"
         ;;
     *".hivemind | to_entries | map([.key, .value] | join(\"=\")) | .[]"*)
         echo "host=192.168.1.100"
@@ -370,8 +362,7 @@ channel: testing
 profile: ovos
 features:
   skills: true
-  gui: true
-rapsberry_pi_tuning: true
+raspberry_pi_tuning: true
 share_telemetry: true
 share_usage_telemetry: true
 EOF
@@ -386,13 +377,12 @@ case "$*" in
         echo "method=containers"
         echo "channel=testing"
         echo "profile=ovos"
-        echo "rapsberry_pi_tuning=true"
+        echo "raspberry_pi_tuning=true"
         echo "share_telemetry=true"
         echo "share_usage_telemetry=true"
         ;;
     *".features | to_entries | map([.key, .value] | join(\"=\")) | .[]"*)
         echo "skills=true"
-        echo "gui=true"
         ;;
     *)
         exit 0

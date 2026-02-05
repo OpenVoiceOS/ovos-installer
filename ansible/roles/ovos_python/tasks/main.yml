@@ -1,0 +1,108 @@
+---
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
+- name: Install mimalloc (High Performance Memory Allocator)
+  ansible.builtin.package:
+    name: "{{ ovos_python_mimalloc_package_redhat if ansible_facts.os_family == 'RedHat' else ovos_python_mimalloc_package_default }}"
+    state: present
+  ignore_errors: true
+  register: ovos_python_mimalloc_install
+
+- name: Check if /usr/lib64 exists
+  ansible.builtin.stat:
+    path: "{{ ovos_python_mimalloc_lib64_path }}"
+  register: ovos_python_lib64_stat
+  changed_when: false
+  when:
+    - ovos_python_mimalloc_install is success
+
+- name: Find libmimalloc path
+  ansible.builtin.find:
+    paths: >-
+      {{ ovos_python_mimalloc_lib_paths + ((ovos_python_lib64_stat.stat.isdir | default(false)) | ternary([ovos_python_mimalloc_lib64_path], [])) }}
+    patterns: "{{ ovos_python_mimalloc_pattern }}"
+    file_type: file
+    recurse: true
+  register: ovos_python_mimalloc_find
+  changed_when: false
+  when:
+    - ovos_python_mimalloc_install is success
+
+- name: Set libmimalloc path
+  ansible.builtin.set_fact:
+    ovos_python_mimalloc_path: >-
+      {{
+        (
+          (ovos_python_mimalloc_find.files | selectattr('path', 'search', ovos_python_mimalloc_lib64_marker) | list)
+          | default(ovos_python_mimalloc_find.files, true)
+          | sort(attribute='path')
+        )[0].path
+      }}
+  when:
+    - ovos_python_mimalloc_find is defined
+    - ovos_python_mimalloc_find.files | length > 0
+
+- name: Ensure systemd user environment directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_python_env_dir }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0755'
+
+- name: Configure Python Optimization (environment.d)
+  ansible.builtin.copy:
+    dest: "{{ ovos_python_env_dir }}/{{ ovos_python_env_file }}"
+    content: |
+      {{ ovos_python_env_header }}
+      PYTHONOPTIMIZE={{ ovos_python_env_pythonoptimize }}
+      OMP_NUM_THREADS={{ ovos_python_env_omp_threads }}
+      MKL_NUM_THREADS={{ ovos_python_env_mkl_threads }}
+      MIMALLOC_PAGE_RESET={{ ovos_python_env_mimalloc_page_reset }}
+      {% if ovos_python_mimalloc_path | default('') | length > 0 %}
+      LD_PRELOAD={{ ovos_python_mimalloc_path }}
+      {% endif %}
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "{{ ovos_python_env_mode }}"
+  notify:
+    - Reload Systemd User
+    - Restart OVOS services
+
+- name: Ensure OVOS systemd drop-in directories exist (mimalloc)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d"
+    state: directory
+    owner: "{{ ovos_installer_systemd_dropin_owner }}"
+    group: "{{ ovos_installer_systemd_dropin_group }}"
+    mode: '0755'
+  loop: "{{ ovos_installer_core_services }}"
+  when:
+    - (ovos_installer_systemd_scope | default('user')) == 'system'
+    - ovos_python_mimalloc_path | default('') | length > 0
+
+- name: Apply mimalloc preload to OVOS services
+  ansible.builtin.copy:
+    dest: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/{{ ovos_python_mimalloc_dropin_name }}"
+    content: |
+      [Service]
+      Environment=LD_PRELOAD={{ ovos_python_mimalloc_path }}
+    owner: "{{ ovos_installer_systemd_dropin_owner }}"
+    group: "{{ ovos_installer_systemd_dropin_group }}"
+    mode: '0644'
+  loop: "{{ ovos_installer_core_services }}"
+  when:
+    - (ovos_installer_systemd_scope | default('user')) == 'system'
+    - ovos_python_mimalloc_path | default('') | length > 0
+  notify:
+    - "{{ ovos_installer_systemd_reload_handler }}"
+    - Restart OVOS services
+
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_installer_cleaning | default(false) | bool
+  tags:
+    - uninstall

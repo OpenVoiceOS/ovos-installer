@@ -1,0 +1,22 @@
+---
+ovos_network_tuning_networkmanager_conf_dir: "{{ ovos_installer_networkmanager_path | default('/etc/NetworkManager') }}"
+ovos_network_tuning_dnsmasq_package: dnsmasq
+ovos_network_tuning_dnsmasq_service: dnsmasq
+ovos_network_tuning_dnsmasq_conf_path: /etc/NetworkManager/conf.d/90-dnsmasq.conf
+ovos_network_tuning_dnsmasq_dir: /etc/NetworkManager/dnsmasq.d
+ovos_network_tuning_dnsmasq_cache_conf_path: /etc/NetworkManager/dnsmasq.d/ovos.conf
+ovos_network_tuning_dnsmasq_cache_size: 1000
+ovos_network_tuning_dnsmasq_min_ttl: 60
+ovos_network_tuning_dnsmasq_max_ttl: 3600
+ovos_network_tuning_dnsmasq_main_conf: |
+  [main]
+  dns=dnsmasq
+ovos_network_tuning_dnsmasq_cache_conf: |
+  cache-size={{ ovos_network_tuning_dnsmasq_cache_size }}
+  min-cache-ttl={{ ovos_network_tuning_dnsmasq_min_ttl }}
+  max-cache-ttl={{ ovos_network_tuning_dnsmasq_max_ttl }}
+
+ovos_network_tuning_wireless_unit_name: wlan0-power.service
+ovos_network_tuning_wireless_unit_path: >-
+  {{ (ovos_installer_systemd_system_path | default('/etc/systemd/system')) }}/wlan0-power.service
+ovos_network_tuning_wireless_unit_src: tuning/wlan0-power.service

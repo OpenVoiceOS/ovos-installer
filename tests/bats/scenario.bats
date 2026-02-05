@@ -128,8 +128,7 @@ channel: testing
 profile: ovos
 features:
   skills: true
-  gui: true
-rapsberry_pi_tuning: true
+raspberry_pi_tuning: true
 share_telemetry: true
 share_usage_telemetry: true
 EOF

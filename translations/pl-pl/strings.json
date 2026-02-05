@@ -17,8 +17,7 @@
     "title": "Instalacja Open Voice OS - Funkcje",
     "content": "Umiejętności umożliwiają interakcję za pomocą mowy, co czyni ją wydajną w przypadku zadań takich jak automatyzacja domu, wyszukiwanie informacji i sterowanie inteligentnymi urządzeniami za pomocą poleceń języka naturalnego.\n\nWybierz funkcje, które chcesz włączyć:",
     "skill_description": "Załaduj domyślne umiejętności OVOS",
-    "extra_skill_description": "Załaduj dodatkowe umiejętności OVOS",
-    "gui_description": "Włącz graficzny interfejs użytkownika"
+    "extra_skill_description": "Załaduj dodatkowe umiejętności OVOS"
   },
   "finish.sh": {
     "title": "Instalacja Open Voice OS – Zakończ",
@@ -62,5 +61,9 @@
   "welcome.sh": {
     "title": "Instalacja Open Voice OS - Witamy",
     "content": "Witaj i zapraszamy do instalacji Open Voice OS!\n\nZ przyjemnością przedstawiamy Open Voice OS, asystenta głosowego typu open source, który zmienia sposób, w jaki wchodzimy w interakcję z technologią.\n\nInstalacja Open Voice OS jest dziecinnie prosta i otwiera świat możliwości dla wygody sterowania głosem. Niezależnie od tego, czy jesteś entuzjastą technologii, czy po prostu chcesz uprościć swoje codzienne zadania, Open Voice OS jest tutaj, aby ułatwić Ci życie.\n\nRozpocznij instalację już dziś i pozwól, aby Twój głos poprowadził Cię przez przyszłość technologii!🌟"
+  },
+  "overclock.sh": {
+    "title": "Instalacja Open Voice OS - Podkręcanie",
+    "content": "Podkręcanie zwiększa częstotliwość CPU/GPU dla maksymalnej wydajności, ale może obniżyć stabilność i zwiększyć temperaturę.\n\nWymagania:\n- Aktywne chłodzenie (radiator/wentylator) i dobry przepływ powietrza\n- Stabilne zasilanie odpowiednie dla modelu Pi\n- Monitoruj temperatury i przerwij w razie throttlingu lub awarii\n\nRyzyka:\n- Losowe restarty, problemy z dźwiękiem, uszkodzenie danych\n- Większy pobór mocy i krótsza żywotność\n\nOpen Voice OS nie ponosi odpowiedzialności za problemy związane z podkręcaniem.\n\nWłączyć podkręcanie?"
   }
 }

@@ -1,4 +1,53 @@
 ---
+ovos_installer_boot_firmware_path: /boot/firmware
+ovos_installer_boot_default_path: /boot
+ovos_installer_networkmanager_path: /etc/NetworkManager
+ovos_installer_i2c_devices: []
+ovos_installer_systemd_system_path: /etc/systemd/system
+ovos_installer_systemd_user_path: "{{ ovos_installer_user_home }}/.config/systemd/user"
+ovos_installer_pip_conf_path: /etc/pip.conf
+ovos_installer_pip_conf_extra_index_regex: "(?i)^\\s*#\\s*(extra-index.*)"
+ovos_installer_pip_conf_extra_index_line: "\\1"
+ovos_installer_tmp_dir: "{{ _ovos_installer_working_directory }}"
+ovos_installer_profile: "ovos"
+ovos_installer_method: "virtualenv"
+ovos_installer_cleaning: false
+ovos_installer_channel: "stable"
+ovos_installer_requirements_files:
+  - file: virtualenv/core-requirements.txt
+    dest: "{{ ovos_installer_tmp_dir }}/core-requirements.txt"
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+  - file: virtualenv/skills-requirements.txt
+    dest: "{{ ovos_installer_tmp_dir }}/skills-requirements.txt"
+    state: "{{ ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite' }}"
+  - file: virtualenv/extra-skills-requirements.txt
+    dest: "{{ ovos_installer_tmp_dir }}/extra-skills-requirements.txt"
+    state: "{{ ovos_installer_feature_extra_skills | bool and ovos_installer_profile != 'satellite' }}"
+  - file: virtualenv/listener-requirements.txt
+    dest: "{{ ovos_installer_tmp_dir }}/listener-requirements.txt"
+    state: "{{ ovos_installer_profile == 'listener' }}"
+  - file: virtualenv/satellite-requirements.txt
+    dest: "{{ ovos_installer_tmp_dir }}/satellite-requirements.txt"
+    state: "{{ ovos_installer_profile == 'satellite' }}"
+  - file: virtualenv/server-requirements.txt
+    dest: "{{ ovos_installer_tmp_dir }}/server-requirements.txt"
+    state: "{{ ovos_installer_profile == 'server' }}"
+ovos_installer_docker_repo_base_url: "https://download.docker.com/linux"
+ovos_installer_docker_repo_path: /etc/yum.repos.d/docker-ce.repo
+ovos_installer_docker_repo_apt_filename: /etc/apt/sources.list.d/docker
+ovos_installer_docker_packages_redhat:
+  - docker-ce
+  - docker-ce-cli
+  - docker-ce-rootless-extras
+ovos_installer_docker_packages_debian:
+  - docker-ce
+  - docker-ce-cli
+  - containerd.io
+  - docker-buildx-plugin
+  - docker-compose-plugin
+ovos_installer_xhost_package_fedora: xhost
+ovos_installer_xhost_package_default: xorg-x11-server-utils
+ovos_installer_x11_xserver_utils_package: x11-xserver-utils
 ovos_installer_ovos_docker_repo_url: https://github.com/OpenVoiceOS/ovos-docker.git
 ovos_installer_ovos_docker_repo_branch: dev
 ovos_installer_hivemind_docker_repo_url: https://github.com/JarbasHiveMind/hivemind-docker.git
@@ -8,9 +57,69 @@ ovos_installer_docker_pull_policy: always
 ovos_installer_docker_compose_remove_orphans: true
 ovos_installer_docker_compose_remove_images: all
 ovos_installer_docker_compose_remove_volumes: true
-ovos_installer_uninstall: "{{ 'present' if (not ovos_installer_cleaning | bool | default(false)) else 'absent' }}"
+ovos_installer_uninstall: "{{ 'present' if not (ovos_installer_cleaning | default(false) | bool) else 'absent' }}"
+ovos_installer_uninstall_autoremove: true
+ovos_installer_uninstall_remove_packages: false
 ovos_installer_venv_python: "3.11"
 # ggwave stack doesn't support the ovos-audio >=1.1 move to plugin-manager >=2 yet,
 # so limit it to stable/testing on x86_64/aarch64 until an updated release lands.
-ovos_installer_enable_ggwave: "{{ (ovos_installer_channel | default('')) in ['stable', 'testing'] and ansible_architecture in ['x86_64', 'aarch64'] }}"
+ovos_installer_enable_ggwave: "{{ (ovos_installer_channel | default('')) in ['stable', 'testing'] and ansible_facts.architecture in ['x86_64', 'aarch64'] }}"
 ovos_installer_uv_allow_prerelease: "{{ ansible_facts.python.version.major == 3 and (ansible_facts.python.version.minor | int) >= 13 }}"
+ovos_installer_tuning: false
+ovos_installer_tuning_performance: >-
+  {{ ovos_installer_tuning | bool and (ovos_installer_raspberrypi | default('N/A')) != 'N/A' }}
+ovos_installer_tuning_audio_low_latency: "{{ ovos_installer_tuning_performance | bool }}"
+ovos_installer_tuning_audio_noise_suppression: "{{ ovos_installer_tuning | bool }}"
+ovos_installer_tuning_audio_ns_level: 1
+ovos_installer_tuning_audio_ns_agc: true
+ovos_installer_tuning_audio_bluetooth_profile: "headset-head-unit"
+ovos_installer_tuning_audio_bluetooth_profile_fallback: "handsfree_head_unit"
+ovos_installer_tuning_audio_capture_target: ""
+ovos_installer_tuning_audio_playback_target: ""
+ovos_installer_audio_card_index: ""
+ovos_installer_tuning_overclock: false
+ovos_installer_tuning_numa: "{{ ovos_installer_tuning_performance | bool }}"
+ovos_installer_systemd_scope: "{{ 'system' if ovos_installer_tuning_performance | bool else 'user' }}"
+ovos_installer_tuning_mycroft_state_tmpfs: true
+ovos_installer_tuning_mycroft_state_tmpfs_size: "100M"
+ovos_installer_tuning_tmpfs_size: "512M"
+ovos_installer_tuning_mycroft_state_sync_interval: "5m"
+ovos_installer_tuning_mycroft_state_dir: "{{ ovos_installer_user_home }}/.local/state/mycroft"
+ovos_installer_tuning_mycroft_state_persist_dir: "{{ ovos_installer_user_home }}/.local/state/mycroft-persistent"
+ovos_installer_overclock_arm_boost: "1"
+ovos_installer_overclock_initial_turbo: "60"
+ovos_installer_overclock_over_voltage: "6"
+ovos_installer_overclock_arm_freq: "{{ '2800' if 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default('')) else '2000' }}"
+ovos_installer_overclock_gpu_freq: "750"
+ovos_installer_uv_version: ""
+ovos_installer_hotword_sensitivity: 0.95
+ovos_installer_hotword_trigger_level: 1
+ovos_installer_listener_multiplier: 1.5
+ovos_installer_tuning_source_volume: 1.0
+ovos_installer_cpu_is_capable: false
+ovos_installer_locale: "en-us"
+ovos_installer_feature_skills: true
+ovos_installer_feature_extra_skills: false
+ovos_installer_feature_gui: false
+ovos_installer_usage_telemetry: false
+ovos_installer_telemetry: "{{ ovos_installer_usage_telemetry | bool }}"
+ovos_installer_run_ovos_config: false
+ovos_installer_geoip_enabled: false
+ovos_installer_geoip_url: "https://ipapi.co/json/"
+ovos_installer_system_unit: "metric"
+ovos_installer_temperature_unit: "celsius"
+ovos_installer_precipitation_unit: "mm"
+ovos_installer_windspeed_unit: "kph"
+ovos_installer_time_format: "full"
+ovos_installer_spoken_time_format: "full"
+ovos_installer_date_format: "DMY"
+ovos_installer_core_services:
+  - ovos-core
+  - ovos-audio
+  - ovos-listener
+  - ovos-messagebus
+  - ovos-phal
+ovos_installer_rt_services:
+  - ovos-audio
+  - ovos-listener
+  - ovos-core

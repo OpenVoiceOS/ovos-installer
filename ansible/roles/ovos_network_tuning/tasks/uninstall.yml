@@ -1,0 +1,38 @@
+---
+- name: Assert uninstall mode
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_cleaning | default(false) | bool
+    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
+  tags:
+    - uninstall
+
+- name: Remove NetworkManager dnsmasq config
+  ansible.builtin.file:
+    path: "{{ ovos_network_tuning_dnsmasq_conf_path }}"
+    state: absent
+  when: ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
+  notify: Restart NetworkManager
+
+- name: Remove dnsmasq cache config
+  ansible.builtin.file:
+    path: "{{ ovos_network_tuning_dnsmasq_cache_conf_path }}"
+    state: absent
+  when: ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
+  notify: Restart NetworkManager
+
+- name: Stop and disable wlan0-power systemd unit
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_network_tuning_wireless_unit_name }}"
+    enabled: false
+    state: stopped
+  failed_when: false
+
+- name: Remove wlan0-power systemd unit file
+  ansible.builtin.file:
+    path: "{{ ovos_network_tuning_wireless_unit_path }}"
+    state: absent
+  notify: Reload Systemd
+
+- name: Flush handlers wireless (uninstall)
+  ansible.builtin.meta: flush_handlers

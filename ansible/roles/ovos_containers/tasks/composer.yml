@@ -1,0 +1,70 @@
+---
+- name: Retrieve groups information
+  ansible.builtin.getent:
+    database: group
+  tags:
+    - always
+
+- name: Generate .env file for docker-compose
+  ansible.builtin.template:
+    src: docker/env.j2
+    dest: "{{ ovos_containers_composition_directory }}/.env"
+    owner: root
+    group: root
+    mode: "0644"
+  tags:
+    - always
+
+- name: Define composition
+  ansible.builtin.set_fact:
+    ovos_containers_composition_files: "{{ ovos_containers_composition_files | default([]) + [item.file] }}"
+  loop: "{{ ovos_containers_compose_definitions }}"
+  when: item.state | bool
+
+- name: Deploy docker-compose stack
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ ovos_containers_composition_directory }}"
+    project_name: "{{ ovos_containers_compose_project_name }}"
+    files: "{{ ovos_containers_composition_files }}"
+    pull: "{{ ovos_containers_docker_pull_policy }}"
+    remove_orphans: "{{ ovos_containers_docker_compose_remove_orphans }}"
+    remove_images: "{{ ovos_containers_docker_compose_remove_images }}"
+    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
+  register: ovos_containers_docker_compose
+  until: not ovos_containers_docker_compose.failed | bool
+  retries: 5
+  delay: 3
+  environment:
+    DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
+
+- name: Generate _identity.json
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_container_exec:
+    container: "{{ ovos_containers_container_hivemind_cli }}"
+    command: >
+      hivemind-client set-identity
+      --key {{ ovos_installer_satellite_key }}
+      --password {{ ovos_installer_satellite_password }}
+      --host {{ ovos_installer_listener_host }}
+      --port {{ ovos_installer_listener_port | default(ovos_containers_listener_port_default) }}
+      --siteid {{ ovos_installer_site_id | default(ovos_containers_site_id_default) }}
+  when: ovos_installer_profile == "satellite"
+
+- name: Run ovos-config for auto-configuration of STT and TTS based on language
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_container_exec:
+    container: "{{ ovos_containers_container_ovos_cli }}"
+    command: ovos-config autoconfigure --lang {{ ovos_installer_locale }} --male --online
+  when: ovos_installer_profile != "server"
+
+- name: Delete composer directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ ovos_containers_repo_directories }}"
+  tags:
+    - always

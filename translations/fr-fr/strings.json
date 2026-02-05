@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Open Voice OS Installation - Canaux d'installation",
-    "content": "Open Voice OS propose quatre principaux canaux de publication :\n\n- stable (stable mais vieux)\n- test (par défaut)\n- alpha (à la pointe de la technologie)\n\nLa version stable d'Open Voice OS est la version recommandée pour la plupart des utilisateurs. Elle a été testée avec soin et inclut toutes les dernières fonctionnalités et améliorations jugées stables.\n\nLa version de test d'Open Voice OS est une version plus expérimentale qui inclut de nouvelles fonctionnalités et améliorations encore en cours de test. Elle est globalement stable, mais peut présenter des bugs ou des problèmes.\n\nLa version alpha d'Open Voice OS est la version la plus expérimentale, contenant les dernières fonctionnalités et modifications encore en développement. Elle peut être instable et n'est pas recommandée pour une utilisation quotidienne.\n\nVeuillez sélectionner un canal :"
+    "content": "Open Voice OS propose trois principaux canaux de publication :\n\n- stable (stable mais vieux)\n- test (par défaut)\n- alpha (à la pointe de la technologie)\n\nLa version stable d'Open Voice OS est la version recommandée pour la plupart des utilisateurs. Elle a été testée avec soin et inclut toutes les dernières fonctionnalités et améliorations jugées stables.\n\nLa version de test d'Open Voice OS est une version plus expérimentale qui inclut de nouvelles fonctionnalités et améliorations encore en cours de test. Elle est globalement stable, mais peut présenter des bugs ou des problèmes.\n\nLa version alpha d'Open Voice OS est la version la plus expérimentale, contenant les dernières fonctionnalités et modifications encore en développement. Elle peut être instable et n'est pas recommandée pour une utilisation quotidienne.\n\nVeuillez sélectionner un canal :"
   },
   "detection.sh": {
     "title": "Open Voice OS Installation - Détecté",
@@ -17,8 +17,7 @@
     "title": "Open Voice OS Installation - Fonctionnalités",
     "content": "Les compétences permettent le déclenchement d'actions par la parole, ce qui rend des tâches telles que la domotique, les nouvelles, la météo, etc. simples et intuitives.\n\nVeuillez sélectionner les fonctionnalités à activer :",
     "skill_description": "Chargement des compétences par défaut d'OVOS",
-    "extra_skill_description": "Chargement des compétences OVOS supplémentaires",
-    "gui_description": "Activation de l'interface graphique"
+    "extra_skill_description": "Chargement des compétences OVOS supplémentaires"
   },
   "finish.sh": {
     "title": "Open Voice OS Installation - Clap de fin",
@@ -70,5 +69,9 @@
   "welcome.sh": {
     "title": "Open Voice OS Installation - Bienvenue",
     "content": "Bonjour et bienvenue dans l'installation d'Open Voice OS!\n\nNous sommes ravis de vous présenter Open Voice OS, l'assistant vocal open source qui change la façon dont nous interagissons avec la technologie.\n\nL'installation d'Open Voice OS est un jeu d'enfant et ouvre un monde de possibilités pour la commodité de la commande vocale. Que vous soyez un passionné de technologie ou que vous cherchiez simplement à simplifier vos tâches quotidiennes, Open Voice OS est là pour vous faciliter la vie.\n\nCommencez l'installation dès maintenant et laissez votre voix vous guider!🌟"
+  },
+  "overclock.sh": {
+    "title": "Installation d'Open Voice OS - Overclocking",
+    "content": "L’overclocking augmente la fréquence CPU/GPU pour des performances maximales, mais peut réduire la stabilité et augmenter la chaleur.\n\nPrérequis :\n- Refroidissement actif (radiateur/ventilateur) et bon flux d’air\n- Alimentation stable adaptée à votre modèle de Pi\n- Surveillez les températures et arrêtez en cas de throttling ou de crash\n\nRisques :\n- Redémarrages aléatoires, problèmes audio, corruption de données\n- Consommation plus élevée et durée de vie réduite\n\nOpen Voice OS n’est pas responsable des problèmes liés à l’overclocking.\n\nActiver l’overclocking ?"
   }
 }

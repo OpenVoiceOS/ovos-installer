@@ -8,6 +8,5 @@ Veuillez sélectionner les fonctionnalités à activer :
 TITLE="Open Voice OS Installation - Fonctionnalités"
 SKILL_DESCRIPTION="Chargement des compétences par défaut d'OVOS"
 EXTRA_SKILL_DESCRIPTION="Chargement des compétences OVOS supplémentaires"
-GUI_DESCRIPTION="Activation de l'interface graphique"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION

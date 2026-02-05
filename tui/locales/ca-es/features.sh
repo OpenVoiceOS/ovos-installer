@@ -8,6 +8,5 @@ Si us plau, trieu les funcions que voleu activar:
 TITLE="Instal·lació de l'Open Voice OS - Característiques"
 SKILL_DESCRIPTION="Carrega les habilitats d'OVOS predeterminades"
 EXTRA_SKILL_DESCRIPTION="Carrega habilitats d'OVOS addicionals"
-GUI_DESCRIPTION="Habilita la interfície gràfica d'usuari"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION

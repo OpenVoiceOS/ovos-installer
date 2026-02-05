@@ -1,0 +1,92 @@
+---
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_installer_cleaning | default(false) | bool
+  tags:
+    - uninstall
+
+- name: Create container directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: "{{ ovos_config_container_dir_owner }}"
+    group: "{{ ovos_config_container_dir_group }}"
+    mode: "{{ ovos_config_container_dir_mode }}"
+    state: directory
+  loop: "{{ ovos_config_container_directories }}"
+  when:
+    - item.enabled | bool
+    - ovos_installer_method == "containers"
+
+- name: Create virtualenv directories
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    owner: "{{ ovos_config_virtualenv_dir_owner }}"
+    group: "{{ ovos_config_virtualenv_dir_group }}"
+    mode: "{{ ovos_config_virtualenv_dir_mode }}"
+    state: directory
+  loop: "{{ ovos_config_virtualenv_directories }}"
+  when:
+    - item.enabled | bool
+    - ovos_installer_method == "virtualenv"
+
+- name: Resolve locale units based on public IP
+  when:
+    - ovos_installer_profile != "server"
+    - ovos_config_geoip_enabled | bool
+  block:
+    - name: Fetch geoip metadata
+      ansible.builtin.uri:
+        url: "{{ ovos_config_geoip_url }}"
+        return_content: true
+        timeout: "{{ ovos_config_geoip_timeout }}"
+      register: ovos_config_geoip_response
+      failed_when: false
+      changed_when: false
+
+    - name: Set geoip country code
+      ansible.builtin.set_fact:
+        ovos_config_geoip_country: >-
+          {{
+            (ovos_config_geoip_response.json.country_code
+             | default(ovos_config_geoip_response.json.country | default(''))) | upper
+          }}
+      when: ovos_config_geoip_response.json is defined
+
+    - name: Apply imperial unit defaults for select countries
+      ansible.builtin.set_fact:
+        ovos_config_system_unit: "imperial"
+        ovos_config_temperature_unit: "fahrenheit"
+        ovos_config_precipitation_unit: "inch"
+        ovos_config_windspeed_unit: "mph"
+      when: ovos_config_geoip_country | default('') in ovos_config_geoip_imperial_countries
+
+    - name: Apply date format defaults (MDY)
+      ansible.builtin.set_fact:
+        ovos_config_date_format: "MDY"
+      when: ovos_config_geoip_country | default('') in ovos_config_geoip_mdy_countries
+
+    - name: Apply date format defaults (YMD)
+      ansible.builtin.set_fact:
+        ovos_config_date_format: "YMD"
+      when: ovos_config_geoip_country | default('') in ovos_config_geoip_ymd_countries
+
+    - name: Apply time format defaults for 12-hour regions
+      ansible.builtin.set_fact:
+        ovos_config_time_format: "half"
+        ovos_config_spoken_time_format: "half"
+      when: ovos_config_geoip_country | default('') in ovos_config_geoip_half_time_countries
+
+- name: Generate mycroft.conf
+  ansible.builtin.template:
+    src: mycroft.conf.j2
+    dest: "{{ ovos_installer_user_home }}/{{ ovos_config_mycroft_conf_relpath }}/mycroft.conf"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "{{ ovos_config_mycroft_conf_mode }}"
+    backup: true
+  register: ovos_config_configuration

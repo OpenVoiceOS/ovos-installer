@@ -17,8 +17,7 @@
     "title": "Ireki Voice OS Instalazioa - Ezaugarriak",
     "content": "Trebetasunek hizkeraren bidez interakzioa ahalbidetzen dute, eta eraginkorra egiten dute etxeko automatizazioa, informazioa berreskuratzea eta gailu adimendunak kontrolatzea hizkuntza naturaleko komandoak erabiliz.\n\nMesedez, aukeratu gaitzeko eginbideak:",
     "skill_description": "Kargatu OVOS trebetasun lehenetsiak",
-    "extra_skill_description": "Kargatu OVOS trebetasun gehigarriak",
-    "gui_description": "Gaitu erabiltzailearen interfaze grafikoa"
+    "extra_skill_description": "Kargatu OVOS trebetasun gehigarriak"
   },
   "finish.sh": {
     "title": "Ireki Voice OS instalazioa - Amaitu",
@@ -62,5 +61,9 @@
   "welcome.sh": {
     "title": "Ireki Voice OS instalazioa - Ongi etorri",
     "content": "Kaixo eta ongi etorri Open Voice OS instalaziora!\n\nPozik gaude Open Voice OS aurkeztea, teknologiarekin elkarreragiteko modua aldatzen ari den kode irekiko ahots laguntzailea.\n\nOpen Voice OS instalatzea oso erraza da, eta ahots bidez kontrolatutako erosotasunerako aukeren mundu bat irekitzen du. Teknologia zalea zaren edo zure eguneroko zereginak erraztu nahi dituzun ala ez, Open Voice OS hemen dago zure bizitza errazteko.\n\nHasi gaur instalazioarekin eta utzi zure ahotsak gidatzen zaituen teknologiaren etorkizunean!🌟"
+  },
+  "overclock.sh": {
+    "title": "Open Voice OS Instalazioa - Overclocking",
+    "content": "Overclocking-ek CPU/GPU maiztasuna handitzen du errendimendu maximoa lortzeko, baina egonkortasuna murriztu eta beroa handitu dezake.\n\nBaldintzak:\n- Hozte aktiboa (dissipagailua/haizagailua) eta aireztapen ona\n- Zure Pi modelorako egokia den elikatze-iturri egonkorra\n- Tenperaturak kontrolatu eta throttling termikoa edo akatsak badaude gelditu\n\nArriskuak:\n- Berrezarpen ausazkoak, audio arazoak, datuen ustelkeria\n- Energia kontsumo handiagoa eta bizitza erabilgarriaren murrizketa\n\nOpen Voice OS ez da overclockingarekin lotutako arazoen erantzule.\n\nOverclocking aktibatu?"
   }
 }

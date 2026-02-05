@@ -17,8 +17,7 @@
     "title": "Instalación de Open Voice OS - Características",
     "content": "Las habilidades permiten la interacción a través de la voz, lo que las hace eficaces para tareas como la domótica, la recuperación de información y el control de dispositivos inteligentes mediante comandos de voz.\n\nSelecciona las funciones que quieres activar:",
     "skill_description": "Descargar una selección de competencias (skills) OVOS",
-    "extra_skill_description": "Descargar habilidades OVOS adicionales",
-    "gui_description": "Con interfaz gráfica de usuario"
+    "extra_skill_description": "Descargar habilidades OVOS adicionales"
   },
   "finish.sh": {
     "title": "Instalación de Open Voice OS - Finalización",
@@ -70,5 +69,9 @@
   "welcome.sh": {
     "title": "Instalación de Open Voice OS - Bienvenida",
     "content": "¡Hola! Te damos la bienvenida a la instalación de Open Voice OS!\n\nNos complace presentarte Open Voice OS, el asistente de voz de código abierto.\n\nInstalar Open Voice OS es muy sencillo y abre un mundo de posibilidades para la comodidad controlada por voz. Tanto si eres un entusiasta de la tecnología como si simplemente quieres simplificar tus tareas diarias, Open Voice OS está aquí para hacerte la vida más fácil.\n\nEmpieza a instalarlo hoy mismo y deja que tu voz te guíe por el futuro de la tecnología. 🌟"
+  },
+  "overclock.sh": {
+    "title": "Instalación de Open Voice OS - Overclocking",
+    "content": "El overclocking aumenta la frecuencia de la CPU/GPU para obtener el máximo rendimiento, pero puede reducir la estabilidad y aumentar el calor.\n\nRequisitos:\n- Refrigeración activa (disipador/ventilador) y buen flujo de aire\n- Fuente de alimentación estable adecuada a tu modelo de Pi\n- Supervisa las temperaturas y detén si hay throttling o fallos\n\nRiesgos:\n- Reinicios aleatorios, fallos de audio, corrupción de datos\n- Mayor consumo y vida útil más corta\n\nOpen Voice OS no se hace responsable de ningún problema relacionado con el overclocking.\n\n¿Quieres habilitar el overclocking?"
   }
 }

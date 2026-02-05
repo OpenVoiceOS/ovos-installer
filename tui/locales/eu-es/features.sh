@@ -8,6 +8,5 @@ Mesedez, aukeratu gaitzeko eginbideak:
 TITLE="Ireki Voice OS Instalazioa - Ezaugarriak"
 SKILL_DESCRIPTION="Kargatu OVOS trebetasun lehenetsiak"
 EXTRA_SKILL_DESCRIPTION="Kargatu OVOS trebetasun gehigarriak"
-GUI_DESCRIPTION="Gaitu erabiltzailearen interfaze grafikoa"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION

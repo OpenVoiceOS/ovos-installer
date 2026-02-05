@@ -1,0 +1,45 @@
+---
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
+- name: Include tuning/governor.yml
+  ansible.builtin.import_tasks: governor.yml
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Include tuning/io.yml
+  ansible.builtin.import_tasks: io.yml
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Include tuning/zram.yml
+  vars:
+    # Debian Unstable hack
+    _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
+  ansible.builtin.import_tasks: zram.yml
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - not (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version('23.04', '<=') or
+           ansible_facts.distribution == 'Debian' and _distribution_version is version('12.0', '<='))
+
+- name: Include tuning/sysctl.yml
+  ansible.builtin.import_tasks: sysctl.yml
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Include tuning/numa.yml
+  ansible.builtin.import_tasks: numa.yml
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Include tuning/memory.yml
+  ansible.builtin.import_tasks: memory.yml
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Include tuning/limits.yml
+  ansible.builtin.import_tasks: limits.yml
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_installer_cleaning | default(false) | bool
+  tags:
+    - uninstall

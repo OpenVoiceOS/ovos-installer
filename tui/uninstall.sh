@@ -2,10 +2,10 @@
 
 export CONFIRM_UNINSTALL="true"
 
-# shellcheck source=locales/en-us/misc.sh
+# shellcheck source=tui/locales/en-us/misc.sh
 source "tui/locales/$LOCALE/misc.sh"
 
-# shellcheck source=locales/en-us/uninstall.sh
+# shellcheck source=tui/locales/en-us/uninstall.sh
 source "tui/locales/$LOCALE/uninstall.sh"
 
 whiptail --yesno --defaultno --no-button "$NO_BUTTON" --yes-button "$YES_BUTTON" --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"

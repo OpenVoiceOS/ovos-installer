@@ -1,0 +1,19 @@
+---
+- name: Check required Mark 2 paths
+  ansible.builtin.stat:
+    path: "{{ item.path }}"
+  loop: "{{ ovos_hardware_mark2_required_paths }}"
+  register: ovos_hardware_mark2_required_paths_stat
+  changed_when: false
+
+- name: Assert required Mark 2 paths exist
+  ansible.builtin.assert:
+    that:
+      - item.stat.exists | default(false) | bool
+    fail_msg: >-
+      Mark 2 required path is missing: {{ item.item.path }} ({{ item.item.name }})
+    success_msg: >-
+      Mark 2 required path present: {{ item.item.path }} ({{ item.item.name }})
+  loop: "{{ ovos_hardware_mark2_required_paths_stat.results }}"
+  loop_control:
+    label: "{{ item.item.name }}"

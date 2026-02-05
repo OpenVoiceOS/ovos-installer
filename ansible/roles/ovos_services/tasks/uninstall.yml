@@ -1,0 +1,131 @@
+---
+- name: Assert uninstall mode
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_cleaning | default(false) | bool
+    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
+  tags:
+    - uninstall
+
+- name: Build uninstall unit list
+  ansible.builtin.set_fact:
+    ovos_services_uninstall_units: "{{ (ovos_services_managed_units + [ovos_services_admin_unit]) | unique }}"
+
+- name: Stop and disable OVOS system units
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+    scope: system
+  loop: "{{ ovos_services_uninstall_units }}"
+  failed_when: false
+
+- name: Stop and disable OVOS user units
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.systemd_service:
+    name: "{{ item }}"
+    enabled: false
+    state: stopped
+    scope: user
+  loop: "{{ ovos_services_uninstall_units }}"
+  failed_when: false
+
+- name: Remove OVOS systemd unit files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  notify:
+    - Reload Udev
+    - Reload Systemd
+    - Reload Systemd User
+  loop: "{{ ovos_services_unit_files_system + ovos_services_unit_files_user }}"
+
+- name: Remove OVOS system drop-in directories
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.service.d"
+    state: absent
+  loop: "{{ ovos_services_uninstall_units }}"
+  notify: Reload Systemd
+
+- name: Remove OVOS user drop-in directories
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.service.d"
+    state: absent
+  loop: "{{ ovos_services_uninstall_units }}"
+  notify: Reload Systemd User
+
+- name: Remove OVOS system wants directories
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.wants"
+    state: absent
+  loop: "{{ ovos_services_uninstall_units }}"
+  notify: Reload Systemd
+
+- name: Remove OVOS user wants directories
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.wants"
+    state: absent
+  loop: "{{ ovos_services_uninstall_units }}"
+  notify: Reload Systemd User
+
+- name: Find system OVOS unit backup files
+  ansible.builtin.find:
+    paths: "{{ ovos_installer_systemd_system_path }}"
+    patterns: "{{ ovos_services_unit_backup_patterns }}"
+    file_type: file
+  register: ovos_services_system_backup_units
+  changed_when: false
+
+- name: Remove system OVOS unit backup files
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ ovos_services_system_backup_units.files }}"
+  when: ovos_services_system_backup_units.matched | int > 0
+  notify: Reload Systemd
+
+- name: Find user OVOS unit backup files
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.find:
+    paths: "{{ ovos_installer_systemd_user_path }}"
+    patterns: "{{ ovos_services_unit_backup_patterns }}"
+    file_type: file
+  register: ovos_services_user_backup_units
+  changed_when: false
+
+- name: Remove user OVOS unit backup files
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ ovos_services_user_backup_units.files }}"
+  when: ovos_services_user_backup_units.matched | int > 0
+  notify: Reload Systemd User
+
+- name: Reset failed OVOS systemd units (system scope)  # noqa command-instead-of-module
+  ansible.builtin.command: systemctl reset-failed
+  changed_when: false
+  failed_when: false
+
+- name: Reset failed OVOS systemd units (user scope)  # noqa command-instead-of-module
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command: systemctl --user reset-failed
+  changed_when: false
+  failed_when: false
+
+- name: Flush handlers ovos (uninstall)
+  ansible.builtin.meta: flush_handlers
+
+- name: Remove directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ ovos_services_remove_directories }}"

@@ -1,0 +1,109 @@
+---
+- name: Enable CRB repository
+  ansible.builtin.command:
+    cmd: dnf config-manager --enable crb
+  changed_when: false
+  when:
+    - ansible_facts.os_family == "RedHat"
+    - ansible_facts.distribution != "Fedora"
+
+- name: Add EPEL repository
+  ansible.builtin.dnf:
+    name: epel-release
+  when:
+    - ansible_facts.os_family == "RedHat"
+    - ansible_facts.distribution != "Fedora"
+
+- name: Handle virtualenv package requirements (ovos/hivemind)
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - swig
+      - libfann-dev
+      - libasound2-dev
+      - libpulse-dev
+      - libportaudio2
+      - mpg123
+      - music123
+      - sox
+      - libsox-fmt-all
+      - libespeak-ng1
+      - espeak-ng
+      - flac
+      - mpv
+      - libxslt1-dev
+      - libopenblas-dev
+      - pkg-config
+      - libicu-dev
+      - portaudio19-dev
+      - libjpeg-dev
+    install_recommends: false
+    state: present
+  when: ansible_facts.os_family in ['Debian', 'Zorin OS']
+
+- name: Handle virtualenv package requirements (ovos/hivemind)
+  ansible.builtin.dnf:
+    name:
+      - gcc-c++
+      - swig
+      - fann-devel
+      - alsa-lib-devel
+      - pulseaudio-libs-devel
+      - portaudio
+      - mpg123
+      - sox
+      - flac
+      - mpv
+      - openblas-serial
+      - pkgconf-pkg-config
+      - libicu-devel
+      - portaudio-devel
+      - espeak-ng
+    state: present
+  when: ansible_facts.os_family == "RedHat"
+
+- name: Handle virtualenv package requirements (ovos/hivemind)
+  community.general.zypper:
+    name:
+      - gcc-c++
+      - swig
+      - libfann-devel
+      - alsa-lib-devel
+      - libpulse-devel
+      - libportaudio2
+      - libespeak-ng1
+      - espeak-ng
+      - mpg123
+      - sox
+      - flac
+      - mpv
+      - libopenblas_serial-devel
+      - portaudio-devel
+    state: present
+  when: ansible_facts.os_family == "Suse"
+
+- name: Handle virtualenv package requirements (ovos/hivemind)
+  community.general.pacman:
+    name:
+      - base-devel
+      - swig
+      - alsa-lib
+      - portaudio
+      - mpg123
+      - sox
+      - flac
+      - mpv
+      - libxslt
+      - openblas
+      - espeak-ng
+    state: present
+  when: ansible_facts.os_family == "Archlinux"
+
+- name: Handle fann package from AUR (Arch based only)
+  become_user: "{{ ovos_installer_user }}"
+  kewlfft.aur.aur:
+    name: fann
+    use: makepkg
+  when: ansible_facts.os_family == "Archlinux"
+  tags:
+    - skip_ansible_lint

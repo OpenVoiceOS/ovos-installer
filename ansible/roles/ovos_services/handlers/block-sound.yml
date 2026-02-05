@@ -1,0 +1,35 @@
+---
+- name: Block Start Sound Server (PipeWire)
+  when:
+    - ovos_sound_pipewire_install is defined
+    - "'skipped' not in ovos_sound_pipewire_install.keys()"
+  block:
+    - name: Start PipeWire systemd service
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.systemd_service:
+        name: pipewire
+        scope: user
+        state: started
+
+    - name: Start PulseAudio via PipeWire systemd service
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.systemd_service:
+        name: pipewire-pulse
+        scope: user
+        state: started
+      when: ovos_sound_expected_server == 'pulseaudio'
+
+- name: Block Start Sound Server (PulseAudio)
+  when:
+    - ovos_sound_pulseaudio_install is defined
+    - "'skipped' not in ovos_sound_pulseaudio_install.keys()"
+  block:
+    - name: Start PulseAudio systemd service
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.systemd_service:
+        name: pulseaudio
+        scope: user
+        state: started

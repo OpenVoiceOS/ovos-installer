@@ -1,0 +1,44 @@
+---
+- name: Configure NetworkManager DNS caching
+  when:
+    - ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
+    - not (ovos_installer_cleaning | default(false) | bool)
+  block:
+    - name: Install dnsmasq for NetworkManager caching
+      ansible.builtin.package:
+        name: "{{ ovos_network_tuning_dnsmasq_package }}"
+        state: present
+
+    - name: Stop system dnsmasq to avoid port conflicts
+      ansible.builtin.systemd_service:
+        name: "{{ ovos_network_tuning_dnsmasq_service }}"
+        state: stopped
+        enabled: false
+      failed_when: false
+      notify: Restart NetworkManager
+
+    - name: Enable NetworkManager dnsmasq caching
+      ansible.builtin.copy:
+        dest: "{{ ovos_network_tuning_dnsmasq_conf_path }}"
+        content: "{{ ovos_network_tuning_dnsmasq_main_conf }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart NetworkManager
+
+    - name: Ensure NetworkManager dnsmasq config directory exists
+      ansible.builtin.file:
+        path: "{{ ovos_network_tuning_dnsmasq_dir }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Configure dnsmasq cache TTLs
+      ansible.builtin.copy:
+        dest: "{{ ovos_network_tuning_dnsmasq_cache_conf_path }}"
+        content: "{{ ovos_network_tuning_dnsmasq_cache_conf }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Restart NetworkManager

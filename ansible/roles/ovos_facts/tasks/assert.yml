@@ -1,0 +1,21 @@
+---
+- name: Assert facts configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_facts_boot_default_path | length > 0
+      - ovos_facts_systemd_system_path | length > 0
+      - ovos_facts_systemd_user_path | length > 0
+      - ovos_facts_systemd_scope in ['user', 'system']
+    fail_msg: "Invalid facts configuration: check required path variables."
+
+- name: Assert facts path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Facts path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_facts_boot_default_path }}"
+    - "{{ ovos_facts_boot_firmware_path }}"
+    - "{{ ovos_facts_networkmanager_path }}"
+    - "{{ ovos_facts_systemd_system_path }}"
+    - "{{ ovos_facts_systemd_user_path }}"

@@ -1,0 +1,23 @@
+---
+- name: Assert audio tuning configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_audio_tuning_pipewire_conf_dir | length > 0
+      - ovos_audio_tuning_wireplumber_conf_dir | length > 0
+      - ovos_audio_tuning_pipewire_allowed_rates | length > 0
+      - (ovos_audio_tuning_pipewire_clock_rate | int) > 0
+      - (ovos_audio_tuning_pipewire_clock_rate | int) in ovos_audio_tuning_pipewire_allowed_rates
+      - (ovos_audio_tuning_ns_level | int) >= 0
+      - (ovos_audio_tuning_ns_level | int) <= 3
+    fail_msg: "Invalid audio tuning configuration."
+
+- name: Assert audio tuning path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Audio tuning path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_audio_tuning_pipewire_conf_dir }}"
+    - "{{ ovos_audio_tuning_wireplumber_conf_dir }}"
+    - "{{ ovos_audio_tuning_system_pipewire_conf_dir }}"
+    - "{{ ovos_audio_tuning_usb_audio_conf_path }}"

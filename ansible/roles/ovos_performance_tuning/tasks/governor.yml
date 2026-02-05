@@ -1,0 +1,64 @@
+---
+- name: Handle cpupower package on Debian family
+  ansible.builtin.apt:
+    name: "{{ 'linux-tools-common' if ansible_facts.distribution != 'Debian' else 'linux-cpupower' }}"
+    install_recommends: false
+    state: present
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - always
+
+- name: Handle cpupower package on RedHat family
+  ansible.builtin.dnf:
+    name: kernel-tools
+    state: present
+  when: ansible_facts.os_family == "RedHat"
+  tags:
+    - always
+
+- name: Handle cpupower package on SUSE family
+  ansible.builtin.package:
+    name: kernel-tools
+    state: present
+  when: ansible_facts.os_family == "Suse"
+  tags:
+    - always
+
+- name: Handle cpupower package on Arch family
+  community.general.pacman:
+    name: linux-tools
+    state: present
+  when: ansible_facts.os_family == "Archlinux"
+  tags:
+    - always
+
+- name: Check for existing CPU governor configuration
+  ansible.builtin.stat:
+    path: "{{ ovos_performance_tuning_cpu_governor_config_path }}"
+  register: ovos_performance_tuning_cpu_governor_config
+
+- name: Set existing CPU governor to "performance"
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_performance_tuning_cpu_governor_config_path }}"
+    regexp: "^CPU_DEFAULT_GOVERNOR="
+    line: "CPU_DEFAULT_GOVERNOR=\"{{ ovos_performance_tuning_cpu_governor_value }}\""
+  when: ovos_performance_tuning_cpu_governor_config.stat.exists | bool
+
+- name: Copy cpu-governor systemd unit file
+  ansible.builtin.copy:
+    src: "{{ ovos_performance_tuning_cpu_governor_unit_src }}"
+    dest: "{{ ovos_performance_tuning_cpu_governor_unit_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload Systemd
+
+- name: Flush handlers cpu-governor
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start systemd cpu-governor unit
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_performance_tuning_cpu_governor_unit_name }}"
+    enabled: true
+    force: true
+    state: started

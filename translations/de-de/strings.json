@@ -17,8 +17,7 @@
     "title": "Open Voice OS Funktionsauswahl",
     "content": "Skills ermöglichen die Interaktion durch Sprache, z. B. für Aufgaben wie Hausautomatisierung, Informationsabfrage und die Steuerung intelligenter Geräte durch Sprachbefehle.\n\nBitte wählen Sie die zu aktivierenden Funktionen aus:",
     "skill_description": "Laden Sie eine Auswahl an OVOS skills",
-    "extra_skill_description": "Laden Sie zusätzliche OVOS-Skills",
-    "gui_description": "Mit grafischer Benutzeroberfläche"
+    "extra_skill_description": "Laden Sie zusätzliche OVOS-Skills"
   },
   "finish.sh": {
     "title": "Open Voice OS Installations - Abschluß",
@@ -70,5 +69,9 @@
   "welcome.sh": {
     "title": "Voice OS-Installation öffnen – Begrüßung",
     "content": "Hallo und herzlich willkommen bei der Installation von Open Voice OS!\n\nWir freuen uns, Ihnen Open Voice OS vorstellen zu können, den Open-Source-Sprachassistenten.\n\nDie Installation von Open Voice OS ist einfach und eröffnet viele Möglichkeiten für sprachgesteuerten Komfort. Egal, ob Sie ein Technik-Enthusiast sind oder einfach nur die täglichen Aufgaben vereinfachen möchten, Open Voice OS ist da, um ihr Leben zu erleichtern.\n\nBeginnen Sie noch heute mit der Installation und steuern Sie mit Ihrer Stimme die Zukunft der Technologie!🌟"
+  },
+  "overclock.sh": {
+    "title": "Open Voice OS Installation - Übertaktung",
+    "content": "Übertakten erhöht die CPU/GPU-Frequenz für maximale Leistung, kann aber die Stabilität verringern und die Wärmeentwicklung erhöhen.\n\nVoraussetzungen:\n- Aktive Kühlung (Kühlkörper/Lüfter) und guter Luftstrom\n- Stabile Stromversorgung passend zu deinem Pi-Modell\n- Temperaturen überwachen und bei Throttling oder Abstürzen stoppen\n\nRisiken:\n- Zufällige Neustarts, Audioprobleme, Datenkorruption\n- Höherer Stromverbrauch und verkürzte Lebensdauer\n\nOpen Voice OS ist nicht verantwortlich für Probleme im Zusammenhang mit Übertaktung.\n\nÜbertaktung aktivieren?"
   }
 }

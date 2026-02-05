@@ -6,7 +6,7 @@ if [[ "$METHOD" == "containers" ]]; then
 fi
 export CONFIG_FILE
 
-# shellcheck source=locales/en-us/finish.sh
+# shellcheck source=tui/locales/en-us/finish.sh
 source "tui/locales/$LOCALE/finish.sh"
 
 whiptail --msgbox --ok-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"

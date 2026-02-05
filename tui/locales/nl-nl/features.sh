@@ -8,6 +8,5 @@ Kies welke functies je wil activeren (meerdere opties tegelijkertijd zijn mogeli
 TITLE="OpenVoice OS Installatie - Kenmerken"
 SKILL_DESCRIPTION="Standaard OVOS skills"
 EXTRA_SKILL_DESCRIPTION="Extra OVOS skills"
-GUI_DESCRIPTION="Grafische gebruikersinterface"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION

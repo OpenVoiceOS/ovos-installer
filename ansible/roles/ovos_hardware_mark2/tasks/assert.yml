@@ -1,0 +1,19 @@
+---
+- name: Assert Mark 2 configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_hardware_mark2_working_dir | length > 0
+      - ovos_hardware_mark2_sj201_unit_path | length > 0
+      - ovos_hardware_mark2_boot_config_path | length > 0
+    fail_msg: "Invalid Mark 2 configuration."
+
+- name: Assert Mark 2 path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Mark 2 path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_hardware_mark2_working_dir }}"
+    - "{{ ovos_hardware_mark2_sj201_unit_path }}"
+    - "{{ ovos_hardware_mark2_boot_config_path }}"
+    - "{{ ovos_hardware_mark2_boot_overlays_dir }}"

@@ -7,6 +7,11 @@ function setup() {
     load ../../utils/common.sh
     LOG_FILE=/tmp/ovos-installer.log
     RASPBERRYPI_MODEL="N/A"
+    DETECT_SOUND_BACKUP=""
+    if [ -f "utils/detect_sound.py" ]; then
+        DETECT_SOUND_BACKUP="$(mktemp)"
+        cp "utils/detect_sound.py" "$DETECT_SOUND_BACKUP"
+    fi
 }
 
 # Test printf migration from echo -e
@@ -151,5 +156,11 @@ function setup() {
 
 function teardown() {
     rm -f "$LOG_FILE"
+    if [ -n "$DETECT_SOUND_BACKUP" ]; then
+        cp "$DETECT_SOUND_BACKUP" "utils/detect_sound.py"
+        rm -f "$DETECT_SOUND_BACKUP"
+    else
+        rm -f "utils/detect_sound.py"
+    fi
     unset RUN_AS RUN_AS_UID SUDO_USER SUDO_UID USER_ID SOUND_SERVER
 }

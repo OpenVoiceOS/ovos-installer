@@ -1,6 +1,6 @@
 #!/bin/env bash
 
-# shellcheck source=locales/en-us/features.sh
+# shellcheck source=tui/locales/en-us/features.sh
 source "tui/locales/$LOCALE/features.sh"
 
 export FEATURE_SKILLS="false"

@@ -50,6 +50,16 @@ create_python_venv
 install_ansible
 download_yq
 detect_scenario
+
+if [ "${TUNING_OVERCLOCK:-no}" == "yes" ] && [ -z "${OVERCLOCK_ARM_FREQ:-}" ] && [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
+  if [[ "$RASPBERRYPI_MODEL" == *"Raspberry Pi 5"* ]]; then
+    OVERCLOCK_ARM_FREQ="2800"
+  else
+    OVERCLOCK_ARM_FREQ="2000"
+  fi
+  export OVERCLOCK_ARM_FREQ
+fi
+
 i2c_scan
 state_directory
 trap "" ERR
@@ -86,6 +96,7 @@ echo "➤ Starting Ansible playbook... ☕🍵🧋"
 
 # Execute the Ansible playbook on localhost
 export ANSIBLE_CONFIG=ansible/ansible.cfg
+export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_FILE}"
 case "${DISTRO_NAME:-}" in
   fedora | almalinux | rocky | centos | rhel)
     if [ -x /usr/libexec/platform-python ]; then
@@ -115,6 +126,13 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_feature_skills=${FEATURE_SKILLS}" \
   -e "ovos_installer_feature_extra_skills=${FEATURE_EXTRA_SKILLS}" \
   -e "ovos_installer_tuning=${TUNING}" \
+  -e "ovos_installer_tuning_overclock=${TUNING_OVERCLOCK}" \
+  -e "ovos_installer_overclock_arm_boost=${OVERCLOCK_ARM_BOOST}" \
+  -e "ovos_installer_overclock_initial_turbo=${OVERCLOCK_INITIAL_TURBO}" \
+  -e "ovos_installer_overclock_over_voltage=${OVERCLOCK_OVER_VOLTAGE}" \
+  -e "ovos_installer_overclock_arm_freq=${OVERCLOCK_ARM_FREQ}" \
+  -e "ovos_installer_overclock_gpu_freq=${OVERCLOCK_GPU_FREQ}" \
+  -e "ovos_installer_uv_version=${OVOS_INSTALLER_UV_VERSION:-}" \
   -e "ovos_installer_listener_host=${HIVEMIND_HOST}" \
   -e "ovos_installer_listener_port=${HIVEMIND_PORT}" \
   -e "ovos_installer_satellite_key=${SATELLITE_KEY}" \
@@ -136,14 +154,35 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
       # shellcheck source=tui/finish.sh
       source tui/finish.sh
       rm -rf "$VENV_PATH" /root/.ansible
+      if [ -f "$LOG_FILE" ]; then
+        rm -f "$LOG_FILE"
+      fi
       if [ -f "$REBOOT_FILE_PATH" ]; then
         rm -f "$REBOOT_FILE_PATH"
+        printf '\n%s\n' "➤ Rebooting Raspberry Pi now..."
         shutdown -r now
       fi
     fi
+    if [ "$SCENARIO_FOUND" != "false" ] && [ -f "$LOG_FILE" ]; then
+      rm -f "$LOG_FILE"
+    fi
   else
     rm -rf "$VENV_PATH" /root/.ansible
+    if [ -n "${RUN_AS_HOME:-}" ]; then
+      venv_root="${RUN_AS_HOME}/.venvs"
+      if [ "$(dirname "$VENV_PATH")" = "$venv_root" ]; then
+        rm -rf "$venv_root"
+      fi
+    fi
     printf '\n%s\n' "➤ Open Voice OS has been successfully uninstalled."
+    if [ -f "$LOG_FILE" ]; then
+      rm -f "$LOG_FILE"
+    fi
+    if [ -f "$REBOOT_FILE_PATH" ]; then
+      rm -f "$REBOOT_FILE_PATH"
+      printf '\n%s\n' "➤ Rebooting Raspberry Pi now..."
+      shutdown -r now
+    fi
   fi
 else
   # Concatenate Ansible log with installer log

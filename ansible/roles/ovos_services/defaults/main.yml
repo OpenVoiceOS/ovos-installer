@@ -1,0 +1,86 @@
+---
+ovos_services_wrapper_template: virtualenv/wrapper-ovos-phal-admin.sh.j2
+ovos_services_wrapper_path: /usr/local/bin/wrapper-ovos-phal-admin.sh
+ovos_services_wrapper_mode: "0755"
+ovos_services_shell_path: /bin/bash
+ovos_services_combo_locks_dir: /tmp/combo_locks
+ovos_services_venv_path: >-
+  {{ ovos_virtualenv_path
+     | default(ovos_installer_ovos_venv_path
+     | default(ovos_installer_user_home + '/.venvs/ovos')) }}
+ovos_services_systemd_user_path: >-
+  {{ ovos_installer_systemd_user_path | default(ovos_installer_user_home + '/.config/systemd/user') }}
+ovos_services_systemd_system_path: >-
+  {{ ovos_installer_systemd_system_path | default('/etc/systemd/system') }}
+ovos_services_systemd_unit_mode: "0644"
+ovos_services_user_runtime_dir: "/run/user/{{ ovos_installer_uid }}"
+ovos_services_user_runtime_mode: "0700"
+ovos_services_user_systemd_unit: "user@{{ ovos_installer_uid }}"
+ovos_services_enable_linger_cmd: "loginctl enable-linger {{ ovos_installer_user }}"
+ovos_services_managed_units:
+  - ovos.service
+  - ovos-messagebus.service
+  - ovos-core.service
+  - ovos-phal.service
+  - ovos-listener.service
+  - ovos-audio.service
+  - ovos-ggwave-listener.service
+  - hivemind-listener.service
+  - hivemind-satellite.service
+ovos_services_admin_unit: ovos-phal-admin.service
+ovos_services_unit_definitions:
+  - unit: ovos.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_profile != 'satellite' }}"
+  - unit: ovos-messagebus.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_profile != 'satellite' }}"
+  - unit: ovos-core.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_profile != 'satellite' }}"
+  - unit: ovos-phal.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+  - unit: "{{ ovos_services_admin_unit }}"
+    scope: system
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+  - unit: ovos-listener.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+  - unit: ovos-audio.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+  - unit: ovos-ggwave-listener.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool) }}"
+  - unit: hivemind-listener.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_profile == 'listener' or ovos_installer_profile == 'server' }}"
+  - unit: hivemind-satellite.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_profile == 'satellite' }}"
+ovos_services_unit_files_system: >-
+  {{ ovos_services_managed_units | map('regex_replace', '^', ovos_services_systemd_system_path ~ '/') | list
+     + [ovos_services_systemd_system_path ~ '/' ~ ovos_services_admin_unit] }}
+ovos_services_unit_files_user: >-
+  {{ ovos_services_managed_units | map('regex_replace', '^', ovos_services_systemd_user_path ~ '/') | list }}
+ovos_services_unit_backup_patterns:
+  - "ovos-*.service.*~"
+  - "hivemind-*.service.*~"
+ovos_services_remove_directories:
+  - "{{ ovos_installer_user_home }}/.cache/mycroft"
+  - "{{ ovos_installer_user_home }}/.config/mycroft"
+  - "{{ ovos_installer_user_home }}/.config/hivemind"
+  - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS"
+  - "{{ ovos_installer_user_home }}/.config/OvosTheme"
+  - "{{ ovos_installer_user_home }}/.config/OvosDisplay.conf"
+  - "{{ ovos_installer_user_home }}/.config/ovos-installer"
+  - "{{ ovos_installer_user_home }}/.config/ovos_persona"
+  - "{{ ovos_installer_user_home }}/.local/share/mycroft"
+  - "{{ ovos_installer_user_home }}/.local/share/OpenVoiceOS"
+  - "{{ ovos_installer_user_home }}/.local/share/precise-lite"
+  - "{{ ovos_installer_user_home }}/.local/state/mycroft"
+  - "{{ ovos_installer_user_home }}/.local/state/vosk"
+  - "{{ ovos_installer_user_home }}/.local/state/ovos"
+  - "{{ ovos_installer_user_home }}/nltk_data"
+  - "{{ ovos_installer_user_home }}/stdout"

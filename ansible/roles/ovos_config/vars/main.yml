@@ -1,0 +1,27 @@
+---
+ovos_config_geoip_imperial_countries:
+  - US
+  - LR
+  - MM
+ovos_config_geoip_mdy_countries:
+  - US
+ovos_config_geoip_ymd_countries:
+  - CN
+  - JP
+  - KR
+  - TW
+ovos_config_geoip_half_time_countries:
+  - US
+  - CA
+  - AU
+  - NZ
+  - PH
+  - IN
+  - IE
+  - MY
+  - PK
+  - SA
+  - ZA
+  - EG
+  - CO
+  - GB

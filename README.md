@@ -56,6 +56,7 @@ The installer has been tested on the following Linux distributions and versions:
 | Zorin OS            | `>= 16`   |
 
 Note: 'rolling' indicates a rolling release Linux distribution, which means there is no specific version number as it continuously updates to the latest software.
+Role metadata in `ansible/roles/*/meta/main.yml` lists the base OS families/versions (e.g., Debian/Ubuntu/EL/Fedora/Arch/Suse) that cover these distributions.
 
 ## ✨ Key Features
 
@@ -67,7 +68,6 @@ Open Voice OS offers a comprehensive set of features for modern voice interactio
 - **Offline Operation**: Process voice commands locally without internet dependency
 - **Wake Word Detection**: Customizable hotwords to activate the assistant
 - **Text-to-Speech & Speech-to-Text**: High-quality voice synthesis and recognition
-- **GUI Interface**: Optional graphical interface for visual interaction
 - **Docker Support**: Containerized deployment for easy management
 - **Hardware Integration**: Support for various microphones, speakers, and displays
 - **API Access**: RESTful APIs for programmatic control and integration
@@ -105,13 +105,29 @@ systemctl --user stop ovos
 sudo systemctl stop ovos-phal-admin
 ```
 
+## 🎙️ Audio calibration tool
+
+If wake word detection is weak or inconsistent, run the calibration helper to tune your microphone input. The tool records short samples (silence, speech, wake word), measures signal levels, and recommends capture volume and listener multiplier values.
+
+```shell
+scripts/audio-calibrate.sh
+```
+
+To apply the recommended capture volume automatically:
+
+```shell
+scripts/audio-calibrate.sh --apply
+```
+
+Bluetooth headsets work too, but the mic typically needs the HFP/HSP profile. The installer will attempt to switch profiles automatically when a Bluetooth mic is the default input.
+
 ## 🤖 Automated install
 
 The installer supports a non-interactive _(automated)_ process of installation by using a scenario file, this file must be created under the `~/.config/ovos-installer/` directory and should be named `scenario.yaml`.
 
 A scenario file allows you to pre-configure installation options for automated, non-interactive deployment. This is useful for scripting installations or deploying on multiple devices.
 
-Here is an example of a scenario to install Open Voice OS within Docker containers on a Raspberry Pi 4B with default skills and GUI support.
+Here is an example of a scenario to install Open Voice OS within Docker containers on a Raspberry Pi 4B with default skills.
 
 ```shell
 mkdir -p ~/.config/ovos-installer
@@ -124,7 +140,6 @@ profile: ovos
 features:
   skills: true
   extra_skills: false
-  gui: true
 raspberry_pi_tuning: true
 share_telemetry: true
 share_usage_telemetry: true
@@ -139,12 +154,31 @@ EOF
 - `features`: Enable/disable specific features
   - `skills`: Install default voice skills
   - `extra_skills`: Install additional community skills
-  - `gui`: Enable graphical user interface
-- `raspberry_pi_tuning`: Optimize performance for Raspberry Pi hardware
+- `raspberry_pi_tuning`: Enable maximum-performance tuning for Raspberry Pi hardware (includes an overclocking prompt)
 - `share_telemetry`: Allow sharing anonymous usage statistics
 - `share_usage_telemetry`: Allow sharing detailed usage data
 
 Few scenarios are available as example in the [scenarios](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scenarios) directory of this repository.
+
+## 🧩 Ansible role map
+
+The installer is now modular. The top-level wrapper role (`ovos_installer`) orchestrates focused roles:
+
+- `ovos_facts`: Shared installer facts (boot dir, NetworkManager, systemd drop-ins)
+- `ovos_timezone`: Detect and configure system timezone
+- `ovos_telemetry`: Optional telemetry submission
+- `ovos_config`: Configuration defaults and `mycroft.conf` generation
+- `ovos_sound`: Sound server setup (PipeWire/PulseAudio)
+- `ovos_services`: Systemd units + handlers
+- `ovos_virtualenv`: Python virtualenv provisioning and package install
+- `ovos_containers`: Docker/compose provisioning and deployment
+- `ovos_finalize`: Post-install cleanup and drift notice
+- `ovos_storage_tuning`: fstab/log2ram/tmpfs tuning
+- `ovos_audio_tuning`: PipeWire/WirePlumber tuning
+- `ovos_python`: Python runtime tuning (mimalloc, env)
+- `ovos_performance_tuning`: governor, I/O, zram, sysctl, NUMA, limits
+- `ovos_network_tuning`: wireless power + DNS caching
+- `ovos_hardware_mark1` / `ovos_hardware_mark2`: hardware-specific roles (still applied when detected)
 
 ## ❌ Uninstall
 

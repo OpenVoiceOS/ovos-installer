@@ -1,0 +1,105 @@
+---
+- name: Ensure OVOS systemd drop-in directories exist
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d"
+    state: directory
+    owner: "{{ ovos_installer_systemd_dropin_owner }}"
+    group: "{{ ovos_installer_systemd_dropin_group }}"
+    mode: '0755'
+  loop: "{{ ovos_performance_tuning_core_services }}"
+
+- name: Ensure WirePlumber drop-in directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_installer_systemd_dropin_user_path }}/wireplumber.service.d"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0755'
+
+- name: Apply Zero-Swap Policy to OVOS services
+  ansible.builtin.copy:
+    dest: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_noswap_dropin_name }}"
+    content: |
+      [Service]
+      # Prevent swapping of critical voice services
+      MemorySwapMax={{ ovos_performance_tuning_noswap_limit }}
+    owner: "{{ ovos_installer_systemd_dropin_owner }}"
+    group: "{{ ovos_installer_systemd_dropin_group }}"
+    mode: '0644'
+  notify:
+    - "{{ ovos_installer_systemd_reload_handler }}"
+    - Restart OVOS services
+  loop: "{{ ovos_performance_tuning_core_services }}"
+
+- name: Apply Zero-Swap Policy to WirePlumber
+  ansible.builtin.copy:
+    dest: "{{ ovos_installer_systemd_dropin_user_path }}/wireplumber.service.d/{{ ovos_performance_tuning_noswap_dropin_name }}"
+    content: |
+      [Service]
+      # Prevent swapping of critical voice services
+      MemorySwapMax={{ ovos_performance_tuning_noswap_limit }}
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0644'
+  notify:
+    - Reload Systemd User
+    - Restart OVOS services
+
+- name: Calculate CPU affinity for latency-critical services
+  vars:
+    _vcpus: "{{ ansible_facts.processor_vcpus | default(ansible_facts.processor_count | default(1)) | int }}"
+  ansible.builtin.set_fact:
+    ovos_performance_tuning_rt_cpu_affinity_effective: >-
+      {{
+        ((_vcpus | int) >= (ovos_performance_tuning_rt_cpu_affinity_min_vcpus | int))
+        | ternary((range((_vcpus | int) // 2, (_vcpus | int)) | list) | join(' '), '')
+      }}
+  when: ovos_performance_tuning_rt_cpu_affinity | default('') == ''
+
+- name: Use configured CPU affinity for latency-critical services
+  ansible.builtin.set_fact:
+    ovos_performance_tuning_rt_cpu_affinity_effective: "{{ ovos_performance_tuning_rt_cpu_affinity }}"
+  when: ovos_performance_tuning_rt_cpu_affinity | default('') | length > 0
+
+- name: Apply RT scheduling and CPU affinity to OVOS services
+  ansible.builtin.copy:
+    dest: "{{ ovos_installer_systemd_dropin_path }}/{{ item }}.service.d/{{ ovos_performance_tuning_rt_dropin_name }}"
+    content: |
+      [Service]
+      {% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
+      AmbientCapabilities=CAP_SYS_NICE
+      CapabilityBoundingSet=CAP_SYS_NICE
+      {% endif %}
+      CPUSchedulingPolicy={{ ovos_performance_tuning_rt_policy }}
+      CPUSchedulingPriority={{ ovos_performance_tuning_rt_priority }}
+      LimitRTPRIO={{ ovos_performance_tuning_rt_limit_rtprio }}
+      LimitMEMLOCK={{ ovos_performance_tuning_rt_limit_memlock }}
+      {% if ovos_performance_tuning_rt_cpu_affinity_effective | length > 0 %}
+      CPUAffinity={{ ovos_performance_tuning_rt_cpu_affinity_effective }}
+      {% endif %}
+    owner: "{{ ovos_installer_systemd_dropin_owner }}"
+    group: "{{ ovos_installer_systemd_dropin_group }}"
+    mode: '0644'
+  notify:
+    - "{{ ovos_installer_systemd_reload_handler }}"
+    - Restart OVOS services
+  loop: "{{ ovos_performance_tuning_rt_services }}"
+
+- name: Apply RT scheduling and CPU affinity to WirePlumber
+  ansible.builtin.copy:
+    dest: "{{ ovos_installer_systemd_dropin_user_path }}/wireplumber.service.d/{{ ovos_performance_tuning_rt_dropin_name }}"
+    content: |
+      [Service]
+      CPUSchedulingPolicy={{ ovos_performance_tuning_rt_policy }}
+      CPUSchedulingPriority={{ ovos_performance_tuning_rt_priority }}
+      LimitRTPRIO={{ ovos_performance_tuning_rt_limit_rtprio }}
+      LimitMEMLOCK={{ ovos_performance_tuning_rt_limit_memlock }}
+      {% if ovos_performance_tuning_rt_cpu_affinity_effective | length > 0 %}
+      CPUAffinity={{ ovos_performance_tuning_rt_cpu_affinity_effective }}
+      {% endif %}
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: '0644'
+  notify:
+    - Reload Systemd User
+    - Restart OVOS services

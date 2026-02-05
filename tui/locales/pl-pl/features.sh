@@ -8,6 +8,5 @@ Wybierz funkcje, które chcesz włączyć:
 TITLE="Instalacja Open Voice OS - Funkcje"
 SKILL_DESCRIPTION="Załaduj domyślne umiejętności OVOS"
 EXTRA_SKILL_DESCRIPTION="Załaduj dodatkowe umiejętności OVOS"
-GUI_DESCRIPTION="Włącz graficzny interfejs użytkownika"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION

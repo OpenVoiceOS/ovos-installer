@@ -1,0 +1,22 @@
+---
+- name: Detect RHEL based distribution
+  ansible.builtin.set_fact:
+    ovos_containers_os_distribution: >-
+      {{ 'centos' if ansible_facts.distribution in ovos_containers_rhel_family_distros else 'fedora' }}
+
+- name: Retrieve docker-ce.repo file
+  ansible.builtin.get_url:
+    url: "{{ ovos_containers_docker_repo_base_url }}/{{ ovos_containers_os_distribution }}/docker-ce.repo"
+    dest: "{{ ovos_containers_docker_repo_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install Docker Engine
+  ansible.builtin.dnf:
+    name: "{{ ovos_containers_docker_packages_redhat }}"
+
+- name: Install xorg-x11-server-utils package
+  ansible.builtin.dnf:
+    name: "{{ ovos_containers_xhost_package_fedora if ansible_facts.distribution == 'Fedora' else ovos_containers_xhost_package_default }}"
+  when: ovos_installer_display_server != "N/A"

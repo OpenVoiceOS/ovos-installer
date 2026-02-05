@@ -1,0 +1,27 @@
+---
+- name: Assert config role values
+  ansible.builtin.assert:
+    that:
+      - ovos_config_backup_dest | length > 0
+      - ovos_config_mycroft_conf_relpath | length > 0
+      - ovos_config_container_directories | length > 0
+      - ovos_config_virtualenv_directories | length > 0
+    fail_msg: "Invalid config role settings."
+
+- name: Assert config path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Config path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_config_backup_dest }}"
+    - "{{ ovos_config_log_path }}"
+    - "{{ ovos_config_ansible_log_path }}"
+    - "{{ ovos_config_ansible_dir }}"
+
+- name: Assert GeoIP URL format when enabled
+  ansible.builtin.assert:
+    that:
+      - ovos_config_geoip_url is match('^https?://')
+    fail_msg: "GeoIP URL must be http(s): {{ ovos_config_geoip_url }}"
+  when: ovos_config_geoip_enabled | bool

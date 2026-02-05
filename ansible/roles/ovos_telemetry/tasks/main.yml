@@ -1,0 +1,79 @@
+---
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
+
+- name: Block telemetry
+  block:
+    - name: Retrieve country based on ISP address
+      ansible.builtin.uri:
+        url: "{{ ovos_telemetry_geoip_url }}"
+        method: "{{ ovos_telemetry_geoip_method }}"
+        status_code: "{{ ovos_telemetry_geoip_status_codes }}"
+        return_content: true
+        headers: "{{ ovos_telemetry_geoip_headers }}"
+      register: ovos_telemetry_isp_data
+      until: ovos_telemetry_isp_data.status == ovos_telemetry_geoip_expected_status
+      retries: "{{ ovos_telemetry_geoip_retries }}"
+      delay: "{{ ovos_telemetry_geoip_delay }}"
+
+    - name: Share telemetry data
+      vars:
+        _python_version_parts: "{{ ((ansible_facts.python | default({})).version | default({})) }}"
+        _python_version: >-
+          {{ (_python_version_parts.major | default('')) ~ '.'
+             ~ (_python_version_parts.minor | default('')) ~ '.'
+             ~ (_python_version_parts.micro | default('')) }}
+        _python_version_final: >-
+          {{ _python_version
+             if _python_version is match('^\\d+\\.\\d+\\.\\d+$')
+             else (ansible_python_version | default('unknown')) }}
+        _telemetry_country: >-
+          {{ (((ovos_telemetry_isp_data | default({})).json | default({})).country | default('unknown')) | lower }}
+      ansible.builtin.uri:
+        url: "{{ ovos_telemetry_url }}"
+        method: POST
+        body:
+          os_type: "{{ ansible_facts.system | lower }}"
+          os_name: "{{ ansible_facts.distribution | lower }}"
+          os_version: "{{ ansible_facts.distribution_version }}"
+          os_kernel: "{{ ansible_facts.kernel }}"
+          architecture: "{{ ansible_facts.architecture }}"
+          sound_server: "{{ ((ovos_sound_detect_sound_server | default({})).stdout | default('unknown')) }}"
+          python_version: "{{ _python_version_final }}"
+          display_server: "{{ ovos_installer_display_server | default('unknown') | lower }}"
+          container: "{{ ovos_installer_method == 'containers' }}"
+          venv: "{{ ovos_installer_method == 'virtualenv' }}"
+          installed_at: "{{ ansible_facts.date_time.iso8601_micro | default(ansible_facts.date_time.iso8601) }}"
+          channel: "{{ ovos_installer_channel }}"
+          profile: "{{ ovos_installer_profile }}"
+          raspberry_pi: >-
+            {{ 'n/a'
+               if (ovos_installer_raspberrypi | default('N/A')) == 'N/A'
+               else (ovos_installer_raspberrypi | default('N/A')) }}
+          skills_feature: "{{ ovos_installer_feature_skills | default(false) | bool }}"
+          extra_skills_feature: "{{ ovos_installer_feature_extra_skills | default(false) | bool }}"
+          gui_feature: "{{ ovos_telemetry_feature_gui | default(false) | bool }}"
+          cpu_capable: "{{ ovos_installer_cpu_is_capable | default(false) | bool }}"
+          tuning_enabled: "{{ (ovos_installer_tuning | default('no')) == 'yes' }}"
+          country: "{{ _telemetry_country }}"
+          hardware: >-
+            {{ 'n/a'
+               if (ovos_installer_i2c_devices | default([])) | length < 1
+               else (ovos_installer_i2c_devices | default([]) | first) }}
+        status_code: "{{ ovos_telemetry_post_status_codes }}"
+        body_format: json
+        headers:
+          Content-Type: application/json
+          accept: application/json
+          user-agent: "{{ ovos_telemetry_user_agent }}"
+        validate_certs: "{{ ovos_telemetry_validate_certs }}"
+      register: ovos_telemetry_push_data
+      until: ovos_telemetry_push_data.status == ovos_telemetry_post_expected_status
+      retries: "{{ ovos_telemetry_retries }}"
+      delay: "{{ ovos_telemetry_delay }}"
+  rescue:
+    - name: Rescue telemetry
+      ansible.builtin.debug:
+        msg: "The installer was not able to share the telemetry, it's OK, maybe next time :)"

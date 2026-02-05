@@ -13,6 +13,11 @@ if [ -f "$SCENARIO_PATH" ]; then
 
     # Read all the options
     while IFS="=" read -r key_option value_option; do
+        case "$key_option" in
+        rapsberry_pi_tuning)
+            key_option="raspberry_pi_tuning"
+            ;;
+        esac
         options["$key_option"]="$value_option"
     done < <(
         "$YQ_BINARY_PATH" 'to_entries | map([.key, .value] | join("=")) | .[]' "$SCENARIO_PATH"
@@ -94,7 +99,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 fi
                 export PROFILE
                 ;;
-            rapsberry_pi_tuning)
+            raspberry_pi_tuning)
                 if [[ "${options[$option]}" == "true" ]]; then
                     TUNING="yes"
                 elif [[ "${options[$option]}" == "false" ]]; then
@@ -131,17 +136,6 @@ if [ -f "$SCENARIO_PATH" ]; then
                                 break
                             fi
                             export FEATURE_EXTRA_SKILLS
-                            ;;
-                        gui)
-                            if [[ "${features[$feature]}" == "true" ]]; then
-                                FEATURE_GUI="true"
-                            elif [[ "${features[$feature]}" == "false" ]]; then
-                                FEATURE_GUI="false"
-                            else
-                                export SCENARIO_NOT_SUPPORTED="true"
-                                break
-                            fi
-                            export FEATURE_GUI
                             ;;
                         *)
                             export SCENARIO_NOT_SUPPORTED="true"

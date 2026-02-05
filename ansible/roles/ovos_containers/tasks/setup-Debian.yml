@@ -1,0 +1,58 @@
+---
+- name: Detect Debian based distribution
+  ansible.builtin.set_fact:
+    ovos_containers_os_distribution: "{{ 'ubuntu' if (ansible_facts.distribution != 'Debian') else 'debian' }}"
+
+- name: Install required packages
+  ansible.builtin.apt:
+    name: "{{ ovos_containers_debian_prereq_packages }}"
+    install_recommends: false
+
+- name: Retrieve Docker GPG repository key
+  ansible.builtin.get_url:
+    url: "{{ ovos_containers_docker_repo_base_url }}/{{ ovos_containers_os_distribution }}/gpg"
+    dest: "{{ ovos_containers_debian_docker_gpg }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Extract and replace gpg key with dearmor
+  ansible.builtin.command:
+    cmd: |
+      {{ ovos_containers_gpg_binary }} --dearmor {{ ovos_containers_debian_docker_gpg }}
+    creates: "{{ ovos_containers_debian_docker_gpg }}.gpg"
+
+- name: Add Docker repository
+  vars:
+    architecture: "{{ ovos_containers_arch_map.get(ansible_facts.architecture, ovos_containers_arch_default) }}"
+    release: >-
+      {{
+        (
+          ovos_containers_linux_mint_release_map.get(ansible_facts.distribution_release)
+          or ovos_containers_linux_mint_major_map.get(ansible_facts.distribution_major_version)
+          if ansible_facts.distribution == 'Linux Mint'
+          else ovos_containers_ubuntu_release_map.get(ansible_facts.distribution_version, ansible_facts.distribution_release)
+          if ansible_facts.distribution == 'Ubuntu'
+          else ovos_containers_debian_release_map.get(ansible_facts.distribution_major_version, ansible_facts.distribution_release)
+          if ansible_facts.distribution == 'Debian'
+          else ansible_facts.distribution_release
+        )
+      }}
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ architecture }}, signed-by={{ ovos_containers_debian_docker_gpg }}.gpg]
+      {{ ovos_containers_docker_repo_base_url }}/{{ ovos_containers_os_distribution }}
+      {{ release }} {{ ovos_containers_docker_repo_channel }}
+    filename: "{{ ovos_containers_docker_repo_apt_filename }}"
+    update_cache: true
+
+- name: Install Docker Engine
+  ansible.builtin.apt:
+    name: "{{ ovos_containers_docker_packages_debian }}"
+    install_recommends: false
+
+- name: Install x11-xserver-utils package
+  ansible.builtin.apt:
+    name: "{{ ovos_containers_x11_xserver_utils_package }}"
+    install_recommends: false
+  when: ovos_installer_display_server != "N/A"

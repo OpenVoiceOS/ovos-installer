@@ -1,0 +1,66 @@
+---
+ovos_audio_tuning_low_latency: >-
+  {{ ovos_installer_tuning_audio_low_latency
+     | default((ovos_installer_tuning_performance | default(false)) | bool) }}
+ovos_audio_tuning_noise_suppression: >-
+  {{ ovos_installer_tuning_audio_noise_suppression
+     | default((ovos_installer_tuning | default(false)) | bool) }}
+ovos_audio_tuning_ns_level: "{{ ovos_installer_tuning_audio_ns_level | default(1) }}"
+ovos_audio_tuning_ns_agc: "{{ ovos_installer_tuning_audio_ns_agc | default(true) }}"
+ovos_audio_tuning_bluetooth_profile: >-
+  {{ ovos_installer_tuning_audio_bluetooth_profile | default('headset-head-unit') }}
+ovos_audio_tuning_bluetooth_profile_fallback: >-
+  {{ ovos_installer_tuning_audio_bluetooth_profile_fallback | default('handsfree_head_unit') }}
+ovos_audio_tuning_capture_target: "{{ ovos_installer_tuning_audio_capture_target | default('') }}"
+ovos_audio_tuning_playback_target: "{{ ovos_installer_tuning_audio_playback_target | default('') }}"
+ovos_audio_tuning_audio_card_index: "{{ ovos_installer_audio_card_index | default('') }}"
+ovos_audio_tuning_source_volume: "{{ ovos_installer_tuning_source_volume | default(1.0) }}"
+
+ovos_audio_tuning_user_home: >-
+  {{ ovos_installer_user_home
+     | default((ansible_facts | default({})).get('env', {}).get('HOME', '/tmp')) }}
+ovos_audio_tuning_pipewire_conf_dir: "{{ ovos_audio_tuning_user_home }}/.config/pipewire/pipewire.conf.d"
+ovos_audio_tuning_pipewire_low_latency_conf: 99-low-latency.conf
+ovos_audio_tuning_pipewire_noise_suppression_conf: 99-noise-suppression.conf
+ovos_audio_tuning_pipewire_clock_rate: 48000
+ovos_audio_tuning_pipewire_allowed_rates:
+  - 44100
+  - 48000
+ovos_audio_tuning_pipewire_quantum_low: 256
+ovos_audio_tuning_pipewire_quantum_default: 512
+ovos_audio_tuning_pipewire_min_quantum_low: 128
+ovos_audio_tuning_pipewire_min_quantum_default: 256
+ovos_audio_tuning_pipewire_max_quantum_low: 1024
+ovos_audio_tuning_pipewire_max_quantum_default: 2048
+ovos_audio_tuning_pipewire_ns_module: libpipewire-module-echo-cancel
+ovos_audio_tuning_pipewire_ns_aec_method: webrtc
+ovos_audio_tuning_pipewire_ns_source_name: echo-cancel-source
+ovos_audio_tuning_pipewire_ns_source_description: "OVOS Noise Suppressed Source"
+ovos_audio_tuning_pipewire_ns_sink_name: echo-cancel-sink
+ovos_audio_tuning_pipewire_ns_sink_description: "OVOS Noise Suppressed Sink"
+ovos_audio_tuning_wireplumber_conf_dir: "{{ ovos_audio_tuning_user_home }}/.config/wireplumber/wireplumber.conf.d"
+ovos_audio_tuning_wireplumber_idle_conf: 99-disable-idle.conf
+ovos_audio_tuning_wireplumber_capture_volume_conf: 99-ovos-capture-volume.conf
+ovos_audio_tuning_wireplumber_idle_output_match: "~alsa_output.*"
+ovos_audio_tuning_wireplumber_idle_input_match: "~alsa_input.*"
+ovos_audio_tuning_wireplumber_latency_low: "256/48000"
+ovos_audio_tuning_wireplumber_latency_default: "512/48000"
+
+ovos_audio_tuning_wpctl_cmd: wpctl
+ovos_audio_tuning_arecord_cmd: arecord
+ovos_audio_tuning_amixer_cmd: amixer
+ovos_audio_tuning_auto_gain_control_label: "Auto Gain Control"
+
+ovos_audio_tuning_runtime_dir: "/run/user/{{ ovos_installer_uid | default(0) }}"
+ovos_audio_tuning_dbus_address: "unix:path=/run/user/{{ ovos_installer_uid | default(0) }}/bus"
+
+ovos_audio_tuning_rtkit_package: rtkit
+
+ovos_audio_tuning_system_pipewire_conf_dir: /etc/pipewire/pipewire.conf.d
+ovos_audio_tuning_system_low_latency_conf: 99-low-latency.conf
+
+ovos_audio_tuning_usb_audio_conf_path: /etc/modprobe.d/snd-usb-audio.conf
+ovos_audio_tuning_usb_audio_nrpacks: 1
+ovos_audio_tuning_usb_audio_conf_content: |
+  # Force USB scheduler to process packets ASAP (Default is 8)
+  options snd-usb-audio nrpacks={{ ovos_audio_tuning_usb_audio_nrpacks }}

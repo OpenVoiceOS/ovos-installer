@@ -17,8 +17,7 @@
     "title": "Instalación de Open Voice OS - Funcionalidades",
     "content": "As habilidades permiten a interacción por voz, facéndoo eficiente para tarefas coma a automatización do fogar (domótica), a recuperación de información e o control de dispositivos intelixentes mediante comandos en linguaxe natural.\n\nEscolle as funcionalidades que queres activar:",
     "skill_description": "Cargar as habilidades predeterminadas de OVOS",
-    "extra_skill_description": "Cargar habilidades adicionais de OVOS",
-    "gui_description": "Activar a interface gráfica de usuario"
+    "extra_skill_description": "Cargar habilidades adicionais de OVOS"
   },
   "finish.sh": {
     "title": "Instalación de Open Voice OS - Finalización",
@@ -70,5 +69,9 @@
   "welcome.sh": {
     "title": "Instalación de Open Voice OS - Benvida",
     "content": "Ola! Benvido á instalación de Open Voice OS!\n\nEstamos encantados/as de presentarche Open Voice OS, o asistente de voz de código aberto que está a mudar o xeito no que interactuamos coa tecnoloxía.\n\nInstalar Open Voice OS é moi doado e ábrelle un mundo de posibilidades á comodidade do control por voz. Tanto se es un afeccionado á tecnoloxía como se só queres simplificar as túas tarefas diarias, Open Voice OS está aquí para facerche a vida máis fácil.\n\nComeza a instalación hoxe mesmo e deixa que a túa voz te guíe cara ao futuro da tecnoloxía! 🌟"
+  },
+  "overclock.sh": {
+    "title": "Instalación de Open Voice OS - Overclocking",
+    "content": "O overclocking aumenta a frecuencia da CPU/GPU para un rendemento máximo, pero pode reducir a estabilidade e aumentar a calor.\n\nRequisitos:\n- Refrigeración activa (disipador/ventilador) e bo fluxo de aire\n- Fonte de alimentación estable axeitada ao teu modelo de Pi\n- Monitoriza as temperaturas e detén se hai throttling ou fallos\n\nRiscos:\n- Reinicios aleatorios, fallos de audio, corrupción de datos\n- Maior consumo e vida útil máis curta\n\nOpen Voice OS non é responsable de ningún problema relacionado co overclocking.\n\nQueres activar o overclocking?"
   }
 }

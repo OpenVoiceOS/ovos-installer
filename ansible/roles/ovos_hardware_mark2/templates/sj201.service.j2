@@ -5,11 +5,11 @@ After=network-online.target
 
 [Service]
 Type=oneshot
-WorkingDirectory=%h/.venvs/sj201
-ExecStart=/usr/bin/sudo -E env PATH=$PATH %h/.venvs/sj201/bin/python /opt/sj201/xvf3510-flash --direct /opt/sj201/app_xvf3510_int_spi_boot_v4_2_0.bin --verbose
-ExecStartPost=%h/.venvs/sj201/bin/python /opt/sj201/init_tas5806
+WorkingDirectory={{ ovos_hardware_mark2_sj201_venv_path }}
+ExecStart={{ ovos_hardware_mark2_sudo_path }} -E env PATH=$PATH {{ ovos_hardware_mark2_sj201_venv_path }}/bin/python {{ ovos_hardware_mark2_working_dir }}/{{ ovos_hardware_mark2_sj201_flash_tool }} --direct {{ ovos_hardware_mark2_working_dir }}/{{ ovos_hardware_mark2_sj201_firmware_image }} --verbose
+ExecStartPost={{ ovos_hardware_mark2_sj201_venv_path }}/bin/python {{ ovos_hardware_mark2_working_dir }}/{{ ovos_hardware_mark2_sj201_post_init_script }}
 Restart=on-failure
-RestartSec=5s
+RestartSec={{ ovos_hardware_mark2_sj201_unit_restart_sec }}
 RemainAfterExit=yes
 
 [Install]

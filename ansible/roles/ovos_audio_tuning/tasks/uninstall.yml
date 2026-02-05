@@ -1,0 +1,44 @@
+---
+- name: Assert uninstall mode
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_cleaning | default(false) | bool
+    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
+  tags:
+    - uninstall
+
+- name: Remove user PipeWire low-latency config
+  ansible.builtin.file:
+    path: "{{ ovos_audio_tuning_pipewire_conf_dir }}/{{ ovos_audio_tuning_pipewire_low_latency_conf }}"
+    state: absent
+  notify: Restart PipeWire
+
+- name: Remove user PipeWire noise suppression config
+  ansible.builtin.file:
+    path: "{{ ovos_audio_tuning_pipewire_conf_dir }}/{{ ovos_audio_tuning_pipewire_noise_suppression_conf }}"
+    state: absent
+  notify: Restart PipeWire
+
+- name: Remove WirePlumber idle suspend override
+  ansible.builtin.file:
+    path: "{{ ovos_audio_tuning_wireplumber_conf_dir }}/{{ ovos_audio_tuning_wireplumber_idle_conf }}"
+    state: absent
+  notify: Restart WirePlumber
+
+- name: Remove WirePlumber default capture volume override
+  ansible.builtin.file:
+    path: "{{ ovos_audio_tuning_wireplumber_conf_dir }}/{{ ovos_audio_tuning_wireplumber_capture_volume_conf }}"
+    state: absent
+  notify: Restart WirePlumber
+
+- name: Remove rtkit package
+  ansible.builtin.package:
+    name: "{{ ovos_audio_tuning_rtkit_package }}"
+    state: absent
+  failed_when: false
+  when: ovos_installer_uninstall_remove_packages | default(false) | bool
+
+- name: Remove USB Audio configuration
+  ansible.builtin.file:
+    path: "{{ ovos_audio_tuning_usb_audio_conf_path }}"
+    state: absent

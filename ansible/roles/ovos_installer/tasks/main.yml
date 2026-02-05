@@ -1,37 +1,92 @@
 ---
-- name: Include tuning/main.yml
-  ansible.builtin.import_tasks: tuning/main.yml
-  when:
-    (ovos_installer_raspberrypi != "N/A" and ovos_installer_tuning | bool) or
-    (ovos_installer_raspberrypi != "N/A" and ovos_installer_cleaning | bool)
+- name: Include assert.yml
+  ansible.builtin.import_tasks: assert.yml
+  tags:
+    - always
 
-- name: Include sound.yml
-  ansible.builtin.import_tasks: sound.yml
+- name: Include ovos_facts role
+  ansible.builtin.import_role:
+    name: ovos_facts
+  tags:
+    - ovos_facts
+    - always
+
+- name: Map installer facts for shared roles
+  ansible.builtin.set_fact:
+    ovos_installer_boot_directory: "{{ ovos_facts_boot_directory }}"
+    ovos_installer_networkmanager_dir: "{{ ovos_facts_networkmanager_dir }}"
+    ovos_installer_systemd_dropin_path: "{{ ovos_facts_systemd_dropin_path }}"
+    ovos_installer_systemd_dropin_owner: "{{ ovos_facts_systemd_dropin_owner }}"
+    ovos_installer_systemd_dropin_group: "{{ ovos_facts_systemd_dropin_group }}"
+    ovos_installer_systemd_dropin_user_path: "{{ ovos_facts_systemd_dropin_user_path }}"
+    ovos_installer_systemd_reload_handler: "{{ ovos_facts_systemd_reload_handler }}"
+  when:
+    - ovos_facts_boot_directory is defined
+    - ovos_facts_networkmanager_dir is defined
+    - ovos_facts_systemd_dropin_path is defined
+  tags:
+    - always
+
+- name: Include tuning.yml
+  ansible.builtin.import_tasks: tuning.yml
+  when:
+    (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_tuning | bool) or
+    (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_cleaning | default(false) | bool)
+
+- name: Include ovos_sound role
+  ansible.builtin.import_role:
+    name: ovos_sound
   when: ovos_installer_profile != "server"
+  tags:
+    - ovos_sound
 
-- name: Include ovos.yml
-  ansible.builtin.import_tasks: ovos.yml
+- name: Include ovos_timezone role
+  ansible.builtin.import_role:
+    name: ovos_timezone
+  tags:
+    - ovos_timezone
 
-- name: Include video.yml
-  ansible.builtin.import_tasks: video.yml
-  when:
-    - ovos_installer_feature_gui | bool
-    - ovos_installer_profile != "server"
+- name: Include ovos_config role
+  ansible.builtin.import_role:
+    name: ovos_config
+  tags:
+    - ovos_config
 
-- name: Include timezone.yml
-  ansible.builtin.import_tasks: timezone.yml
+- name: Include ovos_containers role
+  ansible.builtin.import_role:
+    name: ovos_containers
+  when: ovos_installer_method == "containers" or ovos_installer_cleaning | default(false) | bool
+  tags:
+    - ovos_containers
 
-- name: Include docker/main.yml
-  ansible.builtin.import_tasks: docker/main.yml
-  when: ovos_installer_method == "containers" or ovos_installer_cleaning | bool
+- name: Include ovos_virtualenv role
+  ansible.builtin.import_role:
+    name: ovos_virtualenv
+  when: ovos_installer_method == "virtualenv" or ovos_installer_cleaning | default(false) | bool
+  tags:
+    - ovos_virtualenv
 
-- name: Include virtualenv/main.yml
-  ansible.builtin.import_tasks: virtualenv/main.yml
-  when: ovos_installer_method == "virtualenv" or ovos_installer_cleaning | bool
+- name: Include ovos_services role
+  ansible.builtin.import_role:
+    name: ovos_services
+  tags:
+    - ovos_services
 
-- name: Include finalize.yml
-  ansible.builtin.import_tasks: finalize.yml
+- name: Include ovos_finalize role
+  ansible.builtin.import_role:
+    name: ovos_finalize
+  tags:
+    - ovos_finalize
 
-- name: Include telemetry.yml
-  ansible.builtin.import_tasks: telemetry.yml
-  when: ovos_installer_telemetry | bool
+- name: Include ovos_telemetry role
+  ansible.builtin.import_role:
+    name: ovos_telemetry
+  when: ovos_installer_telemetry | default(false) | bool
+  tags:
+    - ovos_telemetry
+
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_installer_cleaning | default(false) | bool
+  tags:
+    - uninstall

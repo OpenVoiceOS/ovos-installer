@@ -8,6 +8,5 @@ Seleccione as funções a ativar:
 TITLE="Open Voice OS Instalação - Características"
 SKILL_DESCRIPTION="Descarregar uma seleção de skills OVOS"
 EXTRA_SKILL_DESCRIPTION="Carregar skills OVOS adicionais"
-GUI_DESCRIPTION="Com interface gráfica do utilizador"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION

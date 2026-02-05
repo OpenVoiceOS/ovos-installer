@@ -1,0 +1,17 @@
+---
+ovos_python_mimalloc_package_redhat: mimalloc-devel
+ovos_python_mimalloc_package_default: libmimalloc-dev
+ovos_python_mimalloc_lib64_path: /usr/lib64
+ovos_python_mimalloc_lib64_marker: /lib64/
+ovos_python_mimalloc_lib_paths:
+  - /usr/lib
+ovos_python_mimalloc_pattern: "libmimalloc.so*"
+ovos_python_env_dir: "{{ ovos_installer_user_home }}/.config/environment.d"
+ovos_python_env_file: 99-ovos-tuning.conf
+ovos_python_env_mode: "0644"
+ovos_python_env_header: "# Open Voice OS - High Performance Tuning"
+ovos_python_env_pythonoptimize: 1
+ovos_python_env_omp_threads: 1
+ovos_python_env_mkl_threads: 1
+ovos_python_env_mimalloc_page_reset: 0
+ovos_python_mimalloc_dropin_name: 97-mimalloc.conf

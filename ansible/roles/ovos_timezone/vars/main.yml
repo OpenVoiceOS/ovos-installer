@@ -1,0 +1,9 @@
+---
+ovos_timezone_geoip_method: GET
+ovos_timezone_status_codes:
+  - 200
+ovos_timezone_expected_status: 200
+ovos_timezone_headers:
+  Content-Type: application/json
+ovos_timezone_retries: 5
+ovos_timezone_delay: 3

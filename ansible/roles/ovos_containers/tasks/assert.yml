@@ -1,0 +1,35 @@
+---
+- name: Assert containers configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_containers_working_directory | length > 0
+      - ovos_containers_project_name | length > 0
+      - ovos_containers_docker_repo_base_url | length > 0
+      - ovos_containers_docker_pull_policy in ovos_containers_docker_pull_policies
+      - ovos_containers_docker_repo_channel | length > 0
+      - ovos_containers_repo_definitions | length > 0
+      - ovos_containers_docker_repo_base_url is match('^https?://')
+    fail_msg: "Invalid containers configuration: check defaults/overrides."
+    success_msg: "Containers configuration validated."
+
+- name: Assert compose definition selection
+  vars:
+    _compose_files: "{{ ovos_containers_compose_definitions | selectattr('state', 'equalto', true) | list }}"
+  ansible.builtin.assert:
+    that:
+      - _compose_files | length > 0
+    fail_msg: "No docker-compose files selected for the current profile."
+    success_msg: "Docker-compose files selected."
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Assert containers path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Containers path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_containers_working_directory }}"
+    - "{{ ovos_containers_composition_directory }}"
+    - "{{ ovos_containers_ovos_base_dir }}"
+    - "{{ ovos_containers_hivemind_base_dir }}"
+    - "{{ ovos_containers_cmdline_path }}"

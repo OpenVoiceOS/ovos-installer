@@ -1,0 +1,19 @@
+---
+- name: Assert sound configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_sound_pipewire_alsa_package | length > 0
+      - ovos_sound_audio_group | length > 0
+      - ovos_sound_asoundrc_path | length > 0
+      - ovos_sound_pipewire_min_ubuntu_version is match('^[0-9]+\\.[0-9]+')
+      - ovos_sound_pipewire_min_debian_version is match('^[0-9]+\\.[0-9]+')
+    fail_msg: "Invalid sound configuration."
+
+- name: Assert sound path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Sound path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_sound_linger_path }}"
+    - "{{ ovos_sound_asoundrc_path }}"

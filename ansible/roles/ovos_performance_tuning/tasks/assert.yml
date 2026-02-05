@@ -1,0 +1,25 @@
+---
+- name: Assert performance tuning configuration values
+  ansible.builtin.assert:
+    that:
+      - ovos_performance_tuning_cpu_governor_unit_path | length > 0
+      - ovos_performance_tuning_sysctl_file | length > 0
+      - ovos_performance_tuning_limits_path | length > 0
+      - ovos_performance_tuning_core_services | length > 0
+      - ovos_performance_tuning_rt_policy in ['fifo', 'rr']
+      - (ovos_performance_tuning_rt_priority | int) > 0
+      - (ovos_performance_tuning_rt_limit_rtprio | int) >= (ovos_performance_tuning_rt_priority | int)
+    fail_msg: "Invalid performance tuning configuration."
+
+- name: Assert performance tuning path formats
+  ansible.builtin.assert:
+    that:
+      - item is match('^/')
+    fail_msg: "Performance tuning path must be absolute: {{ item }}"
+  loop:
+    - "{{ ovos_performance_tuning_cpu_governor_config_path }}"
+    - "{{ ovos_performance_tuning_cpu_governor_unit_path }}"
+    - "{{ ovos_performance_tuning_sysctl_file }}"
+    - "{{ ovos_performance_tuning_limits_path }}"
+    - "{{ ovos_performance_tuning_pam_limits_file }}"
+    - "{{ ovos_performance_tuning_scheduler_rule_path }}"

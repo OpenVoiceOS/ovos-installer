@@ -1,0 +1,13 @@
+---
+# CI runs `ansible-lint` from the repository root.
+# Keep the root config minimal and consistent with `ansible/.ansible-lint`.
+skip_list:
+  - yaml[line-length]
+  - name[template]
+  - schema[meta]
+profile: production
+exclude_paths:
+  - .git/
+  - .github/
+  - .ansible/
+strict: true

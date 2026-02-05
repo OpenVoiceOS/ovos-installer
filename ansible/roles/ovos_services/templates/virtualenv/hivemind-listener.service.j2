@@ -1,0 +1,24 @@
+[Unit]
+Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/terms/#hivemind
+Description=HiveMind - Listener
+After=network-online.target
+Requires=ovos.service
+
+[Service]
+{% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
+User={{ ovos_installer_user }}
+Group={{ ovos_installer_group }}
+Environment=HOME={{ ovos_installer_user_home }}
+Environment=XDG_RUNTIME_DIR=/run/user/{{ ovos_installer_uid }}
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{{ ovos_installer_uid }}/bus
+EnvironmentFile=-{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tuning.conf
+{% endif %}
+WorkingDirectory={{ ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' }}/.venvs/ovos
+ExecStart={{ ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' }}/.venvs/ovos/bin/hivemind-core listen
+ExecReload=/usr/bin/kill -s HUP $MAINPID
+ExecStop=/usr/bin/kill -s KILL $MAINPID
+Restart=on-failure
+RestartSec={{ '1s' if (ovos_installer_tuning | default(false) | bool) else '5s' }}
+
+[Install]
+WantedBy=default.target

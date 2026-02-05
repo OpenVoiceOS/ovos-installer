@@ -2,49 +2,46 @@
 - name: Clone VocalFusionDriver Git repository
   ansible.builtin.git:
     repo: "{{ ovos_hardware_mark2_vocalfusion_repo_url }}"
-    dest: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}"
+    dest: "{{ ovos_hardware_mark2_vocalfusion_src_path }}"
     version: "{{ ovos_hardware_mark2_vocalfusion_branch }}"
 
-- name: Copy DTBO files to /boot/overlays
+- name: Copy DTBO files to boot overlays directory
   vars:
-    _is_rpi5: "{{ '-pi5' if 'Raspberry Pi 5' in ovos_installer_raspberrypi else '' }}"
+    _is_rpi5: >-
+      {{ ovos_hardware_mark2_pi5_suffix
+         if (ovos_hardware_mark2_pi5_model_match | default('')) in (ovos_installer_raspberrypi | default(''))
+         else '' }}
     _dtbo_file: "{{ item }}{{ _is_rpi5 }}.dtbo"
   ansible.builtin.copy:
-    src: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}/{{ _dtbo_file }}"
-    dest: "/boot/overlays/{{ _dtbo_file }}"
+    src: "{{ ovos_hardware_mark2_vocalfusion_src_path }}/{{ _dtbo_file }}"
+    dest: "{{ ovos_hardware_mark2_boot_overlays_dir }}/{{ _dtbo_file }}"
     owner: root
     group: root
     mode: "0755"
     remote_src: true
-  loop:
-    - sj201
-    - sj201-buttons-overlay
-    - sj201-rev10-pwm-fan-overlay
+  loop: "{{ ovos_hardware_mark2_vocalfusion_dtbo_overlays }}"
 
 - name: Manage sj201, buttons and PWM overlays
   ansible.builtin.lineinfile:
-    path: "{{ ovos_hardware_mark2_boot_directory }}/config.txt"
+    path: "{{ ovos_hardware_mark2_boot_config_path }}"
     regexp: "^{{ item }}="
-    line: "{{ item }}{{ '-pi5' if 'Raspberry Pi 5' in ovos_installer_raspberrypi else '' }}"
-  loop:
-    - dtoverlay=sj201
-    - dtoverlay=sj201-buttons-overlay
-    - dtoverlay=sj201-rev10-pwm-fan-overlay
+    line: >-
+      {{ item }}{{ ovos_hardware_mark2_pi5_suffix
+         if (ovos_hardware_mark2_pi5_model_match | default('')) in (ovos_installer_raspberrypi | default(''))
+         else '' }}
+  loop: "{{ ovos_hardware_mark2_vocalfusion_dtbo_overlays | map('regex_replace', '^', 'dtoverlay=') | list }}"
 
 - name: Build vocalfusion-soundcard.ko kernel module
   ansible.builtin.shell:
-    cmd: >
-      sudo make -j {{ ansible_processor_count }}
-      KDIR=/lib/modules/{{ ansible_kernel }}/build
-      all
-    executable: /bin/bash
-    chdir: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}/driver"
+    cmd: "{{ ovos_hardware_mark2_vocalfusion_make_cmd }}"
+    executable: "{{ ovos_hardware_mark2_shell_executable }}"
+    chdir: "{{ ovos_hardware_mark2_vocalfusion_driver_dir }}"
   changed_when: false
 
-- name: Copy vocalfusion-soundcard.ko to /lib/modules/{{ ansible_kernel }}
+- name: Copy vocalfusion-soundcard.ko to /lib/modules/{{ ansible_facts.kernel }}
   ansible.builtin.copy:
-    src: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}/driver/vocalfusion-soundcard.ko"
-    dest: "/lib/modules/{{ ansible_kernel }}/vocalfusion-soundcard.ko"
+    src: "{{ ovos_hardware_mark2_vocalfusion_driver_dir }}/{{ ovos_hardware_mark2_vocalfusion_module_name }}.ko"
+    dest: "{{ ovos_hardware_mark2_vocalfusion_module_path }}"
     owner: root
     group: root
     mode: "0644"
@@ -52,49 +49,36 @@
     - Run Depmod
     - Set Reboot
 
-- name: Create /etc/modules-load.d/vocalfusion.conf file
+- name: Create modules-load config for vocalfusion
   ansible.builtin.copy:
-    content: |
-      vocalfusion-soundcard
-    dest: /etc/modules-load.d/vocalfusion.conf
+    content: "{{ ovos_hardware_mark2_modules_load_content }}"
+    dest: "{{ ovos_hardware_mark2_modules_load_path }}"
     owner: root
     group: root
     mode: "0644"
 
 - name: Create sj201 Python virtualenv
   moreati.uv.pip:
-    name:
-      - Adafruit-Blinka
-      - smbus2
-      - RPi.GPIO
-      - gpiod
-    virtualenv: "{{ ovos_installer_user_home }}/.venvs/sj201"
-    virtualenv_command: "{{ ansible_python.executable }} -m venv"
+    name: "{{ ovos_hardware_mark2_sj201_venv_packages }}"
+    virtualenv: "{{ ovos_hardware_mark2_sj201_venv_path }}"
+    virtualenv_command: "{{ ovos_hardware_mark2_sj201_venv_command }}"
 
 - name: Download SJ201 firmware and scripts
   ansible.builtin.get_url:
     url: "{{ item.url }}"
-    dest: "/opt/sj201/{{ item.dest }}"
+    dest: "{{ ovos_hardware_mark2_working_dir }}/{{ item.dest }}"
     owner: root
     group: root
     mode: "0755"
-  loop:
-    - url: >-
-        https://raw.githubusercontent.com/OpenVoiceOS/ovos-buildroot/0e464466194f58553af11c34f7435dba76ec70a3/buildroot-external/package/vocalfusion/xvf3510-flash
-      dest: xvf3510-flash
-    - url: >-
-        https://raw.githubusercontent.com/OpenVoiceOS/ovos-buildroot/c67d7f0b7f2a3eff5faab96d6adf7495e9b48b93/buildroot-external/package/vocalfusion/app_xvf3510_int_spi_boot_v4_2_0.bin
-      dest: app_xvf3510_int_spi_boot_v4_2_0.bin
-    - url: https://raw.githubusercontent.com/MycroftAI/mark-ii-hardware-testing/main/utils/init_tas5806.py
-      dest: init_tas5806
+  loop: "{{ ovos_hardware_mark2_sj201_downloads }}"
 
 - name: Copy SJ201 systemd unit file
   ansible.builtin.template:
     src: sj201.service.j2
-    dest: "{{ ovos_installer_user_home }}/.config/systemd/user/sj201.service"
+    dest: "{{ ovos_hardware_mark2_sj201_unit_path }}"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
-    mode: "0644"
+    mode: "{{ ovos_hardware_mark2_sj201_unit_mode }}"
   notify: Reload Systemd User
 
 - name: Flush handlers vocalfusion
@@ -104,12 +88,12 @@
   become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.systemd_service:
-    name: sj201.service
+    name: "{{ ovos_hardware_mark2_sj201_unit_name }}"
     enabled: true
     force: true
     scope: user
 
 - name: Delete vocalfusion source once compiled
   ansible.builtin.file:
-    path: "{{ _ovos_hardware_mark2_vocalfusion_src_path }}"
+    path: "{{ ovos_hardware_mark2_vocalfusion_src_path }}"
     state: absent

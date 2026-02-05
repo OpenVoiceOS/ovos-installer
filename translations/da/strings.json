@@ -17,8 +17,7 @@
     "title": "Open Voice OS Installation - Funktioner",
     "content": "Færdigheder muliggør interaktion gennem tale, hvilket gør det effektivt til opgaver som hjemmeautomatisering, informationssøgning og styring af smarte enheder ved hjælp af naturlige sprogkommandoer.\n\nVælg venligst funktionerne for at aktivere:",
     "skill_description": "Indlæs standard OVOS-færdigheder",
-    "extra_skill_description": "Indlæs ekstra OVOS-færdigheder",
-    "gui_description": "Aktiver grafisk brugergrænseflade"
+    "extra_skill_description": "Indlæs ekstra OVOS-færdigheder"
   },
   "finish.sh": {
     "title": "Open Voice OS Installation - Afslut",
@@ -70,5 +69,9 @@
   "welcome.sh": {
     "title": "Open Voice OS Installation - Velkommen",
     "content": "Hej og velkommen til Open Voice OS-installationen!\n\nVi er glade for at introducere dig til Open Voice OS, open source-stemmeassistenten, der ændrer den måde, vi interagerer med teknologi på.\n\nInstallation af Open Voice OS er en leg, og det åbner en verden af ​​muligheder for stemmestyret bekvemmelighed. Uanset om du er en teknologientusiast eller bare ønsker at forenkle dine daglige opgaver, er Open Voice OS her for at gøre dit liv lettere.\n\nKom i gang med installationen i dag, og lad din stemme guide dig gennem fremtidens teknologi!🌟"
+  },
+  "overclock.sh": {
+    "title": "Open Voice OS-installation - Overclocking",
+    "content": "Overclocking øger CPU/GPU-frekvensen for maksimal ydeevne, men kan reducere stabiliteten og øge varmeudviklingen.\n\nKrav:\n- Aktiv køling (køleplade/blæser) og god luftgennemstrømning\n- Stabil strømforsyning passende til din Pi-model\n- Overvåg temperaturer og stop ved throttling eller nedbrud\n\nRisici:\n- Tilfældige genstarter, lydproblemer, datakorruption\n- Højere strømforbrug og kortere levetid\n\nOpen Voice OS er ikke ansvarlig for problemer relateret til overclocking.\n\nAktiver overclocking?"
   }
 }

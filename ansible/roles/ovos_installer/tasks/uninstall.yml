@@ -1,0 +1,60 @@
+---
+- name: Assert uninstall mode
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_cleaning | default(false) | bool
+    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
+  tags:
+    - uninstall
+
+- name: Autoremove orphaned packages (Debian/Zorin)
+  ansible.builtin.apt:
+    autoremove: true
+  failed_when: false
+  when:
+    - ovos_installer_uninstall_autoremove | default(true) | bool
+    - ansible_facts.os_family in ['Debian', 'Zorin OS']
+
+- name: Autoremove orphaned packages (RedHat)
+  ansible.builtin.dnf:
+    autoremove: true
+  failed_when: false
+  when:
+    - ovos_installer_uninstall_autoremove | default(true) | bool
+    - ansible_facts.os_family == "RedHat"
+
+- name: Autoremove orphaned packages (SUSE)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    orphans="$(zypper -q packages --orphaned | awk 'NR>2 {print $5}')"
+    if [ -n "$orphans" ]; then
+      zypper -n rm --clean-deps $orphans
+    fi
+  args:
+    executable: /bin/bash
+  register: ovos_installer_zypper_autoremove
+  changed_when: ovos_installer_zypper_autoremove.stdout | default('') | length > 0
+  failed_when: false
+  when:
+    - ovos_installer_uninstall_autoremove | default(true) | bool
+    - ansible_facts.os_family == "Suse"
+  tags:
+    - skip_ansible_lint
+
+- name: Autoremove orphaned packages (Archlinux)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    orphans="$(pacman -Qtdq || true)"
+    if [ -n "$orphans" ]; then
+      pacman -Rns --noconfirm $orphans
+    fi
+  args:
+    executable: /bin/bash
+  register: ovos_installer_pacman_autoremove
+  changed_when: ovos_installer_pacman_autoremove.stdout | default('') | length > 0
+  failed_when: false
+  when:
+    - ovos_installer_uninstall_autoremove | default(true) | bool
+    - ansible_facts.os_family == "Archlinux"
+  tags:
+    - skip_ansible_lint

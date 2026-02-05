@@ -1,0 +1,11 @@
+---
+ovos_facts_boot_firmware_path: >-
+  {{ ovos_installer_boot_firmware_path | default('/boot/firmware') }}
+ovos_facts_boot_default_path: "{{ ovos_installer_boot_default_path | default('/boot') }}"
+ovos_facts_networkmanager_path: >-
+  {{ ovos_installer_networkmanager_path | default('/etc/NetworkManager') }}
+ovos_facts_systemd_system_path: >-
+  {{ ovos_installer_systemd_system_path | default('/etc/systemd/system') }}
+ovos_facts_systemd_user_path: >-
+  {{ ovos_installer_systemd_user_path | default(ovos_installer_user_home + '/.config/systemd/user') }}
+ovos_facts_systemd_scope: "{{ ovos_installer_systemd_scope | default('user') }}"

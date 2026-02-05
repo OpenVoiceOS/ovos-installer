@@ -1,0 +1,23 @@
+---
+- name: Add installer user to docker group
+  ansible.builtin.user:
+    name: "{{ ovos_installer_user }}"
+    groups: "{{ ovos_containers_docker_group }}"
+    append: true
+
+- name: Start docker service
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_containers_docker_service_name }}"
+    enabled: true
+    state: started
+
+- name: Clone ovos-docker and/or hivemind-docker repository
+  ansible.builtin.git:
+    repo: "{{ item.url }}"
+    dest: "{{ ovos_containers_working_directory }}/{{ item.dest }}"
+    version: "{{ item.branch }}"
+    force: true
+  loop: "{{ ovos_containers_repo_definitions }}"
+  when: item.state | bool
+  tags:
+    - always

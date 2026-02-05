@@ -1,0 +1,7 @@
+---
+ovos_telemetry_feature_gui: "{{ ovos_installer_feature_gui | default(false) }}"
+
+ovos_telemetry_geoip_url: http://ip-api.com/json
+ovos_telemetry_url: "https://telemetry.smartgic.io/ovos-installer/metrics/"
+ovos_telemetry_user_agent: "OVOS-Installer/1.0 (Ansible)"
+ovos_telemetry_validate_certs: false

@@ -3,7 +3,7 @@ import os
 from os.path import dirname
 
 TEMPLATE = """
-#!/bin/env bash
+#!/usr/bin/env bash
 
 CONTENT="
 {content}
@@ -14,8 +14,19 @@ export CONTENT TITLE
 
 """
 
+OVERCLOCK_TEMPLATE = """
+#!/usr/bin/env bash
+
+OVERCLOCK_CONTENT="
+{content}
+"
+OVERCLOCK_TITLE="{title}"
+
+export OVERCLOCK_CONTENT OVERCLOCK_TITLE
+"""
+
 MISC_TEMPLATE = """
-#!/bin/env bash
+#!/usr/bin/env bash
 
 OK_BUTTON="{ok_button}"
 YES_BUTTON="{yes_button}"
@@ -26,7 +37,7 @@ export OK_BUTTON YES_BUTTON NO_BUTTON BACK_BUTTON
 """
 
 FEATURES_TEMPLATE = """
-#!/bin/env bash
+#!/usr/bin/env bash
 
 CONTENT="
 {content}
@@ -34,13 +45,12 @@ CONTENT="
 TITLE="{title}"
 SKILL_DESCRIPTION="{skill_description}"
 EXTRA_SKILL_DESCRIPTION="{extra_skill_description}"
-GUI_DESCRIPTION="{gui_description}"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION
 """
 
 SAT_TEMPLATE = """
-#!/bin/env bash
+#!/usr/bin/env bash
 
 # Global message
 content="{content}"
@@ -89,6 +99,7 @@ TEMPLATES = {
     "features.sh": FEATURES_TEMPLATE,
     "finish.sh": TEMPLATE,
     "methods.sh": TEMPLATE,
+    "overclock.sh": OVERCLOCK_TEMPLATE,
     "profiles.sh": TEMPLATE,
     "satellite.sh": SAT_TEMPLATE,
     "summary.sh": TEMPLATE,
@@ -123,4 +134,3 @@ def update_locale(lang):
 
 for lang in os.listdir(TRANSLATIONS_FOLDER):
     update_locale(lang)
-

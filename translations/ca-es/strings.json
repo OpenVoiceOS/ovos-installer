@@ -17,8 +17,7 @@
     "title": "Instal·lació de l'Open Voice OS - Característiques",
     "content": "Les habilitats permeten la interacció a través de la parla, i la fan eficient per a tasques com la domòtica, la recuperació d'informació i el control de dispositius intel·ligents mitjançant ordres de llenguatge natural.\n\nSi us plau, trieu les funcions que voleu activar:",
     "skill_description": "Carrega les habilitats d'OVOS predeterminades",
-    "extra_skill_description": "Carrega habilitats d'OVOS addicionals",
-    "gui_description": "Habilita la interfície gràfica d'usuari"
+    "extra_skill_description": "Carrega habilitats d'OVOS addicionals"
   },
   "finish.sh": {
     "title": "Instal·lació de l'Open Voice OS - Finalització",
@@ -70,5 +69,9 @@
   "welcome.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Benvinguda",
     "content": "Hola i benvinguts a la instal·lació de l'Open Voice OS!\n\nEns complau presentar-vos l'Open Voice OS, l'assistent de veu de codi obert que està canviant la manera com interactuem amb la tecnologia.\n\nLa instal·lació d'Open Voice OS és fàcil i obre un món de possibilitats per a la comoditat controlada per veu. Tant si sou un entusiasta de la tecnologia, com si només voleu simplificar les vostres tasques diàries, Open Voice OS és aquí per fer-vos la vida més fàcil.\n\nComenceu amb la instal·lació avui mateix i deixeu que la vostra veu us guiï pel futur de la tecnologia!🌟"
+  },
+  "overclock.sh": {
+    "title": "Instal·lació de l'Open VoiceOS - Overclocking",
+    "content": "L'overclocking augmenta la freqüència de la CPU/GPU per obtenir el màxim rendiment, però pot reduir l'estabilitat i augmentar la calor.\n\nRequisits:\n- Refrigeració activa (dissipador/ventilador) i bon flux d'aire\n- Font d'alimentació estable adequada al teu model de Pi\n- Supervisa les temperatures i atura si hi ha throttling o fallades\n\nRiscos:\n- Reinicis aleatoris, fallades d'àudio, corrupció de dades\n- Més consum i vida útil més curta\n\nOpen Voice OS no és responsable de cap problema relacionat amb l'overclocking.\n\nVoleu habilitar l'overclocking?"
   }
 }

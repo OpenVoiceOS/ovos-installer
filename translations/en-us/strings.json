@@ -17,8 +17,7 @@
     "title": "Open Voice OS Installation - Features",
     "content": "Skills enable interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.\n\nPlease choose the features to enable:",
     "skill_description": "Load default OVOS skills",
-    "extra_skill_description": "Load extra OVOS skills",
-    "gui_description": "Enable graphical user interface"
+    "extra_skill_description": "Load extra OVOS skills"
   },
   "finish.sh": {
     "title": "Open Voice OS Installation - Finish",
@@ -54,6 +53,10 @@
   "tuning.sh": {
     "title": "Open Voice OS Installation - Tuning",
     "content": "Using Open Voice OS Tuning for Raspberry Pi involves optimizing the operating system to run efficiently on the Raspberry Pi hardware.\n\nThis tuning process aims to enhance performance, reduce resource usage, and ensure a smoother user experience, making it an excellent choice for resource-constrained devices like the Raspberry Pi.\n\nEnable tuning for Raspberry Pi (recommended)?"
+  },
+  "overclock.sh": {
+    "title": "Open Voice OS Installation - Overclocking",
+    "content": "Overclocking increases CPU/GPU frequency for maximum performance but can reduce stability and increase heat.\n\nRequirements:\n- Active cooling (heatsink/fan) and good airflow\n- A stable power supply appropriate for your Pi model\n- Monitor temperatures and stop if throttling or crashes\n\nRisks:\n- Random reboots, audio glitches, data corruption\n- Higher power draw and reduced lifespan\n\nOpen Voice OS is not responsible for any issues related to overclocking.\n\nEnable overclocking?"
   },
   "uninstall.sh": {
     "title": "Open Voice OS Installation - Uninstall",
