@@ -3,10 +3,10 @@ collections:
   - name: ansible.posix
     version: 2.1.0
   - name: community.docker
-    version: 4.8.6
+    version: 5.0.5
   - name: community.general
-    version: 10.7.6
+    version: 12.3.0
   - name: kewlfft.aur
-    version: 0.13.0
+    version: 0.13.1
   - name: moreati.uv
     version: 0.0.3
