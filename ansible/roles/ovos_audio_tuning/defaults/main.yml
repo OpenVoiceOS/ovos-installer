@@ -1,9 +1,10 @@
 ---
 ovos_audio_tuning_low_latency: >-
   {{ ovos_installer_tuning_audio_low_latency
-     | default(ovos_installer_tuning_performance | bool) }}
+     | default((ovos_installer_tuning_performance | default(false)) | bool) }}
 ovos_audio_tuning_noise_suppression: >-
-  {{ ovos_installer_tuning_audio_noise_suppression | default(ovos_installer_tuning | bool) }}
+  {{ ovos_installer_tuning_audio_noise_suppression
+     | default((ovos_installer_tuning | default(false)) | bool) }}
 ovos_audio_tuning_ns_level: "{{ ovos_installer_tuning_audio_ns_level | default(1) }}"
 ovos_audio_tuning_ns_agc: "{{ ovos_installer_tuning_audio_ns_agc | default(true) }}"
 ovos_audio_tuning_bluetooth_profile: >-
@@ -15,7 +16,10 @@ ovos_audio_tuning_playback_target: "{{ ovos_installer_tuning_audio_playback_targ
 ovos_audio_tuning_audio_card_index: "{{ ovos_installer_audio_card_index | default('') }}"
 ovos_audio_tuning_source_volume: "{{ ovos_installer_tuning_source_volume | default(1.0) }}"
 
-ovos_audio_tuning_pipewire_conf_dir: "{{ ovos_installer_user_home }}/.config/pipewire/pipewire.conf.d"
+ovos_audio_tuning_user_home: >-
+  {{ ovos_installer_user_home
+     | default((ansible_facts | default({})).get('env', {}).get('HOME', '/tmp')) }}
+ovos_audio_tuning_pipewire_conf_dir: "{{ ovos_audio_tuning_user_home }}/.config/pipewire/pipewire.conf.d"
 ovos_audio_tuning_pipewire_low_latency_conf: 99-low-latency.conf
 ovos_audio_tuning_pipewire_noise_suppression_conf: 99-noise-suppression.conf
 ovos_audio_tuning_pipewire_clock_rate: 48000
@@ -34,7 +38,7 @@ ovos_audio_tuning_pipewire_ns_source_name: echo-cancel-source
 ovos_audio_tuning_pipewire_ns_source_description: "OVOS Noise Suppressed Source"
 ovos_audio_tuning_pipewire_ns_sink_name: echo-cancel-sink
 ovos_audio_tuning_pipewire_ns_sink_description: "OVOS Noise Suppressed Sink"
-ovos_audio_tuning_wireplumber_conf_dir: "{{ ovos_installer_user_home }}/.config/wireplumber/wireplumber.conf.d"
+ovos_audio_tuning_wireplumber_conf_dir: "{{ ovos_audio_tuning_user_home }}/.config/wireplumber/wireplumber.conf.d"
 ovos_audio_tuning_wireplumber_idle_conf: 99-disable-idle.conf
 ovos_audio_tuning_wireplumber_capture_volume_conf: 99-ovos-capture-volume.conf
 ovos_audio_tuning_wireplumber_idle_output_match: "~alsa_output.*"
@@ -47,8 +51,8 @@ ovos_audio_tuning_arecord_cmd: arecord
 ovos_audio_tuning_amixer_cmd: amixer
 ovos_audio_tuning_auto_gain_control_label: "Auto Gain Control"
 
-ovos_audio_tuning_runtime_dir: "/run/user/{{ ovos_installer_uid }}"
-ovos_audio_tuning_dbus_address: "unix:path=/run/user/{{ ovos_installer_uid }}/bus"
+ovos_audio_tuning_runtime_dir: "/run/user/{{ ovos_installer_uid | default(0) }}"
+ovos_audio_tuning_dbus_address: "unix:path=/run/user/{{ ovos_installer_uid | default(0) }}/bus"
 
 ovos_audio_tuning_rtkit_package: rtkit
 
