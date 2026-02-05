@@ -85,6 +85,8 @@
   tasks:
     - name: Flush handlers before reboot check
       ansible.builtin.meta: flush_handlers
+      tags:
+        - always
 
     - name: Checking for reboot requirement
       ansible.builtin.file:
@@ -94,3 +96,5 @@
         group: root
         mode: "0644"
       when: ovos_installer_reboot | bool
+      tags:
+        - always
