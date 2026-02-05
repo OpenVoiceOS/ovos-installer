@@ -9,7 +9,6 @@
 
 - name: Remove docker-compose stack(s)
   become: true
-  become_user: "{{ ovos_installer_user }}"
   community.docker.docker_compose_v2:
     project_src: "{{ ovos_containers_composition_directory }}"
     project_name: "{{ item.name }}"
@@ -24,6 +23,32 @@
     DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
   register: ovos_containers_composer_deletion
   failed_when: ovos_containers_composer_deletion is not defined
+
+- name: List compose containers by project label
+  become: true
+  community.docker.docker_container_info:
+    filters:
+      label: "com.docker.compose.project={{ item }}"
+  loop: "{{ ovos_containers_uninstall_project_names }}"
+  register: ovos_containers_uninstall_containers
+  failed_when: false
+
+- name: Flatten compose container list
+  ansible.builtin.set_fact:
+    ovos_containers_uninstall_container_ids: >-
+      {{ ovos_containers_uninstall_containers.results
+         | map(attribute='containers') | sum(start=[]) }}
+  when: ovos_containers_uninstall_containers is defined
+
+- name: Remove compose containers
+  become: true
+  community.docker.docker_container:
+    container: "{{ item.Id }}"
+    state: absent
+    force_kill: true
+    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
+  loop: "{{ ovos_containers_uninstall_container_ids | default([]) }}"
+  when: ovos_containers_uninstall_container_ids | default([]) | length > 0
 
 - name: Remove directories
   ansible.builtin.file:

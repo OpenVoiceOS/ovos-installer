@@ -120,6 +120,9 @@ ovos_containers_uninstall_compose_mapping:
     file: "{{ ovos_containers_compose_file_windows }}"
   - name: hivemind
     file: "{{ ovos_containers_compose_file_satellite }}"
+ovos_containers_uninstall_project_names:
+  - ovos
+  - hivemind
 ovos_containers_remove_directories:
   - "{{ ovos_containers_ovos_base_dir }}"
   - "{{ ovos_containers_hivemind_base_dir }}"
