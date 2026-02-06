@@ -1,20 +1,14 @@
 # 🎉 Open Voice OS and HiveMind Installer 🎉
 
-Welcome to the world of Open Voice OS and HiveMind! Get ready for a straightforward journey into voice tech.
+Installer for Open Voice OS (OVOS) and HiveMind on Linux. Supports interactive installs, scenario-based automation, and optional container deployment.
 
 ## 🤖 What is Open Voice OS?
 
-Open Voice OS (OVOS) is an open-source voice assistant platform that brings privacy-focused, customizable voice technology to your devices. It allows you to control smart home devices, play music, get weather updates, and much more using natural language commands. HiveMind extends this functionality by enabling distributed voice processing across multiple devices.
-
-Key benefits include:
-- **Privacy-first**: Your voice data stays on your device
-- **Highly customizable**: Add your own skills and integrations
-- **Multi-platform support**: Runs on various Linux distributions and hardware
-- **Community-driven**: Free and open-source with active development
+Open Voice OS (OVOS) is an open-source voice assistant platform focused on privacy and customization. HiveMind extends OVOS with distributed voice processing across multiple devices.
 
 ## 🚀 Quickstart
 
-Before we begin, make sure you have `curl`, `git`, and `sudo` installed. `curl` is used to download the installer script, `git` is needed for cloning repositories during installation, and `sudo` provides administrative privileges required for system changes. Here's your installation incantation:
+Prereqs: `curl`, `git`, and `sudo`. Run:
 
 ```shell
 sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
@@ -22,13 +16,13 @@ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-inst
 
 If you prefer to inspect before running, download the script first, review it, then execute it with `sudo sh installer.sh`.
 
-This command downloads and runs the official installer script, which will guide you through the installation process interactively.
+This downloads and runs the installer interactively.
 
 > Heads-up: OVOS targets a supported Python runtime in its virtualenv (default `3.11`). The installer uses `uv` to provision that version if it is not already available. You can override with `OVOS_VENV_PYTHON` if you want to use a different version that is available on your system.
 
-👉 [Start your Open Voice OS journey!](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
+👉 Guide: [Howto - Begin your Open Voice OS journey with the OVOS installer](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
 
-### 🐧 Supported Linux distributions
+## 🐧 Supported Linux distributions
 
 The installer has been tested on the following Linux distributions and versions:
 
@@ -55,53 +49,61 @@ The installer has been tested on the following Linux distributions and versions:
 | WSL2                | `20.04`   |
 | Zorin OS            | `>= 16`   |
 
-Note: 'rolling' indicates a rolling release Linux distribution, which means there is no specific version number as it continuously updates to the latest software.
-Role metadata in `ansible/roles/*/meta/main.yml` lists the base OS families/versions (e.g., Debian/Ubuntu/EL/Fedora/Arch/Suse) that cover these distributions.
-
-## ✨ Key Features
-
-Open Voice OS offers a comprehensive set of features for modern voice interaction:
-
-- **Voice Commands**: Control smart home devices, play music, set timers, and more with natural language
-- **Skill System**: Extensible plugin architecture allowing custom voice skills and integrations
-- **Multi-Device Support**: Connect multiple devices for coordinated voice experiences
-- **Offline Operation**: Process voice commands locally without internet dependency
-- **Wake Word Detection**: Customizable hotwords to activate the assistant
-- **Text-to-Speech & Speech-to-Text**: High-quality voice synthesis and recognition
-- **Docker Support**: Containerized deployment for easy management
-- **Hardware Integration**: Support for various microphones, speakers, and displays
-- **API Access**: RESTful APIs for programmatic control and integration
+Note: 'rolling' indicates a rolling release distribution with no fixed version number. Role metadata in `ansible/roles/*/meta/main.yml` lists the base OS families/versions (e.g., Debian/Ubuntu/EL/Fedora/Arch/Suse) that cover these distributions.
 
 ## 🔄 Update
 
-Updating Open Voice OS ensures you have the latest features, bug fixes, and security improvements. The update process will download and install the newest version while preserving your existing configuration. Backing up your configuration file is recommended in case you have custom settings that might be affected.
+To update, optionally back up your configuration (`~/.config/mycroft/mycroft.conf` or `~/ovos/config/mycroft.conf`) and re-run the installer. When prompted, answer **"No"** to _"Do you want to uninstall Open Voice OS?"_.
 
-To update the current Open Voice OS instance, backup your `~/.config/mycroft/mycroft.conf` or `~/ovos/config/mycroft.conf` _(only if required)_ and re-run installer but answer **"No"** to the _"Do you want to uninstall Open Voice OS?"_ question.
+## ⚙️ Start and stop services
 
-## ⚙️ Start & Stop the services
-
-When the `virtualenv` method is chosen (default) during the installation process, several systemd unit files are created to manage the different components as services. These services allow Open Voice OS to run automatically in the background.
+When the `virtualenv` method is chosen (default), systemd unit files are created to manage OVOS services. Some installs run services in system scope for performance/realtime tuning; use the matching commands below.
 
 ### 📋 List the systemd unit files
 
+User scope (default):
+
 ```shell
 systemctl --user list-units "*ovos*"
-systemctl list-units "*ovos*"
 ```
 
-Only one service is running as `root`; `ovos-phal-admin`. The `ovos` service runs the main Open Voice OS components as your user, while `ovos-phal-admin` handles administrative tasks that require root privileges, such as managing system hardware interfaces.
+System scope (performance/realtime tuning):
+
+```shell
+sudo systemctl list-units "*ovos*"
+```
+
+`ovos-phal-admin` always runs as `root`. The main `ovos` service runs in user or system scope depending on your install.
 
 ### 🟢 Start Open Voice OS
+
+User scope (default):
 
 ```shell
 systemctl --user start ovos
 sudo systemctl start ovos-phal-admin
 ```
 
+System scope (performance/realtime tuning):
+
+```shell
+sudo systemctl start ovos
+sudo systemctl start ovos-phal-admin
+```
+
 ### 🔴 Stop Open Voice OS
+
+User scope (default):
 
 ```shell
 systemctl --user stop ovos
+sudo systemctl stop ovos-phal-admin
+```
+
+System scope (performance/realtime tuning):
+
+```shell
+sudo systemctl stop ovos
 sudo systemctl stop ovos-phal-admin
 ```
 
@@ -123,9 +125,7 @@ Bluetooth headsets work too, but the mic typically needs the HFP/HSP profile. Th
 
 ## 🤖 Automated install
 
-The installer supports a non-interactive _(automated)_ process of installation by using a scenario file, this file must be created under the `~/.config/ovos-installer/` directory and should be named `scenario.yaml`.
-
-A scenario file allows you to pre-configure installation options for automated, non-interactive deployment. This is useful for scripting installations or deploying on multiple devices.
+The installer supports non-interactive installation via a scenario file at `~/.config/ovos-installer/scenario.yaml`. This is useful for scripting or deploying to multiple devices.
 
 Here is an example of a scenario to install Open Voice OS within Docker containers on a Raspberry Pi 4B with default skills.
 
@@ -147,38 +147,37 @@ EOF
 ```
 
 ### Configuration options explained:
-- `uninstall`: Set to `true` to uninstall instead of install
-- `method`: Installation method (`containers` for Docker, `virtualenv` for Python virtual environment)
-- `channel`: Release channel (`stable`, `testing`, `development`)
-- `profile`: Installation profile (`ovos` for standard setup)
-- `features`: Enable/disable specific features
-  - `skills`: Install default voice skills
-  - `extra_skills`: Install additional community skills
-- `raspberry_pi_tuning`: Enable maximum-performance tuning for Raspberry Pi hardware (includes an overclocking prompt)
-- `share_telemetry`: Allow sharing anonymous usage statistics
-- `share_usage_telemetry`: Allow sharing detailed usage data
+- `uninstall`: Set to `true` to uninstall instead of install.
+- `method`: Installation method (`containers` for Docker, `virtualenv` for Python virtual environment).
+- `channel`: Release channel (`stable`, `testing`, `development`).
+- `profile`: Installation profile (`ovos` for standard setup).
+- `features.skills`: Install default voice skills.
+- `features.extra_skills`: Install additional community skills.
+- `raspberry_pi_tuning`: Enable maximum-performance tuning for Raspberry Pi hardware (includes an overclocking prompt).
+- `share_telemetry`: Allow sharing anonymous usage statistics.
+- `share_usage_telemetry`: Allow sharing detailed usage data.
 
-Few scenarios are available as example in the [scenarios](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scenarios) directory of this repository.
+Example scenarios live in the [scenarios](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scenarios) directory of this repository.
 
 ## 🧩 Ansible role map
 
-The installer is now modular. The top-level wrapper role (`ovos_installer`) orchestrates focused roles:
+The installer is modular. The top-level wrapper role (`ovos_installer`) orchestrates focused roles, roughly in this order:
 
-- `ovos_facts`: Shared installer facts (boot dir, NetworkManager, systemd drop-ins)
+- `ovos_facts`: Shared installer facts (boot dir, NetworkManager, systemd paths)
 - `ovos_timezone`: Detect and configure system timezone
-- `ovos_telemetry`: Optional telemetry submission
 - `ovos_config`: Configuration defaults and `mycroft.conf` generation
 - `ovos_sound`: Sound server setup (PipeWire/PulseAudio)
-- `ovos_services`: Systemd units + handlers
 - `ovos_virtualenv`: Python virtualenv provisioning and package install
 - `ovos_containers`: Docker/compose provisioning and deployment
-- `ovos_finalize`: Post-install cleanup and drift notice
+- `ovos_services`: Systemd units + handlers (user or system scope)
+- `ovos_telemetry`: Optional telemetry submission
 - `ovos_storage_tuning`: fstab/log2ram/tmpfs tuning
 - `ovos_audio_tuning`: PipeWire/WirePlumber tuning
 - `ovos_python`: Python runtime tuning (mimalloc, env)
 - `ovos_performance_tuning`: governor, I/O, zram, sysctl, NUMA, limits
 - `ovos_network_tuning`: wireless power + DNS caching
-- `ovos_hardware_mark1` / `ovos_hardware_mark2`: hardware-specific roles (still applied when detected)
+- `ovos_finalize`: Post-install cleanup and drift notice
+- `ovos_hardware_mark1` / `ovos_hardware_mark2`: hardware-specific roles (applied when detected)
 
 ## ❌ Uninstall
 
