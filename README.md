@@ -24,7 +24,7 @@ If you prefer to inspect before running, download the script first, review it, t
 
 This command downloads and runs the official installer script, which will guide you through the installation process interactively.
 
-> Heads-up: OVOS targets a supported Python runtime in its virtualenv (default `3.11`). The installer uses `uv` to provision that version if it is not already available. You can override with `OVOS_VENV_PYTHON`, but `3.14` is blocked because `onnxruntime` does not provide wheels for it.
+> Heads-up: OVOS targets a supported Python runtime in its virtualenv (default `3.11`). The installer uses `uv` to provision that version if it is not already available. You can override with `OVOS_VENV_PYTHON` if you want to use a different version that is available on your system.
 
 👉 [Start your Open Voice OS journey!](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
 
