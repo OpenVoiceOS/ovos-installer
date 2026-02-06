@@ -354,7 +354,6 @@ function get_os_information() {
 }
 
 # Validate the requested Python version before creating the virtualenv.
-# onnxruntime is currently incompatible with Python 3.14, so abort early.
 function check_python_compatibility() {
     printf '%s' "➤ Validating Python version... "
     local python_version=""
@@ -388,12 +387,6 @@ function check_python_compatibility() {
         else
             echo "Unable to determine the default Python version." | tee -a "$LOG_FILE"
         fi
-        exit "${EXIT_MISSING_DEPENDENCY}"
-    fi
-
-    if [ -n "${OVOS_VENV_PYTHON:-}" ] && [ "$python_version" == "3.14" ]; then
-        echo -e "[$fail_format]"
-        echo "Python $python_version is not supported because onnxruntime is not yet compatible with it." | tee -a "$LOG_FILE"
         exit "${EXIT_MISSING_DEPENDENCY}"
     fi
 

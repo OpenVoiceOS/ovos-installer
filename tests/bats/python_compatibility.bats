@@ -14,18 +14,16 @@ function setup() {
     assert_success
 }
 
-@test "function_check_python_compatibility_blocks_python_314_version" {
+@test "function_check_python_compatibility_allows_python_314_version" {
     OVOS_VENV_PYTHON="3.14"
     run check_python_compatibility
-    assert_failure
-    assert_equal "${status}" "${EXIT_MISSING_DEPENDENCY}"
+    assert_success
 }
 
-@test "function_check_python_compatibility_blocks_python_314_executable" {
+@test "function_check_python_compatibility_allows_python_314_executable" {
     OVOS_VENV_PYTHON="python3.14"
     run check_python_compatibility
-    assert_failure
-    assert_equal "${status}" "${EXIT_MISSING_DEPENDENCY}"
+    assert_success
 }
 
 function teardown() {
