@@ -3,7 +3,7 @@ collections:
   - name: ansible.posix
     version: 2.1.0
   - name: community.docker
-    version: 4.8.6
+    version: 5.0.5
   - name: community.general
     version: 12.3.0
   - name: kewlfft.aur
