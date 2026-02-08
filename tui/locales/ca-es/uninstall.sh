@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 S'ha detectat una instància existent d'Open Voice OS.
 

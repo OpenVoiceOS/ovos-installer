@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 export SHARE_USAGE_TELEMETRY="true"
 
 # shellcheck source=tui/locales/en-us/usage_telemetry.sh

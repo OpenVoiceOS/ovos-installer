@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 export CONFIRM_UNINSTALL="true"
 
 # shellcheck source=tui/locales/en-us/misc.sh

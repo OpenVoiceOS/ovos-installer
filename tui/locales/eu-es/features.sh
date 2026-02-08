@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Trebetasunek hizkeraren bidez interakzioa ahalbidetzen dute, eta eraginkorra egiten dute etxeko automatizazioa, informazioa berreskuratzea eta gailu adimendunak kontrolatzea hizkuntza naturaleko komandoak erabiliz.
 

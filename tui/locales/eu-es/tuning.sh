@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Raspberry Pirako Open Voice OS Tuning erabiltzeak sistema eragilea optimizatzea dakar Raspberry Pi hardwarean eraginkortasunez exekutatzeko.
 

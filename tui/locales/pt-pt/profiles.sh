@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Para criar um sistema versátil e em rede que seja adequado para muitas aplicações, existem três opções fascinantes:
 

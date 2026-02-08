@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 L'ajustament de l'Open Voice OS per a Raspberry Pi implica optimitzar el sistema operatiu perquè funcioni de manera eficient en el maquinari Raspberry Pi.
 

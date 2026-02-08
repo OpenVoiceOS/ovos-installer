@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Une instance existante d'Open Voice OS/HiveMind a été détectée.
 

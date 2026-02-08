@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 OVERCLOCK_CONTENT="
 Podkręcanie zwiększa częstotliwość CPU/GPU dla maksymalnej wydajności, ale może obniżyć stabilność i zwiększyć temperaturę.
 

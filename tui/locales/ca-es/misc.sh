@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 OK_BUTTON="Endavant"
 YES_BUTTON="Sí"
 NO_BUTTON="No"

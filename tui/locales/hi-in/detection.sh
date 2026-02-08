@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 कृपया पता लगाई गई जानकारी को सत्यापित करें:
 

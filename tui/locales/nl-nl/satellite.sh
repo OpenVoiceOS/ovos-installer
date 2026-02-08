@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 # Global message
 content="Door verbinding te maken met de HiveMind Listener krijgen HiveMind-satellieten toegang tot een netwerk van gedeelde kennis en skills die een uniforme en efficiënte taalondersteuning en -automatisering mogelijk maken."
 

@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 पुराण OVOS/Hivemind का एक मौजूदा इंस्टेंस पाया गया है।
 

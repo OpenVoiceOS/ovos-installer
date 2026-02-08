@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Ved at vælge at dele dine brugsmålinger bliver du en vigtig bidragyder til vores løbende bestræbelser på løbende at forbedre ydeevnen og brugeroplevelsen af ​​vores software. De data, du giver, forbliver anonyme og er afgørende for at hjælpe os med at forfine hensigtsmatchning, identificere systemsvagheder og træffe informerede beslutninger om fremtidige udviklinger.
 

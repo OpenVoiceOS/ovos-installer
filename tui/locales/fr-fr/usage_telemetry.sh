@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 En choisissant de partager vos indicateurs d'utilisation, vous contribuez activement à nos efforts d'amélioration continue des performances et de l'expérience utilisateur de notre logiciel. Les données que vous nous fournissez resteront anonymes et sont essentielles pour nous aider à affiner la correspondance des intentions, à identifier les faiblesses du système et à prendre des décisions éclairées concernant les développements futurs.
 

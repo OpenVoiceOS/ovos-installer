@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Ao optar por partilhar dados de telemetria connosco, o utilizador desempenha um papel vital no fornecimento de informações valiosas e anónimas que nos permitem compreender melhor a experiência do utilizador e melhorar o desempenho do nosso software.
 

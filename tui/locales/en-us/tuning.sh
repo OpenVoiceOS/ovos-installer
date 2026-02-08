@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Using Open Voice OS Tuning for Raspberry Pi involves optimizing the operating system to run efficiently on the Raspberry Pi hardware.
 

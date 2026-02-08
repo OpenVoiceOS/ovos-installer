@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Scegliendo di condividere i dati relativi al tuo utilizzo, contribuirai in modo significativo ai nostri sforzi continui per migliorare le prestazioni e l'esperienza utente del nostro software. I dati che fornirai rimarranno anonimi e saranno fondamentali per ottimizzare la corrispondenza delle intenzioni, identificare eventuali punti deboli del sistema e prendere decisioni informate sullo sviluppo futuro.
 

@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Es wurde eine vorhandene Instanz von Open Voice OS erkannt.
 

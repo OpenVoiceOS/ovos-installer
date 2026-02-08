@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Ao decidires compartir telemetría connosco, estarás a contribuír con información valiosa e anónima que nos axudará a comprender mellor as experiencias dos usuarios e mellorar o rendemento do noso software.
 

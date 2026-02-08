@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Estás a piques de rematar. Aquí tes un resumo das opcións que escolliches para instalar Open Voice OS:
 

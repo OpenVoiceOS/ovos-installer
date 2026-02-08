@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 एक मौजूदा स्थापना Open Voice OS का पता चला है।
 

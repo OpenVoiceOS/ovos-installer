@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 ¡Hola! Te damos la bienvenida a la instalación de Open Voice OS!
 

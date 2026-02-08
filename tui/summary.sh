@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 while :; do
   # shellcheck source=tui/locales/en-us/summary.sh
   source "tui/locales/$LOCALE/summary.sh"

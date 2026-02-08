@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 L'installation s'est terminée avec succès ! 🎉
 

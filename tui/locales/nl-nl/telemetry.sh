@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Door telemetriegegevens met ons te delen, speel je een belangrijke rol in het leveren van waardevolle, anonieme informatie waarmee we de gebruikerservaring beter kunnen begrijpen en de prestaties van onze software kunnen verbeteren.
 

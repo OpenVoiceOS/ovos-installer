@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Open Voice OS के दो मुख्य रिलीज़ चैनल हैं:
 

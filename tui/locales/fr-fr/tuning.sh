@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Open Voice OS fournit un profil de réglages pour les appareils de type Raspberry Pi afin d'optimiser au mieux le système d'exploitation pour recevoir Open Voice OS.
 

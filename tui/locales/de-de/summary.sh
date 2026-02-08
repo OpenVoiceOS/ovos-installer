@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Fast fertig. Eine kurze Zusammenfassung:
 

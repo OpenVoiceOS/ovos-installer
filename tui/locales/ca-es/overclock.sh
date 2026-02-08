@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 OVERCLOCK_CONTENT="
 L'overclocking augmenta la freqüència de la CPU/GPU per obtenir el màxim rendiment, però pot reduir l'estabilitat i augmentar la calor.
 

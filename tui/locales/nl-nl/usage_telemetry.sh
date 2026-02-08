@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Als je kiest om je gebruiksstatistieken te delen, help je mee om OpenVoice OS te verbeteren. 
 De gegevens die je verstrekt, blijven anoniem en zijn cruciaal om ons te helpen intent matching te verfijnen, fouten in het systeem op te lossen en de koers te bepalen voor toekomstige ontwikkelingen.

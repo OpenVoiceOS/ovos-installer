@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 # Global message
 content="En connectar-se a l'oient HiveMind, els satèl·lits HiveMind tenen accés a una xarxa de coneixements i capacitats compartides, facilitant una experiència d'automatització i assistent de veu unificada i eficient."
 

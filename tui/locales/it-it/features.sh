@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Le competenze consentono l'interazione attraverso la voce, rendendole efficienti per attività quali la domotica, il reperimento di informazioni e il controllo di dispositivi intelligenti tramite comandi vocali.
 

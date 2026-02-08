@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Aby stworzyć wszechstronny system odpowiedni do wielu zastosowań, istnieją trzy intrygujące opcje:
 

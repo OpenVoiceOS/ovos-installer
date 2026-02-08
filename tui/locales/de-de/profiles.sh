@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Um ein vielseitiges und vernetztes System zu schaffen, das für viele Anwendungen geeignet ist, gibt es drei Möglichkeiten:
 

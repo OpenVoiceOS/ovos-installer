@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 # Global message
 content="Ved at oprette forbindelse til HiveMind-lytteren får HiveMind-satellitter adgang til et netværk af delt viden og muligheder, hvilket letter en samlet og effektiv stemmeassistent og automatiseringsoplevelse."
 

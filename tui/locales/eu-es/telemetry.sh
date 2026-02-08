@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Telemetria gurekin partekatzea aukeratuz gero, funtsezko eginkizuna betetzen duzu informazio baliotsua eta anonimoa ematean, erabiltzailearen esperientziak hobeto ulertzeko eta gure softwarearen errendimendua hobetzeko aukera ematen diguna.
 

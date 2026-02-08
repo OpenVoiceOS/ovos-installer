@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 For at installere Open Voice OS har du to primære metoder:
 

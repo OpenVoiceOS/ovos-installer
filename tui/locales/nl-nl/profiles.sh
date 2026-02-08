@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Om een veelzijdig en netwerksysteem te creëren dat geschikt is voor vele toepassingen, zijn er drie fascinerende opties:
 

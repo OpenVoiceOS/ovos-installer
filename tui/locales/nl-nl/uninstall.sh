@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Er is een bestaande installatie van OpenVoice OS gedetecteerd.
 
