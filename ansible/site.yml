@@ -17,16 +17,6 @@
           - "interfaces"
       tags:
         - always
-    - name: Normalize I2C devices list
-      vars:
-        _ovos_i2c_devices_raw: "{{ ovos_installer_i2c_devices | default('[]') }}"
-      ansible.builtin.set_fact:
-        ovos_installer_i2c_devices: >-
-          {{ _ovos_i2c_devices_raw
-             if _ovos_i2c_devices_raw is sequence and _ovos_i2c_devices_raw is not string
-             else (_ovos_i2c_devices_raw | from_json) }}
-      tags:
-        - always
     - name: Lookup installer uid
       ansible.builtin.command: "id -u {{ ovos_installer_user }}"
       register: ovos_installer_uid_result

@@ -1,6 +1,5 @@
 import sys
 import subprocess
-import json
 
 def detect_display_server(username):
     """Detect display server (wayland/x11) for the user."""

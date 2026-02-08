@@ -181,13 +181,13 @@ function detect_user() {
         export RUN_AS="${SUDO_USER}"
         export RUN_AS_UID="${SUDO_UID:-$(id -u "${SUDO_USER}")}"
     else
-        if [ -t 0 ]; then
+        if [ -t 0 ] || [ "${OVOS_INSTALLER_ASSUME_INTERACTIVE:-}" == "true" ]; then
             while true; do
                 printf '%s\n' "Best practices don't recommend running the installer as root user!"
                 read -rp "Do you really want to continue as you will be on your own? (yes/no) " yn
                 case "${yn}" in
                 [Yy]*)
-                    return 0
+                    break
                     ;;
                 [Nn]*)
                     printf '\n%s\n' "Smart choice! Exiting the installer..."
@@ -203,7 +203,21 @@ function detect_user() {
         export RUN_AS="${USER}"
         export RUN_AS_UID="${EUID}"
     fi
-    RUN_AS_HOME=$(eval echo ~"${RUN_AS}")
+
+    if command -v getent &>>"$LOG_FILE"; then
+        RUN_AS_HOME="$(getent passwd "$RUN_AS" 2>>"$LOG_FILE" | awk -F: '{print $6}' | head -n 1 || true)"
+    fi
+    if [ -z "${RUN_AS_HOME:-}" ]; then
+        # Fallback if getent is missing or doesn't know about the user.
+        # Parse /etc/passwd directly rather than relying on eval/tilde expansion.
+        RUN_AS_HOME="$(awk -F: -v u="$RUN_AS" '$1 == u { print $6; exit }' /etc/passwd 2>>"$LOG_FILE" || true)"
+    fi
+    if [ -z "${RUN_AS_HOME:-}" ]; then
+        echo -e "[$fail_format]"
+        echo "Unable to determine home directory for user '$RUN_AS'." | tee -a "$LOG_FILE"
+        exit "${EXIT_MISSING_DEPENDENCY}"
+    fi
+
     export RUN_AS_HOME
     export VENV_PATH="${RUN_AS_HOME}/.venvs/${INSTALLER_VENV_NAME}"
 }
@@ -272,17 +286,53 @@ function detect_cpu_instructions() {
 # the Python virtual environment.
 function detect_existing_instance() {
     printf '%s' "➤ Checking for existing instance... "
-    if [ -n "$(docker ps -a --filter="name=ovos_core|ovos_messagebus|hivemind*" -q 2>>"$LOG_FILE")" ]; then
-        export EXISTING_INSTANCE="true"
-        export INSTANCE_TYPE="containers"
-    elif [ -n "$(podman ps -a --filter="name=ovos_core|ovos_messagebus|hivemind*" -q 2>>"$LOG_FILE")" ]; then
-        export EXISTING_INSTANCE="true"
-        export INSTANCE_TYPE="containers"
-    elif [ -d "${RUN_AS_HOME}/.venvs/ovos" ]; then
-        export EXISTING_INSTANCE="true"
-        export INSTANCE_TYPE="virtualenv"
-    else
-        export EXISTING_INSTANCE="false"
+    export EXISTING_INSTANCE="false"
+    unset INSTANCE_TYPE || true
+
+    # Containers: detect by name (not ID), and only if the runtime exists.
+    # Compose project names are typically "ovos" or "hivemind" (container names
+    # become ovos_* / ovos-* or hivemind_* / hivemind-* depending on compose
+    # version). Keep legacy exact names too.
+    local name_regex='^(ovos[_-].*|hivemind[_-].*|ovos_cli|hivemind_cli|ovos_core|ovos_messagebus)$'
+
+    if command -v docker &>>"$LOG_FILE"; then
+        if docker ps -a --format '{{.Names}}' 2>>"$LOG_FILE" | grep -Eq "$name_regex"; then
+            export EXISTING_INSTANCE="true"
+            export INSTANCE_TYPE="containers"
+            printf '%s\n' "[info] Existing OVOS instance detected via Docker containers" &>>"$LOG_FILE"
+        fi
+    fi
+
+    if [ "${EXISTING_INSTANCE}" != "true" ] && command -v podman &>>"$LOG_FILE"; then
+        if podman ps -a --format '{{.Names}}' 2>>"$LOG_FILE" | grep -Eq "$name_regex"; then
+            export EXISTING_INSTANCE="true"
+            export INSTANCE_TYPE="containers"
+            printf '%s\n' "[info] Existing OVOS instance detected via Podman containers" &>>"$LOG_FILE"
+        fi
+    fi
+
+    # Virtualenv: don't treat a bare directory as an OVOS install (avoids false
+    # positives if the user happens to have an unrelated venv named "ovos").
+    local venv_dir="${RUN_AS_HOME}/.venvs/ovos"
+    if [ "${EXISTING_INSTANCE}" != "true" ] && [ -d "$venv_dir" ] && [ -f "$venv_dir/pyvenv.cfg" ] && [ -d "$venv_dir/bin" ]; then
+        local -a markers=(
+            ovos-core
+            ovos-messagebus
+            ovos_PHAL
+            ovos-audio
+            ovos-dinkum-listener
+            hivemind-core
+            hivemind-voice-sat
+        )
+        local marker
+        for marker in "${markers[@]}"; do
+            if [ -x "$venv_dir/bin/$marker" ]; then
+                export EXISTING_INSTANCE="true"
+                export INSTANCE_TYPE="virtualenv"
+                printf '%s\n' "[info] Existing OVOS instance detected via virtualenv at $venv_dir" &>>"$LOG_FILE"
+                break
+            fi
+        done
     fi
     echo -e "[$done_format]"
 }
@@ -556,7 +606,7 @@ function create_python_venv() {
 
     ensure_installer_tmpdir
 
-    # Make sure Python version is higher then 3.8.
+    # Make sure Python version is higher than 3.8.
     if [ "$(ver "$PYTHON")" -lt "$(ver 3.9)" ]; then
         echo "python $PYTHON is not supported" &>>"$LOG_FILE"
         on_error
@@ -565,7 +615,7 @@ function create_python_venv() {
     # Disable https://www.piwheels.org/simple when aarch64 CPU architecture
     # or Raspberry Pi 5 board are detected.
     if [ -f /etc/pip.conf ]; then
-        if [ "$ARCH" == "aarch64" ] || [[ "$RASPBERRYPI_MODEL" != *"Raspberry Pi 5"* ]]; then
+        if [ "$ARCH" == "aarch64" ] || [[ "$RASPBERRYPI_MODEL" == *"Raspberry Pi 5"* ]]; then
             sed -e '/extra-index/ s/^#*/#/g' -i /etc/pip.conf &>>"$LOG_FILE"
         fi
     fi
@@ -653,7 +703,24 @@ function download_yq() {
     # Retrieve kernel information and map it to a more generic CPU architecture
     local arch
     local kernel
-    arch="$(echo "$ARCH" | sed s/aarch64/arm64/g | sed s/x86_64/amd64/g | sed s/armv6l/386/g | sed s/armv7l/386/g 2>>"$LOG_FILE")"
+    arch="${ARCH:-}"
+    if [ -z "$arch" ]; then
+        arch="$(uname -m 2>>"$LOG_FILE")"
+    fi
+    case "$arch" in
+    aarch64)
+        arch="arm64"
+        ;;
+    x86_64)
+        arch="amd64"
+        ;;
+    armv6l | armv7l | armv8l)
+        arch="arm"
+        ;;
+    i386 | i686)
+        arch="386"
+        ;;
+    esac
     kernel="$(uname -s 2>>"$LOG_FILE")"
 
     curl -s -f -L "$YQ_URL/yq_${kernel,,}_$arch" -o "$YQ_BINARY_PATH" &>>"$LOG_FILE"
@@ -858,7 +925,7 @@ function apt_ensure() {
     done
     # Install the packages if any are missing
     if [ "${#MISS_PKGS[@]}" -gt 0 ]; then
-        if [ "${UPDATE}" != "" ]; then
+        if [ -n "${UPDATE:-}" ]; then
             $_SUDO apt update -y
         fi
         DEBIAN_FRONTEND=noninteractive $_SUDO apt install --no-install-recommends -y "${MISS_PKGS[@]}"
