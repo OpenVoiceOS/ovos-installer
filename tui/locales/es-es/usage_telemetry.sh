@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Al elegir compartir tus métricas de uso, te conviertes en un colaborador fundamental en nuestros esfuerzos continuos por mejorar el rendimiento y la experiencia del usuario de nuestro software. Los datos que proporciones serán anónimos y resultan esenciales para ayudarnos a perfeccionar la detección de intenciones, identificar debilidades del sistema y tomar decisiones fundamentadas sobre futuros desarrollos.
 

@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 # Global message
 content="Łącząc się z odbiornikiem HiveMind, satelity HiveMind uzyskują dostęp do sieci współdzielonej wiedzy i możliwości, co umożliwia korzystanie ze zintegrowanego i wydajnego asystenta głosowego oraz automatyzacji."
 

@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 For at skabe et alsidigt system, der er velegnet til mange applikationer, er der tre spændende valg:
 

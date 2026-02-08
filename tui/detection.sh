@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 HARDWARE_DETECTED="N/A"
 
 for device in "${DETECTED_DEVICES[@]}"; do

@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Propriedades do sistema reconhecidas automaticamente:
 

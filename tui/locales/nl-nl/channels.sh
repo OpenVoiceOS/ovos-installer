@@ -1,19 +1,18 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
-Open Voice OS heeft drie verschillende versies:
+Open Voice OS heeft drie hoofdreleasekanalen:
 
-- stabiel (standaard)
-- test (redelijk stabiel)
-- alpha (het allernieuwste)
+- stable (stabiel maar oud)
+- testing (aanbevolen)
+- alpha (bleeding edge)
 
-De stabiele versie van Open Voice OS is wat we de meeste gebruikers aanraden. Die is goed getest en heeft alle nieuwste functies en verbeteringen die betrouwbaar zijn bevonden.
+Het stable-kanaal verandert het minst en is de meest conservatieve optie, maar kan achterlopen op nieuwe functies en fixes.
 
-De testversie van Open Voice OS is wat experimenteler. Hierin zitten nieuwe functies en verbeteringen die nog getest worden. Hij is grotendeels stabiel, maar kan wel wat foutjes of problemen bevatten.
+Het testing-kanaal wordt aanbevolen voor de meeste gebruikers. Het bevat nieuwere functies en verbeteringen en is over het algemeen stabiel, maar kan af en toe regressies bevatten.
 
-De alpha-versie van Open Voice OS is de meest experimentele versie. Hierin zitten de nieuwste functies en veranderingen die nog in ontwikkeling zijn. Hij kan instabiel zijn en is niet aan te raden voor dagelijks gebruik.
+Het alpha-kanaal is het meest experimenteel en bevat de nieuwste functies en wijzigingen die nog in ontwikkeling zijn. Het kan instabiel zijn en wordt niet aanbevolen voor dagelijks gebruik.
 
-Kies een versie:
+Selecteer een kanaal:
 "
 TITLE="OpenVoice OS Installatie - Versies"
 

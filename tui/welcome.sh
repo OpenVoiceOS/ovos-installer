@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 # shellcheck source=tui/locales/en-us/welcome.sh
 source "tui/locales/$LOCALE/welcome.sh"
 

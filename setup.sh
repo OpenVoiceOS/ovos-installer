@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 # Override system's locales only during the installation
 export LANG=C.UTF-8 LC_ALL=C.UTF-8
 
@@ -95,7 +94,7 @@ fi
 echo "➤ Starting Ansible playbook... ☕🍵🧋"
 
 # Execute the Ansible playbook on localhost
-export ANSIBLE_CONFIG=ansible/ansible.cfg
+export ANSIBLE_CONFIG=ansible.cfg
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_FILE}"
 case "${DISTRO_NAME:-}" in
   fedora | almalinux | rocky | centos | rhel)
@@ -143,7 +142,7 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_telemetry=${SHARE_TELEMETRY}" \
   -e "ovos_installer_usage_telemetry=${SHARE_USAGE_TELEMETRY}" \
   -e "ovos_installer_locale=${LOCALE:-en-us}" \
-  -e "ovos_installer_i2c_devices=$(jq -c -n '$ARGS.positional' --args "${DETECTED_DEVICES[@]}")" \
+  -e "$(jq -c -n '{ovos_installer_i2c_devices: $ARGS.positional}' --args "${DETECTED_DEVICES[@]}")" \
   -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \
   "${ansible_tags[@]}" "${ansible_debug[@]}"
 

@@ -67,8 +67,10 @@ function setup() {
     INSTALLER_VENV_NAME="ovos-installer"
 
     # Mock functions that detect_user calls
-    function eval() {
-        echo "/home/testuser"
+    function getent() {
+        if [[ "$1" == "passwd" && "$2" == "testuser" ]]; then
+            echo "testuser:x:1000:1000:Test User:/home/testuser:/bin/bash"
+        fi
     }
     function id() {
         if [[ "$1" == "-ng" ]]; then
@@ -77,14 +79,14 @@ function setup() {
             echo "uid=1000(testuser) gid=1000(testuser) groups=1000(testuser)"
         fi
     }
-    export -f eval id
+    export -f getent id
 
     detect_user
     # Variables should be properly quoted in function calls
     assert_equal "${RUN_AS}" "testuser"
     assert_equal "${RUN_AS_UID}" "1000"
 
-    unset -f eval id
+    unset -f getent id
 }
 
 @test "quoting_consistency_array_access" {

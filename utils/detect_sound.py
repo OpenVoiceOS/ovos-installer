@@ -1,7 +1,6 @@
 import sys
 import os
 import subprocess
-import glob
 
 def get_process_names():
     """Return a set of running process names."""

@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Scegliendo di condividere con noi i dati di telemetria, svolgerai un ruolo fondamentale nel fornire informazioni preziose e anonime che ci permettono di comprendere meglio l'esperienza dell'utente e di migliorare le prestazioni del nostro software.
 

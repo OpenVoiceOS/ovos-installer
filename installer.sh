@@ -1,12 +1,25 @@
-#!/bin/env sh
-
+#!/usr/bin/env sh
 # Set global variables based on sudo usage
 if [ -n "$SUDO_USER" ]; then
     export RUN_AS="$SUDO_USER"
 else
     export RUN_AS="$USER"
 fi
-RUN_AS_HOME=$(eval echo ~"$RUN_AS")
+
+# Resolve the user's home directory without using eval (best effort).
+RUN_AS_HOME=""
+if command -v getent >/dev/null 2>&1; then
+    RUN_AS_HOME="$(getent passwd "$RUN_AS" 2>/dev/null | awk -F: '{print $6}' | head -n 1)"
+fi
+if [ -z "$RUN_AS_HOME" ]; then
+    if [ "$RUN_AS" = "$USER" ] && [ -n "${HOME:-}" ]; then
+        RUN_AS_HOME="$HOME"
+    elif [ "$RUN_AS" = "root" ]; then
+        RUN_AS_HOME="/root"
+    else
+        RUN_AS_HOME="/home/$RUN_AS"
+    fi
+fi
 export RUN_AS_HOME
 
 # Check for git command to be installed
@@ -29,7 +42,7 @@ cd "$installer_path" || exit 1
 # Execute the installer entrypoint
 bash setup.sh "$@"
 
-# Delete ovos-installer directory once the installer is successfull
+# Delete ovos-installer directory once the installer is successful
 exit_status="$?"
 if [ "$exit_status" -eq 0 ]; then
     cd "$RUN_AS_HOME" || exit 1

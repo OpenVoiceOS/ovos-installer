@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 OVERCLOCK_CONTENT="
 L'overclocking augmenta la freqüència de la CPU/GPU per obtenir el màxim rendiment, però pot reduir l'estabilitat i augmentar la calor.
 
@@ -17,6 +16,5 @@ Open Voice OS no és responsable de cap problema relacionat amb l'overclocking.
 Voleu habilitar l'overclocking?
 "
 OVERCLOCK_TITLE="Instal·lació de l'Open VoiceOS - Overclocking"
-
 
 export OVERCLOCK_CONTENT OVERCLOCK_TITLE

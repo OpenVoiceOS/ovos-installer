@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Indem Sie Ihre Nutzungsdaten teilen, leisten Sie einen wichtigen Beitrag zu unseren kontinuierlichen Bemühungen, die Leistung und das Benutzererlebnis unserer Software zu verbessern. Die von Ihnen bereitgestellten Daten bleiben anonym und helfen uns dabei, die Intent-Zuordnung zu verfeinern, Systemschwächen zu identifizieren und fundierte Entscheidungen für zukünftige Entwicklungen zu treffen.
 

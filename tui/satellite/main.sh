@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 # shellcheck source=tui/locales/en-us/satellite.sh
 source "tui/locales/$LOCALE/satellite.sh"
 

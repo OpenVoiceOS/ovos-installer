@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 OVERCLOCK_CONTENT="
 ओवरक्लॉकिंग CPU/GPU की फ़्रीक्वेंसी बढ़ाकर अधिकतम प्रदर्शन देती है, लेकिन स्थिरता कम कर सकती है और ताप बढ़ाती है।
 
@@ -17,6 +16,5 @@ OVERCLOCK_CONTENT="
 ओवरक्लॉकिंग सक्षम करें?
 "
 OVERCLOCK_TITLE="Open Voice OS Installation - ओवरक्लॉकिंग"
-
 
 export OVERCLOCK_CONTENT OVERCLOCK_TITLE

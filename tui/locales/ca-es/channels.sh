@@ -1,17 +1,16 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
-Open Voice OS té tres canals principals de llançament:
+Open Voice OS té tres canals principals de publicació:
 
-- stable (estable, per defecte)
-- testing (de proves, força estable)
-- alpha (experimental, d’avantguarda)
+- stable (estable però antic)
+- testing (recomanat)
+- alpha (d’avantguarda)
 
-La versió estable d'Open Voice OS és la recomanada per a la majoria d’usuaris. Està ben provada i inclou totes les funcions i millores més recents que s'han considerat estables.
+El canal stable canvia menys sovint i és l'opció més conservadora, però pot quedar endarrerit respecte a les noves funcions i correccions.
 
-La versió de proves d'Open Voice OS és una versió més experimental que inclou noves funcions i millores que encara s’estan provant. En general, és estable, però pot contenir alguns errors o problemes.
+El canal testing és recomanat per a la majoria d'usuaris. Inclou funcions i millores més recents i, en general, és estable, però de tant en tant pot contenir regressions.
 
-La versió alpha d'Open Voice OS és la més experimental, i conté les funcions i canvis més recents que encara es troben en desenvolupament. Pot ser inestable i no es recomana per a l'ús diari.
+El canal alpha és el més experimental i conté les funcions i canvis més recents que encara es troben en desenvolupament. Pot ser inestable i no es recomana per a l'ús diari.
 
 Selecciona un canal, si us plau:
 "

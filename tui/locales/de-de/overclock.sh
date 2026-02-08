@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 OVERCLOCK_CONTENT="
 Übertakten erhöht die CPU/GPU-Frequenz für maximale Leistung, kann aber die Stabilität verringern und die Wärmeentwicklung erhöhen.
 
@@ -17,6 +16,5 @@ Open Voice OS ist nicht verantwortlich für Probleme im Zusammenhang mit Überta
 Übertaktung aktivieren?
 "
 OVERCLOCK_TITLE="Open Voice OS Installation - Übertaktung"
-
 
 export OVERCLOCK_CONTENT OVERCLOCK_TITLE

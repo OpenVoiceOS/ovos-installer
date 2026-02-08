@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Umiejętności umożliwiają interakcję za pomocą mowy, co czyni ją wydajną w przypadku zadań takich jak automatyzacja domu, wyszukiwanie informacji i sterowanie inteligentnymi urządzeniami za pomocą poleceń języka naturalnego.
 

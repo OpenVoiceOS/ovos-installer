@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 # shellcheck source=tui/locales/en-us/methods.sh
 source "tui/locales/$LOCALE/methods.sh"
 
@@ -11,7 +10,7 @@ available_methods=(containers virtualenv)
 # will be Python virtualenv as there are no 32-bit container
 # images available. Same for Raspberry Pi 3 as containers
 # might be too heavy for this board.
-if [[ "$ARCH" != @(x86_64|aarch64) ]] && [[ "$RASPBERRYPI_MODEL" == *"Raspberry Pi 3"* ]]; then
+if { [[ "$ARCH" != "x86_64" && "$ARCH" != "aarch64" ]] || [[ "$RASPBERRYPI_MODEL" == *"Raspberry Pi 3"* ]]; }; then
   active_method="virtualenv"
   available_methods=(virtualenv)
 fi
@@ -20,8 +19,22 @@ fi
 # If containers instance has been deployed then only containers
 # method will be available.
 if [ "$EXISTING_INSTANCE" == "true" ]; then
-  active_method="$INSTANCE_TYPE"
-  available_methods=("$INSTANCE_TYPE")
+  case "${INSTANCE_TYPE:-}" in
+    containers|virtualenv)
+      active_method="$INSTANCE_TYPE"
+      available_methods=("$INSTANCE_TYPE")
+      ;;
+  esac
+fi
+
+list_height="${#available_methods[@]}"
+if [ "$list_height" -lt 1 ]; then
+  available_methods=(virtualenv)
+  active_method="virtualenv"
+  list_height="${#available_methods[@]}"
+fi
+if [ "$list_height" -lt 4 ]; then
+  list_height=4
 fi
 
 whiptail_args=(
@@ -29,16 +42,15 @@ whiptail_args=(
   --radiolist "$CONTENT"
   --cancel-button "$BACK_BUTTON"
   --ok-button "$OK_BUTTON"
-  --yes-button "$OK_BUTTON"
-  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_methods[@]}"
+  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height"
 )
 
 for method in "${available_methods[@]}"; do
   whiptail_args+=("$method" "")
   if [[ $method = "$active_method" ]]; then
-    whiptail_args+=("on")
+    whiptail_args+=("ON")
   else
-    whiptail_args+=("off")
+    whiptail_args+=("OFF")
   fi
 done
 
@@ -48,4 +60,5 @@ export METHOD
 if [ -z "$METHOD" ]; then
   source tui/detection.sh
   source tui/methods.sh
+  return
 fi

@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 OK_BUTTON="Hurrengoa"
 YES_BUTTON="Bai"
 NO_BUTTON="Ez"

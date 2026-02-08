@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Skills maken interactie via spraak mogelijk, waardoor ze efficiënt zijn voor taken zoals domotica, informatie ophalen en slimme apparaten bedienen via spraakopdrachten.
 

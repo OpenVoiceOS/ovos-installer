@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Für die Installation von Open Voice OS gibt es zwei Umgebungen:
 

@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Ved at vælge at dele telemetri med os, spiller du en afgørende rolle i at bidrage med værdifuld, anonym information, der gør os i stand til bedre at forstå brugeroplevelser og forbedre vores softwares ydeevne.
 

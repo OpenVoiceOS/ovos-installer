@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Les habilitats permeten la interacció a través de la parla, i la fan eficient per a tasques com la domòtica, la recuperació d'informació i el control de dispositius intel·ligents mitjançant ordres de llenguatge natural.
 

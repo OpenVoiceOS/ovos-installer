@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 रास्पबेरी पाई (Raspberry Pi) के लिए ओपन वॉयस ओएस ट्यूनिंग (Open OS Tuning) का उपयोग करने में रास्पबेरी पाई (Raspberry Pi) हार्डवेयर पर कुशलतापूर्वक चलने के लिए ऑपरेटिंग सिस्टम (Operating system) को अनुकूलित करना शामिल है।
 

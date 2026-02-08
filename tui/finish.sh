@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONFIG_FILE="${RUN_AS_HOME}/.config/mycroft/mycroft.conf"
 if [[ "$METHOD" == "containers" ]]; then
     CONFIG_FILE="${RUN_AS_HOME}/ovos/config/mycroft.conf"

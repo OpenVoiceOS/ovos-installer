@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Skills ermöglichen die Interaktion durch Sprache, z. B. für Aufgaben wie Hausautomatisierung, Informationsabfrage und die Steuerung intelligenter Geräte durch Sprachbefehle.
 

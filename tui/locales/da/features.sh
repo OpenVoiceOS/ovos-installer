@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Færdigheder muliggør interaktion gennem tale, hvilket gør det effektivt til opgaver som hjemmeautomatisering, informationssøgning og styring af smarte enheder ved hjælp af naturlige sprogkommandoer.
 

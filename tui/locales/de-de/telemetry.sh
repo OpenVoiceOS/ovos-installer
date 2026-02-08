@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Indem Sie sich dafür entscheiden, Telemetriedaten mit uns zu teilen, spielen Sie eine entscheidende Rolle bei der Bereitstellung wertvoller, anonymer Informationen, die es uns ermöglichen, die Erfahrungen der Nutzer besser zu verstehen und die Leistung unserer Software zu verbessern.
 

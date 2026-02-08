@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Aplikazio askotarako egokia den sistema polifazetikoa sortzeko, hiru aukera interesgarri daude:
 

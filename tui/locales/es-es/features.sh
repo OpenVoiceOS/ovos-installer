@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Las habilidades permiten la interacción a través de la voz, lo que las hace eficaces para tareas como la domótica, la recuperación de información y el control de dispositivos inteligentes mediante comandos de voz.
 

@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Skills enable interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.
 

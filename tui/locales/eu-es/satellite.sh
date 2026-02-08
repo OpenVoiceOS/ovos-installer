@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 # Global message
 content="HiveMind entzulearekin konektatuz, HiveMind sateliteek ezagutza eta gaitasun partekatuen sare batera sarbidea lortzen dute, ahots-laguntzaile eta automatizazio esperientzia bateratu eta eraginkorra erraztuz."
 

@@ -1,14 +1,16 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
-Open Voice OS ten dúas canles principais de distribución:
+Open Voice OS ten tres canles principais de publicación:
 
-  - estable (recomendada, pero aínda non dispoñible)
-  - desenvolvemento
+  - stable (estable pero antiga)
+  - testing (recomendada)
+  - alpha (máis experimental)
 
-A distribución estable de Open Voice OS é unha versión probada e fiable, axeitada para o uso diario.
+A canle stable cambia menos e é a opción máis conservadora, pero pode quedar atrás en novas funcións e correccións.
 
-A distribución de desenvolvemento está destinada a programadores e afeccionados que queiran experimentar coas funcións máis avanzadas e contribuír ao desenvolvemento da plataforma.
+A canle testing recoméndase para a maioría de usuarios. Inclúe funcións e melloras máis recentes e, en xeral, é estable, pero ocasionalmente pode conter regresións.
+
+A canle alpha é a máis experimental e contén as últimas funcións e cambios que aínda están en desenvolvemento. Pode ser inestable e non se recomenda para o uso diario.
 
 Selecciona unha canle:
 "

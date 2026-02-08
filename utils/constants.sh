@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 export ANSIBLE_LOG_FILE=/var/log/ovos-ansible.log
@@ -62,9 +62,6 @@ declare -rA SUPPORTED_DEVICES=(
     ["tas5806"]="2f"    #https://www.ti.com/product/TAS5806MD
 )
 export SUPPORTED_DEVICES
-export TEMP_CHANNEL_FILE=/tmp/channel.json
-export TEMP_FEATURES_FILE=/tmp/features.json
-export TEMP_PROFILE_FILE=/tmp/profile.json
 export TUI_WINDOW_HEIGHT="35"
 export TUI_WINDOW_WIDTH="90"
 export USE_UV="true"

@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Pour créer un système polyvalent adapté à de nombreuses applications, quatre options intéressantes s'offrent à vous :
 

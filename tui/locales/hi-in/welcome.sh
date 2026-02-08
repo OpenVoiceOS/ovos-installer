@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 नमस्ते और Open Voice OS स्थापना में आपका स्वागत है!
 

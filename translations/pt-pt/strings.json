@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Open Voice OS Instalação - Versão",
-    "content": "Existem duas versões diferentes para o Open Voice OS:\n\n  - Estável (recomendada, mas ainda não disponível)\n  - Desenvolvimento\n\nA versão estável do Open Voice OS é uma versão bem testada e fiável para uso diário.\n\nA versão de desenvolvimento do Open Voice OS destina-se a programadores e entusiastas que queiram experimentar os últimos desenvolvimentos e contribuir para o desenvolvimento da plataforma.\n\nEscolha uma versão:"
+    "content": "O Open Voice OS tem três canais principais de lançamento:\n\n  - stable (estável mas antigo)\n  - testing (recomendado)\n  - alpha (mais experimental)\n\nO canal stable muda menos e é a opção mais conservadora, mas pode ficar para trás em novas funcionalidades e correcções.\n\nO canal testing é recomendado para a maioria dos utilizadores. Inclui funcionalidades e melhorias mais recentes e é geralmente estável, mas ocasionalmente pode conter regressões.\n\nO canal alpha é o mais experimental e contém as funcionalidades e alterações mais recentes ainda em desenvolvimento. Pode ser instável e não é recomendado para uso diário.\n\nSeleccione um canal:"
   },
   "detection.sh": {
     "title": "Open Voice OS Instalação - Propriedades do sistema",
@@ -44,7 +44,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Instalação - Resumo",
-    "content": "Quase a terminar. Um breve resumo:\n\n    - Implementação: $METHOD\n    - Versão:      $CHANNEL\n    - Perfil:      $PROFILE\n    - Skills:      $FEATURE_SKILLS\n    - Otimização:  $TUNING\n\nAs decisões tomadas durante o processo de instalação do Open Voice OS foram cuidadosamente consideradas para personalizar o nosso sistema de acordo com as suas necessidades e preferências individuais.\n\nAs definições estão correctas?"
+    "content": "Quase a terminar. Um breve resumo:\n\n    - Implementação: $METHOD\n    - Versão:      $CHANNEL\n    - Perfil:      $PROFILE\n    - Skills:      $FEATURE_SKILLS\n    - Otimização:  $TUNING\n\nAs decisões tomadas durante o processo de instalação do Open Voice OS foram cuidadosamente consideradas para personalizar o nosso sistema de acordo com as suas necessidades e preferências individuais.\n\nAs definições estão correctas? Se não, seleccione $BACK_BUTTON (ou prima ESC) para voltar atrás e fazer alterações."
   },
   "telemetry.sh": {
     "title": "Open Voice OS Instalação - Telemetria",

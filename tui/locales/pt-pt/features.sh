@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Skills permitem a interação através da voz, tornando-as eficientes para tarefas como a domótica, a obtenção de informações e o controlo de dispositivos inteligentes através de comandos de voz.
 

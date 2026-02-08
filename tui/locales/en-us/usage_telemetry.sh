@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 By choosing to share your usage metrics, you become a vital contributor to our ongoing efforts to continuously improve the performance and user experiences of our software. The data you provide will remain anonymous and is crucial in helping us refine intent matching, identify system weaknesses, and make informed decisions about future developments.
 

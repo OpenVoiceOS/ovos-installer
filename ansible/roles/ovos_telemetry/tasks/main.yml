@@ -59,9 +59,19 @@
           tuning_enabled: "{{ (ovos_installer_tuning | default('no')) == 'yes' }}"
           country: "{{ _telemetry_country }}"
           hardware: >-
-            {{ 'n/a'
-               if (ovos_installer_i2c_devices | default([])) | length < 1
-               else (ovos_installer_i2c_devices | default([]) | first) }}
+            {%- set devs = ovos_installer_i2c_devices | default([]) -%}
+            {%- if devs is string -%}
+            {%-   set s = devs | trim -%}
+            {%-   if s == '' -%}
+            {%-     set devs = [] -%}
+            {%-   else -%}
+            {%-     set devs = s | from_yaml -%}
+            {%-   endif -%}
+            {%- endif -%}
+            {%- if devs is string -%}
+            {%-   set devs = [devs] -%}
+            {%- endif -%}
+            {{ 'n/a' if (devs | default([]) | length) < 1 else (devs | first) }}
         status_code: "{{ ovos_telemetry_post_status_codes }}"
         body_format: json
         headers:

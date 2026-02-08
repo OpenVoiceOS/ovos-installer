@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 En choisissant de partager la télémétrie avec nous, vous jouez un rôle crucial en fournissant des informations précieuses et anonymes qui nous permettent de mieux comprendre les expériences des utilisateurs et d'améliorer les performances d'Open Voice OS.
 

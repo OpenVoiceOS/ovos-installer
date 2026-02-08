@@ -20,6 +20,21 @@ This downloads and runs the installer interactively.
 
 > Heads-up: OVOS targets a supported Python runtime in its virtualenv (default `3.11`). The installer uses `uv` to provision that version if it is not already available. You can override with `OVOS_VENV_PYTHON` if you want to use a different version that is available on your system.
 
+### ⚙️ Passing environment variables to the `curl` one-liner
+
+To set environment variables when using the `curl` one-liner, use `sudo env ...` so the variables are visible to the installer:
+
+```shell
+# Enable debug logs (adds bash -x and increases Ansible verbosity)
+sudo env DEBUG=true sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
+
+# Pick a different OVOS virtualenv Python version (default: 3.11)
+sudo env OVOS_VENV_PYTHON=3.12 sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
+
+# Speed up repeated runs by reusing cached artifacts (useful for debugging)
+sudo env REUSE_CACHED_ARTIFACTS=true sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
+```
+
 👉 Guide: [Howto - Begin your Open Voice OS journey with the OVOS installer](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
 
 ## 🐧 Supported Linux distributions
@@ -181,12 +196,14 @@ The installer is modular. The top-level wrapper role (`ovos_installer`) orchestr
 
 ## ❌ Uninstall
 
-Uninstalling Open Voice OS will remove all installed components, configurations, and services. This process cannot be undone, so ensure you have backed up any important data or custom configurations before proceeding.
-
-To uninstall Open Voice OS run the installer with the `--uninstall` option _(non-interactive)_ or simply run the installer and answer **"Yes"** to the _"Do you want to uninstall Open Voice OS?"_ question.
+Uninstalling Open Voice OS removes installed components, configurations, and services. Back up any important data first.
 
 ```shell
-sh -c "curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh && chmod +x installer.sh && sudo ./installer.sh --uninstall && rm installer.sh"
+# One-liner
+sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)" installer.sh --uninstall
+
+# One-liner with env vars
+sudo env DEBUG=true sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)" installer.sh --uninstall
 ```
 
 ## 🖼️ Screenshots

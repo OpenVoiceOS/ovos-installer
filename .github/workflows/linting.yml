@@ -26,6 +26,8 @@ jobs:
 
       - name: Run ansible-lint
         working-directory: ./ansible
+        env:
+          ANSIBLE_CONFIG: ../ansible.cfg
         run: ansible-lint
 
       - name: Retrieve task list from playbook

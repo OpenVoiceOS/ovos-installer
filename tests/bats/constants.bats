@@ -26,13 +26,6 @@ function setup() {
     assert_equal "${EXIT_MISSING_DEPENDENCY}" "5"
 }
 
-
-@test "constants_temp_files" {
-    assert_equal "${TEMP_FEATURES_FILE}" "/tmp/features.json"
-    assert_equal "${TEMP_PROFILE_FILE}" "/tmp/profile.json"
-    assert_equal "${TEMP_CHANNEL_FILE}" "/tmp/channel.json"
-}
-
 @test "constants_tui_dimensions" {
     assert_equal "${TUI_WINDOW_HEIGHT}" "35"
     assert_equal "${TUI_WINDOW_WIDTH}" "90"

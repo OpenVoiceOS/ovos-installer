@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 CONTENT="
 Decydując się na udostępnienie nam danych telemetrycznych, odgrywasz kluczową rolę w dostarczaniu cennych, anonimowych informacji, które pozwalają nam lepiej zrozumieć doświadczenia użytkowników i poprawić wydajność naszego oprogramowania.
 
