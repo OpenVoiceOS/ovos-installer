@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 export ANSIBLE_LOG_FILE=/var/log/ovos-ansible.log

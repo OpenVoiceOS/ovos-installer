@@ -1,5 +1,4 @@
-#!/bin/env bash
-
+#!/usr/bin/env bash
 # Override system's locales only during the installation
 export LANG=C.UTF-8 LC_ALL=C.UTF-8
 

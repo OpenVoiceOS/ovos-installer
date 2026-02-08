@@ -1,5 +1,4 @@
-#!/bin/env sh
-
+#!/usr/bin/env sh
 # Set global variables based on sudo usage
 if [ -n "$SUDO_USER" ]; then
     export RUN_AS="$SUDO_USER"
