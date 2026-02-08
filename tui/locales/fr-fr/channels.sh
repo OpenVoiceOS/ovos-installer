@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/env bash
 
 CONTENT="
 Open Voice OS propose trois principaux canaux de publication :

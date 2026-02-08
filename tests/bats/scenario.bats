@@ -37,6 +37,7 @@ teardown() {
 
 # Test download_yq function
 @test "download_yq_successful_download" {
+    ARCH="x86_64"
     function uname() {
         case "$1" in
             "-m") echo "x86_64" ;;
@@ -58,6 +59,7 @@ teardown() {
 }
 
 @test "download_yq_existing_file_replacement" {
+    ARCH="x86_64"
     # Create existing file
     echo "old content" > "$YQ_BINARY_PATH"
 
@@ -82,6 +84,7 @@ teardown() {
 }
 
 @test "download_yq_download_failure" {
+    ARCH="x86_64"
     function uname() {
         case "$1" in
             "-m") echo "x86_64" ;;
@@ -97,6 +100,35 @@ teardown() {
     assert_failure
 
     unset -f uname curl
+}
+
+@test "download_yq_armv7l_arch_mapping" {
+    ARCH="armv7l"
+    export ARCH
+
+    function uname() {
+        case "$1" in
+        "-s") echo "Linux" ;;
+        esac
+    }
+    function curl() {
+        printf '%s\n' "$*" > /tmp/ovos-curl-args
+        touch "$YQ_BINARY_PATH"
+        return 0
+    }
+    export -f uname curl
+
+    run download_yq
+    assert_success
+    assert [ -x "$YQ_BINARY_PATH" ]
+
+    run cat /tmp/ovos-curl-args
+    assert_success
+    assert_output --partial "yq_linux_arm"
+
+    rm -f /tmp/ovos-curl-args
+    unset -f uname curl
+    unset ARCH
 }
 
 # Test detect_scenario function

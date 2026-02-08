@@ -17,9 +17,9 @@ whiptail_args=(
 for language in "${available_languages[@]}"; do
   whiptail_args+=("$language" "")
   if [[ $language = "$active_language" ]]; then
-    whiptail_args+=("on")
+    whiptail_args+=("ON")
   else
-    whiptail_args+=("off")
+    whiptail_args+=("OFF")
   fi
 done
 

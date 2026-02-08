@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/env bash
 
 OVERCLOCK_CONTENT="
 Podkręcanie zwiększa częstotliwość CPU/GPU dla maksymalnej wydajności, ale może obniżyć stabilność i zwiększyć temperaturę.
@@ -17,6 +17,5 @@ Open Voice OS nie ponosi odpowiedzialności za problemy związane z podkręcanie
 Włączyć podkręcanie?
 "
 OVERCLOCK_TITLE="Instalacja Open Voice OS - Podkręcanie"
-
 
 export OVERCLOCK_CONTENT OVERCLOCK_TITLE

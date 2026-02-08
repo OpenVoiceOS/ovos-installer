@@ -57,59 +57,71 @@ fi
 
 export OVERCLOCK_ARM_FREQ OVERCLOCK_GPU_FREQ OVERCLOCK_OVER_VOLTAGE OVERCLOCK_INITIAL_TURBO OVERCLOCK_ARM_BOOST
 
-active_option="yes"
+active_option="${TUNING:-yes}"
+if [[ "$active_option" != "yes" && "$active_option" != "no" ]]; then
+  active_option="yes"
+fi
 available_options=(yes no)
+
+list_height="${#available_options[@]}"
+if [ "$list_height" -lt 4 ]; then
+  list_height=4
+fi
 
 whiptail_args=(
   --title "$TITLE"
   --radiolist "$CONTENT"
   --cancel-button "$BACK_BUTTON"
   --ok-button "$OK_BUTTON"
-  --yes-button "$OK_BUTTON"
-  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#available_options[@]}"
+  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height"
 )
 
 for option in "${available_options[@]}"; do
   whiptail_args+=("$option" "")
   if [[ $option = "$active_option" ]]; then
-    whiptail_args+=("on")
+    whiptail_args+=("ON")
   else
-    whiptail_args+=("off")
+    whiptail_args+=("OFF")
   fi
 done
 
 while true; do
-  TUNING=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
+  tuning_choice=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
   exit_status=$?
 
   if [ "$exit_status" -eq 0 ]; then
+    TUNING="$tuning_choice"
     if [ "$TUNING" == "yes" ]; then
       overclock_option="${TUNING_OVERCLOCK:-no}"
       if [[ "$overclock_option" != "yes" && "$overclock_option" != "no" ]]; then
         overclock_option="no"
       fi
       overclock_options=(yes no)
+      overclock_list_height="${#overclock_options[@]}"
+      if [ "$overclock_list_height" -lt 4 ]; then
+        overclock_list_height=4
+      fi
       overclock_args=(
         --title "$OVERCLOCK_TITLE"
         --radiolist "$OVERCLOCK_CONTENT"
         --cancel-button "$BACK_BUTTON"
         --ok-button "$OK_BUTTON"
-        --yes-button "$OK_BUTTON"
-        "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "${#overclock_options[@]}"
+        "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$overclock_list_height"
       )
 
       for option in "${overclock_options[@]}"; do
         overclock_args+=("$option" "")
         if [[ $option = "$overclock_option" ]]; then
-          overclock_args+=("on")
+          overclock_args+=("ON")
         else
-          overclock_args+=("off")
+          overclock_args+=("OFF")
         fi
       done
 
-      TUNING_OVERCLOCK=$(whiptail "${overclock_args[@]}" 3>&1 1>&2 2>&3)
+      overclock_choice=$(whiptail "${overclock_args[@]}" 3>&1 1>&2 2>&3)
       overclock_exit_status=$?
       if [ "$overclock_exit_status" -eq 0 ]; then
+        TUNING_OVERCLOCK="$overclock_choice"
         export TUNING
         export TUNING_OVERCLOCK
         break
@@ -122,7 +134,16 @@ while true; do
       break
     fi
   else
-    source tui/features.sh
+    # Preserve the previous selection when the user goes back.
+    if [ -z "${TUNING:-}" ]; then
+      TUNING="$active_option"
+      export TUNING
+    fi
+    if [[ "${PROFILE:-}" == "satellite" ]]; then
+      source tui/satellite/main.sh
+    else
+      source tui/features.sh
+    fi
     break
   fi
 done

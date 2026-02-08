@@ -11,7 +11,10 @@ function setup() {
 
 @test "function_detect_existing_instance_docker_exists" {
     function docker() {
-        echo "adf1dedc2025"
+        # Match the name-based detection in utils/common.sh
+        if [[ "$1" == "ps" ]]; then
+            echo "ovos_core"
+        fi
     }
     export -f docker
     detect_existing_instance
@@ -34,7 +37,9 @@ function setup() {
         return 0
     }
     function podman() {
-        echo "adf1dedc2025"
+        if [[ "$1" == "ps" ]]; then
+            echo "ovos_messagebus"
+        fi
     }
     export -f docker podman
     detect_existing_instance
@@ -56,8 +61,11 @@ function setup() {
 }
 
 @test "function_detect_existing_instance_venv_exists" {
-    RUN_AS_HOME=/home/$USER
-    run mkdir -p "$RUN_AS_HOME/.venvs/ovos"
+    RUN_AS_HOME="$BATS_TMPDIR/testuser"
+    run mkdir -p "$RUN_AS_HOME/.venvs/ovos/bin"
+    run touch "$RUN_AS_HOME/.venvs/ovos/pyvenv.cfg"
+    run touch "$RUN_AS_HOME/.venvs/ovos/bin/ovos-core"
+    run chmod +x "$RUN_AS_HOME/.venvs/ovos/bin/ovos-core"
     function docker() {
         return 0
     }
@@ -71,6 +79,7 @@ function setup() {
 }
 
 @test "function_detect_existing_instance_venv_non_exists" {
+    RUN_AS_HOME="$BATS_TMPDIR/testuser2"
     function docker() {
         return 0
     }

@@ -6,7 +6,7 @@ Find de fundne oplysninger:
     - OS: ${DISTRO_NAME^} $DISTRO_VERSION
     - Kernel: $KERNEL
     - RPi: $RASPBERRYPI_MODEL
-    - Python: $(ekko "$PYTHON" | awk '{ print $NF }')
+    - Python: $(echo "$PYTHON" | awk '{ print $NF }')
     - AVX/SIMD: $CPU_IS_CAPABLE
     - Hardware: $HARDWARE_DETECTED
     - Venv: $VENV_PATH
