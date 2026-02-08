@@ -1,4 +1,4 @@
-#!/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
 #
 # Functions in this file are mostly called by setup.sh but most of
@@ -296,18 +296,44 @@ function detect_existing_instance() {
     local name_regex='^(ovos[_-].*|hivemind[_-].*|ovos_cli|hivemind_cli|ovos_core|ovos_messagebus)$'
 
     if command -v docker &>>"$LOG_FILE"; then
-        if docker ps -a --format '{{.Names}}' 2>>"$LOG_FILE" | grep -Eq "$name_regex"; then
+        local docker_names=""
+        local docker_status=0
+        local errexit_set=0
+        [[ $- == *e* ]] && errexit_set=1
+        set +e
+        docker_names="$(docker ps -a --format '{{.Names}}' 2>>"$LOG_FILE")"
+        docker_status=$?
+        if [ "$errexit_set" -eq 1 ]; then
+            set -e
+        fi
+
+        if [ "$docker_status" -eq 0 ] && printf '%s\n' "$docker_names" | grep -Eq "$name_regex"; then
             export EXISTING_INSTANCE="true"
             export INSTANCE_TYPE="containers"
             printf '%s\n' "[info] Existing OVOS instance detected via Docker containers" &>>"$LOG_FILE"
+        elif [ "$docker_status" -ne 0 ]; then
+            printf '%s\n' "[info] Docker detected but daemon unavailable (docker ps exit ${docker_status})" &>>"$LOG_FILE"
         fi
     fi
 
     if [ "${EXISTING_INSTANCE}" != "true" ] && command -v podman &>>"$LOG_FILE"; then
-        if podman ps -a --format '{{.Names}}' 2>>"$LOG_FILE" | grep -Eq "$name_regex"; then
+        local podman_names=""
+        local podman_status=0
+        local errexit_set=0
+        [[ $- == *e* ]] && errexit_set=1
+        set +e
+        podman_names="$(podman ps -a --format '{{.Names}}' 2>>"$LOG_FILE")"
+        podman_status=$?
+        if [ "$errexit_set" -eq 1 ]; then
+            set -e
+        fi
+
+        if [ "$podman_status" -eq 0 ] && printf '%s\n' "$podman_names" | grep -Eq "$name_regex"; then
             export EXISTING_INSTANCE="true"
             export INSTANCE_TYPE="containers"
             printf '%s\n' "[info] Existing OVOS instance detected via Podman containers" &>>"$LOG_FILE"
+        elif [ "$podman_status" -ne 0 ]; then
+            printf '%s\n' "[info] Podman detected but daemon unavailable (podman ps exit ${podman_status})" &>>"$LOG_FILE"
         fi
     fi
 
