@@ -10,7 +10,7 @@ Bijna klaar. Een korte samenvatting:
 
 De beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.
 
-Zijn de instellingen in orde zo?
+Zijn de instellingen zo in orde? Zo niet, kies $BACK_BUTTON (of druk op ESC) om terug te gaan en wijzigingen te maken.
 "
 TITLE="OpenVoice OS Installatie - Samenvatting"
 

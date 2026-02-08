@@ -10,7 +10,7 @@ Vous y êtes presque ! Voici un résumé des choix que vous avez effectués pour
 
 Les choix effectués lors du processus d'installation d'Open Voice OS ont été soigneusement étudiés pour adapter notre système à vos besoins et préférences.
 
-Est-ce que tout cela vous semble correct ?
+Est-ce que tout cela vous semble correct ? Sinon, sélectionnez $BACK_BUTTON (ou appuyez sur ESC) pour revenir en arrière et modifier vos choix.
 "
 TITLE="Open Voice OS Installation - Résumé"
 

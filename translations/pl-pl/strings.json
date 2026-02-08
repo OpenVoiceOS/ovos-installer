@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Instalacja Open Voice OS - Kanały",
-    "content": "Open Voice OS ma dwa główne kanały wydań:\n\n- stabilna (zalecana, ale jeszcze niedostępna)\n- rozwojowa\n\nStabilna wersja Open Voice OS jest dobrze przetestowaną i niezawodną wersją, nadającą się do codziennego użytku.\n\nWersja rozwojowa Open Voice OS jest przeznaczona dla programistów i entuzjastów, którzy chcą eksperymentować z najnowocześniejszymi funkcjami i przyczyniać się do rozwoju platformy.\n\nWybierz kanał:"
+    "content": "Open Voice OS ma trzy główne kanały wydań:\n\n- stable (stabilny, ale starszy)\n- testing (zalecany)\n- alpha (najbardziej eksperymentalny)\n\nKanał stable zmienia się najrzadziej i jest najbardziej zachowawczą opcją, ale może pozostawać w tyle za nowymi funkcjami i poprawkami.\n\nKanał testing jest zalecany dla większości użytkowników. Zawiera nowsze funkcje i ulepszenia i jest zazwyczaj stabilny, ale od czasu do czasu mogą pojawić się regresje.\n\nKanał alpha jest najbardziej eksperymentalny i zawiera najnowsze funkcje i zmiany, które wciąż są w trakcie rozwoju. Może być niestabilny i nie jest zalecany do codziennego użytku.\n\nWybierz kanał:"
   },
   "detection.sh": {
     "title": "Instalacja Open Voice OS - Wykryto",
@@ -44,7 +44,7 @@
   },
   "summary.sh": {
     "title": "Instalacja Open Voice OS – Podsumowanie",
-    "content": "Już prawie skończyłeś, oto podsumowanie wyborów dokonanych podczas instalacji Open Voice OS:\n\n- Metoda: $METHOD\n- Wersja: $CHANNEL\n- Profil: $PROFILE\n- Umiejętności: $FEATURE_SKILLS\n- Strojenie: $TUNING\n\nWybory dokonane podczas instalacji Open Voice OS zostały starannie rozważone, aby dostosować nasz system do Twoich unikalnych potrzeb i preferencji.\n\nCzy to podsumowanie wydaje Ci się poprawne? Jeśli nie, możesz wrócić i wprowadzić zmiany."
+    "content": "Już prawie skończyłeś, oto podsumowanie wyborów dokonanych podczas instalacji Open Voice OS:\n\n- Metoda: $METHOD\n- Wersja: $CHANNEL\n- Profil: $PROFILE\n- Umiejętności: $FEATURE_SKILLS\n- Strojenie: $TUNING\n\nWybory dokonane podczas instalacji Open Voice OS zostały starannie rozważone, aby dostosować nasz system do Twoich unikalnych potrzeb i preferencji.\n\nCzy to podsumowanie wydaje Ci się poprawne? Jeśli nie, wybierz $BACK_BUTTON (lub naciśnij ESC), aby wrócić i wprowadzić zmiany."
   },
   "telemetry.sh": {
     "title": "Instalacja Open Voice OS - Telemetria",

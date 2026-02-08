@@ -2,15 +2,15 @@
 CONTENT="
 Open Voice OS har tre primære udgivelseskanaler:
 
-- stabil (standard)
-- test (ret stabil)
-- alfa (nyeste version)
+- stable (stabil men gammel)
+- testing (anbefalet)
+- alpha (nyeste version)
 
-Den stabile udgivelse af Open Voice OS er den anbefalede version til de fleste brugere. Den er veltestet og indeholder alle de nyeste funktioner og forbedringer, der er blevet anset for at være stabile.
+Stable-kanalen ændrer sig mindst og er den mest konservative mulighed, men kan halte efter med nye funktioner og rettelser.
 
-Testversionen af ​​Open Voice OS er en mere eksperimentel version, der indeholder nye funktioner og forbedringer, der stadig testes. Den er generelt stabil, men kan have nogle fejl eller problemer.
+Testing-kanalen anbefales til de fleste brugere. Den indeholder nyere funktioner og forbedringer og er generelt stabil, men kan af og til indeholde regressioner.
 
-Alfaversionen af ​​Open Voice OS er den mest eksperimentelle version, der indeholder de nyeste funktioner og ændringer, der stadig er under udvikling. Den kan være ustabil og anbefales ikke til daglig brug.
+Alpha-kanalen er den mest eksperimentelle og indeholder de nyeste funktioner og ændringer, der stadig er under udvikling. Den kan være ustabil og anbefales ikke til daglig brug.
 
 Vælg venligst en kanal:
 "

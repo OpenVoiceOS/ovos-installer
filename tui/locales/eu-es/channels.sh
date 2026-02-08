@@ -1,15 +1,18 @@
 #!/usr/bin/env bash
 CONTENT="
-Open Voice OS bi kaleratze kanal nagusi ditu:
+Open Voice OS-k hiru kaleratze kanal nagusi ditu:
 
-  - egonkorra (gomendatua baina oraindik ez dago eskuragarri)
-  - garapena
+  - stable (egonkorra baina zaharra)
+  - testing (gomendatua)
+  - alpha (azken-azkena)
 
-Open Voice OS-ren bertsio egonkorra eguneroko erabilerarako egokia den bertsio probatua eta fidagarria da.
+stable kanala gutxien aldatzen den aukera kontserbadoreena da, baina funtzio eta konponketa berrietan atzean geratu daiteke.
 
-Open Voice OS-en garapen-oharra, abangoardiako funtzioekin esperimentatu eta plataformaren garapenean lagundu nahi duten garatzaileei eta zaleei zuzenduta dago.
+testing kanala erabiltzaile gehienentzat gomendatua da. Funtzio eta hobekuntza berriagoak ditu eta, oro har, egonkorra da, baina noizean behin regresioak izan ditzake.
 
-Mesedez, hautatu kanal bat:
+alpha kanala esperimentalena da, eta garapenean dauden azken funtzio eta aldaketak biltzen ditu. Ezegonkorra izan daiteke eta ez da eguneroko erabilerarako gomendatzen.
+
+Aukeratu kanal bat:
 "
 TITLE="Ireki Voice OS instalazioa - Kanalak"
 

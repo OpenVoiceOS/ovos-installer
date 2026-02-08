@@ -10,7 +10,7 @@ Już prawie skończyłeś, oto podsumowanie wyborów dokonanych podczas instalac
 
 Wybory dokonane podczas instalacji Open Voice OS zostały starannie rozważone, aby dostosować nasz system do Twoich unikalnych potrzeb i preferencji.
 
-Czy to podsumowanie wydaje Ci się poprawne? Jeśli nie, możesz wrócić i wprowadzić zmiany.
+Czy to podsumowanie wydaje Ci się poprawne? Jeśli nie, wybierz $BACK_BUTTON (lub naciśnij ESC), aby wrócić i wprowadzić zmiany.
 "
 TITLE="Instalacja Open Voice OS – Podsumowanie"
 

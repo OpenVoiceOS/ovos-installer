@@ -10,7 +10,7 @@ Fast fertig. Eine kurze Zusammenfassung:
 
 Die Entscheidungen, die während des Installationsprozesses von Open Voice OS getroffen werden, wurden sorgfältig abgewogen, um unser System an Ihre individuellen Bedürfnisse und Vorlieben anzupassen.
 
-Stimmen die Einstellungen?
+Stimmen die Einstellungen? Falls nicht, wählen Sie $BACK_BUTTON (oder drücken Sie ESC), um zurückzugehen und Änderungen vorzunehmen.
 "
 TITLE="Open Voice OS Installation - Zusammenfassung"
 

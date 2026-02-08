@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Ireki Voice OS instalazioa - Kanalak",
-    "content": "Open Voice OS bi kaleratze kanal nagusi ditu:\n\n  - egonkorra (gomendatua baina oraindik ez dago eskuragarri)\n  - garapena\n\nOpen Voice OS-ren bertsio egonkorra eguneroko erabilerarako egokia den bertsio probatua eta fidagarria da.\n\nOpen Voice OS-en garapen-oharra, abangoardiako funtzioekin esperimentatu eta plataformaren garapenean lagundu nahi duten garatzaileei eta zaleei zuzenduta dago.\n\nMesedez, hautatu kanal bat:"
+    "content": "Open Voice OS-k hiru kaleratze kanal nagusi ditu:\n\n  - stable (egonkorra baina zaharra)\n  - testing (gomendatua)\n  - alpha (azken-azkena)\n\nstable kanala gutxien aldatzen den aukera kontserbadoreena da, baina funtzio eta konponketa berrietan atzean geratu daiteke.\n\ntesting kanala erabiltzaile gehienentzat gomendatua da. Funtzio eta hobekuntza berriagoak ditu eta, oro har, egonkorra da, baina noizean behin regresioak izan ditzake.\n\nalpha kanala esperimentalena da, eta garapenean dauden azken funtzio eta aldaketak biltzen ditu. Ezegonkorra izan daiteke eta ez da eguneroko erabilerarako gomendatzen.\n\nAukeratu kanal bat:"
   },
   "detection.sh": {
     "title": "Ireki Voice OS instalazioa - Detektatua",
@@ -44,7 +44,7 @@
   },
   "summary.sh": {
     "title": "Ireki Voice OS instalazioa - Laburpena",
-    "content": "Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:\n\n    - Metodoa: $METHOD\n    - Bertsioa: $CHANNEL\n    - Profila: $PROFILE\n    - Trebetasunak: $FEATURE_SKILLS\n    - Afinazioa: $TUNING\n\nOpen Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.\n\nLaburpen hau zuzena iruditzen zaizu? Hala ez bada, atzera egin dezakezu aldaketak."
+    "content": "Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:\n\n    - Metodoa: $METHOD\n    - Bertsioa: $CHANNEL\n    - Profila: $PROFILE\n    - Trebetasunak: $FEATURE_SKILLS\n    - Afinazioa: $TUNING\n\nOpen Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.\n\nLaburpen hau zuzena iruditzen zaizu? Hala ez bada, hautatu $BACK_BUTTON (edo sakatu ESC) atzera egiteko eta aldaketak egiteko."
   },
   "telemetry.sh": {
     "title": "Ireki Voice OS instalazioa - Telemetria",

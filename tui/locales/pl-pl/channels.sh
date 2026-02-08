@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 CONTENT="
-Open Voice OS ma dwa główne kanały wydań:
+Open Voice OS ma trzy główne kanały wydań:
 
-- stabilna (zalecana, ale jeszcze niedostępna)
-- rozwojowa
+- stable (stabilny, ale starszy)
+- testing (zalecany)
+- alpha (najbardziej eksperymentalny)
 
-Stabilna wersja Open Voice OS jest dobrze przetestowaną i niezawodną wersją, nadającą się do codziennego użytku.
+Kanał stable zmienia się najrzadziej i jest najbardziej zachowawczą opcją, ale może pozostawać w tyle za nowymi funkcjami i poprawkami.
 
-Wersja rozwojowa Open Voice OS jest przeznaczona dla programistów i entuzjastów, którzy chcą eksperymentować z najnowocześniejszymi funkcjami i przyczyniać się do rozwoju platformy.
+Kanał testing jest zalecany dla większości użytkowników. Zawiera nowsze funkcje i ulepszenia i jest zazwyczaj stabilny, ale od czasu do czasu mogą pojawić się regresje.
+
+Kanał alpha jest najbardziej eksperymentalny i zawiera najnowsze funkcje i zmiany, które wciąż są w trakcie rozwoju. Może być niestabilny i nie jest zalecany do codziennego użytku.
 
 Wybierz kanał:
 "

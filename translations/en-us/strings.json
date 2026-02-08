@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Open Voice OS Installation - Channels",
-    "content": "Open Voice OS has three main release channels:\n\n  - stable (stable but old)\n  - testing (default)\n  - alpha (bleeding edge)\n\nThe stable release of Open Voice OS is the recommended version for most users. It is well-tested and includes all the latest features and improvements that have been deemed stable.\n\nThe testing release of Open Voice OS is a more experimental version that includes new features and improvements that are still being tested. It is generally stable but may have some bugs or issues.\n\nThe alpha release of Open Voice OS is the most experimental version, containing the latest features and changes that are still in development. It may be unstable and is not recommended for everyday use.\n\nPlease select a channel:"
+    "content": "Open Voice OS has three main release channels:\n\n  - stable (stable but old)\n  - testing (recommended)\n  - alpha (bleeding edge)\n\nThe stable channel changes the least and is the most conservative option, but may lag behind new features and fixes.\n\nThe testing channel is recommended for most users. It includes newer features and improvements and is generally stable, but may occasionally include regressions.\n\nThe alpha channel is the most experimental version, containing the latest features and changes that are still in development. It may be unstable and is not recommended for everyday use.\n\nPlease select a channel:"
   },
   "detection.sh": {
     "title": "Open Voice OS Installation - Detected",
@@ -44,7 +44,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Summary",
-    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   $METHOD\n    - Version:  $CHANNEL\n    - Profile:  $PROFILE\n    - Skills:   $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, you can go back and make changes."
+    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   $METHOD\n    - Version:  $CHANNEL\n    - Profile:  $PROFILE\n    - Skills:   $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, select $BACK_BUTTON (or press ESC) to go back and make changes."
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Telemetry",

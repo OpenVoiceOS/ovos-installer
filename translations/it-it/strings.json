@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Installazione di Open Voice OS - Versioni",
-    "content": "Esistono due diverse versioni di Open Voice OS:\n\n  - Stabile (consigliata ma non ancora disponibile)\n  - Per sviluppatori\n\nLa versione stabile di Open Voice OS è una versione ben collaudata e affidabile, adatta per l'uso quotidiano.\n\nLa versione per sviluppatori di Open Voice OS è dedicata agli sviluppatori e agli appassionati che desiderano sperimentare le ultime novità e contribuire all'ulteriore sviluppo della piattaforma.\n\nScegli una versione:"
+    "content": "Open Voice OS ha tre canali principali di rilascio:\n\n  - stable (stabile ma vecchio)\n  - testing (consigliato)\n  - alpha (all'avanguardia)\n\nIl canale stable cambia meno spesso ed è l'opzione più conservativa, ma può rimanere indietro rispetto a nuove funzionalità e correzioni.\n\nIl canale testing è consigliato per la maggior parte degli utenti. Include funzionalità e miglioramenti più recenti ed è generalmente stabile, ma occasionalmente può contenere regressioni.\n\nIl canale alpha è il più sperimentale e contiene le ultime funzionalità e modifiche ancora in sviluppo. Può essere instabile e non è consigliato per l'uso quotidiano.\n\nSeleziona un canale:"
   },
   "detection.sh": {
     "title": "Installazione di Open Voice OS - Proprietà del sistema",
@@ -44,7 +44,7 @@
   },
   "summary.sh": {
     "title": "Installazione di Open Voice OS - Riassunto",
-    "content": "Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:\n\n    - Distribuzione: $METHOD\n    - Versione: $CHANNEL\n    - Profilo: $PROFILE\n    - Competenze: $FEATURE_SKILLS\n    - Ottimizzazione: $TUNING\n\nLe decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.\n\nLe impostazioni sono corrette?"
+    "content": "Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:\n\n    - Distribuzione: $METHOD\n    - Versione: $CHANNEL\n    - Profilo: $PROFILE\n    - Competenze: $FEATURE_SKILLS\n    - Ottimizzazione: $TUNING\n\nLe decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.\n\nLe impostazioni sono corrette? In caso contrario, seleziona $BACK_BUTTON (o premi ESC) per tornare indietro e apportare modifiche."
   },
   "telemetry.sh": {
     "title": "Installazione di Open Voice OS - Telemetria",
