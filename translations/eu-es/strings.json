@@ -11,7 +11,7 @@
   },
   "detection.sh": {
     "title": "Ireki Voice OS instalazioa - Detektatua",
-    "content": "Mesedez, aurkitu detektatutako informazioa:\n\n    - OS: ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(\"$PYTHON\" oihartzuna | awk '{ inprimatu $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardwarea: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - Soinua: $SOUND_SERVER\n    - Pantaila: ${DISPLAY_SERVER^}"
+    "content": "Mesedez, aurkitu detektatutako informazioa:\n\n    - OS: ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardwarea: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - Soinua: $SOUND_SERVER\n    - Pantaila: ${DISPLAY_SERVER^}"
   },
   "features.sh": {
     "title": "Ireki Voice OS Instalazioa - Ezaugarriak",

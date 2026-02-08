@@ -11,7 +11,7 @@
   },
   "detection.sh": {
     "title": "Open Voice OS-installation - fundet",
-    "content": "Find de fundne oplysninger:\n\n    - OS: ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(ekko \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardware: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - Lyd: $SOUND_SERVER\n    - Skærm: ${DISPLAY_SERVER^}"
+    "content": "Find de fundne oplysninger:\n\n    - OS: ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardware: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - Lyd: $SOUND_SERVER\n    - Skærm: ${DISPLAY_SERVER^}"
   },
   "features.sh": {
     "title": "Open Voice OS Installation - Funktioner",

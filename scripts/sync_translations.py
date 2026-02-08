@@ -3,7 +3,7 @@ import os
 from os.path import dirname
 
 TEMPLATE = """
-#!/usr/bin/env bash
+#!/bin/env bash
 
 CONTENT="
 {content}
@@ -15,7 +15,7 @@ export CONTENT TITLE
 """
 
 OVERCLOCK_TEMPLATE = """
-#!/usr/bin/env bash
+#!/bin/env bash
 
 OVERCLOCK_CONTENT="
 {content}
@@ -26,7 +26,7 @@ export OVERCLOCK_CONTENT OVERCLOCK_TITLE
 """
 
 MISC_TEMPLATE = """
-#!/usr/bin/env bash
+#!/bin/env bash
 
 OK_BUTTON="{ok_button}"
 YES_BUTTON="{yes_button}"
@@ -37,7 +37,7 @@ export OK_BUTTON YES_BUTTON NO_BUTTON BACK_BUTTON
 """
 
 FEATURES_TEMPLATE = """
-#!/usr/bin/env bash
+#!/bin/env bash
 
 CONTENT="
 {content}
@@ -50,7 +50,7 @@ export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION
 """
 
 SAT_TEMPLATE = """
-#!/usr/bin/env bash
+#!/bin/env bash
 
 # Global message
 content="{content}"
