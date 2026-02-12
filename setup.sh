@@ -144,9 +144,9 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_locale=${LOCALE:-en-us}" \
   -e "$(jq -c -n '{ovos_installer_i2c_devices: $ARGS.positional}' --args "${DETECTED_DEVICES[@]}")" \
   -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \
-  "${ansible_tags[@]}" "${ansible_debug[@]}"
+  "${ansible_tags[@]}" "${ansible_debug[@]}" 2>&1 | tee -a "$LOG_FILE"
 
-# Retrieve the ansible-playbook status code before tee command and check for success or failure
+# Retrieve the ansible-playbook status code from the pipeline and check for success or failure
 if [ "${PIPESTATUS[0]}" -eq 0 ]; then
   if [ "$CONFIRM_UNINSTALL" == "false" ] || [ -z "$CONFIRM_UNINSTALL" ]; then
     if [ "$SCENARIO_FOUND" == "false" ]; then
@@ -184,8 +184,6 @@ if [ "${PIPESTATUS[0]}" -eq 0 ]; then
     fi
   fi
 else
-  # Concatenate Ansible log with installer log
-  cat "$ANSIBLE_LOG_FILE" >>"$LOG_FILE"
   debug_url="$(upload_logs)"
   printf '\n%s\n' "➤ Unable to finalize the process, please check $LOG_FILE for more details."
   if [ -n "${debug_url:-}" ]; then
