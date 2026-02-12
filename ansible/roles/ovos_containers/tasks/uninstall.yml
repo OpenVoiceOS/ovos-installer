@@ -31,6 +31,8 @@
     timeout: "{{ ovos_containers_compose_timeout }}"
     state: absent
   loop: "{{ ovos_containers_uninstall_compose_mapping }}"
+  loop_control:
+    label: "{{ item.name }}"
   environment:
     DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
   register: ovos_containers_composer_deletion

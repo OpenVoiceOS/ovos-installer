@@ -18,6 +18,8 @@
     version: "{{ item.branch }}"
     force: true
   loop: "{{ ovos_containers_repo_definitions }}"
+  loop_control:
+    label: "{{ item.dest }}"
   when: item.state | bool
   tags:
     - always
