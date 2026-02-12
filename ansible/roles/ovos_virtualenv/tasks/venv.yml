@@ -6,6 +6,8 @@
     group: root
     mode: "0644"
   loop: "{{ ovos_virtualenv_requirements_files }}"
+  loop_control:
+    label: "{{ item.file }}"
   when: item.state | bool
 
 - name: Ensure uv has requested Python available
@@ -130,6 +132,8 @@
   retries: 5
   delay: 5
   loop: "{{ ovos_virtualenv_requirements_files }}"
+  loop_control:
+    label: "{{ item.file }}"
   when: item.state | bool
 
 - name: Ensure numpy Python library is installed
@@ -167,6 +171,8 @@
     - line: "export UV_CONSTRAINT=\"{{ _ovos_release }}\""
       regexp: "^export UV_CONSTRAINT="
       insertafter: "^export PIP_CONSTRAINT="
+  loop_control:
+    label: "{{ item.regexp }}"
   when: ovos_virtualenv_activate_script.stat.exists | default(false)
 
 - name: Add VIRTUAL_ENV variable to .bashrc and update user PATH
@@ -185,6 +191,8 @@
       regexp: "^VIRTUAL_ENV"
     - line: "PATH=$PATH:{{ _path }}"
       regexp: "^PATH"
+  loop_control:
+    label: "{{ item.regexp }}"
   when: (ovos_installer_i2c_devices | default([])) | length < 1
   tags:
     - always

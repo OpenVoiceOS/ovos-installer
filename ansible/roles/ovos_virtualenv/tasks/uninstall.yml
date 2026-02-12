@@ -128,6 +128,8 @@
     - line: "export UV_CONSTRAINT=\"{{ _ovos_release }}\""
       regexp: "^export UV_CONSTRAINT="
       insertafter: "^export PIP_CONSTRAINT="
+  loop_control:
+    label: "{{ item.regexp }}"
   when: ovos_virtualenv_activate_script.stat.exists | default(false) | bool
 
 - name: Check for user .bashrc
@@ -152,6 +154,8 @@
       regexp: "^VIRTUAL_ENV"
     - line: "PATH=$PATH:{{ _path }}"
       regexp: "^PATH"
+  loop_control:
+    label: "{{ item.regexp }}"
   when:
     - ovos_virtualenv_bashrc.stat.exists | default(false) | bool
     - (ovos_installer_i2c_devices | default([])) | length < 1

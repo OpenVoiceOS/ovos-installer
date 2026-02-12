@@ -109,6 +109,11 @@ case "${DISTRO_NAME:-}" in
     ;;
 esac
 export ANSIBLE_NOCOWS=1
+if [ -t 1 ]; then
+  # ansible-playbook output is piped through tee, so force colors for interactive sessions.
+  export ANSIBLE_FORCE_COLOR=true
+  export PY_COLORS=1
+fi
 ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_user=${RUN_AS}" \
   -e "ovos_installer_group=$(id -ng "$RUN_AS")" \

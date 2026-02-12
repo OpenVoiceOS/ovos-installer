@@ -96,6 +96,8 @@
         backup: true
       notify: "{{ ovos_installer_notify_scope }}"
       loop: "{{ ovos_services_unit_definitions }}"
+      loop_control:
+        label: "{{ item.unit }} ({{ item.scope }})"
       when: item.state | bool
 
     - name: Flush handlers ovos
@@ -117,6 +119,8 @@
         state: "{{ ovos_installer_systemd_state }}"
         scope: "{{ item.scope }}"
       loop: "{{ ovos_services_unit_definitions }}"
+      loop_control:
+        label: "{{ item.unit }} ({{ item.scope }})"
       when: item.state | bool and not ansible_check_mode
 
     - name: Include uninstall tasks

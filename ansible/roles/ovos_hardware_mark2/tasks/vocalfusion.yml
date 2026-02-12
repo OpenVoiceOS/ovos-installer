@@ -71,6 +71,8 @@
     group: root
     mode: "0755"
   loop: "{{ ovos_hardware_mark2_sj201_downloads }}"
+  loop_control:
+    label: "{{ item.dest }}"
 
 - name: Copy SJ201 systemd unit file
   ansible.builtin.template:
