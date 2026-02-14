@@ -88,7 +88,10 @@
   become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.command:
-    cmd: "{{ ovos_virtualenv_path }}/bin/python -m pip install -U pip setuptools wheel"
+    cmd: >-
+      {{ ovos_virtualenv_path }}/bin/python -m pip install -U
+      pip wheel
+      "{{ ovos_virtualenv_setuptools_package }}"
   environment:
     HOME: "{{ ovos_installer_user_home }}"
   changed_when: false
@@ -139,6 +142,12 @@
 - name: Ensure numpy Python library is installed
   moreati.uv.pip:
     name: "{{ ovos_virtualenv_numpy_package }}"
+    virtualenv: "{{ ovos_virtualenv_path }}"
+    state: present
+
+- name: Ensure setuptools Python library is compatible with OVOS runtime
+  moreati.uv.pip:
+    name: "{{ ovos_virtualenv_setuptools_package }}"
     virtualenv: "{{ ovos_virtualenv_path }}"
     state: present
 

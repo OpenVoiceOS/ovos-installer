@@ -16,6 +16,7 @@ ovos_virtualenv_uv_allow_prerelease: >-
 ovos_virtualenv_uv_version: "{{ ovos_installer_uv_version | default('') }}"
 ovos_virtualenv_run_ovos_config: "{{ ovos_installer_run_ovos_config | default(false) }}"
 ovos_virtualenv_numpy_package: "{{ ovos_installer_numpy_package | default('numpy==1.26.4') }}"
+ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | default('setuptools<82') }}"
 ovos_virtualenv_messagebus_path: "{{ ovos_installer_user_home }}/.local/bin/ovos-messagebus"
 ovos_virtualenv_uninstall_extra_paths:
   - "{{ ovos_hardware_mark1_working_directory | default('/opt/mark1') }}"
