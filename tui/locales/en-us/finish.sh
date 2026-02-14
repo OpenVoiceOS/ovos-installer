@@ -15,6 +15,8 @@ If you enabled the default skills feature then you can start to interact with yo
 The settings of your assistant could be changed in the $CONFIG_FILE configuration file.
 
 Should you need any assistance or updates in the future, feel free to reach out. Enjoy your Open Voice OS experience!
+
+Press OK to exit the installer.
 "
 TITLE="Open Voice OS Installation - Finish"
 

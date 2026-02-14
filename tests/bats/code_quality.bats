@@ -156,6 +156,22 @@ function setup() {
     unset apt_ensure
 }
 
+@test "virtualenv_pins_setuptools_for_pkg_resources" {
+    # setuptools>=82 dropped pkg_resources, which breaks ovos_plugin_manager imports.
+    run grep -q "ovos_installer_setuptools_package" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_setuptools_package" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    # Guard against regression to an unpinned setuptools upgrade.
+    run grep -q "pip install -U pip setuptools wheel" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_failure
+
+    run grep -q "ovos_virtualenv_setuptools_package" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
     if [ -n "$DETECT_SOUND_BACKUP" ]; then
