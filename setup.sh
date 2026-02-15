@@ -124,7 +124,9 @@ cleanup_ha_extra_vars_file() {
     ha_extra_vars_file=""
   fi
 }
-trap cleanup_ha_extra_vars_file EXIT INT TERM
+trap cleanup_ha_extra_vars_file EXIT
+trap 'cleanup_ha_extra_vars_file; exit 130' INT
+trap 'cleanup_ha_extra_vars_file; exit 143' TERM
 if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ]; then
   # If `set -x` is enabled, avoid echoing secrets to the terminal/logs.
   xtrace_was_on="false"
