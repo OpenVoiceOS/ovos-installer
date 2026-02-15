@@ -9,10 +9,19 @@ export FEATURE_HOMEASSISTANT="false"
 export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
 export HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}"
 
+_ha_supported="false"
+if [[ "${METHOD:-virtualenv}" == "virtualenv" ]] && \
+  [[ "${PROFILE:-}" != "server" ]] && \
+  [[ "${PROFILE:-}" != "satellite" ]]; then
+  _ha_supported="true"
+fi
+
 declare -a features
 features=("skills" "$SKILL_DESCRIPTION" "ON")
 features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
-features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+if [ "${_ha_supported}" == "true" ]; then
+  features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+fi
 
 if [ -f "$INSTALLER_STATE_FILE" ] && \
   jq -e '(.features? | type) == "array"' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
@@ -26,10 +35,12 @@ if [ -f "$INSTALLER_STATE_FILE" ] && \
   else
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
   fi
-  if jq -e '.features|any(. == "homeassistant")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
-    features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "ON")
-  else
-    features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+  if [ "${_ha_supported}" == "true" ]; then
+    if jq -e '.features|any(. == "homeassistant")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
+      features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "ON")
+    else
+      features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+    fi
   fi
 fi
 
@@ -39,8 +50,10 @@ if [ "${#features[@]}" -lt 3 ] || [ $(( ${#features[@]} % 3 )) -ne 0 ]; then
   features=(
     "skills" "$SKILL_DESCRIPTION" "ON"
     "extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF"
-    "homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF"
   )
+  if [ "${_ha_supported}" == "true" ]; then
+    features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+  fi
 fi
 
 list_height=$((${#features[@]} / 3))

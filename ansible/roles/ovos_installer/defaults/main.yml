@@ -27,9 +27,11 @@ ovos_installer_requirements_files:
     dest: "{{ ovos_installer_tmp_dir }}/homeassistant-requirements.txt"
     state: >-
       {{ ovos_installer_feature_homeassistant | bool
+         and ovos_installer_method == 'virtualenv'
          and ovos_installer_profile != 'satellite'
          and ovos_installer_profile != 'server'
-         and (ovos_installer_homeassistant_host | default('') | length > 0)
+         and ((ovos_installer_homeassistant_url
+               | default(ovos_installer_homeassistant_host | default(''), true)) | length > 0)
          and (ovos_installer_homeassistant_api_key | default('') | length > 0) }}
   - file: virtualenv/listener-requirements.txt
     dest: "{{ ovos_installer_tmp_dir }}/listener-requirements.txt"
@@ -111,6 +113,8 @@ ovos_installer_feature_skills: true
 ovos_installer_feature_extra_skills: false
 ovos_installer_feature_homeassistant: false
 ovos_installer_feature_gui: false
+ovos_installer_homeassistant_url: ""
+# Backward compatible alias; prefer ovos_installer_homeassistant_url.
 ovos_installer_homeassistant_host: ""
 ovos_installer_homeassistant_api_key: ""
 ovos_installer_usage_telemetry: false

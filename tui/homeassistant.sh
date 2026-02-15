@@ -8,6 +8,10 @@ else
   source "tui/locales/en-us/homeassistant.sh"
 fi
 
+# Some locales may not define every message yet; keep strict mode friendly.
+: "${CONTENT_INVALID_URL:=Invalid URL.}"
+: "${CONTENT_INVALID_PORT:=$CONTENT_INVALID_URL}"
+
 # Safe defaults for strict mode
 export FEATURE_HOMEASSISTANT="false"
 export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
@@ -82,15 +86,36 @@ while :; do
   else
     path=""
   fi
+
+  if [ -z "$authority" ]; then
+    whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    continue
+  fi
+
   if [[ "$authority" == \[* ]]; then
-    if [[ ! "$authority" =~ \\]:[0-9]+$ ]]; then
+    # Bracketed IPv6 host, with optional numeric port.
+    if [[ "$authority" =~ ^\\[[^\\]]+\\]$ ]]; then
       authority="${authority}:8123"
+    elif [[ "$authority" =~ ^\\[[^\\]]+\\]:[0-9]+$ ]]; then
+      :
+    else
+      whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_PORT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+      continue
     fi
   else
-    if [[ ! "$authority" =~ :[0-9]+$ ]]; then
+    if [[ "$authority" =~ : ]]; then
+      # host:port with numeric port only
+      if [[ "$authority" =~ ^[^:/]+:[0-9]+$ ]]; then
+        :
+      else
+        whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_PORT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+        continue
+      fi
+    else
       authority="${authority}:8123"
     fi
   fi
+
   HOMEASSISTANT_URL="${proto}://${authority}${path}"
   break
 done

@@ -92,10 +92,17 @@
   register: ovos_config_configuration
 
 - name: Configure Home Assistant skill settings (when enabled)
+  vars:
+    _ovos_homeassistant_url: >-
+      {{
+        ovos_installer_homeassistant_url
+        | default(ovos_installer_homeassistant_host | default(''), true)
+      }}
   when:
     - ovos_installer_feature_homeassistant | default(false) | bool
+    - ovos_installer_method == "virtualenv"
     - ovos_installer_profile not in ['satellite', 'server']
-    - (ovos_installer_homeassistant_host | default('') | length) > 0
+    - (_ovos_homeassistant_url | length) > 0
     - (ovos_installer_homeassistant_api_key | default('') | length) > 0
   block:
     - name: Ensure Home Assistant skill settings directory exists
@@ -116,7 +123,7 @@
           {{
             {
               "api_key": ovos_installer_homeassistant_api_key,
-              "host": ovos_installer_homeassistant_host
+              "host": _ovos_homeassistant_url
             } | to_nice_json
           }}
       no_log: true

@@ -42,6 +42,13 @@ The Home Assistant URL must start with http:// or https://
 Example: http://homeassistant.local:8123
 "
 
+CONTENT_INVALID_PORT="
+Invalid URL.
+
+If you specify a port, it must be numeric.
+Example: http://homeassistant.local:8123
+"
+
 CONTENT_MISSING_INFO="
 Missing information.
 
@@ -53,4 +60,5 @@ export \
   TITLE_URL CONTENT_URL \
   TITLE_TOKEN CONTENT_TOKEN \
   TITLE_INVALID CONTENT_INVALID_URL \
+  CONTENT_INVALID_PORT \
   CONTENT_MISSING_INFO
