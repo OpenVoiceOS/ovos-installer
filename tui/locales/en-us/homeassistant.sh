@@ -12,7 +12,7 @@ How to create a Long-Lived Access Token in Home Assistant:
   1) Open your Home Assistant web UI
   2) Click your user/profile (your name) in the sidebar
   3) Go to Security
-  4) Under 'Long-Lived Access Tokens', click 'Create Token'
+  4) Under Long-Lived Access Tokens, click Create Token
   5) Copy the token and paste it here
 
 Do you have these details now?
