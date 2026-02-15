@@ -15,7 +15,7 @@ fi
 # Safe defaults for strict mode
 export FEATURE_HOMEASSISTANT="false"
 export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
-export HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}"
+HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}"
 
 # If we already have both values in the current session, don't prompt again.
 if [ -n "${HOMEASSISTANT_URL}" ] && [ -n "${HOMEASSISTANT_API_KEY}" ]; then
@@ -39,7 +39,7 @@ if [ "$exit_status" -ne 0 ]; then
   # No (1): skip. ESC (255): go back to the feature selection.
   export FEATURE_HOMEASSISTANT="false"
   export HOMEASSISTANT_URL=""
-  export HOMEASSISTANT_API_KEY=""
+  HOMEASSISTANT_API_KEY=""
   if [ "$exit_status" -eq 255 ]; then
     export HOMEASSISTANT_BACK="true"
   fi
@@ -56,7 +56,7 @@ while :; do
     export HOMEASSISTANT_BACK="true"
     export FEATURE_HOMEASSISTANT="false"
     export HOMEASSISTANT_URL=""
-    export HOMEASSISTANT_API_KEY=""
+    HOMEASSISTANT_API_KEY=""
     return
   fi
 
@@ -121,15 +121,27 @@ while :; do
 done
 
 while :; do
+  # If `set -x` is enabled, avoid echoing secrets to the terminal/logs.
+  _ha_xtrace_was_on="false"
+  case "$-" in
+    *x*) _ha_xtrace_was_on="true" ;;
+  esac
+  if [ "$_ha_xtrace_was_on" == "true" ]; then
+    set +x
+  fi
+
   HOMEASSISTANT_API_KEY=$(whiptail --passwordbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
     --title "$TITLE_TOKEN" "$CONTENT_TOKEN" 25 80 3>&1 1>&2 2>&3)
 
   exit_status=$?
+  if [ "$_ha_xtrace_was_on" == "true" ]; then
+    set -x
+  fi
   if [ "$exit_status" -ne 0 ]; then
     export HOMEASSISTANT_BACK="true"
     export FEATURE_HOMEASSISTANT="false"
     export HOMEASSISTANT_URL=""
-    export HOMEASSISTANT_API_KEY=""
+    HOMEASSISTANT_API_KEY=""
     return
   fi
 
