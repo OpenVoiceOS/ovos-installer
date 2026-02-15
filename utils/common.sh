@@ -7,6 +7,14 @@ set -euo pipefail
 done_format="\e[32mdone\e[0m"
 fail_format="\e[31mfail\e[0m"
 
+# Remove Home Assistant extra-vars temp file if created (used by setup.sh traps).
+function cleanup_ha_extra_vars_file() {
+    if [ -n "${ha_extra_vars_file:-}" ]; then
+        rm -f "$ha_extra_vars_file" 2>/dev/null || true
+        ha_extra_vars_file=""
+    fi
+}
+
 # This function asks for user agreement on uploading the content of
 # ovos-installer.log on https://paste.uoi.io. Without the user
 # agreement this could lead to security infringement.

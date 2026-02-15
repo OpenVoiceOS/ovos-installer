@@ -118,12 +118,6 @@ fi
 # Pass Home Assistant token via an extra-vars file (avoids exposing secrets in the process list).
 ha_extra_vars=()
 ha_extra_vars_file=""
-cleanup_ha_extra_vars_file() {
-  if [ -n "${ha_extra_vars_file:-}" ]; then
-    rm -f "$ha_extra_vars_file" 2>/dev/null || true
-    ha_extra_vars_file=""
-  fi
-}
 trap cleanup_ha_extra_vars_file EXIT
 trap 'cleanup_ha_extra_vars_file; exit 130' INT
 trap 'cleanup_ha_extra_vars_file; exit 143' TERM
