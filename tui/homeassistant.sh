@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+# shellcheck source=tui/locales/en-us/homeassistant.sh
+source "tui/locales/$LOCALE/homeassistant.sh"
+
+# Safe defaults for strict mode
+export FEATURE_HOMEASSISTANT="false"
+export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
+export HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}"
+
+# If we already have both values in the current session, don't prompt again.
+if [ -n "${HOMEASSISTANT_URL}" ] && [ -n "${HOMEASSISTANT_API_KEY}" ]; then
+  export FEATURE_HOMEASSISTANT="true"
+  return
+fi
+
+ha_url_default=""
+if [ -f "$INSTALLER_STATE_FILE" ]; then
+  ha_url_default="$(jq -r '.homeassistant.url // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE")"
+fi
+if [ -z "$ha_url_default" ]; then
+  ha_url_default="http://homeassistant.local:8123"
+fi
+
+whiptail --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
+  --title "$TITLE_HAVE_DETAILS" "$CONTENT_HAVE_DETAILS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+
+exit_status=$?
+if [ "$exit_status" -ne 0 ]; then
+  # No (1): skip. ESC (255): go back to the feature selection.
+  export FEATURE_HOMEASSISTANT="false"
+  export HOMEASSISTANT_URL=""
+  export HOMEASSISTANT_API_KEY=""
+  if [ "$exit_status" -eq 255 ]; then
+    export HOMEASSISTANT_BACK="true"
+  fi
+  return
+fi
+
+HOMEASSISTANT_URL="$ha_url_default"
+while :; do
+  HOMEASSISTANT_URL=$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$TITLE_URL" "$CONTENT_URL" 25 80 "$HOMEASSISTANT_URL" 3>&1 1>&2 2>&3)
+
+  exit_status=$?
+  if [ "$exit_status" -ne 0 ]; then
+    export HOMEASSISTANT_BACK="true"
+    export FEATURE_HOMEASSISTANT="false"
+    export HOMEASSISTANT_URL=""
+    export HOMEASSISTANT_API_KEY=""
+    return
+  fi
+
+  # Remove whitespace and trailing slash; allow entering host:port without scheme.
+  HOMEASSISTANT_URL="${HOMEASSISTANT_URL//[[:space:]]/}"
+  HOMEASSISTANT_URL="${HOMEASSISTANT_URL%/}"
+  if [ -z "$HOMEASSISTANT_URL" ]; then
+    whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    continue
+  fi
+
+  if [[ "$HOMEASSISTANT_URL" != http://* && "$HOMEASSISTANT_URL" != https://* ]]; then
+    if [[ "$HOMEASSISTANT_URL" == *"://"* ]]; then
+      whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_URL" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+      continue
+    fi
+    HOMEASSISTANT_URL="http://${HOMEASSISTANT_URL}"
+  fi
+
+  HOMEASSISTANT_API_KEY=$(whiptail --passwordbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$TITLE_TOKEN" "$CONTENT_TOKEN" 25 80 3>&1 1>&2 2>&3)
+
+  exit_status=$?
+  if [ "$exit_status" -ne 0 ]; then
+    export HOMEASSISTANT_BACK="true"
+    export FEATURE_HOMEASSISTANT="false"
+    export HOMEASSISTANT_URL=""
+    export HOMEASSISTANT_API_KEY=""
+    return
+  fi
+
+  if [ -z "$HOMEASSISTANT_API_KEY" ]; then
+    whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    continue
+  fi
+
+  break
+done
+
+export FEATURE_HOMEASSISTANT="true"
+
+# Persist URL (non-secret) for defaults when navigating back or re-running.
+state_tmp="$(mktemp)"
+if [ -f "$INSTALLER_STATE_FILE" ] && \
+  jq --arg url "$HOMEASSISTANT_URL" \
+    'if type=="object" then . else {} end | .homeassistant = ((.homeassistant // {}) + {url: $url})' \
+    "$INSTALLER_STATE_FILE" >"$state_tmp" 2>>"$LOG_FILE"; then
+  mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+else
+  jq -n --arg url "$HOMEASSISTANT_URL" '{homeassistant: {url: $url}}' >"$state_tmp" 2>>"$LOG_FILE" && \
+    mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+fi
+
+# Keep state writable by the target user when running under sudo/root.
+if [ -n "${RUN_AS:-}" ] && [ -f "$INSTALLER_STATE_FILE" ]; then
+  chown "$RUN_AS":"$(id -ng "$RUN_AS" 2>>"$LOG_FILE")" "$INSTALLER_STATE_FILE" &>>"$LOG_FILE" || true
+fi

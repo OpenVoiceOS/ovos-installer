@@ -7,5 +7,6 @@ Please choose the features to enable:
 TITLE="Open Voice OS Installation - Features"
 SKILL_DESCRIPTION="Load default OVOS skills"
 EXTRA_SKILL_DESCRIPTION="Load extra OVOS skills"
+HOMEASSISTANT_DESCRIPTION="Enable Home Assistant integration (requires URL + token)"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION HOMEASSISTANT_DESCRIPTION

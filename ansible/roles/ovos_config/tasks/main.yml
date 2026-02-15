@@ -90,3 +90,33 @@
     mode: "{{ ovos_config_mycroft_conf_mode }}"
     backup: true
   register: ovos_config_configuration
+
+- name: Configure Home Assistant skill settings (when enabled)
+  when:
+    - ovos_installer_feature_homeassistant | default(false) | bool
+    - ovos_installer_profile not in ['satellite', 'server']
+    - (ovos_installer_homeassistant_host | default('') | length) > 0
+    - (ovos_installer_homeassistant_api_key | default('') | length) > 0
+  block:
+    - name: Ensure Home Assistant skill settings directory exists
+      ansible.builtin.file:
+        path: "{{ ovos_installer_user_home }}/{{ ovos_config_mycroft_conf_relpath }}/skills/skill-homeassistant"
+        state: directory
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: "0755"
+
+    - name: Write Home Assistant skill settings.json
+      ansible.builtin.copy:
+        dest: "{{ ovos_installer_user_home }}/{{ ovos_config_mycroft_conf_relpath }}/skills/skill-homeassistant/settings.json"
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: "0600"
+        content: >-
+          {{
+            {
+              "api_key": ovos_installer_homeassistant_api_key,
+              "host": ovos_installer_homeassistant_host
+            } | to_nice_json
+          }}
+      no_log: true

@@ -6,6 +6,8 @@ You are almost done, here is a summary of choices you made to install Open Voice
     - Version:  $CHANNEL
     - Profile:  $PROFILE
     - Skills:   $FEATURE_SKILLS
+    - Extra:    $FEATURE_EXTRA_SKILLS
+    - HA:       $FEATURE_HOMEASSISTANT
     - Tuning:   $TUNING
 
 The choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.

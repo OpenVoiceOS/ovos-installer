@@ -129,6 +129,7 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_feature_gui=${FEATURE_GUI}" \
   -e "ovos_installer_feature_skills=${FEATURE_SKILLS}" \
   -e "ovos_installer_feature_extra_skills=${FEATURE_EXTRA_SKILLS}" \
+  -e "ovos_installer_feature_homeassistant=${FEATURE_HOMEASSISTANT}" \
   -e "ovos_installer_tuning=${TUNING}" \
   -e "ovos_installer_tuning_overclock=${TUNING_OVERCLOCK}" \
   -e "ovos_installer_overclock_arm_boost=${OVERCLOCK_ARM_BOOST}" \
@@ -147,6 +148,7 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_telemetry=${SHARE_TELEMETRY}" \
   -e "ovos_installer_usage_telemetry=${SHARE_USAGE_TELEMETRY}" \
   -e "ovos_installer_locale=${LOCALE:-en-us}" \
+  -e "$(jq -c -n --arg host "${HOMEASSISTANT_URL:-}" --arg key "${HOMEASSISTANT_API_KEY:-}" '{ovos_installer_homeassistant_host: $host, ovos_installer_homeassistant_api_key: $key}')" \
   -e "$(jq -c -n '{ovos_installer_i2c_devices: $ARGS.positional}' --args "${DETECTED_DEVICES[@]}")" \
   -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \
   "${ansible_tags[@]}" "${ansible_debug[@]}" 2>&1 | tee -a "$LOG_FILE"

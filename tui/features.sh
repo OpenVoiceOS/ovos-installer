@@ -5,10 +5,14 @@ source "tui/locales/$LOCALE/features.sh"
 export FEATURE_SKILLS="false"
 export FEATURE_EXTRA_SKILLS="false"
 export FEATURE_GUI="false"
+export FEATURE_HOMEASSISTANT="false"
+export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
+export HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}"
 
 declare -a features
 features=("skills" "$SKILL_DESCRIPTION" "ON")
 features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
+features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
 
 if [ -f "$INSTALLER_STATE_FILE" ] && \
   jq -e '(.features? | type) == "array"' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
@@ -22,12 +26,21 @@ if [ -f "$INSTALLER_STATE_FILE" ] && \
   else
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
   fi
+  if jq -e '.features|any(. == "homeassistant")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
+    features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "ON")
+  else
+    features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+  fi
 fi
 
 # Whiptail requires (tag item status)*. If anything corrupts the list, fall back
 # to a safe default instead of rendering a blank window.
 if [ "${#features[@]}" -lt 3 ] || [ $(( ${#features[@]} % 3 )) -ne 0 ]; then
-  features=("skills" "$SKILL_DESCRIPTION" "ON" "extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
+  features=(
+    "skills" "$SKILL_DESCRIPTION" "ON"
+    "extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF"
+    "homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF"
+  )
 fi
 
 list_height=$((${#features[@]} / 3))
@@ -73,6 +86,19 @@ for FEATURE in $OVOS_FEATURES; do
   "extra-skills")
     export FEATURE_EXTRA_SKILLS="true"
     FEATURES_STATE+=("extra-skills")
+    ;;
+  "homeassistant")
+    # Collect Home Assistant details; only enable if fully configured.
+    # shellcheck source=tui/homeassistant.sh
+    source tui/homeassistant.sh
+    if [ "${HOMEASSISTANT_BACK:-false}" == "true" ]; then
+      unset HOMEASSISTANT_BACK
+      source tui/features.sh
+      return
+    fi
+    if [ "${FEATURE_HOMEASSISTANT}" == "true" ]; then
+      FEATURES_STATE+=("homeassistant")
+    fi
     ;;
   esac
 done

@@ -161,7 +161,7 @@ function spy_value() {
     # shellcheck source=tui/features.sh
     source tui/features.sh
 
-    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value option_count)" "3"
     assert_equal "$(spy_value list_height)" "4"
 }
 
