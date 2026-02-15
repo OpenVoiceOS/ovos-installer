@@ -9,6 +9,16 @@ _ovos_virtualenv_requirements_files:
   - file: virtualenv/extra-skills-requirements.txt
     dest: "{{ ovos_virtualenv_tmp_dir }}/extra-skills-requirements.txt"
     state: "{{ ovos_installer_feature_extra_skills | bool and ovos_installer_profile != 'satellite' }}"
+  - file: virtualenv/homeassistant-requirements.txt
+    dest: "{{ ovos_virtualenv_tmp_dir }}/homeassistant-requirements.txt"
+    state: >-
+      {{ ovos_installer_feature_homeassistant | bool
+         and ovos_installer_method == 'virtualenv'
+         and ovos_installer_profile != 'satellite'
+         and ovos_installer_profile != 'server'
+         and ((ovos_installer_homeassistant_url
+               | default(ovos_installer_homeassistant_host | default(''), true)) | length > 0)
+         and (ovos_installer_homeassistant_api_key | default('') | length > 0) }}
   - file: virtualenv/listener-requirements.txt
     dest: "{{ ovos_virtualenv_tmp_dir }}/listener-requirements.txt"
     state: "{{ ovos_installer_profile == 'listener' }}"

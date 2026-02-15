@@ -137,6 +137,17 @@ if [ -f "$SCENARIO_PATH" ]; then
                             fi
                             export FEATURE_EXTRA_SKILLS
                             ;;
+                        homeassistant)
+                            if [[ "${features[$feature]}" == "true" ]]; then
+                                FEATURE_HOMEASSISTANT="true"
+                            elif [[ "${features[$feature]}" == "false" ]]; then
+                                FEATURE_HOMEASSISTANT="false"
+                            else
+                                export SCENARIO_NOT_SUPPORTED="true"
+                                break
+                            fi
+                            export FEATURE_HOMEASSISTANT
+                            ;;
                         *)
                             export SCENARIO_NOT_SUPPORTED="true"
                             ;;

@@ -114,6 +114,44 @@ if [ -t 1 ]; then
   export ANSIBLE_FORCE_COLOR=true
   export PY_COLORS=1
 fi
+
+# Pass Home Assistant token via an extra-vars file (avoids exposing secrets in the process list).
+ha_extra_vars=()
+ha_extra_vars_file=""
+trap cleanup_ha_extra_vars_file EXIT
+trap 'cleanup_ha_extra_vars_file; exit 130' INT
+trap 'cleanup_ha_extra_vars_file; exit 143' TERM
+# If `set -x` is enabled, avoid echoing secrets to the terminal/logs.
+xtrace_was_on="false"
+case "$-" in
+  *x*) xtrace_was_on="true" ;;
+esac
+if [ "$xtrace_was_on" == "true" ]; then
+  set +x
+fi
+
+if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ]; then
+
+  old_umask="$(umask)"
+  umask 077
+  if ha_extra_vars_file="$(mktemp "${TMPDIR:-/tmp}/ovos-ansible-extra-vars.XXXXXX.json" 2>>"$LOG_FILE")"; then
+    # Use env.HOMEASSISTANT_API_KEY so the token does not appear in the process args.
+    if HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}" jq -c -n --arg url "${HOMEASSISTANT_URL:-}" \
+      '{ovos_installer_homeassistant_url: $url, ovos_installer_homeassistant_host: $url, ovos_installer_homeassistant_api_key: (env.HOMEASSISTANT_API_KEY // "")}' \
+      >"$ha_extra_vars_file" 2>>"$LOG_FILE"; then
+      ha_extra_vars=(-e "@${ha_extra_vars_file}")
+    else
+      cleanup_ha_extra_vars_file
+    fi
+  fi
+  umask "$old_umask"
+
+  # The token is now on disk with restrictive permissions; don't keep it exported.
+  unset HOMEASSISTANT_API_KEY || true
+fi
+if [ "$xtrace_was_on" == "true" ]; then
+  set -x
+fi
 ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_user=${RUN_AS}" \
   -e "ovos_installer_group=$(id -ng "$RUN_AS")" \
@@ -129,6 +167,7 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_feature_gui=${FEATURE_GUI}" \
   -e "ovos_installer_feature_skills=${FEATURE_SKILLS}" \
   -e "ovos_installer_feature_extra_skills=${FEATURE_EXTRA_SKILLS}" \
+  -e "ovos_installer_feature_homeassistant=${FEATURE_HOMEASSISTANT}" \
   -e "ovos_installer_tuning=${TUNING}" \
   -e "ovos_installer_tuning_overclock=${TUNING_OVERCLOCK}" \
   -e "ovos_installer_overclock_arm_boost=${OVERCLOCK_ARM_BOOST}" \
@@ -147,12 +186,16 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_telemetry=${SHARE_TELEMETRY}" \
   -e "ovos_installer_usage_telemetry=${SHARE_USAGE_TELEMETRY}" \
   -e "ovos_installer_locale=${LOCALE:-en-us}" \
+  "${ha_extra_vars[@]}" \
   -e "$(jq -c -n '{ovos_installer_i2c_devices: $ARGS.positional}' --args "${DETECTED_DEVICES[@]}")" \
   -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \
   "${ansible_tags[@]}" "${ansible_debug[@]}" 2>&1 | tee -a "$LOG_FILE"
 
 # Retrieve the ansible-playbook status code from the pipeline and check for success or failure
-if [ "${PIPESTATUS[0]}" -eq 0 ]; then
+ansible_rc="${PIPESTATUS[0]}"
+cleanup_ha_extra_vars_file
+
+if [ "$ansible_rc" -eq 0 ]; then
   if [ "$CONFIRM_UNINSTALL" == "false" ] || [ -z "$CONFIRM_UNINSTALL" ]; then
     if [ "$SCENARIO_FOUND" == "false" ]; then
       # shellcheck source=tui/finish.sh
