@@ -134,6 +134,10 @@ ovos_containers_repo_directories:
   - "{{ ovos_containers_working_directory }}/{{ ovos_containers_repo_dest_hivemind }}"
 ovos_containers_container_hivemind_cli: hivemind_cli
 ovos_containers_container_ovos_cli: ovos_cli
+# Service and container names from ovos-docker's docker-compose.skills-extra.yml.
+# Keep them overridable in case upstream changes.
+ovos_containers_service_skill_homeassistant: ovos_skill_homeassistant
+ovos_containers_container_skill_homeassistant: ovos_skill_homeassistant
 ovos_containers_listener_port_default: 5678
 ovos_containers_site_id_default: voice-sat-1
 ovos_containers_hivemind_user: hivemind

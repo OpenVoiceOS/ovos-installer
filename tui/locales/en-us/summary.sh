@@ -3,10 +3,10 @@ HOMEASSISTANT_SUMMARY_STATE="disabled"
 if [ "${FEATURE_HOMEASSISTANT:-false}" == "true" ]; then
     if [ "${PROFILE:-}" == "server" ] || [ "${PROFILE:-}" == "satellite" ]; then
         HOMEASSISTANT_SUMMARY_STATE="selected (not supported for this profile)"
-    elif [ -n "${HOMEASSISTANT_URL:-}" ] && [ -n "${HOMEASSISTANT_API_KEY:-}" ]; then
+    elif [ -n "${HOMEASSISTANT_URL:-}" ]; then
         HOMEASSISTANT_SUMMARY_STATE="enabled"
     else
-        HOMEASSISTANT_SUMMARY_STATE="selected (missing URL/token; will be skipped)"
+        HOMEASSISTANT_SUMMARY_STATE="selected (missing URL; will be skipped)"
     fi
 fi
 

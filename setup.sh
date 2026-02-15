@@ -121,15 +121,16 @@ ha_extra_vars_file=""
 trap cleanup_ha_extra_vars_file EXIT
 trap 'cleanup_ha_extra_vars_file; exit 130' INT
 trap 'cleanup_ha_extra_vars_file; exit 143' TERM
+# If `set -x` is enabled, avoid echoing secrets to the terminal/logs.
+xtrace_was_on="false"
+case "$-" in
+  *x*) xtrace_was_on="true" ;;
+esac
+if [ "$xtrace_was_on" == "true" ]; then
+  set +x
+fi
+
 if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ]; then
-  # If `set -x` is enabled, avoid echoing secrets to the terminal/logs.
-  xtrace_was_on="false"
-  case "$-" in
-    *x*) xtrace_was_on="true" ;;
-  esac
-  if [ "$xtrace_was_on" == "true" ]; then
-    set +x
-  fi
 
   old_umask="$(umask)"
   umask 077
@@ -147,10 +148,9 @@ if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ]; then
 
   # The token is now on disk with restrictive permissions; don't keep it exported.
   unset HOMEASSISTANT_API_KEY || true
-
-  if [ "$xtrace_was_on" == "true" ]; then
-    set -x
-  fi
+fi
+if [ "$xtrace_was_on" == "true" ]; then
+  set -x
 fi
 ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_user=${RUN_AS}" \

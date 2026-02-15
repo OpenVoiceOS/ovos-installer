@@ -7,7 +7,6 @@ export FEATURE_EXTRA_SKILLS="false"
 export FEATURE_GUI="false"
 export FEATURE_HOMEASSISTANT="false"
 export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
-HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}"
 
 _ha_supported="false"
 if [[ "${METHOD:-virtualenv}" == "virtualenv" || "${METHOD:-virtualenv}" == "containers" ]] && \
