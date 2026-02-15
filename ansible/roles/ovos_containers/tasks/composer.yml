@@ -15,44 +15,14 @@
   tags:
     - always
 
-- name: Generate Home Assistant docker-compose fragment (when enabled)
-  vars:
-    _ovos_homeassistant_url: >-
-      {{
-        ovos_installer_homeassistant_url
-        | default(ovos_installer_homeassistant_host | default(''), true)
-      }}
-  ansible.builtin.template:
-    src: docker/docker-compose.skills-homeassistant.yml.j2
-    dest: "{{ ovos_containers_composition_directory }}/{{ ovos_containers_compose_file_skills_homeassistant }}"
-    owner: root
-    group: root
-    mode: "0644"
-  when:
-    - not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
-    - ovos_installer_profile not in ["satellite", "server"]
-    - ovos_installer_feature_homeassistant | default(false) | bool
-    - (_ovos_homeassistant_url | length) > 0
-    - (ovos_installer_homeassistant_api_key | default('') | length) > 0
-  tags:
-    - always
-
-- name: Disable Home Assistant in extra skills compose (managed separately)
-  ansible.builtin.replace:
-    path: "{{ ovos_containers_composition_directory }}/{{ ovos_containers_compose_file_skills_extra }}"
-    regexp: "(?m)^  ovos_skill_homeassistant:\\n(?:^    .*\\n?)*"
-    replace: ""
-  when:
-    - not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
-    - ovos_installer_feature_extra_skills | default(false) | bool
-  tags:
-    - always
-
 - name: Define composition
   ansible.builtin.set_fact:
     ovos_containers_composition_files: "{{ ovos_containers_composition_files | default([]) + [item.file] }}"
   loop: "{{ ovos_containers_compose_definitions }}"
-  when: item.state | bool
+  when:
+    - item.state | bool
+    # Manage skills-extra separately (so Home Assistant can be enabled independently).
+    - item.file != ovos_containers_compose_file_skills_extra
 
 - name: Deploy docker-compose stack
   become: true
@@ -93,6 +63,170 @@
     container: "{{ ovos_containers_container_ovos_cli }}"
     command: ovos-config autoconfigure --lang {{ ovos_installer_locale }} --male --online
   when: ovos_installer_profile != "server"
+
+- name: Read services from skills-extra docker-compose file (when needed)
+  vars:
+    _ovos_homeassistant_url: >-
+      {{
+        ovos_installer_homeassistant_url
+        | default(ovos_installer_homeassistant_host | default(''), true)
+      }}
+    _ovos_ha_enabled: >-
+      {{
+        not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+        and ovos_installer_profile not in ['satellite', 'server']
+        and (ovos_installer_feature_homeassistant | default(false) | bool)
+        and (_ovos_homeassistant_url | length > 0)
+        and ((ovos_installer_homeassistant_api_key | default('')) | length > 0)
+      }}
+    _ovos_extra_skills_enabled: >-
+      {{
+        not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+        and ovos_installer_profile not in ['satellite', 'server']
+        and (ovos_installer_feature_extra_skills | default(false) | bool)
+      }}
+  ansible.builtin.slurp:
+    src: "{{ ovos_containers_composition_directory }}/{{ ovos_containers_compose_file_skills_extra }}"
+  register: ovos_containers_skills_extra_compose_raw
+  changed_when: false
+  when:
+    - _ovos_ha_enabled or _ovos_extra_skills_enabled
+
+- name: Parse skills-extra docker-compose services
+  ansible.builtin.set_fact:
+    ovos_containers_skills_extra_services: >-
+      {{
+        (
+          (ovos_containers_skills_extra_compose_raw.content | b64decode | from_yaml).services
+          | default({})
+          | dict2items
+          | map(attribute='key')
+          | list
+        )
+      }}
+  when: ovos_containers_skills_extra_compose_raw is defined
+
+- name: Deploy extra skills containers (without Home Assistant unless configured)
+  vars:
+    _ovos_homeassistant_url: >-
+      {{
+        ovos_installer_homeassistant_url
+        | default(ovos_installer_homeassistant_host | default(''), true)
+      }}
+    _ovos_ha_enabled: >-
+      {{
+        not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+        and ovos_installer_profile not in ['satellite', 'server']
+        and (ovos_installer_feature_homeassistant | default(false) | bool)
+        and (_ovos_homeassistant_url | length > 0)
+        and ((ovos_installer_homeassistant_api_key | default('')) | length > 0)
+      }}
+    _ovos_extra_skills_enabled: >-
+      {{
+        not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+        and ovos_installer_profile not in ['satellite', 'server']
+        and (ovos_installer_feature_extra_skills | default(false) | bool)
+      }}
+    _services_all: "{{ ovos_containers_skills_extra_services | default([]) }}"
+    _services_selected: >-
+      {{
+        _services_all
+        if _ovos_ha_enabled
+        else (_services_all | reject('equalto', 'ovos_skill_homeassistant') | list)
+      }}
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ ovos_containers_composition_directory }}"
+    project_name: "{{ ovos_containers_compose_project_name }}"
+    files: "{{ ovos_containers_composition_files + [ovos_containers_compose_file_skills_extra] }}"
+    pull: "{{ ovos_containers_docker_pull_policy }}"
+    remove_orphans: "{{ ovos_containers_docker_compose_remove_orphans }}"
+    remove_images: "{{ ovos_containers_docker_compose_remove_images }}"
+    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
+    services: "{{ _services_selected }}"
+  register: ovos_containers_docker_compose_extra_skills
+  until: not ovos_containers_docker_compose_extra_skills.failed | bool
+  retries: 5
+  delay: 3
+  environment:
+    DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
+  when:
+    - _ovos_extra_skills_enabled
+    - _services_selected | length > 0
+
+- name: Deploy Home Assistant skill container (when enabled without extra skills)
+  vars:
+    _ovos_homeassistant_url: >-
+      {{
+        ovos_installer_homeassistant_url
+        | default(ovos_installer_homeassistant_host | default(''), true)
+      }}
+    _ovos_ha_enabled: >-
+      {{
+        not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+        and ovos_installer_profile not in ['satellite', 'server']
+        and (ovos_installer_feature_homeassistant | default(false) | bool)
+        and (_ovos_homeassistant_url | length > 0)
+        and ((ovos_installer_homeassistant_api_key | default('')) | length > 0)
+      }}
+    _ovos_extra_skills_enabled: >-
+      {{
+        not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+        and ovos_installer_profile not in ['satellite', 'server']
+        and (ovos_installer_feature_extra_skills | default(false) | bool)
+      }}
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ ovos_containers_composition_directory }}"
+    project_name: "{{ ovos_containers_compose_project_name }}"
+    files: "{{ ovos_containers_composition_files + [ovos_containers_compose_file_skills_extra] }}"
+    pull: "{{ ovos_containers_docker_pull_policy }}"
+    remove_orphans: "{{ ovos_containers_docker_compose_remove_orphans }}"
+    remove_images: "{{ ovos_containers_docker_compose_remove_images }}"
+    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
+    services:
+      - ovos_skill_homeassistant
+  register: ovos_containers_docker_compose_homeassistant
+  until: not ovos_containers_docker_compose_homeassistant.failed | bool
+  retries: 5
+  delay: 3
+  environment:
+    DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
+  when:
+    - _ovos_ha_enabled
+    - not _ovos_extra_skills_enabled
+
+- name: Remove Home Assistant skill container when not configured (extra skills selected)
+  vars:
+    _ovos_homeassistant_url: >-
+      {{
+        ovos_installer_homeassistant_url
+        | default(ovos_installer_homeassistant_host | default(''), true)
+      }}
+    _ovos_ha_enabled: >-
+      {{
+        not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+        and ovos_installer_profile not in ['satellite', 'server']
+        and (ovos_installer_feature_homeassistant | default(false) | bool)
+        and (_ovos_homeassistant_url | length > 0)
+        and ((ovos_installer_homeassistant_api_key | default('')) | length > 0)
+      }}
+    _ovos_extra_skills_enabled: >-
+      {{
+        not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+        and ovos_installer_profile not in ['satellite', 'server']
+        and (ovos_installer_feature_extra_skills | default(false) | bool)
+      }}
+  become: true
+  community.docker.docker_container:
+    name: ovos_skill_homeassistant
+    state: absent
+    force_kill: true
+  when:
+    - _ovos_extra_skills_enabled
+    - not _ovos_ha_enabled
 
 - name: Delete composer directories
   ansible.builtin.file:
