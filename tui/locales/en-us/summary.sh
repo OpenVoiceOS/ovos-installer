@@ -18,7 +18,7 @@ You are almost done, here is a summary of choices you made to install Open Voice
     - Profile:  $PROFILE
     - Skills:   $FEATURE_SKILLS
     - Extra:    $FEATURE_EXTRA_SKILLS
-    - Home Assistant: $HOMEASSISTANT_SUMMARY_STATE
+    - HA:       $HOMEASSISTANT_SUMMARY_STATE
     - Tuning:   $TUNING
 
 The choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.
