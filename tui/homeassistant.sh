@@ -92,7 +92,10 @@ while :; do
     fi
   fi
   HOMEASSISTANT_URL="${proto}://${authority}${path}"
+  break
+done
 
+while :; do
   HOMEASSISTANT_API_KEY=$(whiptail --passwordbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
     --title "$TITLE_TOKEN" "$CONTENT_TOKEN" 25 80 3>&1 1>&2 2>&3)
 

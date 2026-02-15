@@ -8,6 +8,13 @@ To enable it now, you will need:
   - Your Home Assistant URL (example: http://homeassistant.local:8123)
   - A Home Assistant Long-Lived Access Token
 
+How to create a Long-Lived Access Token in Home Assistant:
+  1) Open your Home Assistant web UI
+  2) Click your user/profile (your name) in the sidebar
+  3) Go to Security
+  4) Under 'Long-Lived Access Tokens', click 'Create Token'
+  5) Copy the token and paste it here
+
 Do you have these details now?
 "
 
@@ -21,7 +28,10 @@ Example: http://homeassistant.local:8123
 
 TITLE_TOKEN="Open Voice OS Installation - Home Assistant Token"
 CONTENT_TOKEN="
-Please paste a Home Assistant Long-Lived Access Token:
+Please paste a Home Assistant Long-Lived Access Token.
+
+Create one in Home Assistant:
+  Profile (your name) -> Security -> Long-Lived Access Tokens -> Create Token
 "
 
 TITLE_INVALID="Open Voice OS Installation - Home Assistant"
@@ -35,7 +45,7 @@ Example: http://homeassistant.local:8123
 CONTENT_MISSING_INFO="
 Missing information.
 
-Home Assistant integration will be skipped.
+Please provide the required value to enable Home Assistant integration.
 "
 
 export \
