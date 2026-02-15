@@ -23,18 +23,28 @@
         | default(ovos_installer_homeassistant_host | default(''), true)
       }}
   ansible.builtin.template:
-    src: docker/docker-compose.homeassistant.yml.j2
-    dest: "{{ ovos_containers_composition_directory }}/{{ ovos_containers_compose_file_homeassistant }}"
+    src: docker/docker-compose.skills-homeassistant.yml.j2
+    dest: "{{ ovos_containers_composition_directory }}/{{ ovos_containers_compose_file_skills_homeassistant }}"
     owner: root
     group: root
     mode: "0644"
   when:
-    - ovos_installer_method == "containers"
+    - not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
     - ovos_installer_profile not in ["satellite", "server"]
     - ovos_installer_feature_homeassistant | default(false) | bool
-    - not (ovos_installer_feature_extra_skills | default(false) | bool)
     - (_ovos_homeassistant_url | length) > 0
     - (ovos_installer_homeassistant_api_key | default('') | length) > 0
+  tags:
+    - always
+
+- name: Disable Home Assistant in extra skills compose (managed separately)
+  ansible.builtin.replace:
+    path: "{{ ovos_containers_composition_directory }}/{{ ovos_containers_compose_file_skills_extra }}"
+    regexp: "(?m)^  ovos_skill_homeassistant:\\n(?:^    .*\\n?)*"
+    replace: ""
+  when:
+    - not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
+    - ovos_installer_feature_extra_skills | default(false) | bool
   tags:
     - always
 

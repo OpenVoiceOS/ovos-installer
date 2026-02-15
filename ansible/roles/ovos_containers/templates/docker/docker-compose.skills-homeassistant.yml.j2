@@ -23,22 +23,25 @@ x-skill-resource-limits: &skill-resource-limits
       reservations:
         memory: 64M
 
+x-skill-base: &skill-base
+  <<: [*podman, *skill-resource-limits]
+  restart: unless-stopped
+  logging: *default-logging
+  pull_policy: ${PULL_POLICY:-always}
+  environment:
+    <<: *common-environment
+  network_mode: host
+  volumes:
+    - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
+    - ${TMP_FOLDER}:/tmp/mycroft
+  depends_on:
+    ovos_core:
+      condition: service_started
+
 services:
   ovos_skill_homeassistant:
-    <<: [*podman, *skill-resource-limits]
+    <<: *skill-base
     container_name: ovos_skill_homeassistant
     hostname: ovos_skill_homeassistant
-    restart: unless-stopped
     image: docker.io/smartgic/ovos-skill-homeassistant:${VERSION}
-    logging: *default-logging
-    pull_policy: ${PULL_POLICY:-always}
-    environment:
-      <<: *common-environment
-    network_mode: host
-    volumes:
-      - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
-      - ${TMP_FOLDER}:/tmp/mycroft
-    depends_on:
-      ovos_core:
-        condition: service_started
 

@@ -81,7 +81,7 @@ ovos_containers_compose_file_windows: docker-compose.windows.yml
 ovos_containers_compose_file_raspberrypi: docker-compose.raspberrypi.yml
 ovos_containers_compose_file_skills: docker-compose.skills.yml
 ovos_containers_compose_file_skills_extra: docker-compose.skills-extra.yml
-ovos_containers_compose_file_homeassistant: docker-compose.homeassistant.yml
+ovos_containers_compose_file_skills_homeassistant: docker-compose.skills-homeassistant.yml
 ovos_containers_compose_file_hivemind: docker-compose.hivemind.yml
 ovos_containers_compose_file_satellite: docker-compose.satellite.yml
 ovos_containers_compose_file_server: docker-compose.server.yml
@@ -100,13 +100,12 @@ ovos_containers_compose_definitions:
     state: >-
       {{ not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
          and ovos_installer_feature_extra_skills | bool }}
-  - file: "{{ ovos_containers_compose_file_homeassistant }}"
+  - file: "{{ ovos_containers_compose_file_skills_homeassistant }}"
     state: >-
-      {{ ovos_installer_method == 'containers'
+      {{ not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
          and ovos_installer_profile != 'satellite'
          and ovos_installer_profile != 'server'
          and ovos_installer_feature_homeassistant | bool
-         and not (ovos_installer_feature_extra_skills | bool)
          and ((ovos_installer_homeassistant_url
                | default(ovos_installer_homeassistant_host | default(''), true)) | length > 0)
          and (ovos_installer_homeassistant_api_key | default('') | length > 0) }}
@@ -125,6 +124,8 @@ ovos_containers_uninstall_compose_mapping:
     file: "{{ ovos_containers_compose_file_skills }}"
   - name: ovos
     file: "{{ ovos_containers_compose_file_skills_extra }}"
+  - name: ovos
+    file: "{{ ovos_containers_compose_file_skills_homeassistant }}"
   - name: ovos
     file: "{{ ovos_containers_compose_file_hivemind }}"
   - name: ovos
