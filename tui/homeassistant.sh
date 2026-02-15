@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # shellcheck source=tui/locales/en-us/homeassistant.sh
-source "tui/locales/$LOCALE/homeassistant.sh"
+_homeassistant_locale_file="tui/locales/$LOCALE/homeassistant.sh"
+if [ -f "$_homeassistant_locale_file" ]; then
+  source "$_homeassistant_locale_file"
+else
+  # Fallback for locales that don't have this file yet.
+  source "tui/locales/en-us/homeassistant.sh"
+fi
 
 # Safe defaults for strict mode
 export FEATURE_HOMEASSISTANT="false"
@@ -65,6 +71,27 @@ while :; do
     fi
     HOMEASSISTANT_URL="http://${HOMEASSISTANT_URL}"
   fi
+
+  # Home Assistant defaults to port 8123. If the user doesn't specify a port,
+  # add it so "homeassistant.local" works out of the box.
+  proto="${HOMEASSISTANT_URL%%://*}"
+  rest="${HOMEASSISTANT_URL#*://}"
+  authority="${rest%%/*}"
+  if [[ "$rest" == */* ]]; then
+    path="/${rest#*/}"
+  else
+    path=""
+  fi
+  if [[ "$authority" == \[* ]]; then
+    if [[ ! "$authority" =~ \\]:[0-9]+$ ]]; then
+      authority="${authority}:8123"
+    fi
+  else
+    if [[ ! "$authority" =~ :[0-9]+$ ]]; then
+      authority="${authority}:8123"
+    fi
+  fi
+  HOMEASSISTANT_URL="${proto}://${authority}${path}"
 
   HOMEASSISTANT_API_KEY=$(whiptail --passwordbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
     --title "$TITLE_TOKEN" "$CONTENT_TOKEN" 25 80 3>&1 1>&2 2>&3)

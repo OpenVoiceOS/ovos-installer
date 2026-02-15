@@ -13,7 +13,10 @@ Do you have these details now?
 
 TITLE_URL="Open Voice OS Installation - Home Assistant URL"
 CONTENT_URL="
-Please enter your Home Assistant URL (example: http://homeassistant.local:8123):
+Please enter your Home Assistant URL.
+
+If you omit the port, 8123 will be used.
+Example: http://homeassistant.local:8123
 "
 
 TITLE_TOKEN="Open Voice OS Installation - Home Assistant Token"
@@ -41,4 +44,3 @@ export \
   TITLE_TOKEN CONTENT_TOKEN \
   TITLE_INVALID CONTENT_INVALID_URL \
   CONTENT_MISSING_INFO
-
