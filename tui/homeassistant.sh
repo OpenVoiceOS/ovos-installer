@@ -120,14 +120,22 @@ export FEATURE_HOMEASSISTANT="true"
 
 # Persist URL (non-secret) for defaults when navigating back or re-running.
 state_tmp="$(mktemp)"
-if [ -f "$INSTALLER_STATE_FILE" ] && \
-  jq --arg url "$HOMEASSISTANT_URL" \
+if [ -f "$INSTALLER_STATE_FILE" ]; then
+  if jq --arg url "$HOMEASSISTANT_URL" \
     'if type=="object" then . else {} end | .homeassistant = ((.homeassistant // {}) + {url: $url})' \
     "$INSTALLER_STATE_FILE" >"$state_tmp" 2>>"$LOG_FILE"; then
-  mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
-else
-  jq -n --arg url "$HOMEASSISTANT_URL" '{homeassistant: {url: $url}}' >"$state_tmp" 2>>"$LOG_FILE" && \
     mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+  else
+    # Avoid clobbering existing state if the JSON is corrupt.
+    printf '%s\n' "[warn] homeassistant: invalid state file; skipping persistence: $INSTALLER_STATE_FILE" >>"$LOG_FILE" 2>/dev/null || true
+    rm -f "$state_tmp"
+  fi
+else
+  if jq -n --arg url "$HOMEASSISTANT_URL" '{homeassistant: {url: $url}}' >"$state_tmp" 2>>"$LOG_FILE"; then
+    mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+  else
+    rm -f "$state_tmp"
+  fi
 fi
 
 # Keep state writable by the target user when running under sudo/root.
