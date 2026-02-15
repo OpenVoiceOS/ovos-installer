@@ -15,6 +15,29 @@
   tags:
     - always
 
+- name: Generate Home Assistant docker-compose fragment (when enabled)
+  vars:
+    _ovos_homeassistant_url: >-
+      {{
+        ovos_installer_homeassistant_url
+        | default(ovos_installer_homeassistant_host | default(''), true)
+      }}
+  ansible.builtin.template:
+    src: docker/docker-compose.homeassistant.yml.j2
+    dest: "{{ ovos_containers_composition_directory }}/{{ ovos_containers_compose_file_homeassistant }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when:
+    - ovos_installer_method == "containers"
+    - ovos_installer_profile not in ["satellite", "server"]
+    - ovos_installer_feature_homeassistant | default(false) | bool
+    - not (ovos_installer_feature_extra_skills | default(false) | bool)
+    - (_ovos_homeassistant_url | length) > 0
+    - (ovos_installer_homeassistant_api_key | default('') | length) > 0
+  tags:
+    - always
+
 - name: Define composition
   ansible.builtin.set_fact:
     ovos_containers_composition_files: "{{ ovos_containers_composition_files | default([]) + [item.file] }}"

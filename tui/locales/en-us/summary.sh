@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 HOMEASSISTANT_SUMMARY_STATE="disabled"
 if [ "${FEATURE_HOMEASSISTANT:-false}" == "true" ]; then
-    if [ "${METHOD:-virtualenv}" != "virtualenv" ]; then
-        HOMEASSISTANT_SUMMARY_STATE="selected (not supported for this method)"
-    elif [ "${PROFILE:-}" == "server" ] || [ "${PROFILE:-}" == "satellite" ]; then
+    if [ "${PROFILE:-}" == "server" ] || [ "${PROFILE:-}" == "satellite" ]; then
         HOMEASSISTANT_SUMMARY_STATE="selected (not supported for this profile)"
     elif [ -n "${HOMEASSISTANT_URL:-}" ] && [ -n "${HOMEASSISTANT_API_KEY:-}" ]; then
         HOMEASSISTANT_SUMMARY_STATE="enabled"

@@ -10,7 +10,7 @@ export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
 HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}"
 
 _ha_supported="false"
-if [[ "${METHOD:-virtualenv}" == "virtualenv" ]] && \
+if [[ "${METHOD:-virtualenv}" == "virtualenv" || "${METHOD:-virtualenv}" == "containers" ]] && \
   [[ "${PROFILE:-}" != "server" ]] && \
   [[ "${PROFILE:-}" != "satellite" ]]; then
   _ha_supported="true"

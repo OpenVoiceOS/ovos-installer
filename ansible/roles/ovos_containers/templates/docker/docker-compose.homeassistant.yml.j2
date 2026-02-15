@@ -1,0 +1,44 @@
+---
+x-podman: &podman
+  userns_mode: keep-id
+  security_opt:
+    - "label=disable"
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    mode: non-blocking
+    max-buffer-size: 4m
+    max-size: "200m"
+    max-file: "1"
+
+x-common-environment: &common-environment
+  TZ: ${TZ:-UTC}
+
+x-skill-resource-limits: &skill-resource-limits
+  deploy:
+    resources:
+      limits:
+        memory: 256M
+      reservations:
+        memory: 64M
+
+services:
+  ovos_skill_homeassistant:
+    <<: [*podman, *skill-resource-limits]
+    container_name: ovos_skill_homeassistant
+    hostname: ovos_skill_homeassistant
+    restart: unless-stopped
+    image: docker.io/smartgic/ovos-skill-homeassistant:${VERSION}
+    logging: *default-logging
+    pull_policy: ${PULL_POLICY:-always}
+    environment:
+      <<: *common-environment
+    network_mode: host
+    volumes:
+      - ${OVOS_CONFIG_FOLDER}:/home/${OVOS_USER}/.config/mycroft
+      - ${TMP_FOLDER}:/tmp/mycroft
+    depends_on:
+      ovos_core:
+        condition: service_started
+

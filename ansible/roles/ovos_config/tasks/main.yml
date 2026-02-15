@@ -100,7 +100,7 @@
       }}
   when:
     - ovos_installer_feature_homeassistant | default(false) | bool
-    - ovos_installer_method == "virtualenv"
+    - ovos_installer_method in ["virtualenv", "containers"]
     - ovos_installer_profile not in ['satellite', 'server']
     - (_ovos_homeassistant_url | length) > 0
     - (ovos_installer_homeassistant_api_key | default('') | length) > 0

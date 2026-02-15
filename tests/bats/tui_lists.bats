@@ -165,7 +165,7 @@ function spy_value() {
     assert_equal "$(spy_value list_height)" "4"
 }
 
-@test "features: hides Home Assistant option for containers installs" {
+@test "features: shows Home Assistant option for containers installs" {
     printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"]}' >"$INSTALLER_STATE_FILE"
     PROFILE="ovos"
     METHOD="containers"
@@ -174,12 +174,12 @@ function spy_value() {
     # shellcheck source=tui/features.sh
     source tui/features.sh
 
-    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value option_count)" "3"
     assert_equal "$(spy_value list_height)" "4"
 
     tags="$(spy_value tags)"
-    if [[ "$tags" == *homeassistant* ]]; then
-        echo "unexpected tag list: $tags" >&2
+    if [[ "$tags" != *homeassistant* ]]; then
+        echo "expected homeassistant in tag list: $tags" >&2
         return 1
     fi
 }
