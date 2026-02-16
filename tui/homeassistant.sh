@@ -61,9 +61,12 @@ fi
 # (useful when re-running the installer).
 ha_settings_file=""
 case "${METHOD:-virtualenv}" in
-  containers) ha_settings_file="${RUN_AS_HOME:-$HOME}/ovos/config/skills/skill-homeassistant/settings.json" ;;
-  virtualenv) ha_settings_file="${RUN_AS_HOME:-$HOME}/.config/mycroft/skills/skill-homeassistant/settings.json" ;;
-  *) ha_settings_file="${RUN_AS_HOME:-$HOME}/.config/mycroft/skills/skill-homeassistant/settings.json" ;;
+  containers)
+    ha_settings_file="${RUN_AS_HOME:-$HOME}/ovos/config/skills/skill_homeassistant.oscillatelabsllc/settings.json"
+    ;;
+  virtualenv | *)
+    ha_settings_file="${RUN_AS_HOME:-$HOME}/.config/mycroft/skills/skill_homeassistant.oscillatelabsllc/settings.json"
+    ;;
 esac
 
 ha_existing_url=""
