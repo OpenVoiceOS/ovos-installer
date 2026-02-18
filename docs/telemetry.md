@@ -19,9 +19,9 @@ Below is a list of the collected data _(see the [Ansible task](https://github.co
 | `cpu_capable`          | Is the CPU supports AVX2 or SIMD instructions            |
 | `display_server`       | Is X or Wayland are used as display server               |
 | `extra_skills_feature` | Extra OVOS's skills enabled during the installation      |
-| `homeassistant_feature` | Home Assistant feature enabled during the installation     |
 | `gui_feature`          | GUI enabled during the installation                      |
 | `hardware`             | Is the device a Mark 1, Mark II or DevKit                |
+| `homeassistant_feature` | Home Assistant feature enabled during the installation    |
 | `installed_at`         | Date when OVOS has been installed                        |
 | `os_kernel`            | Kernel version of the host where OVOS is running         |
 | `os_name`              | OS name of the host where OVOS is running                |
