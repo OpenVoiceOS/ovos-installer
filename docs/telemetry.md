@@ -8,7 +8,7 @@ The data collection only happens during the installation process, nothing else w
 
 **The installer will ask you if you want to share or not the data.**
 
-Below is a list of the collected data _(please have a look to the [Ansible template](https://github.com/OpenVoiceOS/ovos-installer/blob/main/ansible/roles/ovos_telemetry/templates/telemetry.json.j2) used to publish the data)_.
+Below is a list of the collected data _(see the [Ansible task](https://github.com/OpenVoiceOS/ovos-installer/blob/main/ansible/roles/ovos_telemetry/tasks/main.yml) that builds and sends the telemetry payload)_.
 
 | Data                   | Description                                              |
 | ---------------------- | -------------------------------------------------------- |
@@ -21,6 +21,7 @@ Below is a list of the collected data _(please have a look to the [Ansible templ
 | `extra_skills_feature` | Extra OVOS's skills enabled during the installation      |
 | `gui_feature`          | GUI enabled during the installation                      |
 | `hardware`             | Is the device a Mark 1, Mark II or DevKit                |
+| `homeassistant_feature` | Home Assistant feature enabled during the installation    |
 | `installed_at`         | Date when OVOS has been installed                        |
 | `os_kernel`            | Kernel version of the host where OVOS is running         |
 | `os_name`              | OS name of the host where OVOS is running                |
@@ -33,3 +34,5 @@ Below is a list of the collected data _(please have a look to the [Ansible templ
 | `sound_server`         | What PulseAudio or PipeWire used                         |
 | `tuning_enabled`       | Did the Raspberry Pi tuning feature was used             |
 | `venv`                 | OVOS installed into a Python virtual environment         |
+
+No Home Assistant URL or API key values are collected, only whether the Home Assistant feature was enabled.

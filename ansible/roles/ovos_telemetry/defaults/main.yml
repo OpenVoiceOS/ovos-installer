@@ -1,5 +1,6 @@
 ---
 ovos_telemetry_feature_gui: "{{ ovos_installer_feature_gui | default(false) }}"
+ovos_telemetry_feature_homeassistant: "{{ ovos_installer_feature_homeassistant | default(false) }}"
 
 ovos_telemetry_geoip_url: http://ip-api.com/json
 ovos_telemetry_url: "https://telemetry.smartgic.io/ovos-installer/metrics/"

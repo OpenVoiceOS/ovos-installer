@@ -54,6 +54,7 @@
                else (ovos_installer_raspberrypi | default('N/A')) }}
           skills_feature: "{{ ovos_installer_feature_skills | default(false) | bool }}"
           extra_skills_feature: "{{ ovos_installer_feature_extra_skills | default(false) | bool }}"
+          homeassistant_feature: "{{ ovos_telemetry_feature_homeassistant | default(false) | bool }}"
           gui_feature: "{{ ovos_telemetry_feature_gui | default(false) | bool }}"
           cpu_capable: "{{ ovos_installer_cpu_is_capable | default(false) | bool }}"
           tuning_enabled: "{{ (ovos_installer_tuning | default('no')) == 'yes' }}"
