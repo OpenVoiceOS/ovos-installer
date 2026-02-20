@@ -423,6 +423,17 @@ function setup() {
     assert_failure
 }
 
+@test "macos_scenario_smoke_runs_on_intel_and_arm" {
+    run bash -c 'grep -A14 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q "runs-on: \${{ matrix.runner }}"'
+    assert_success
+
+    run bash -c 'grep -A14 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q -- "- macos-15-intel"'
+    assert_success
+
+    run bash -c 'grep -A14 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q -- "- macos-14"'
+    assert_success
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
     if [ -n "$DETECT_SOUND_BACKUP" ]; then
