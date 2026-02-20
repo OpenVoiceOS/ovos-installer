@@ -1,6 +1,7 @@
 import sys
 import os
 import subprocess
+import platform
 
 def get_process_names():
     """Return a set of running process names."""
@@ -20,6 +21,10 @@ def get_process_names():
 
 def detect_sound_server():
     """Detect the active sound server."""
+    if platform.system() == "Darwin":
+        # macOS uses CoreAudio as the native audio stack.
+        return "CoreAudio"
+
     processes = get_process_names()
 
     # Check for PipeWire

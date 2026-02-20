@@ -66,6 +66,23 @@ function setup() {
     unset python3
 }
 
+@test "function_detect_sound_coreaudio" {
+    function python3() {
+        if [[ "$1" == *"detect_sound.py"* ]]; then
+             echo "CoreAudio"
+        fi
+    }
+    export -f python3
+
+    touch "utils/detect_sound.py"
+
+    detect_sound
+    assert_equal "$SOUND_SERVER" "CoreAudio"
+
+    rm -f "utils/detect_sound.py"
+    unset python3
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
     if [ -n "$DETECT_SOUND_BACKUP" ]; then

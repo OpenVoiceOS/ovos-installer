@@ -120,6 +120,37 @@ EOF
     unset -f uname sw_vers
 }
 
+@test "function_detect_hardware_model_macos" {
+    function uname() {
+        case "$1" in
+        -s) echo "Darwin" ;;
+        *) echo "Darwin" ;;
+        esac
+    }
+    function sysctl() {
+        if [ "$1" == "-n" ] && [ "$2" == "hw.model" ]; then
+            echo "Mac14,7"
+        fi
+    }
+    export -f uname sysctl
+    detect_hardware_model
+    assert_equal "$HARDWARE_MODEL" "Mac14,7"
+    unset -f uname sysctl
+}
+
+@test "function_detect_hardware_model_non_macos" {
+    function uname() {
+        case "$1" in
+        -s) echo "Linux" ;;
+        *) echo "Linux" ;;
+        esac
+    }
+    export -f uname
+    detect_hardware_model
+    assert_equal "$HARDWARE_MODEL" "N/A"
+    unset -f uname
+}
+
 @test "function_wsl2_requirements_valid" {
     KERNEL="5.15.133.1-microsoft-standard-wsl2"
     run wsl2_requirements

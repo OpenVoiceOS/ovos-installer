@@ -218,6 +218,41 @@ function setup() {
     assert_failure
 }
 
+@test "telemetry_uses_installer_detected_sound_fallback" {
+    run grep -q "ovos_installer_sound_server" ansible/roles/ovos_telemetry/tasks/main.yml
+    assert_success
+
+    run grep -q "sound_server: \"{{ _telemetry_sound_server }}\"" ansible/roles/ovos_telemetry/tasks/main.yml
+    assert_success
+
+    run grep -q "display_server: \"{{ ovos_installer_display_server | default('unknown') | lower }}\"" ansible/roles/ovos_telemetry/tasks/main.yml
+    assert_success
+}
+
+@test "installer_detects_and_passes_hardware_model" {
+    run grep -q "detect_hardware_model" setup.sh
+    assert_success
+
+    run grep -q "ovos_installer_hardware='\\\${HARDWARE_MODEL}'" setup.sh
+    assert_success
+}
+
+@test "tui_hardware_falls_back_to_detected_model" {
+    run rg -F 'if [ "$HARDWARE_DETECTED" == "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then' tui/detection.sh
+    assert_success
+}
+
+@test "telemetry_uses_existing_hardware_field_with_installer_fallback" {
+    run grep -q "ovos_installer_hardware" ansible/roles/ovos_telemetry/tasks/main.yml
+    assert_success
+
+    run grep -q "hardware_model:" ansible/roles/ovos_telemetry/tasks/main.yml
+    assert_failure
+
+    run grep -q "{%- set installer_hw = ovos_installer_hardware | default('n/a', true) | string | trim -%}" ansible/roles/ovos_telemetry/tasks/main.yml
+    assert_success
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
     if [ -n "$DETECT_SOUND_BACKUP" ]; then

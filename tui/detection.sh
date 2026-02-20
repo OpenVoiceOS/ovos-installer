@@ -14,6 +14,10 @@ for device in "${DETECTED_DEVICES[@]}"; do
         ;;
     esac
 done
+
+if [ "$HARDWARE_DETECTED" == "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then
+    HARDWARE_DETECTED="$HARDWARE_MODEL"
+fi
 export HARDWARE_DETECTED
 
 # Keep locale templates simple by exposing a single display-ready OS label.

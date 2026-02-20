@@ -258,19 +258,18 @@ function detect_sound() {
         python_detection="N/A"
     fi
 
-    if [[ "$python_detection" == "PulseAudio" ]] || [[ "$python_detection" == "PipeWire" ]]; then
+    if [[ "$python_detection" == "PulseAudio" ]] || [[ "$python_detection" == "PipeWire" ]] || [[ "$python_detection" == "CoreAudio" ]]; then
         export SOUND_SERVER="$python_detection"
 
-        # Set PULSE_SERVER variables for ansible/pactl usage
-        if [ -S "/run/user/${RUN_AS_UID}/pulse/native" ] && [ ! -S "$PULSE_SOCKET_WSL2" ]; then
-            export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
-            export PULSE_COOKIE="${RUN_AS_HOME}/.config/pulse/cookie"
-        elif [ -S "$PULSE_SOCKET_WSL2" ]; then
-            export PULSE_SERVER="$PULSE_SOCKET_WSL2"
+        # Set PULSE_SERVER variables for ansible/pactl usage on Pulse/ PipeWire stacks.
+        if [[ "$python_detection" == "PulseAudio" ]] || [[ "$python_detection" == "PipeWire" ]]; then
+            if [ -S "/run/user/${RUN_AS_UID}/pulse/native" ] && [ ! -S "$PULSE_SOCKET_WSL2" ]; then
+                export PULSE_SERVER="/run/user/${RUN_AS_UID}/pulse/native"
+                export PULSE_COOKIE="${RUN_AS_HOME}/.config/pulse/cookie"
+            elif [ -S "$PULSE_SOCKET_WSL2" ]; then
+                export PULSE_SERVER="$PULSE_SOCKET_WSL2"
+            fi
         fi
-
-        # If it's PulseAudio on PipeWire, the python script might just say "PipeWire" or "PulseAudio" depending on what it found first.
-        # But we preserved the logic to set PULSE_SERVER irrespective of the name, which is good.
     else
         export SOUND_SERVER="N/A"
     fi
@@ -425,6 +424,40 @@ function is_raspeberrypi_soc() {
         fi
     fi
     export RASPBERRYPI_MODEL
+    echo -e "[$done_format]"
+}
+
+# Detect host hardware model.
+#
+# On macOS this reads hw.model (for example "Mac14,7"), while on other
+# platforms it defaults to "N/A". The value is consumed by the TUI detection
+# screen and passed to Ansible for telemetry fallback.
+#
+# Returns:
+#   Always succeeds and exports HARDWARE_MODEL.
+function detect_hardware_model() {
+    printf '%s' "➤ Detecting hardware model... "
+    local kernel_name=""
+    local model=""
+
+    kernel_name="$(uname -s 2>>"$LOG_FILE" || true)"
+    case "$kernel_name" in
+    Darwin)
+        if command -v sysctl &>>"$LOG_FILE"; then
+            model="$(sysctl -n hw.model 2>>"$LOG_FILE" || true)"
+        fi
+        ;;
+    *)
+        model=""
+        ;;
+    esac
+
+    if [ -n "${model:-}" ]; then
+        HARDWARE_MODEL="$model"
+    else
+        HARDWARE_MODEL="N/A"
+    fi
+    export HARDWARE_MODEL
     echo -e "[$done_format]"
 }
 

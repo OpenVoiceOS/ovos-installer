@@ -1,8 +1,24 @@
 import sys
 import subprocess
+import platform
 
 def detect_display_server(username):
     """Detect display server (wayland/x11) for the user."""
+    if platform.system() == "Darwin":
+        try:
+            # Aqua sessions run WindowServer on macOS.
+            result = subprocess.run(
+                ["pgrep", "-x", "WindowServer"],
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            if result.returncode == 0:
+                return "aqua"
+        except Exception:
+            pass
+        return "N/A"
+
     try:
         # Get list of sessions for the user
         # loginctl list-sessions --no-legend | grep username
