@@ -189,7 +189,7 @@ function setup() {
 }
 
 @test "macos_never_requests_precise_lite_plugin" {
-    run rg -n "ovos-ww-plugin-precise-lite" ansible/roles/ovos_virtualenv/templates/virtualenv
+    run grep -R -n "ovos-ww-plugin-precise-lite" ansible/roles/ovos_virtualenv/templates/virtualenv
     assert_failure
 
     run grep -q "ovos-dinkum-listener\\[{{ 'extras' if ansible_facts.system == 'Darwin' else 'extras,linux' }}\\]" ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
@@ -238,7 +238,7 @@ function setup() {
 }
 
 @test "tui_hardware_falls_back_to_detected_model" {
-    run rg -F 'if [ "$HARDWARE_DETECTED" == "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then' tui/detection.sh
+    run grep -F -q 'if [ "$HARDWARE_DETECTED" == "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then' tui/detection.sh
     assert_success
 }
 
