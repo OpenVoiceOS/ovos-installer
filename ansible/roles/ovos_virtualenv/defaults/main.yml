@@ -42,6 +42,12 @@ ovos_virtualenv_macos_fann_source_lib_dir: >-
      if ansible_facts.architecture in ['aarch64', 'arm64']
      else '/usr/local/lib' }}
 ovos_virtualenv_macos_fann_target_lib_dir: /usr/local/lib
+ovos_virtualenv_macos_fann_linker_flags: >-
+  -L{{ ovos_virtualenv_macos_fann_source_lib_dir }}{{ ' -L' ~ ovos_virtualenv_macos_fann_target_lib_dir if ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir else '' }}
+ovos_virtualenv_macos_fann_library_path: >-
+  {{ ovos_virtualenv_macos_fann_source_lib_dir }}{{ ':' ~ ovos_virtualenv_macos_fann_target_lib_dir if ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir else '' }}
+ovos_virtualenv_macos_fann_pkg_config_path: >-
+  {{ ovos_virtualenv_macos_fann_source_lib_dir }}/pkgconfig{{ ':' ~ ovos_virtualenv_macos_fann_target_lib_dir ~ '/pkgconfig' if ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir else '' }}
 ovos_virtualenv_macos_packages:
   - fann
   - swig

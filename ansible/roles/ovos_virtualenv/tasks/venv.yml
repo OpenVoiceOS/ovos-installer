@@ -128,11 +128,23 @@
     _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
     _pip_constraints: "--constraint {{ _ovos_release }}"
     _uv_extra_args: "{{ _pip_constraints }}{{ ' --prerelease=allow' if ovos_virtualenv_uv_allow_prerelease | bool else '' }}"
+    _ovos_virtualenv_install_env: >-
+      {{
+        {'HOME': ovos_installer_user_home}
+        | combine(
+            {
+              'LDFLAGS': ovos_virtualenv_macos_fann_linker_flags,
+              'LIBRARY_PATH': ovos_virtualenv_macos_fann_library_path,
+              'PKG_CONFIG_PATH': ovos_virtualenv_macos_fann_pkg_config_path
+            } if ansible_facts.system == 'Darwin' else {}
+          )
+      }}
   moreati.uv.pip:
     requirements: "{{ item.dest }}"
     virtualenv: "{{ ovos_virtualenv_path }}"
     extra_args: "{{ _uv_extra_args }}"
     state: latest
+  environment: "{{ _ovos_virtualenv_install_env }}"
   register: ovos_virtualenv_install
   until: ovos_virtualenv_install is success
   retries: 5

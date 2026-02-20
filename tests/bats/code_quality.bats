@@ -218,6 +218,26 @@ function setup() {
     assert_failure
 }
 
+@test "macos_fann_build_env_is_exported_for_uv_install" {
+    run grep -q "ovos_virtualenv_macos_fann_linker_flags" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_macos_fann_library_path" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_macos_fann_pkg_config_path" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "'LDFLAGS': ovos_virtualenv_macos_fann_linker_flags" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "'LIBRARY_PATH': ovos_virtualenv_macos_fann_library_path" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "'PKG_CONFIG_PATH': ovos_virtualenv_macos_fann_pkg_config_path" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+}
+
 @test "telemetry_uses_installer_detected_sound_fallback" {
     run grep -q "ovos_installer_sound_server" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success
