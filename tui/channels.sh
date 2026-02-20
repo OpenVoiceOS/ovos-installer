@@ -19,9 +19,19 @@ if [ -f "$INSTALLER_STATE_FILE" ]; then
   esac
 fi
 
+# macOS currently supports only the alpha stream.
+if [[ "${DISTRO_NAME:-}" == "macos" ]]; then
+  active_channel="alpha"
+  available_channels=(alpha)
+fi
+
 list_height="${#available_channels[@]}"
 if [ "$list_height" -lt 1 ]; then
-  available_channels=(stable testing alpha)
+  if [[ "${DISTRO_NAME:-}" == "macos" ]]; then
+    available_channels=(alpha)
+  else
+    available_channels=(stable testing alpha)
+  fi
   list_height="${#available_channels[@]}"
 fi
 if [ "$list_height" -lt 4 ]; then
