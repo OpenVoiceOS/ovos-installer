@@ -27,18 +27,20 @@
 {% endif %}
   "listener": {
     "VAD": {
-      "module": "{{ 'ovos-vad-plugin-silero' if (ovos_installer_cpu_is_capable | default(false)) | bool else 'ovos-vad-plugin-webrtcvad' }}"{% if ovos_installer_tuning | bool %},
+      "module": "{{ 'ovos-vad-plugin-silero' if (ovos_installer_cpu_is_capable | default(false)) | bool else 'ovos-vad-plugin-webrtcvad' }}{{ ',' if ovos_installer_tuning | bool else '' }}"
+{% if ovos_installer_tuning | bool %}
       "ovos-vad-plugin-silero": {
         "silence_duration": 0.5
       },
       "ovos-vad-plugin-webrtcvad": {
         "silence_duration": 0.5
-      }{% endif %}
-    }{% if (ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool %},{% endif %}
+      }
+{% endif %}
+    }{% if (ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool %},{{ '\n' }}{% endif %}
 {% if ansible_facts.system == 'Darwin' %}
     "microphone": {
       "module": "ovos-microphone-plugin-sounddevice"
-    }{% if (ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool %},{% endif %}
+    }{% if (ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool %},{{ '\n' }}{% endif %}
 {% endif %}
 {% if (ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool %}
     "wake_word": "hey_mycroft",
@@ -85,7 +87,8 @@
       "ovos-PHAL-plugin-system": {
         "enabled": true
       }
-   }{% if 'tas5806' in ovos_installer_i2c_devices %},
+    }{{ ',' if 'tas5806' in ovos_installer_i2c_devices else '' }}
+{% if 'tas5806' in ovos_installer_i2c_devices %}
     "ovos-PHAL-plugin-hotkeys": {
       "key_down": {
         "mycroft.mic.listen": 582,
