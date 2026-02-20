@@ -255,22 +255,22 @@ function setup() {
 @test "virtualenv_uv_pip_tasks_run_as_installer_user" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
-    run bash -c "grep -A4 -F \"- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    run bash -c "grep -A4 -F -- \"- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
     assert_success
 
-    run bash -c "grep -A4 -F \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    run bash -c "grep -A4 -F -- \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
     assert_success
 
-    run bash -c "grep -A4 -F \"- name: Install ggwave Python library\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    run bash -c "grep -A4 -F -- \"- name: Install ggwave Python library\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
     assert_success
 
-    run bash -c "grep -A4 -F \"- name: Install Open Voice OS in Python venv\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    run bash -c "grep -A4 -F -- \"- name: Install Open Voice OS in Python venv\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
     assert_success
 
-    run bash -c "grep -A4 -F \"- name: Ensure numpy Python library is installed\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    run bash -c "grep -A4 -F -- \"- name: Ensure numpy Python library is installed\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
     assert_success
 
-    run bash -c "grep -A4 -F \"- name: Ensure setuptools Python library is compatible with OVOS runtime\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    run bash -c "grep -A4 -F -- \"- name: Ensure setuptools Python library is compatible with OVOS runtime\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
     assert_success
 }
 

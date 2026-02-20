@@ -110,8 +110,33 @@ jobs:
           scenario_path.write_text(scenario, encoding="utf-8")
           PY
 
+      - name: Seed root-owned uv cache paths (permission regression canary)
+        run: |
+          sudo mkdir -p "$HOME/.cache/uv" "$HOME/.ovos-installer/uv-cache"
+          sudo chown root:wheel "$HOME/.cache/uv" "$HOME/.ovos-installer/uv-cache"
+          sudo chmod 0755 "$HOME/.cache" "$HOME/.ovos-installer"
+          sudo chmod 0700 "$HOME/.cache/uv" "$HOME/.ovos-installer/uv-cache"
+
       - name: Run installer scenario smoke test
         run: sudo "$BASH_BIN" setup.sh
+
+      - name: Validate uv ownership for installer user
+        run: |
+          test "$(stat -f '%Su' "$HOME/.ovos-installer/uv-cache")" = "$USER"
+
+          if [ -d "$HOME/.local/share/uv" ]; then
+            test "$(stat -f '%Su' "$HOME/.local/share/uv")" = "$USER"
+          fi
+
+          if find "$HOME/.ovos-installer/uv-cache" -mindepth 1 -not -user "$USER" | head -n 1 | grep -q .; then
+            echo "Found non-${USER} files in $HOME/.ovos-installer/uv-cache"
+            exit 1
+          fi
+
+          if [ -d "$HOME/.local/share/uv" ] && find "$HOME/.local/share/uv" -mindepth 1 -not -user "$USER" | head -n 1 | grep -q .; then
+            echo "Found non-${USER} files in $HOME/.local/share/uv"
+            exit 1
+          fi
 
       - name: Validate launchd smoke services
         run: |
