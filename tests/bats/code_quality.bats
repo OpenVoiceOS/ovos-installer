@@ -208,6 +208,12 @@ function setup() {
 
     run grep -q "checksum: \"{{ ovos_virtualenv_rust_messagebus_archive_checksum }}\"" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_success
+
+    run grep -q "Extract Rust messagebus archive with tar" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_success
+
+    run grep -q -- "- -xzf" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_success
 }
 
 @test "macos_homebrew_uses_espeak_ng_formula" {

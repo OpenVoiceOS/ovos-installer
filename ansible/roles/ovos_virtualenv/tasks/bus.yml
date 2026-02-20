@@ -16,14 +16,31 @@
   delay: 3
   until: ovos_virtualenv_rust_messagebus_download is succeeded
 
-- name: Extract Rust messagebus archive
-  ansible.builtin.unarchive:
-    src: "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
-    dest: "{{ ovos_installer_user_home }}/.local/bin"
+- name: Ensure Rust messagebus destination directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.local/bin"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+
+- name: Extract Rust messagebus archive with tar
+  ansible.builtin.command:
+    argv:
+      - tar
+      - -xzf
+      - "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
+      - -C
+      - "{{ ovos_installer_user_home }}/.local/bin"
+  changed_when: false
+
+- name: Ensure Rust messagebus binary mode and ownership
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_rust_messagebus_binary_path }}"
     mode: "0755"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
-    remote_src: true
+    state: file
 
 - name: Remove Rust messagebus archive after extraction
   ansible.builtin.file:
