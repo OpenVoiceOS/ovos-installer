@@ -253,6 +253,35 @@ function setup() {
     assert_success
 }
 
+@test "timezone_role_uses_timezone_module_on_linux_and_macos" {
+    run grep -q "Set system's timezone on Linux" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run grep -q "community.general.timezone" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run grep -q "ansible_facts.system == 'Linux'" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run grep -q "Set system's timezone on macOS" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run grep -q "Set macOS auto-timezone fact" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run grep -q "Skip manual timezone change on macOS when automatic mode is enabled" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run grep -q "not (ovos_timezone_macos_auto_enabled | default(false) | bool)" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run grep -q -- "-settimezone" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_failure
+
+    run grep -q "Warn when macOS timezone update did not persist" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
     if [ -n "$DETECT_SOUND_BACKUP" ]; then

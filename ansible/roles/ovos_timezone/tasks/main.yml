@@ -18,10 +18,6 @@
       retries: "{{ ovos_timezone_retries }}"
       delay: "{{ ovos_timezone_delay }}"
 
-    - name: Set system's timezone
-      community.general.timezone:
-        name: "{{ ovos_timezone_detected.get('json', {}).get('timezone', ovos_timezone_fallback_timezone) }}"
-
     - name: Set detected timezone fact
       ansible.builtin.set_fact:
         ovos_timezone_value: "{{ ovos_timezone_detected.get('json', {}).get('timezone', ovos_timezone_fallback_timezone) }}"
@@ -29,21 +25,128 @@
     - name: Set timezone name
       ansible.builtin.set_fact:
         ovos_timezone_name: "{{ ovos_timezone_value }}"
+
+    - name: Set system's timezone on Linux
+      community.general.timezone:
+        name: "{{ ovos_timezone_value }}"
+      when: ansible_facts.system == 'Linux'
+
+    - name: Read macOS auto-timezone preference
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/defaults
+          - read
+          - /Library/Preferences/com.apple.timezone.auto
+          - Active
+      register: ovos_timezone_macos_auto_pref
+      changed_when: false
+      failed_when: false
+      when: ansible_facts.system == 'Darwin'
+
+    - name: Read macOS timed auto-timezone preference
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/defaults
+          - read
+          - /private/var/db/timed/Library/Preferences/com.apple.timed.plist
+          - TMAutomaticTimeZoneEnabled
+      register: ovos_timezone_macos_timed_pref
+      changed_when: false
+      failed_when: false
+      when: ansible_facts.system == 'Darwin'
+
+    - name: Set macOS auto-timezone fact
+      ansible.builtin.set_fact:
+        ovos_timezone_macos_auto_enabled: >-
+          {{
+            (
+              (ovos_timezone_macos_auto_pref.stdout | default('') | trim | lower) in ['1', 'true', 'yes']
+            ) or
+            (
+              (ovos_timezone_macos_timed_pref.stdout | default('') | trim | lower) in ['1', 'true', 'yes']
+            )
+          }}
+      when: ansible_facts.system == 'Darwin'
+
+    - name: Skip manual timezone change on macOS when automatic mode is enabled
+      ansible.builtin.debug:
+        msg: >-
+          macOS automatic timezone mode is enabled; skipping manual timezone change.
+      when:
+        - ansible_facts.system == 'Darwin'
+        - ovos_timezone_macos_auto_enabled | default(false) | bool
+
+    - name: Set system's timezone on macOS
+      community.general.timezone:
+        name: "{{ ovos_timezone_value }}"
+      register: ovos_timezone_macos_set
+      failed_when: false
+      when:
+        - ansible_facts.system == 'Darwin'
+        - not (ovos_timezone_macos_auto_enabled | default(false) | bool)
+
+    - name: Read macOS timezone after update
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/systemsetup
+          - -gettimezone
+      register: ovos_timezone_macos_after
+      changed_when: false
+      failed_when: false
+      when:
+        - ansible_facts.system == 'Darwin'
+        - not (ovos_timezone_macos_auto_enabled | default(false) | bool)
+
+    - name: Warn when macOS timezone update did not persist
+      ansible.builtin.debug:
+        msg: >-
+          Unable to set macOS timezone to {{ ovos_timezone_value }}.
+          Current timezone is {{
+            (ovos_timezone_macos_after.stdout | default('') | regex_replace('^Time Zone:\\s*', '') | trim)
+            | default('unknown', true)
+          }}.
+      when:
+        - ansible_facts.system == 'Darwin'
+        - not (ovos_timezone_macos_auto_enabled | default(false) | bool)
+        - >-
+          (ovos_timezone_macos_after.stdout | default('') | regex_replace('^Time Zone:\\s*', '') | trim) != ovos_timezone_value or
+          ('Error message:' in (ovos_timezone_macos_set.msg | default('')))
   rescue:
     - name: Rescue timezone
       ansible.builtin.debug:
         msg: "The installer was not able to set the timezone..."
 
-    - name: Read system timezone (rescue)
+    - name: Read system timezone on Linux (rescue)
       ansible.builtin.command: "{{ ovos_timezone_timedatectl_cmd }}"
-      register: ovos_timezone_system_timezone
+      register: ovos_timezone_system_timezone_linux
       changed_when: false
       failed_when: false
+      when: ansible_facts.system == 'Linux'
+
+    - name: Read system timezone on macOS (rescue)
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/systemsetup
+          - -gettimezone
+      register: ovos_timezone_system_timezone_macos
+      changed_when: false
+      failed_when: false
+      when: ansible_facts.system == 'Darwin'
 
     - name: Set timezone fact from system timezone (rescue)
       ansible.builtin.set_fact:
         ovos_timezone_value: >-
-          {{ (ovos_timezone_system_timezone.stdout | default('') | trim) | default(ovos_timezone_fallback_timezone, true) }}
+          {%- if ansible_facts.system == 'Darwin' -%}
+          {{
+            (ovos_timezone_system_timezone_macos.stdout | default('') | regex_replace('^Time Zone:\\s*', '') | trim)
+            | default(ovos_timezone_fallback_timezone, true)
+          }}
+          {%- else -%}
+          {{
+            (ovos_timezone_system_timezone_linux.stdout | default('') | trim)
+            | default(ovos_timezone_fallback_timezone, true)
+          }}
+          {%- endif -%}
 
     - name: Set timezone name (rescue)
       ansible.builtin.set_fact:
