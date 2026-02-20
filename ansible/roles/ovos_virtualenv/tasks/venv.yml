@@ -100,18 +100,21 @@
     - ovos_virtualenv_pip_bootstrap is defined
     - ovos_virtualenv_pip_bootstrap is changed
 
-- name: Create ovos Python venv with tflite_runtime
+- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)
   moreati.uv.pip:
     name: tflite_runtime
     virtualenv: "{{ ovos_virtualenv_path }}"
     extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
-  when: ovos_installer_cpu_is_capable | bool
+  when:
+    - ovos_installer_cpu_is_capable | bool
+    - ansible_facts.system != 'Darwin'
 
-- name: Create ovos Python venv without tflite_runtime
+- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)
   moreati.uv.pip:
     name: wheel
     virtualenv: "{{ ovos_virtualenv_path }}"
-  when: not ovos_installer_cpu_is_capable | bool
+  when:
+    - ansible_facts.system == 'Darwin' or not (ovos_installer_cpu_is_capable | bool)
 
 - name: Install ggwave Python library
   moreati.uv.pip:
