@@ -32,12 +32,12 @@
 - name: Restart OVOS services (launchd user)
   listen: Restart OVOS services
   vars:
-    ovos_services_launchd_plist_path: "{{ ovos_services_launchd_agents_path }}/{{ item.label }}.plist"
+    ovos_services_launchd_plist_name: "{{ item.label }}.plist"
   become: true
   become_user: "{{ ovos_installer_user }}"
   community.general.launchd:
     name: "{{ item.label }}"
-    plist: "{{ ovos_services_launchd_plist_path }}"
+    plist: "{{ ovos_services_launchd_plist_name }}"
     enabled: true
     state: restarted
   failed_when: false
@@ -53,11 +53,11 @@
 - name: Restart OVOS services (launchd system)
   listen: Restart OVOS services
   vars:
-    ovos_services_launchd_plist_path: "{{ ovos_services_launchd_daemons_path }}/{{ item.label }}.plist"
+    ovos_services_launchd_plist_name: "{{ item.label }}.plist"
   become: true
   community.general.launchd:
     name: "{{ item.label }}"
-    plist: "{{ ovos_services_launchd_plist_path }}"
+    plist: "{{ ovos_services_launchd_plist_name }}"
     enabled: true
     state: restarted
   failed_when: false

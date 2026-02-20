@@ -313,6 +313,35 @@ function setup() {
     assert_success
 }
 
+@test "launchd_module_uses_plist_basename_not_absolute_path" {
+    run grep -q "ovos_services_launchd_plist_name: \"{{ item.label }}.plist\"" ansible/roles/ovos_services/tasks/launchd.yml
+    assert_success
+
+    run grep -q "ovos_services_legacy_plist_name: \"{{ item }}.plist\"" ansible/roles/ovos_services/tasks/launchd.yml
+    assert_success
+
+    run grep -q "plist: \"{{ ovos_services_launchd_plist_name }}\"" ansible/roles/ovos_services/tasks/launchd.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_plist_name: \"{{ item.label }}.plist\"" ansible/roles/ovos_services/handlers/main.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_plist_name: \"{{ item.label }}.plist\"" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_plist_name: \"{{ item }}.plist\"" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
+    assert_success
+
+    run grep -q "plist: \"{{ ovos_services_launchd_plist_name }}\"" ansible/roles/ovos_services/handlers/main.yml
+    assert_success
+
+    run grep -q "plist: \"{{ ovos_services_launchd_plist_name }}\"" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
+    assert_success
+
+    run grep -q "plist: \"{{ ovos_services_launchd_agents_path }}/{{ item.label }}.plist\"" ansible/roles/ovos_services/tasks/launchd.yml
+    assert_failure
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
     if [ -n "$DETECT_SOUND_BACKUP" ]; then

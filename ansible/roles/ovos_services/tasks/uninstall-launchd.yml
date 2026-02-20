@@ -9,12 +9,12 @@
 
 - name: Disable and unload OVOS launchd user services
   vars:
-    ovos_services_launchd_plist_path: "{{ ovos_services_launchd_agents_path }}/{{ item.label }}.plist"
+    ovos_services_launchd_plist_name: "{{ item.label }}.plist"
   become: true
   become_user: "{{ ovos_installer_user }}"
   community.general.launchd:
     name: "{{ item.label }}"
-    plist: "{{ ovos_services_launchd_plist_path }}"
+    plist: "{{ ovos_services_launchd_plist_name }}"
     enabled: false
     state: unloaded
   failed_when: false
@@ -25,12 +25,12 @@
 
 - name: Disable and unload legacy OVOS core launchd services
   vars:
-    ovos_services_launchd_plist_path: "{{ ovos_services_launchd_agents_path }}/{{ item }}.plist"
+    ovos_services_launchd_plist_name: "{{ item }}.plist"
   become: true
   become_user: "{{ ovos_installer_user }}"
   community.general.launchd:
     name: "{{ item }}"
-    plist: "{{ ovos_services_launchd_plist_path }}"
+    plist: "{{ ovos_services_launchd_plist_name }}"
     enabled: false
     state: unloaded
   failed_when: false
@@ -41,11 +41,11 @@
 
 - name: Disable and unload OVOS launchd system services
   vars:
-    ovos_services_launchd_plist_path: "{{ ovos_services_launchd_daemons_path }}/{{ item.label }}.plist"
+    ovos_services_launchd_plist_name: "{{ item.label }}.plist"
   become: true
   community.general.launchd:
     name: "{{ item.label }}"
-    plist: "{{ ovos_services_launchd_plist_path }}"
+    plist: "{{ ovos_services_launchd_plist_name }}"
     enabled: false
     state: unloaded
   failed_when: false
