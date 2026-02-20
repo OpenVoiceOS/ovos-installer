@@ -98,6 +98,16 @@
         ovos_installer_homeassistant_url
         | default(ovos_installer_homeassistant_host | default(''), true)
       }}
+    _ovos_homeassistant_skill_ids: >-
+      {{
+        ([ovos_installer_homeassistant_skill_id]
+         + (ovos_installer_homeassistant_legacy_skill_ids | default([])))
+        | select
+        | map('trim')
+        | reject('equalto', '')
+        | unique
+        | list
+      }}
   when:
     - ovos_installer_feature_homeassistant | default(false) | bool
     - ovos_installer_method in ["virtualenv", "containers"]
@@ -105,17 +115,20 @@
     - (_ovos_homeassistant_url | length) > 0
     - (ovos_installer_homeassistant_api_key | default('') | length) > 0
   block:
-    - name: Ensure Home Assistant skill settings directory exists
+    - name: Ensure Home Assistant skill settings directories exist
       ansible.builtin.file:
-        path: "{{ ovos_installer_user_home }}/{{ ovos_config_mycroft_conf_relpath }}/skills/{{ ovos_installer_homeassistant_skill_id }}"
+        path: "{{ ovos_installer_user_home }}/{{ ovos_config_mycroft_conf_relpath }}/skills/{{ item }}"
         state: directory
         owner: "{{ ovos_installer_user }}"
         group: "{{ ovos_installer_group }}"
         mode: "0755"
+      loop: "{{ _ovos_homeassistant_skill_ids }}"
+      loop_control:
+        label: "{{ item }}"
 
-    - name: Write Home Assistant skill settings.json
+    - name: Write Home Assistant skill settings.json files
       ansible.builtin.copy:
-        dest: "{{ ovos_installer_user_home }}/{{ ovos_config_mycroft_conf_relpath }}/skills/{{ ovos_installer_homeassistant_skill_id }}/settings.json"
+        dest: "{{ ovos_installer_user_home }}/{{ ovos_config_mycroft_conf_relpath }}/skills/{{ item }}/settings.json"
         owner: "{{ ovos_installer_user }}"
         group: "{{ ovos_installer_group }}"
         mode: "0600"
@@ -126,4 +139,7 @@
               "host": _ovos_homeassistant_url
             } | to_nice_json
           }}
+      loop: "{{ _ovos_homeassistant_skill_ids }}"
+      loop_control:
+        label: "{{ item }}"
       no_log: true

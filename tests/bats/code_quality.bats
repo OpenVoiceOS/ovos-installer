@@ -333,6 +333,20 @@ function setup() {
     assert_success
 }
 
+@test "homeassistant_settings_use_current_skill_id_and_keep_legacy_compatibility" {
+    run grep -q 'ovos_installer_homeassistant_skill_id: "skill-homeassistant"' ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_installer_homeassistant_legacy_skill_ids" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "_ovos_homeassistant_skill_ids" ansible/roles/ovos_config/tasks/main.yml
+    assert_success
+
+    run grep -q "settings.json files" ansible/roles/ovos_config/tasks/main.yml
+    assert_success
+}
+
 @test "macos_precise_onnx_is_cpu_guarded_in_requirements" {
     run grep -q "{% if (ovos_installer_cpu_is_capable | default(false)) | bool %}" ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
     assert_success

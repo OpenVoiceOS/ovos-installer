@@ -122,7 +122,11 @@ ovos_installer_feature_extra_skills: false
 ovos_installer_feature_homeassistant: false
 ovos_installer_feature_gui: false
 # Home Assistant skill ID (directory name under `~/.config/mycroft/skills/` or `~/ovos/config/skills/`).
-ovos_installer_homeassistant_skill_id: "skill-homeassistant.oscillatelabsllc"
+# `skill-homeassistant` is the current unified OVOS/Neon skill package.
+ovos_installer_homeassistant_skill_id: "skill-homeassistant"
+# Legacy IDs kept for backward compatibility with older installs.
+ovos_installer_homeassistant_legacy_skill_ids:
+  - "skill-homeassistant.oscillatelabsllc"
 ovos_installer_homeassistant_url: ""
 # Backward compatible alias; prefer ovos_installer_homeassistant_url.
 ovos_installer_homeassistant_host: ""
