@@ -34,13 +34,13 @@
       "ovos-vad-plugin-webrtcvad": {
         "silence_duration": 0.5
       }{% endif %}
-    }{% if ansible_facts.system == 'Darwin' or ovos_installer_tuning | bool %},{% endif %}
+    }{% if (ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool %},{% endif %}
 {% if ansible_facts.system == 'Darwin' %}
     "microphone": {
       "module": "ovos-microphone-plugin-sounddevice"
-    }{% if ansible_facts.system == 'Darwin' or ovos_installer_tuning | bool %},{% endif %}
+    }{% if (ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool %},{% endif %}
 {% endif %}
-{% if ansible_facts.system == 'Darwin' or ovos_installer_tuning | bool %}
+{% if (ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool %}
     "wake_word": "hey_mycroft",
     "multiplier": {{ ovos_config_listener_multiplier }}{% if ovos_installer_tuning | bool %},
     "patience": 0.5{% endif %},

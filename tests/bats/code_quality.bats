@@ -181,7 +181,7 @@ function setup() {
 }
 
 @test "mycroft_conf_uses_precise_onnx_for_macos_listener" {
-    run grep -q "ansible_facts.system == 'Darwin' or ovos_installer_tuning | bool" ansible/roles/ovos_config/templates/mycroft.conf.j2
+    run grep -q "(ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool" ansible/roles/ovos_config/templates/mycroft.conf.j2
     assert_success
 
     run grep -q "\"module\": \"ovos-ww-plugin-precise-onnx\"" ansible/roles/ovos_config/templates/mycroft.conf.j2
@@ -242,10 +242,21 @@ function setup() {
     run grep -q "ovos_installer_sound_server" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success
 
+    run grep -q "| trim" ansible/roles/ovos_telemetry/tasks/main.yml
+    assert_success
+
     run grep -q "sound_server: \"{{ _telemetry_sound_server }}\"" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success
 
     run grep -q "display_server: \"{{ ovos_installer_display_server | default('unknown') | lower }}\"" ansible/roles/ovos_telemetry/tasks/main.yml
+    assert_success
+}
+
+@test "macos_precise_onnx_is_cpu_guarded_in_requirements" {
+    run grep -q "{% if (ovos_installer_cpu_is_capable | default(false)) | bool %}" ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
+    assert_success
+
+    run grep -q "{% if (ovos_installer_cpu_is_capable | default(false)) | bool %}" ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2
     assert_success
 }
 

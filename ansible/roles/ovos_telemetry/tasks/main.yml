@@ -36,6 +36,7 @@
             ((ovos_sound_detect_sound_server | default({})).stdout
              | default(ovos_installer_sound_server | default('unknown'), true)
              | string
+             | trim
              | lower)
           }}
       ansible.builtin.uri:
