@@ -3,7 +3,7 @@
     src: "{{ item.file }}.j2"
     dest: "{{ item.dest }}"
     owner: root
-    group: root
+    group: "{{ 'wheel' if ansible_facts.system == 'Darwin' else 'root' }}"
     mode: "0644"
   loop: "{{ ovos_virtualenv_requirements_files }}"
   loop_control:
