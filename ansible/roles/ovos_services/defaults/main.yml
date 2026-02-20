@@ -1,4 +1,5 @@
 ---
+ovos_services_manager: "{{ 'launchd' if ansible_facts.system == 'Darwin' else 'systemd' }}"
 ovos_services_wrapper_template: virtualenv/wrapper-ovos-phal-admin.sh.j2
 ovos_services_wrapper_path: /usr/local/bin/wrapper-ovos-phal-admin.sh
 ovos_services_wrapper_mode: "0755"
@@ -17,6 +18,27 @@ ovos_services_user_runtime_dir: "/run/user/{{ ovos_installer_uid }}"
 ovos_services_user_runtime_mode: "0700"
 ovos_services_user_systemd_unit: "user@{{ ovos_installer_uid }}"
 ovos_services_enable_linger_cmd: "loginctl enable-linger {{ ovos_installer_user }}"
+ovos_services_launchd_agents_path: "{{ ovos_installer_user_home }}/Library/LaunchAgents"
+ovos_services_launchd_daemons_path: /Library/LaunchDaemons
+ovos_services_launchd_system_group: wheel
+ovos_services_launchd_log_dir: "{{ ovos_installer_user_home }}/.local/state/mycroft/logs"
+ovos_services_launchd_label_prefix: com.openvoiceos
+ovos_services_launchd_core_label: com.ovos.service
+ovos_services_launchd_legacy_core_labels:
+  - "{{ ovos_services_launchd_label_prefix }}.ovos-core"
+ovos_services_launchd_run_at_load: true
+ovos_services_launchd_keep_alive: true
+ovos_services_launchd_throttle_interval: "{{ 1 if (ovos_installer_tuning | default(false) | bool) else 5 }}"
+ovos_services_launchd_path: "{{ ovos_services_venv_path }}/bin:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+ovos_services_messagebus_target_arch: >-
+  {{ 'aarch64' if ansible_facts.architecture in ['aarch64', 'arm64']
+     else 'x86_64' if ansible_facts.architecture in ['x86_64', 'amd64']
+     else ansible_facts.architecture }}
+ovos_services_messagebus_target_platform: >-
+  {{ 'apple-darwin' if ansible_facts.system == 'Darwin' else 'unknown-linux-gnu' }}
+ovos_services_messagebus_binary_name: >-
+  ovos_messagebus-{{ ovos_services_messagebus_target_arch }}-{{ ovos_services_messagebus_target_platform }}
+ovos_services_messagebus_command: "{{ ovos_installer_user_home }}/.local/bin/{{ ovos_services_messagebus_binary_name }}"
 ovos_services_managed_units:
   - ovos.service
   - ovos-messagebus.service
@@ -59,11 +81,81 @@ ovos_services_unit_definitions:
   - unit: hivemind-satellite.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
     state: "{{ ovos_installer_profile == 'satellite' }}"
+ovos_services_launchd_unit_definitions:
+  - name: ovos-messagebus
+    label: "{{ ovos_services_launchd_label_prefix }}.ovos-messagebus"
+    scope: user
+    state: "{{ ovos_installer_profile != 'satellite' }}"
+    command: "{{ ovos_services_messagebus_command }}"
+    arguments: []
+  - name: ovos-core
+    label: "{{ ovos_services_launchd_core_label }}"
+    scope: user
+    state: "{{ ovos_installer_profile != 'satellite' }}"
+    command: "{{ ovos_services_venv_path }}/bin/ovos-core"
+    arguments: []
+  - name: ovos-phal
+    label: "{{ ovos_services_launchd_label_prefix }}.ovos-phal"
+    scope: user
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    command: "{{ ovos_services_venv_path }}/bin/ovos_PHAL"
+    arguments: []
+  - name: ovos-listener
+    label: "{{ ovos_services_launchd_label_prefix }}.ovos-listener"
+    scope: user
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    command: "{{ ovos_services_venv_path }}/bin/ovos-dinkum-listener"
+    arguments: []
+  - name: ovos-audio
+    label: "{{ ovos_services_launchd_label_prefix }}.ovos-audio"
+    scope: user
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    command: "{{ ovos_services_venv_path }}/bin/ovos-audio"
+    arguments: []
+  - name: ovos-ggwave-listener
+    label: "{{ ovos_services_launchd_label_prefix }}.ovos-ggwave-listener"
+    scope: user
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool) }}"
+    command: "{{ ovos_services_venv_path }}/bin/ovos-ggwave-listener"
+    arguments: []
+  - name: hivemind-listener
+    label: "{{ ovos_services_launchd_label_prefix }}.hivemind-listener"
+    scope: user
+    state: "{{ ovos_installer_profile == 'listener' or ovos_installer_profile == 'server' }}"
+    command: "{{ ovos_services_venv_path }}/bin/hivemind-core"
+    arguments:
+      - listen
+  - name: hivemind-satellite
+    label: "{{ ovos_services_launchd_label_prefix }}.hivemind-satellite"
+    scope: user
+    state: "{{ ovos_installer_profile == 'satellite' }}"
+    command: "{{ ovos_services_venv_path }}/bin/hivemind-voice-sat"
+    arguments: []
+  - name: ovos-phal-admin
+    label: "{{ ovos_services_launchd_label_prefix }}.ovos-phal-admin"
+    scope: system
+    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    command: "{{ ovos_services_wrapper_path }}"
+    arguments: []
 ovos_services_unit_files_system: >-
   {{ ovos_services_managed_units | map('regex_replace', '^', ovos_services_systemd_system_path ~ '/') | list
      + [ovos_services_systemd_system_path ~ '/' ~ ovos_services_admin_unit] }}
 ovos_services_unit_files_user: >-
   {{ ovos_services_managed_units | map('regex_replace', '^', ovos_services_systemd_user_path ~ '/') | list }}
+ovos_services_launchd_unit_files_user: >-
+  {{ ovos_services_launchd_unit_definitions
+     | selectattr('scope', 'equalto', 'user')
+     | map(attribute='label')
+     | map('regex_replace', '^', ovos_services_launchd_agents_path ~ '/')
+     | map('regex_replace', '$', '.plist')
+     | list }}
+ovos_services_launchd_unit_files_system: >-
+  {{ ovos_services_launchd_unit_definitions
+     | selectattr('scope', 'equalto', 'system')
+     | map(attribute='label')
+     | map('regex_replace', '^', ovos_services_launchd_daemons_path ~ '/')
+     | map('regex_replace', '$', '.plist')
+     | list }}
 ovos_services_unit_backup_patterns:
   - "ovos-*.service.*~"
   - "hivemind-*.service.*~"

@@ -1,0 +1,81 @@
+---
+- name: Assert uninstall mode
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_cleaning | default(false) | bool
+    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
+  tags:
+    - uninstall
+
+- name: Disable and unload OVOS launchd user services
+  vars:
+    ovos_services_launchd_plist_path: "{{ ovos_services_launchd_agents_path }}/{{ item.label }}.plist"
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.general.launchd:
+    name: "{{ item.label }}"
+    plist: "{{ ovos_services_launchd_plist_path }}"
+    enabled: false
+    state: unloaded
+  failed_when: false
+  loop: "{{ ovos_services_launchd_unit_definitions }}"
+  loop_control:
+    label: "{{ item.label }} ({{ item.scope }})"
+  when: item.scope == 'user'
+
+- name: Disable and unload legacy OVOS core launchd services
+  vars:
+    ovos_services_launchd_plist_path: "{{ ovos_services_launchd_agents_path }}/{{ item }}.plist"
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.general.launchd:
+    name: "{{ item }}"
+    plist: "{{ ovos_services_launchd_plist_path }}"
+    enabled: false
+    state: unloaded
+  failed_when: false
+  loop: "{{ ovos_services_launchd_legacy_core_labels }}"
+  loop_control:
+    label: "{{ item }}"
+  when: item != ovos_services_launchd_core_label
+
+- name: Disable and unload OVOS launchd system services
+  vars:
+    ovos_services_launchd_plist_path: "{{ ovos_services_launchd_daemons_path }}/{{ item.label }}.plist"
+  become: true
+  community.general.launchd:
+    name: "{{ item.label }}"
+    plist: "{{ ovos_services_launchd_plist_path }}"
+    enabled: false
+    state: unloaded
+  failed_when: false
+  loop: "{{ ovos_services_launchd_unit_definitions }}"
+  loop_control:
+    label: "{{ item.label }} ({{ item.scope }})"
+  when: item.scope == 'system'
+
+- name: Remove OVOS launchd plist files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ ovos_services_launchd_unit_files_system + ovos_services_launchd_unit_files_user }}"
+
+- name: Remove legacy OVOS core launchd plist files
+  ansible.builtin.file:
+    path: "{{ ovos_services_launchd_agents_path }}/{{ item }}.plist"
+    state: absent
+  loop: "{{ ovos_services_launchd_legacy_core_labels }}"
+  loop_control:
+    label: "{{ item }}"
+  when: item != ovos_services_launchd_core_label
+
+- name: Remove wrapper script
+  ansible.builtin.file:
+    path: "{{ ovos_services_wrapper_path }}"
+    state: absent
+
+- name: Remove directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ ovos_services_remove_directories }}"

@@ -215,6 +215,9 @@ function detect_user() {
     if command -v getent &>>"$LOG_FILE"; then
         RUN_AS_HOME="$(getent passwd "$RUN_AS" 2>>"$LOG_FILE" | awk -F: '{print $6}' | head -n 1 || true)"
     fi
+    if [ -z "${RUN_AS_HOME:-}" ] && [ "$(uname -s 2>>"$LOG_FILE" || true)" == "Darwin" ] && command -v dscl &>>"$LOG_FILE"; then
+        RUN_AS_HOME="$(dscl . -read "/Users/${RUN_AS}" NFSHomeDirectory 2>>"$LOG_FILE" | awk '/NFSHomeDirectory:/ {print $2}' | head -n 1 || true)"
+    fi
     if [ -z "${RUN_AS_HOME:-}" ]; then
         # Fallback if getent is missing or doesn't know about the user.
         # Parse /etc/passwd directly rather than relying on eval/tilde expansion.
@@ -249,7 +252,7 @@ function detect_sound() {
     printf '%s' "➤ Detecting sound server... "
     local python_detection
     # Use the Python helper to reliably detect the server name
-    if [ -f "utils/detect_sound.py" ]; then
+    if [ -f "utils/detect_sound.py" ] && command -v python3 &>>"$LOG_FILE"; then
         python_detection=$(python3 utils/detect_sound.py)
     else
         python_detection="N/A"
@@ -275,12 +278,28 @@ function detect_sound() {
 }
 
 # Check for specific CPU instruction set in order to leverage TensorFlow
-# and/or ONNXruntime. The exported variable will be used within the
-# Ansible playbook to disable certain wake words and VAD plugin requiring
-# these features if AVX2 or SIMD are not detected.
+# and/or ONNXruntime. On Linux this reads /proc/cpuinfo and on macOS this
+# reads sysctl CPU feature flags. The exported variable is used within the
+# Ansible playbook to disable certain wake words and VAD plugins requiring
+# these features if AVX2/SIMD support is not detected.
 function detect_cpu_instructions() {
     printf '%s' "➤ Detecting AVX2/SIMD support... "
-    if grep -q -i -E "avx2|simd" /proc/cpuinfo; then
+    local cpu_capabilities=""
+    case "$(uname -s 2>>"$LOG_FILE" || true)" in
+    Darwin)
+        cpu_capabilities="$(sysctl -n machdep.cpu.features 2>>"$LOG_FILE" || true) $(sysctl -n machdep.cpu.leaf7_features 2>>"$LOG_FILE" || true)"
+        if [ "$(sysctl -n hw.optional.neon 2>>"$LOG_FILE" || echo 0)" == "1" ]; then
+            cpu_capabilities="${cpu_capabilities} neon"
+        fi
+        ;;
+    *)
+        if [ -r /proc/cpuinfo ]; then
+            cpu_capabilities="$(cat /proc/cpuinfo 2>>"$LOG_FILE" || true)"
+        fi
+        ;;
+    esac
+
+    if printf '%s\n' "$cpu_capabilities" | grep -q -i -E "avx2|simd|asimd|neon"; then
         export CPU_IS_CAPABLE="true"
     else
         export CPU_IS_CAPABLE="false"
@@ -378,7 +397,7 @@ function detect_display() {
     printf '%s' "➤ Detecting display server... "
     export DISPLAY_SERVER="N/A"
 
-    if [ -f "utils/detect_display.py" ]; then
+    if [ -f "utils/detect_display.py" ] && command -v python3 &>>"$LOG_FILE"; then
         DISPLAY_SERVER="$(python3 utils/detect_display.py "$RUN_AS")"
     else
         # Fallback if script missing (should not happen)
@@ -409,31 +428,51 @@ function is_raspeberrypi_soc() {
     echo -e "[$done_format]"
 }
 
-# Retrieve operating system information based on standard /etc/os-release
-# and Python command. This is used to display information to the user
+# Retrieve operating system information and default Python version. Linux
+# distribution metadata is loaded from /etc/os-release, while macOS metadata
+# is loaded via sw_vers. This is used to display information to the user
 # about the platform where the installer is running on and where OVOS is
 # going to be installed.
 function get_os_information() {
     printf '%s' "➤ Retrieving OS information... "
-    if [ -f "$OS_RELEASE" ]; then
-        ARCH="$(uname -m 2>>"$LOG_FILE")"
-        KERNEL="$(uname -r 2>>"$LOG_FILE")"
-        PYTHON="$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE")"
-
-        # shellcheck source=/etc/os-release
-        source "$OS_RELEASE"
-
-        export DISTRO_NAME="${ID:-unknown}"
-        export DISTRO_VERSION_ID="${VERSION_ID:-}"
-        export DISTRO_VERSION="${VERSION:-}"
-        export ARCH KERNEL PYTHON
-
-        # For debug purpose only
-        echo ["$ARCH", "$KERNEL", "$PYTHON", "$DISTRO_NAME", "$DISTRO_VERSION_ID"] >>"$LOG_FILE"
+    local kernel_name=""
+    ARCH="$(uname -m 2>>"$LOG_FILE" || true)"
+    KERNEL="$(uname -r 2>>"$LOG_FILE" || true)"
+    if command -v python3 &>>"$LOG_FILE"; then
+        PYTHON="$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE" || true)"
     else
-        # Mostly if the detected system is no a Linux OS
-        uname 2>>"$LOG_FILE"
+        PYTHON=""
     fi
+    kernel_name="$(uname -s 2>>"$LOG_FILE" || true)"
+
+    case "$kernel_name" in
+    Darwin)
+        DISTRO_NAME="macos"
+        DISTRO_VERSION_ID="$(sw_vers -productVersion 2>>"$LOG_FILE" || true)"
+        DISTRO_VERSION="macOS"
+        if [ -n "$DISTRO_VERSION_ID" ]; then
+            DISTRO_VERSION="${DISTRO_VERSION} ${DISTRO_VERSION_ID}"
+        fi
+        ;;
+    *)
+        if [ -f "$OS_RELEASE" ]; then
+            # shellcheck source=/etc/os-release
+            source "$OS_RELEASE"
+            DISTRO_NAME="${ID:-unknown}"
+            DISTRO_VERSION_ID="${VERSION_ID:-}"
+            DISTRO_VERSION="${VERSION:-}"
+        else
+            DISTRO_NAME="${kernel_name:-unknown}"
+            DISTRO_VERSION_ID=""
+            DISTRO_VERSION=""
+        fi
+        ;;
+    esac
+
+    export DISTRO_NAME DISTRO_VERSION_ID DISTRO_VERSION ARCH KERNEL PYTHON
+
+    # For debug purpose only
+    echo ["$ARCH", "$KERNEL", "$PYTHON", "$DISTRO_NAME", "$DISTRO_VERSION_ID"] >>"$LOG_FILE"
     echo -e "[$done_format]"
 }
 
@@ -474,6 +513,7 @@ function check_python_compatibility() {
         exit "${EXIT_MISSING_DEPENDENCY}"
     fi
 
+    export PYTHON="$python_version"
     echo -e "[$done_format]"
 }
 
@@ -557,6 +597,123 @@ function install_arch_packages() {
     return "$status"
 }
 
+# Run a command as the installer target user.
+#
+# This helper is mainly used on macOS where Homebrew refuses root execution.
+# If the current user already matches RUN_AS, the command is executed directly.
+# Otherwise it is executed through sudo as RUN_AS.
+#
+# Args:
+#   - Command and arguments to execute
+#
+# Dependencies:
+#   - RUN_AS: Must be set by detect_user()
+#
+# Returns:
+#   - Command exit status
+function run_as_target_user() {
+    if [ "$(id -un 2>>"$LOG_FILE" || true)" == "$RUN_AS" ]; then
+        "$@"
+        return $?
+    fi
+    if ! command -v sudo &>>"$LOG_FILE"; then
+        echo "sudo command not found; unable to run command as ${RUN_AS}." &>>"$LOG_FILE"
+        return 1
+    fi
+    sudo -H -u "$RUN_AS" "$@"
+}
+
+# Resolve the Homebrew binary path.
+#
+# This helper first checks PATH, then standard Homebrew prefixes used on
+# Apple Silicon and Intel macOS hosts.
+#
+# Returns:
+#   - 0 and prints brew binary path on success
+#   - 1 if brew was not found
+function resolve_brew_binary() {
+    if command -v brew &>>"$LOG_FILE"; then
+        command -v brew
+        return 0
+    fi
+    if [ -x "/opt/homebrew/bin/brew" ]; then
+        printf '%s\n' "/opt/homebrew/bin/brew"
+        return 0
+    fi
+    if [ -x "/usr/local/bin/brew" ]; then
+        printf '%s\n' "/usr/local/bin/brew"
+        return 0
+    fi
+    return 1
+}
+
+# Ensure Xcode Command Line Tools are available on macOS.
+#
+# Some Python dependencies installed by the OVOS playbook compile native
+# extensions and require clang/SDK headers provided by Command Line Tools.
+#
+# Returns:
+#   - 0 when xcode-select reports a configured developer tools path
+#   - 1 when Command Line Tools are missing
+function ensure_macos_command_line_tools() {
+    if ! command -v xcode-select &>>"$LOG_FILE"; then
+        echo "xcode-select command not found; Xcode Command Line Tools are required on macOS." | tee -a "$LOG_FILE"
+        return 1
+    fi
+    if ! xcode-select -p &>>"$LOG_FILE"; then
+        echo "Xcode Command Line Tools are required on macOS. Run 'xcode-select --install' and rerun the installer." | tee -a "$LOG_FILE"
+        return 1
+    fi
+    return 0
+}
+
+# Install required installer packages on macOS using Homebrew.
+#
+# This function checks formula presence first and only installs missing ones.
+# Homebrew actions are always executed as RUN_AS via run_as_target_user().
+#
+# Dependencies:
+#   - RUN_AS: Must be set by detect_user()
+#   - LOG_FILE: Installer log path
+#
+# Returns:
+#   - 0 when package requirements are satisfied
+#   - 1 when Homebrew is missing, RUN_AS is root, or install fails
+function install_macos_packages() {
+    local brew_bin=""
+    local brew_dir=""
+    local package
+    local missing_packages=()
+    local macos_packages=(python jq expect newt)
+
+    if [ "${RUN_AS:-root}" == "root" ]; then
+        echo "Homebrew package installation requires running the installer with sudo from a non-root account." &>>"$LOG_FILE"
+        return 1
+    fi
+
+    if ! ensure_macos_command_line_tools; then
+        return 1
+    fi
+
+    if ! brew_bin="$(resolve_brew_binary)"; then
+        echo "Homebrew is required on macOS. Install it from https://brew.sh/ and rerun the installer." | tee -a "$LOG_FILE"
+        return 1
+    fi
+
+    brew_dir="$(dirname "$brew_bin")"
+    export PATH="${brew_dir}:$PATH"
+
+    for package in "${macos_packages[@]}"; do
+        if ! run_as_target_user env HOMEBREW_NO_AUTO_UPDATE=1 "$brew_bin" list --formula "$package" &>>"$LOG_FILE"; then
+            missing_packages+=("$package")
+        fi
+    done
+
+    if [ "${#missing_packages[@]}" -gt 0 ]; then
+        run_as_target_user env HOMEBREW_NO_AUTO_UPDATE=1 "$brew_bin" install "${missing_packages[@]}" &>>"$LOG_FILE"
+    fi
+}
+
 # Install packages required by the installer based on retrieved information
 # from get_os_information() function. If the operating system is not supported then
 # the installer will exit with a message.
@@ -591,6 +748,10 @@ function required_packages() {
     [[ $- == *e* ]] && errexit_set=1
     set +e
     case "${DISTRO_NAME}" in
+    macos)
+        install_macos_packages
+        install_status=$?
+        ;;
     debian | ubuntu | raspbian | linuxmint | zorin | neon | pop)
         install_debian_packages "${extra_packages[@]}"
         install_status=$?
@@ -639,6 +800,15 @@ function create_python_venv() {
     printf '%s' "➤ Creating installer Python virtualenv... "
 
     ensure_installer_tmpdir
+
+    if [ -z "${PYTHON:-}" ] && command -v python3 &>>"$LOG_FILE"; then
+        PYTHON="$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE" || true)"
+        export PYTHON
+    fi
+    if [ -z "${PYTHON:-}" ]; then
+        echo "Unable to determine Python version before creating virtualenv." | tee -a "$LOG_FILE"
+        exit "${EXIT_MISSING_DEPENDENCY}"
+    fi
 
     # Make sure Python version is higher than 3.8.
     if [ "$(ver "$PYTHON")" -lt "$(ver 3.9)" ]; then

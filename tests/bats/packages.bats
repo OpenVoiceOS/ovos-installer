@@ -116,6 +116,16 @@ EOF
     assert_success
 }
 
+@test "function_required_packages_macos" {
+    DISTRO_NAME="macos"
+    function install_macos_packages() {
+        return 0
+    }
+    export -f install_macos_packages
+    run required_packages
+    assert_success
+}
+
 @test "function_required_packages_debian_fail" {
     DISTRO_NAME="debian"
     function apt_ensure() {
@@ -272,6 +282,16 @@ EOF
         return 1
     }
     export -f apt_ensure
+    run required_packages
+    assert_failure
+}
+
+@test "function_required_packages_macos_fail" {
+    DISTRO_NAME="macos"
+    function install_macos_packages() {
+        return 1
+    }
+    export -f install_macos_packages
     run required_packages
     assert_failure
 }

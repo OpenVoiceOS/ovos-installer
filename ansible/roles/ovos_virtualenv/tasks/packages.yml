@@ -99,6 +99,73 @@
     state: present
   when: ansible_facts.os_family == "Archlinux"
 
+- name: Check Xcode Command Line Tools installation (macOS)
+  ansible.builtin.command:
+    cmd: xcode-select -p
+  register: ovos_virtualenv_macos_clt
+  changed_when: false
+  failed_when: false
+  when: ansible_facts.system == "Darwin"
+
+- name: Assert Xcode Command Line Tools are installed (macOS)
+  ansible.builtin.assert:
+    that:
+      - ovos_virtualenv_macos_clt.rc == 0
+    fail_msg: >-
+      Xcode Command Line Tools are required on macOS. Run 'xcode-select --install'
+      and rerun the installer.
+  when: ansible_facts.system == "Darwin"
+
+- name: Handle virtualenv package requirements (ovos/hivemind)
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.general.homebrew:
+    name: "{{ ovos_virtualenv_macos_packages }}"
+    state: present
+    path: "{{ ovos_virtualenv_homebrew_path }}"
+    update_homebrew: false
+  environment:
+    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+  when: ansible_facts.system == "Darwin"
+
+- name: Check Homebrew ARM lib directory for fann compatibility
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_macos_fann_source_lib_dir }}"
+  register: ovos_virtualenv_macos_fann_source_dir
+  when: ansible_facts.system == "Darwin"
+
+- name: Discover Homebrew fann dylibs on macOS
+  ansible.builtin.find:
+    paths: "{{ ovos_virtualenv_macos_fann_source_lib_dir }}"
+    patterns: "libdoublefann*.dylib"
+    file_type: file
+  register: ovos_virtualenv_macos_fann_dylibs
+  when:
+    - ansible_facts.system == "Darwin"
+    - ovos_virtualenv_macos_fann_source_dir.stat.exists | default(false)
+
+- name: Ensure fallback lib directory exists for fann build compatibility
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_macos_fann_target_lib_dir }}"
+    state: directory
+    mode: "0755"
+  when:
+    - ansible_facts.system == "Darwin"
+    - ovos_virtualenv_macos_fann_dylibs.matched | default(0) | int > 0
+
+- name: Create fann compatibility symlinks for legacy build scripts
+  ansible.builtin.file:
+    src: "{{ item.path }}"
+    dest: "{{ ovos_virtualenv_macos_fann_target_lib_dir }}/{{ item.path | basename }}"
+    state: link
+    force: true
+  loop: "{{ ovos_virtualenv_macos_fann_dylibs.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+  when:
+    - ansible_facts.system == "Darwin"
+    - ovos_virtualenv_macos_fann_dylibs.matched | default(0) | int > 0
+
 - name: Handle fann package from AUR (Arch based only)
   become_user: "{{ ovos_installer_user }}"
   kewlfft.aur.aur:

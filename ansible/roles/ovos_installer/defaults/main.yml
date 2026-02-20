@@ -71,9 +71,17 @@ ovos_installer_uninstall: "{{ 'present' if not (ovos_installer_cleaning | defaul
 ovos_installer_uninstall_autoremove: true
 ovos_installer_uninstall_remove_packages: false
 ovos_installer_venv_python: "3.11"
+ovos_installer_supported_desktop_architectures:
+  - x86_64
+  - aarch64
+  - arm64
 # ggwave stack doesn't support the ovos-audio >=1.1 move to plugin-manager >=2 yet,
-# so limit it to stable/testing on x86_64/aarch64 until an updated release lands.
-ovos_installer_enable_ggwave: "{{ (ovos_installer_channel | default('')) in ['stable', 'testing'] and ansible_facts.architecture in ['x86_64', 'aarch64'] }}"
+# and macOS often requires source builds for ggwave dependencies, so keep it
+# disabled there by default until dedicated Darwin packaging is available.
+ovos_installer_enable_ggwave: >-
+  {{ ansible_facts.system != 'Darwin'
+     and (ovos_installer_channel | default('')) in ['stable', 'testing']
+     and ansible_facts.architecture in ovos_installer_supported_desktop_architectures }}
 ovos_installer_uv_allow_prerelease: "{{ ansible_facts.python.version.major == 3 and (ansible_facts.python.version.minor | int) >= 13 }}"
 ovos_installer_tuning: false
 ovos_installer_setuptools_package: "setuptools<82"

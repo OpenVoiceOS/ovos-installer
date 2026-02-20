@@ -7,8 +7,8 @@
   },
 {% endif %}
 {% if ovos_installer_profile != "server" %}
-  "play_wav_cmdline": "play %1",
-  "play_mp3_cmdline": "play %1",
+  "play_wav_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
+  "play_mp3_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
   "lang": "{{ ovos_installer_locale }}",
   "system_unit": "{{ ovos_config_system_unit }}",
   "temperature_unit": "{{ ovos_config_temperature_unit }}",
@@ -34,7 +34,13 @@
       "ovos-vad-plugin-webrtcvad": {
         "silence_duration": 0.5
       }{% endif %}
-    }{% if ovos_installer_tuning | bool %},
+    }{% if ansible_facts.system == 'Darwin' or ovos_installer_tuning | bool %},{% endif %}
+{% if ansible_facts.system == 'Darwin' %}
+    "microphone": {
+      "module": "ovos-microphone-plugin-sounddevice"
+    }{% if ovos_installer_tuning | bool %},{% endif %}
+{% endif %}
+{% if ovos_installer_tuning | bool %}
     "wake_word": "hey_mycroft",
     "multiplier": {{ ovos_config_listener_multiplier }},
     "patience": 0.5,
@@ -45,9 +51,9 @@
         "trigger_level": {{ ovos_config_hotword_trigger_level }}
       }
     }
-    {% endif %}
+{% endif %}
   },
-{% if (ansible_facts.architecture == "x86_64") or (ansible_facts.architecture == "aarch64") %}
+{% if ansible_facts.architecture in (ovos_installer_supported_desktop_architectures | default(['x86_64', 'aarch64', 'arm64'])) %}
   "skills": {
     "installer": {
       "allow_pip": true,

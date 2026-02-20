@@ -18,6 +18,38 @@ ovos_virtualenv_run_ovos_config: "{{ ovos_installer_run_ovos_config | default(fa
 ovos_virtualenv_numpy_package: "{{ ovos_installer_numpy_package | default('numpy==1.26.4') }}"
 ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | default('setuptools<82') }}"
 ovos_virtualenv_messagebus_path: "{{ ovos_installer_user_home }}/.local/bin/ovos-messagebus"
+ovos_virtualenv_rust_messagebus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
+ovos_virtualenv_rust_messagebus_version: v1.1.2
+ovos_virtualenv_rust_messagebus_target_arch: >-
+  {{ 'aarch64' if ansible_facts.architecture in ['aarch64', 'arm64']
+     else 'x86_64' if ansible_facts.architecture in ['x86_64', 'amd64']
+     else ansible_facts.architecture }}
+ovos_virtualenv_rust_messagebus_target_platform: >-
+  {{ 'apple-darwin' if ansible_facts.system == 'Darwin' else 'unknown-linux-gnu' }}
+ovos_virtualenv_rust_messagebus_binary_name: >-
+  ovos_messagebus-{{ ovos_virtualenv_rust_messagebus_target_arch }}-{{ ovos_virtualenv_rust_messagebus_target_platform }}
+ovos_virtualenv_rust_messagebus_archive_name: "{{ ovos_virtualenv_rust_messagebus_binary_name }}.tar.gz"
+ovos_virtualenv_rust_messagebus_archive_url: >-
+  {{ ovos_virtualenv_rust_messagebus_repo }}/releases/download/{{ ovos_virtualenv_rust_messagebus_version }}/{{ ovos_virtualenv_rust_messagebus_archive_name }}
+ovos_virtualenv_rust_messagebus_binary_path: >-
+  {{ ovos_installer_user_home }}/.local/bin/{{ ovos_virtualenv_rust_messagebus_binary_name }}
+ovos_virtualenv_homebrew_path: "/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin"
+ovos_virtualenv_macos_fann_source_lib_dir: /opt/homebrew/lib
+ovos_virtualenv_macos_fann_target_lib_dir: /usr/local/lib
+ovos_virtualenv_macos_packages:
+  - fann
+  - swig
+  - pkg-config
+  - portaudio
+  - mpg123
+  - sox
+  - flac
+  - mpv
+  - libxslt
+  - openblas
+  - icu4c
+  - jpeg-turbo
+  - espeak
 ovos_virtualenv_uninstall_extra_paths:
   - "{{ ovos_hardware_mark1_working_directory | default('/opt/mark1') }}"
   - "{{ ovos_hardware_mark2_working_dir | default('/opt/sj201') }}"

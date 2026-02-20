@@ -104,6 +104,21 @@
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Archlinux"
 
+- name: Remove virtualenv package requirements (macOS)
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.general.homebrew:
+    name: "{{ ovos_virtualenv_macos_packages }}"
+    state: absent
+    path: "{{ ovos_virtualenv_homebrew_path }}"
+    update_homebrew: false
+  environment:
+    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+  failed_when: false
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.system == "Darwin"
+
 - name: Check for OVOS venv activation script
   ansible.builtin.stat:
     path: "{{ ovos_virtualenv_path }}/bin/activate"
@@ -189,7 +204,7 @@
       {{ _remove_venv_paths
          + _requirements_paths
          + ovos_virtualenv_uninstall_extra_paths
-         + [ovos_virtualenv_messagebus_path]
+         + [ovos_virtualenv_messagebus_path, ovos_virtualenv_rust_messagebus_binary_path]
          | unique }}
   ansible.builtin.file:
     path: "{{ item }}"

@@ -1,6 +1,36 @@
 #!/usr/bin/env bash
-# Override system's locales only during the installation
-export LANG=C.UTF-8 LC_ALL=C.UTF-8
+
+# shellcheck source=utils/bash_runtime.sh
+source utils/bash_runtime.sh
+
+# Ensure a modern Bash runtime before sourcing files that use associative arrays.
+if [ -z "${BASH_VERSINFO:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
+  BASH_RUNTIME="$(resolve_bash_runtime 4 || true)"
+  printf '%s\n' "This installer requires Bash 4 or newer."
+  if [ "$(uname -s 2>/dev/null || true)" = "Darwin" ]; then
+    if [ -n "${BASH_RUNTIME:-}" ]; then
+      printf '%s\n' "On macOS, rerun with ${BASH_RUNTIME} setup.sh."
+    else
+      printf '%s\n' "On macOS, install Bash with Homebrew and rerun with /opt/homebrew/bin/bash (Apple Silicon) or /usr/local/bin/bash (Intel)."
+    fi
+  elif [ -n "${BASH_RUNTIME:-}" ]; then
+    printf '%s\n' "Rerun with ${BASH_RUNTIME} setup.sh."
+  fi
+  exit 5
+fi
+
+# Override system locales only during the installation.
+if command -v locale >/dev/null 2>&1; then
+  if locale -a 2>/dev/null | grep -qiE '^c\.utf-?8$'; then
+    export LANG=C.UTF-8 LC_ALL=C.UTF-8
+  elif locale -a 2>/dev/null | grep -qiE '^en_US\.utf-?8$'; then
+    export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+  else
+    export LANG=C LC_ALL=C
+  fi
+else
+  export LANG=C LC_ALL=C
+fi
 
 # Base installer version on commit hash
 INSTALLER_VERSION="$(git rev-parse --short=8 HEAD)"
@@ -38,13 +68,13 @@ detect_user
 delete_log
 detect_existing_instance
 get_os_information
-check_python_compatibility
 wsl2_requirements
 detect_cpu_instructions
 is_raspeberrypi_soc
+required_packages
+check_python_compatibility
 detect_sound
 detect_display
-required_packages
 create_python_venv
 install_ansible
 download_yq
