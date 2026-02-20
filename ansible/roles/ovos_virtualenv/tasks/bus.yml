@@ -1,13 +1,31 @@
 ---
-- name: Download and extract Rust messagebus
+- name: Ensure Rust messagebus archive directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_tmp_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Download Rust messagebus archive with checksum verification
+  ansible.builtin.get_url:
+    url: "{{ ovos_virtualenv_rust_messagebus_archive_url }}"
+    dest: "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
+    checksum: "{{ ovos_virtualenv_rust_messagebus_archive_checksum }}"
+    mode: "0644"
+  register: ovos_virtualenv_rust_messagebus_download
+  retries: 3
+  delay: 3
+  until: ovos_virtualenv_rust_messagebus_download is succeeded
+
+- name: Extract Rust messagebus archive
   ansible.builtin.unarchive:
-    src: "{{ ovos_virtualenv_rust_messagebus_archive_url }}"
+    src: "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
     dest: "{{ ovos_installer_user_home }}/.local/bin"
     mode: "0755"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     remote_src: true
-  register: ovos_virtualenv_rust_messagebus_unarchive
-  retries: 3
-  delay: 3
-  until: ovos_virtualenv_rust_messagebus_unarchive is succeeded
+
+- name: Remove Rust messagebus archive after extraction
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
+    state: absent

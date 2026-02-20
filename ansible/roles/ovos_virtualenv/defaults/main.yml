@@ -31,6 +31,9 @@ ovos_virtualenv_rust_messagebus_binary_name: >-
 ovos_virtualenv_rust_messagebus_archive_name: "{{ ovos_virtualenv_rust_messagebus_binary_name }}.tar.gz"
 ovos_virtualenv_rust_messagebus_archive_url: >-
   {{ ovos_virtualenv_rust_messagebus_repo }}/releases/download/{{ ovos_virtualenv_rust_messagebus_version }}/{{ ovos_virtualenv_rust_messagebus_archive_name }}
+ovos_virtualenv_rust_messagebus_archive_checksum_url: "{{ ovos_virtualenv_rust_messagebus_archive_url }}.sha256"
+ovos_virtualenv_rust_messagebus_archive_checksum: "sha256:{{ ovos_virtualenv_rust_messagebus_archive_checksum_url }}"
+ovos_virtualenv_rust_messagebus_archive_path: "{{ ovos_virtualenv_tmp_dir }}/{{ ovos_virtualenv_rust_messagebus_archive_name }}"
 ovos_virtualenv_rust_messagebus_binary_path: >-
   {{ ovos_installer_user_home }}/.local/bin/{{ ovos_virtualenv_rust_messagebus_binary_name }}
 ovos_virtualenv_homebrew_path: "/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin"
@@ -52,7 +55,7 @@ ovos_virtualenv_macos_packages:
   - openblas
   - icu4c
   - jpeg-turbo
-  - espeak
+  - espeak-ng
 ovos_virtualenv_uninstall_extra_paths:
   - "{{ ovos_hardware_mark1_working_directory | default('/opt/mark1') }}"
   - "{{ ovos_hardware_mark2_working_dir | default('/opt/sj201') }}"

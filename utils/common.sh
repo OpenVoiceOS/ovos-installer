@@ -688,6 +688,7 @@ function ensure_macos_command_line_tools() {
 function install_macos_packages() {
     local brew_bin=""
     local brew_dir=""
+    local install_rc=0
     local package
     local missing_packages=()
     local macos_packages=(python jq expect newt)
@@ -717,6 +718,11 @@ function install_macos_packages() {
 
     if [ "${#missing_packages[@]}" -gt 0 ]; then
         run_as_target_user env HOMEBREW_NO_AUTO_UPDATE=1 "$brew_bin" install "${missing_packages[@]}" &>>"$LOG_FILE"
+        install_rc=$?
+        if [ "$install_rc" -ne 0 ]; then
+            echo "Homebrew package installation failed for: ${missing_packages[*]}" | tee -a "$LOG_FILE"
+            return "$install_rc"
+        fi
     fi
 
     return 0

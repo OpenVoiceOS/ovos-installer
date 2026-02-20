@@ -6,6 +6,7 @@
       - ovos_virtualenv_venv_python | length > 0
       - ovos_virtualenv_requirements_files | length > 0
       - ovos_virtualenv_rust_messagebus_archive_url | length > 0
+      - ovos_virtualenv_rust_messagebus_archive_checksum | length > 0
       - ovos_virtualenv_venv_python is match('^[0-9]+(\\.[0-9]+)?$')
     fail_msg: "Invalid virtualenv configuration."
 
@@ -18,4 +19,5 @@
     - "{{ ovos_virtualenv_path }}"
     - "{{ ovos_virtualenv_root_dir }}"
     - "{{ ovos_virtualenv_tmp_dir }}"
+    - "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
     - "{{ ovos_virtualenv_rust_messagebus_binary_path }}"

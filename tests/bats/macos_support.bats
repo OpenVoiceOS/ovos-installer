@@ -160,6 +160,34 @@ EOF
     unset -f ensure_macos_command_line_tools resolve_brew_binary run_as_target_user
 }
 
+@test "function_install_macos_packages_fails_when_brew_install_fails" {
+    RUN_AS="ovos"
+    local calls_log="${BATS_TMPDIR}/brew-calls-install-fail.log"
+    : >"$calls_log"
+
+    function ensure_macos_command_line_tools() {
+        return 0
+    }
+    function resolve_brew_binary() {
+        echo "/opt/homebrew/bin/brew"
+    }
+    function run_as_target_user() {
+        printf '%s\n' "$*" >>"$calls_log"
+        case "$*" in
+        *"list --formula python"*) return 1 ;;
+        *"install python"*) return 1 ;;
+        esac
+        return 0
+    }
+    export -f ensure_macos_command_line_tools resolve_brew_binary run_as_target_user
+
+    run install_macos_packages
+    assert_failure
+    assert_output --partial "Homebrew package installation failed for: python"
+
+    unset -f ensure_macos_command_line_tools resolve_brew_binary run_as_target_user
+}
+
 @test "function_ensure_macos_command_line_tools_succeeds_when_configured" {
     function xcode-select() {
         if [ "$1" == "-p" ]; then

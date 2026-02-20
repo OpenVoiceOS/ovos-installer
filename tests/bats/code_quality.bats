@@ -199,6 +199,25 @@ function setup() {
     assert_success
 }
 
+@test "rust_messagebus_download_uses_checksum_verification" {
+    run grep -q "ovos_virtualenv_rust_messagebus_archive_checksum" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ansible.builtin.get_url" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_success
+
+    run grep -q "checksum: \"{{ ovos_virtualenv_rust_messagebus_archive_checksum }}\"" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_success
+}
+
+@test "macos_homebrew_uses_espeak_ng_formula" {
+    run grep -q -- "- espeak-ng" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q -- "- espeak$" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_failure
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
     if [ -n "$DETECT_SOUND_BACKUP" ]; then
