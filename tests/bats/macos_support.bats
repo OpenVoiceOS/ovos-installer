@@ -133,6 +133,33 @@ EOF
     unset -f ensure_macos_command_line_tools resolve_brew_binary run_as_target_user
 }
 
+@test "function_install_macos_packages_returns_success_when_all_formulas_present" {
+    RUN_AS="ovos"
+    local calls_log="${BATS_TMPDIR}/brew-calls-all-present.log"
+    : >"$calls_log"
+
+    function ensure_macos_command_line_tools() {
+        return 0
+    }
+    function resolve_brew_binary() {
+        echo "/opt/homebrew/bin/brew"
+    }
+    function run_as_target_user() {
+        printf '%s\n' "$*" >>"$calls_log"
+        return 0
+    }
+    export -f ensure_macos_command_line_tools resolve_brew_binary run_as_target_user
+
+    run install_macos_packages
+    assert_success
+
+    run cat "$calls_log"
+    assert_output --partial "list --formula python"
+    refute_output --partial " install "
+
+    unset -f ensure_macos_command_line_tools resolve_brew_binary run_as_target_user
+}
+
 @test "function_ensure_macos_command_line_tools_succeeds_when_configured" {
     function xcode-select() {
         if [ "$1" == "-p" ]; then

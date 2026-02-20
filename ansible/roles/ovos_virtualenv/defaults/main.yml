@@ -34,7 +34,10 @@ ovos_virtualenv_rust_messagebus_archive_url: >-
 ovos_virtualenv_rust_messagebus_binary_path: >-
   {{ ovos_installer_user_home }}/.local/bin/{{ ovos_virtualenv_rust_messagebus_binary_name }}
 ovos_virtualenv_homebrew_path: "/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin"
-ovos_virtualenv_macos_fann_source_lib_dir: /opt/homebrew/lib
+ovos_virtualenv_macos_fann_source_lib_dir: >-
+  {{ '/opt/homebrew/lib'
+     if ansible_facts.architecture in ['aarch64', 'arm64']
+     else '/usr/local/lib' }}
 ovos_virtualenv_macos_fann_target_lib_dir: /usr/local/lib
 ovos_virtualenv_macos_packages:
   - fann

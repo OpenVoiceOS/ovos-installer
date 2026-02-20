@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         runner:
-          - macos-13
+          - macos-15-intel
           - macos-14
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
@@ -86,8 +86,11 @@ jobs:
 
       - name: Create non-interactive scenario
         run: |
-          mkdir -p "$HOME/.config/ovos-installer"
-          cat <<'EOF' > "$HOME/.config/ovos-installer/scenario.yaml"
+          python - <<'PY'
+          from pathlib import Path
+          from textwrap import dedent
+
+          scenario = dedent("""\
           ---
           uninstall: false
           method: virtualenv
@@ -100,7 +103,12 @@ jobs:
           raspberry_pi_tuning: false
           share_telemetry: false
           share_usage_telemetry: false
-          EOF
+          """)
+
+          scenario_path = Path.home() / ".config/ovos-installer/scenario.yaml"
+          scenario_path.parent.mkdir(parents=True, exist_ok=True)
+          scenario_path.write_text(scenario, encoding="utf-8")
+          PY
 
       - name: Run installer scenario smoke test
         run: sudo "$BASH_BIN" setup.sh

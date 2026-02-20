@@ -19,6 +19,7 @@ function setup() {
     export EXISTING_INSTANCE="false"
     export ARCH="x86_64"
     export RASPBERRYPI_MODEL="N/A"
+    export DISTRO_NAME="ubuntu"
 
     # Whiptail spy values (written from subshells via $WHIPTAIL_SPY_FILE)
     WHIPTAIL_FORCE_SELECTION=""
@@ -151,6 +152,34 @@ function spy_value() {
     # On x86_64 with no other restrictions, both methods are available.
     assert_equal "$(spy_value option_count)" "2"
     assert_equal "$(spy_value list_height)" "4"
+}
+
+@test "methods: hides containers on macOS" {
+    DISTRO_NAME="macos"
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value list_height)" "4"
+    assert_equal "$(spy_value tags)" "virtualenv"
+}
+
+@test "methods: keeps containers hidden on macOS for existing container installs" {
+    DISTRO_NAME="macos"
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="containers"
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value list_height)" "4"
+    assert_equal "$(spy_value tags)" "virtualenv"
 }
 
 @test "features: checklist always has non-zero list-height and options" {

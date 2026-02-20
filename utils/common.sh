@@ -712,6 +712,8 @@ function install_macos_packages() {
     if [ "${#missing_packages[@]}" -gt 0 ]; then
         run_as_target_user env HOMEBREW_NO_AUTO_UPDATE=1 "$brew_bin" install "${missing_packages[@]}" &>>"$LOG_FILE"
     fi
+
+    return 0
 }
 
 # Install packages required by the installer based on retrieved information

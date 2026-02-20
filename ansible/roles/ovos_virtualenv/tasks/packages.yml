@@ -128,11 +128,13 @@
     PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
   when: ansible_facts.system == "Darwin"
 
-- name: Check Homebrew ARM lib directory for fann compatibility
+- name: Check Homebrew fann lib directory for compatibility
   ansible.builtin.stat:
     path: "{{ ovos_virtualenv_macos_fann_source_lib_dir }}"
   register: ovos_virtualenv_macos_fann_source_dir
-  when: ansible_facts.system == "Darwin"
+  when:
+    - ansible_facts.system == "Darwin"
+    - ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir
 
 - name: Discover Homebrew fann dylibs on macOS
   ansible.builtin.find:
@@ -142,6 +144,7 @@
   register: ovos_virtualenv_macos_fann_dylibs
   when:
     - ansible_facts.system == "Darwin"
+    - ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir
     - ovos_virtualenv_macos_fann_source_dir.stat.exists | default(false)
 
 - name: Ensure fallback lib directory exists for fann build compatibility
@@ -151,6 +154,7 @@
     mode: "0755"
   when:
     - ansible_facts.system == "Darwin"
+    - ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir
     - ovos_virtualenv_macos_fann_dylibs.matched | default(0) | int > 0
 
 - name: Create fann compatibility symlinks for legacy build scripts
@@ -164,6 +168,7 @@
     label: "{{ item.path | basename }}"
   when:
     - ansible_facts.system == "Darwin"
+    - ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir
     - ovos_virtualenv_macos_fann_dylibs.matched | default(0) | int > 0
 
 - name: Handle fann package from AUR (Arch based only)
