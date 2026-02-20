@@ -423,6 +423,25 @@ function setup() {
     assert_failure
 }
 
+@test "services_repair_runtime_directory_ownership_on_install" {
+    run grep -q "ovos_services_user_runtime_dirs" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "Ensure OVOS runtime user directories exist with correct ownership" ansible/roles/ovos_services/tasks/main.yml
+    assert_success
+
+    run grep -q "recurse: true" ansible/roles/ovos_services/tasks/main.yml
+    assert_success
+}
+
+@test "launchd_system_scope_uses_root_cache_home" {
+    run grep -q "'/var/root' if item.scope == 'system'" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
+
+    run grep -q "'/var/root/.cache' if item.scope == 'system'" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
+}
+
 @test "macos_scenario_smoke_runs_on_intel_and_arm" {
     run bash -c 'grep -A14 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q "runs-on: \${{ matrix.runner }}"'
     assert_success

@@ -4,6 +4,19 @@
   tags:
     - always
 
+- name: Ensure OVOS runtime user directories exist with correct ownership
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+    recurse: true
+  loop: "{{ ovos_services_user_runtime_dirs }}"
+  when:
+    - ovos_installer_method == "virtualenv"
+    - not (ovos_installer_cleaning | default(false) | bool)
+
 - name: Include systemd backend tasks
   ansible.builtin.import_tasks: systemd.yml
   when:

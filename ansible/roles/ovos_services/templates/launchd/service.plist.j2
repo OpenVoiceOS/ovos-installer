@@ -20,7 +20,7 @@
     <key>EnvironmentVariables</key>
     <dict>
       <key>HOME</key>
-      <string>{{ ovos_installer_user_home }}</string>
+      <string>{{ '/var/root' if item.scope == 'system' else ovos_installer_user_home }}</string>
       <key>PATH</key>
       <string>{{ ovos_services_launchd_path }}</string>
       <key>VIRTUAL_ENV</key>
@@ -28,7 +28,7 @@
       <key>XDG_CONFIG_HOME</key>
       <string>{{ ovos_installer_user_home }}/.config</string>
       <key>XDG_CACHE_HOME</key>
-      <string>{{ ovos_installer_user_home }}/.cache</string>
+      <string>{{ '/var/root/.cache' if item.scope == 'system' else ovos_installer_user_home + '/.cache' }}</string>
     </dict>
 
     <key>RunAtLoad</key>

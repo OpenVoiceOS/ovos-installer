@@ -142,6 +142,10 @@ ovos_services_unit_files_system: >-
      + [ovos_services_systemd_system_path ~ '/' ~ ovos_services_admin_unit] }}
 ovos_services_unit_files_user: >-
   {{ ovos_services_managed_units | map('regex_replace', '^', ovos_services_systemd_user_path ~ '/') | list }}
+ovos_services_user_runtime_dirs:
+  - "{{ ovos_installer_user_home }}/.cache/mycroft"
+  - "{{ ovos_installer_user_home }}/.cache/ovos_gui"
+  - "{{ ovos_installer_user_home }}/.local/state/mycroft"
 ovos_services_launchd_unit_files_user: >-
   {{ ovos_services_launchd_unit_definitions
      | selectattr('scope', 'equalto', 'user')
