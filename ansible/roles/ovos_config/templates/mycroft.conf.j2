@@ -27,7 +27,7 @@
 {% endif %}
   "listener": {
     "VAD": {
-      "module": "{{ 'ovos-vad-plugin-silero' if (ovos_installer_cpu_is_capable | default(false)) | bool else 'ovos-vad-plugin-webrtcvad' }}{{ ',' if ovos_installer_tuning | bool else '' }}"
+      "module": "{{ 'ovos-vad-plugin-silero' if (ovos_installer_cpu_is_capable | default(false)) | bool else 'ovos-vad-plugin-webrtcvad' }}"{{ ',' if ovos_installer_tuning | bool else '' }}
 {% if ovos_installer_tuning | bool %}
       "ovos-vad-plugin-silero": {
         "silence_duration": 0.5

@@ -314,6 +314,16 @@ function detect_existing_instance() {
     printf '%s' "➤ Checking for existing instance... "
     export EXISTING_INSTANCE="false"
     unset INSTANCE_TYPE || true
+    local current_system
+    current_system="$(uname -s 2>>"$LOG_FILE" || true)"
+    local skip_container_runtime_checks="false"
+
+    # Containers are intentionally hidden on macOS in the TUI flow. Avoid
+    # probing Docker/Podman there to prevent noisy daemon/socket errors from
+    # unrelated local Docker Desktop state.
+    if [ "$current_system" == "Darwin" ]; then
+        skip_container_runtime_checks="true"
+    fi
 
     # Containers: detect by name (not ID), and only if the runtime exists.
     # Compose project names are typically "ovos" or "hivemind" (container names
@@ -321,7 +331,7 @@ function detect_existing_instance() {
     # version). Keep legacy exact names too.
     local name_regex='^(ovos[_-].*|hivemind[_-].*|ovos_cli|hivemind_cli|ovos_core|ovos_messagebus)$'
 
-    if command -v docker &>>"$LOG_FILE"; then
+    if [ "$skip_container_runtime_checks" != "true" ] && command -v docker &>>"$LOG_FILE"; then
         local docker_names=""
         local docker_status=0
         local errexit_set=0
@@ -342,7 +352,7 @@ function detect_existing_instance() {
         fi
     fi
 
-    if [ "${EXISTING_INSTANCE}" != "true" ] && command -v podman &>>"$LOG_FILE"; then
+    if [ "${EXISTING_INSTANCE}" != "true" ] && [ "$skip_container_runtime_checks" != "true" ] && command -v podman &>>"$LOG_FILE"; then
         local podman_names=""
         local podman_status=0
         local errexit_set=0
