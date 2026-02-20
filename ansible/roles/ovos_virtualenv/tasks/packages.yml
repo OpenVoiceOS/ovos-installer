@@ -128,6 +128,38 @@
     PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
   when: ansible_facts.system == "Darwin"
 
+- name: Ensure user local bin directory exists for build compatibility shims (macOS)
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.local/bin"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+  when: ansible_facts.system == "Darwin"
+
+- name: Resolve swig binary path for fann2 builds (macOS)
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    cmd: "which swig"
+  register: ovos_virtualenv_macos_swig_bin
+  changed_when: false
+  environment:
+    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+  when: ansible_facts.system == "Darwin"
+
+- name: Ensure swig2.0 compatibility shim exists (macOS)
+  ansible.builtin.file:
+    src: "{{ ovos_virtualenv_macos_swig_bin.stdout | trim }}"
+    dest: "{{ ovos_installer_user_home }}/.local/bin/swig2.0"
+    state: link
+    force: true
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+  when:
+    - ansible_facts.system == "Darwin"
+    - (ovos_virtualenv_macos_swig_bin.stdout | default('') | trim | length) > 0
+
 - name: Check Homebrew fann lib directory for compatibility
   ansible.builtin.stat:
     path: "{{ ovos_virtualenv_macos_fann_source_lib_dir }}"

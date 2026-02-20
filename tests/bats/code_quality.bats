@@ -252,6 +252,17 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_uv_uses_consistent_exec_path_with_homebrew_prefixes" {
+    run grep -q "ovos_virtualenv_uv_exec_path" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "/opt/homebrew/bin:/usr/local/bin" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "PATH: \"{{ ovos_virtualenv_uv_exec_path }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+}
+
 @test "virtualenv_uv_pip_tasks_run_as_installer_user" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
@@ -271,6 +282,17 @@ function setup() {
     assert_success
 
     run bash -c "grep -A4 -F -- \"- name: Ensure setuptools Python library is compatible with OVOS runtime\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
+    assert_success
+}
+
+@test "macos_fann2_build_has_swig2_compatibility_shim" {
+    run grep -q "Resolve swig binary path for fann2 builds (macOS)" ansible/roles/ovos_virtualenv/tasks/packages.yml
+    assert_success
+
+    run grep -q "Ensure swig2.0 compatibility shim exists (macOS)" ansible/roles/ovos_virtualenv/tasks/packages.yml
+    assert_success
+
+    run grep -q "dest: \"{{ ovos_installer_user_home }}/.local/bin/swig2.0\"" ansible/roles/ovos_virtualenv/tasks/packages.yml
     assert_success
 }
 
