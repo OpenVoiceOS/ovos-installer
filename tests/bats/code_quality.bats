@@ -172,6 +172,33 @@ function setup() {
     assert_success
 }
 
+@test "macos_includes_precise_onnx_in_virtualenv_requirements" {
+    run grep -q "ovos-ww-plugin-precise-onnx" ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
+    assert_success
+
+    run grep -q "ovos-ww-plugin-precise-onnx" ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2
+    assert_success
+}
+
+@test "mycroft_conf_uses_precise_onnx_for_macos_listener" {
+    run grep -q "ansible_facts.system == 'Darwin' or ovos_installer_tuning | bool" ansible/roles/ovos_config/templates/mycroft.conf.j2
+    assert_success
+
+    run grep -q "\"module\": \"ovos-ww-plugin-precise-onnx\"" ansible/roles/ovos_config/templates/mycroft.conf.j2
+    assert_success
+}
+
+@test "macos_never_requests_precise_lite_plugin" {
+    run rg -n "ovos-ww-plugin-precise-lite" ansible/roles/ovos_virtualenv/templates/virtualenv
+    assert_failure
+
+    run grep -q "ovos-dinkum-listener\\[{{ 'extras' if ansible_facts.system == 'Darwin' else 'extras,linux' }}\\]" ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
+    assert_success
+
+    run grep -q "ovos-dinkum-listener\\[{{ 'extras' if ansible_facts.system == 'Darwin' else 'extras,linux' }}\\]" ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2
+    assert_success
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
     if [ -n "$DETECT_SOUND_BACKUP" ]; then

@@ -4,6 +4,7 @@ ovos-audio[extras]
 ovos-dinkum-listener[{{ 'extras' if ansible_facts.system == 'Darwin' else 'extras,linux' }}]
 {% if ansible_facts.system == 'Darwin' %}
 ovos-microphone-plugin-sounddevice
+ovos-ww-plugin-precise-onnx
 {% endif %}
 ovos-PHAL[{{ 'mac' if ansible_facts.system == 'Darwin' else 'linux' }}]
 ovos-phal-plugin-ipgeo
