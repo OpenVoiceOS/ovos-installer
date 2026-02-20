@@ -296,6 +296,23 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_uses_platform_shell_init_file" {
+    run grep -q "ovos_virtualenv_shell_init_file" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "'.zshrc' if ansible_facts.system == 'Darwin' else '.bashrc'" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "path: \"{{ ovos_virtualenv_shell_init_file }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "create: true" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "path: \"{{ ovos_virtualenv_shell_init_file }}\"" ansible/roles/ovos_virtualenv/tasks/uninstall.yml
+    assert_success
+}
+
 @test "telemetry_uses_installer_detected_sound_fallback" {
     run grep -q "ovos_installer_sound_server" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success

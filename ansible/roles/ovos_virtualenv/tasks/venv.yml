@@ -246,16 +246,17 @@
     label: "{{ item.regexp }}"
   when: ovos_virtualenv_activate_script.stat.exists | default(false)
 
-- name: Add VIRTUAL_ENV variable to .bashrc and update user PATH
+- name: Add VIRTUAL_ENV variable to shell init file and update user PATH
   vars:
     _path: "{{ ovos_virtualenv_path }}/bin"
   ansible.builtin.lineinfile:
-    path: "{{ ovos_installer_user_home }}/.bashrc"
+    path: "{{ ovos_virtualenv_shell_init_file }}"
     line: "{{ item.line }}"
     regexp: "{{ item.regexp }}"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     mode: "0644"
+    create: true
     state: present
   loop:
     - line: "VIRTUAL_ENV={{ _path }}"
@@ -270,7 +271,7 @@
 
 - name: Ensure OVOS virtualenv auto-activates for interactive shells
   ansible.builtin.blockinfile:
-    path: "{{ ovos_installer_user_home }}/.bashrc"
+    path: "{{ ovos_virtualenv_shell_init_file }}"
     marker: "# {mark} OVOS VENV"
     block: |
       if [[ $- == *i* ]] && [ -f "{{ ovos_virtualenv_path }}/bin/activate" ]; then
@@ -279,6 +280,7 @@
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     mode: "0644"
+    create: true
     state: present
   tags:
     - always
