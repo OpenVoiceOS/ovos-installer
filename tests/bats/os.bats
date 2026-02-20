@@ -45,14 +45,34 @@ EOF
 }
 
 @test "function_get_os_information_os_name" {
+    function uname() {
+        case "$1" in
+        -m) echo "x86_64" ;;
+        -r) echo "6.8.12" ;;
+        -s) echo "Linux" ;;
+        *) echo "Linux" ;;
+        esac
+    }
+    export -f uname
     get_os_information
     assert_equal "$DISTRO_NAME" "fedora"
+    unset -f uname
 }
 
 @test "function_get_os_information_os_version" {
+    function uname() {
+        case "$1" in
+        -m) echo "x86_64" ;;
+        -r) echo "6.8.12" ;;
+        -s) echo "Linux" ;;
+        *) echo "Linux" ;;
+        esac
+    }
+    export -f uname
     get_os_information
     assert_equal "$DISTRO_VERSION" "39 (Workstation Edition)"
     assert_equal "$DISTRO_LABEL" "Fedora 39 (Workstation Edition)"
+    unset -f uname
 }
 
 @test "function_get_os_information_no_os_release" {
@@ -101,8 +121,7 @@ EOF
 }
 
 @test "function_wsl2_requirements_valid" {
-    WSL_FILE=/tmp/wsl.conf
-    KERNEL="5.15.133.1-microsoft-standard-WSL2"
+    KERNEL="5.15.133.1-microsoft-standard-wsl2"
     run wsl2_requirements
     assert_success
 }
