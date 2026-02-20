@@ -16,6 +16,16 @@ for device in "${DETECTED_DEVICES[@]}"; do
 done
 export HARDWARE_DETECTED
 
+# Keep locale templates simple by exposing a single display-ready OS label.
+if [ -z "${DISTRO_LABEL:-}" ]; then
+    if [ -n "${DISTRO_VERSION:-}" ]; then
+        DISTRO_LABEL="${DISTRO_NAME^} ${DISTRO_VERSION}"
+    else
+        DISTRO_LABEL="${DISTRO_NAME^}"
+    fi
+fi
+export DISTRO_LABEL
+
 # shellcheck source=tui/locales/en-us/detection.sh
 source "tui/locales/$LOCALE/detection.sh"
 

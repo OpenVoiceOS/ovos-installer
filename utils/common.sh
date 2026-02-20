@@ -453,6 +453,7 @@ function get_os_information() {
         if [ -n "$DISTRO_VERSION_ID" ]; then
             DISTRO_VERSION="${DISTRO_VERSION} ${DISTRO_VERSION_ID}"
         fi
+        DISTRO_LABEL="${DISTRO_VERSION}"
         ;;
     *)
         if [ -f "$OS_RELEASE" ]; then
@@ -466,13 +467,18 @@ function get_os_information() {
             DISTRO_VERSION_ID=""
             DISTRO_VERSION=""
         fi
+        if [ -n "$DISTRO_VERSION" ]; then
+            DISTRO_LABEL="${DISTRO_NAME^} ${DISTRO_VERSION}"
+        else
+            DISTRO_LABEL="${DISTRO_NAME^}"
+        fi
         ;;
     esac
 
-    export DISTRO_NAME DISTRO_VERSION_ID DISTRO_VERSION ARCH KERNEL PYTHON
+    export DISTRO_NAME DISTRO_VERSION_ID DISTRO_VERSION DISTRO_LABEL ARCH KERNEL PYTHON
 
     # For debug purpose only
-    echo ["$ARCH", "$KERNEL", "$PYTHON", "$DISTRO_NAME", "$DISTRO_VERSION_ID"] >>"$LOG_FILE"
+    echo ["$ARCH", "$KERNEL", "$PYTHON", "$DISTRO_NAME", "$DISTRO_VERSION_ID", "$DISTRO_LABEL"] >>"$LOG_FILE"
     echo -e "[$done_format]"
 }
 

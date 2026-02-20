@@ -2,7 +2,7 @@
 CONTENT="
 Veuillez trouver ci-dessous les information détectées:
 
-    - Système d'exploitation:  ${DISTRO_NAME^} $DISTRO_VERSION
+    - Système d'exploitation:  $DISTRO_LABEL
     - Noyau:                   $KERNEL
     - RPi:                     $RASPBERRYPI_MODEL
     - Python:                  $(echo "$PYTHON" | awk '{ print $NF }')

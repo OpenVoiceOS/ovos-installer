@@ -52,6 +52,7 @@ EOF
 @test "function_get_os_information_os_version" {
     get_os_information
     assert_equal "$DISTRO_VERSION" "39 (Workstation Edition)"
+    assert_equal "$DISTRO_LABEL" "Fedora 39 (Workstation Edition)"
 }
 
 @test "function_get_os_information_no_os_release" {
@@ -69,6 +70,7 @@ EOF
     assert_equal "$DISTRO_NAME" "Linux"
     assert_equal "$DISTRO_VERSION" ""
     assert_equal "$DISTRO_VERSION_ID" ""
+    assert_equal "$DISTRO_LABEL" "Linux"
     unset -f uname
 }
 
@@ -92,6 +94,7 @@ EOF
     assert_equal "$DISTRO_NAME" "macos"
     assert_equal "$DISTRO_VERSION_ID" "14.5"
     assert_equal "$DISTRO_VERSION" "macOS 14.5"
+    assert_equal "$DISTRO_LABEL" "macOS 14.5"
     assert_equal "$ARCH" "arm64"
     assert_equal "$KERNEL" "23.5.0"
     unset -f uname sw_vers

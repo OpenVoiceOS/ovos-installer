@@ -2,7 +2,7 @@
 CONTENT="
 Please find the detected information:
 
-    - OS:       ${DISTRO_NAME^} $DISTRO_VERSION
+    - OS:       $DISTRO_LABEL
     - Kernel:   $KERNEL
     - RPi:      $RASPBERRYPI_MODEL
     - Python:   $(echo "$PYTHON" | awk '{ print $NF }')
