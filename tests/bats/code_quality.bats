@@ -238,6 +238,42 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_uv_uses_dedicated_cache_directory" {
+    run grep -q "ovos_virtualenv_uv_cache_dir" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "Ensure dedicated uv cache directory exists" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "UV_CACHE_DIR: \"{{ ovos_virtualenv_uv_cache_dir }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "_ovos_virtualenv_uv_env:" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+}
+
+@test "virtualenv_uv_pip_tasks_run_as_installer_user" {
+    local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run bash -c "grep -A4 -F \"- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    assert_success
+
+    run bash -c "grep -A4 -F \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    assert_success
+
+    run bash -c "grep -A4 -F \"- name: Install ggwave Python library\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    assert_success
+
+    run bash -c "grep -A4 -F \"- name: Install Open Voice OS in Python venv\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    assert_success
+
+    run bash -c "grep -A4 -F \"- name: Ensure numpy Python library is installed\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    assert_success
+
+    run bash -c "grep -A4 -F \"- name: Ensure setuptools Python library is compatible with OVOS runtime\" \"$file\" | grep -q 'become_user: \"{{ ovos_installer_user }}\"'"
+    assert_success
+}
+
 @test "telemetry_uses_installer_detected_sound_fallback" {
     run grep -q "ovos_installer_sound_server" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success

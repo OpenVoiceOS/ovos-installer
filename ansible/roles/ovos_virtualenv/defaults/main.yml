@@ -14,6 +14,7 @@ ovos_virtualenv_uv_allow_prerelease: >-
      | default(ansible_facts.python.version.major == 3
      and (ansible_facts.python.version.minor | int) >= 13) }}
 ovos_virtualenv_uv_version: "{{ ovos_installer_uv_version | default('') }}"
+ovos_virtualenv_uv_cache_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-cache"
 ovos_virtualenv_run_ovos_config: "{{ ovos_installer_run_ovos_config | default(false) }}"
 ovos_virtualenv_numpy_package: "{{ ovos_installer_numpy_package | default('numpy==1.26.4') }}"
 ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | default('setuptools<82') }}"

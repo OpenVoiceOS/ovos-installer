@@ -10,6 +10,15 @@
     label: "{{ item.file }}"
   when: item.state | bool
 
+- name: Ensure dedicated uv cache directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_uv_cache_dir }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
 - name: Ensure uv has requested Python available
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -19,6 +28,7 @@
   environment:
     HOME: "{{ ovos_installer_user_home }}"
     PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+    UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
   when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Check installer uv binary
@@ -70,6 +80,7 @@
   environment:
     HOME: "{{ ovos_installer_user_home }}"
     PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+    UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
   when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Ensure pip is available in OVOS venv
@@ -101,36 +112,60 @@
     - ovos_virtualenv_pip_bootstrap is changed
 
 - name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)
+  become: true
+  become_user: "{{ ovos_installer_user }}"
   moreati.uv.pip:
     name: tflite_runtime
     virtualenv: "{{ ovos_virtualenv_path }}"
     extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+    UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
   when:
     - ovos_installer_cpu_is_capable | bool
     - ansible_facts.system != 'Darwin'
 
 - name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)
+  become: true
+  become_user: "{{ ovos_installer_user }}"
   moreati.uv.pip:
     name: wheel
     virtualenv: "{{ ovos_virtualenv_path }}"
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+    UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
   when:
     - ansible_facts.system == 'Darwin' or not (ovos_installer_cpu_is_capable | bool)
 
 - name: Install ggwave Python library
+  become: true
+  become_user: "{{ ovos_installer_user }}"
   moreati.uv.pip:
     name: ggwave
     virtualenv: "{{ ovos_virtualenv_path }}"
     extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+    UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
   when: ovos_installer_enable_ggwave | bool
 
 - name: Install Open Voice OS in Python venv
+  become: true
+  become_user: "{{ ovos_installer_user }}"
   vars:
     _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
     _pip_constraints: "--constraint {{ _ovos_release }}"
     _uv_extra_args: "{{ _pip_constraints }}{{ ' --prerelease=allow' if ovos_virtualenv_uv_allow_prerelease | bool else '' }}"
+    _ovos_virtualenv_uv_env:
+      HOME: "{{ ovos_installer_user_home }}"
+      PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+      UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
     _ovos_virtualenv_install_env: >-
       {{
-        {'HOME': ovos_installer_user_home}
+        _ovos_virtualenv_uv_env
         | combine(
             {
               'LDFLAGS': ovos_virtualenv_macos_fann_linker_flags,
@@ -155,16 +190,28 @@
   when: item.state | bool
 
 - name: Ensure numpy Python library is installed
+  become: true
+  become_user: "{{ ovos_installer_user }}"
   moreati.uv.pip:
     name: "{{ ovos_virtualenv_numpy_package }}"
     virtualenv: "{{ ovos_virtualenv_path }}"
     state: present
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+    UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
 
 - name: Ensure setuptools Python library is compatible with OVOS runtime
+  become: true
+  become_user: "{{ ovos_installer_user }}"
   moreati.uv.pip:
     name: "{{ ovos_virtualenv_setuptools_package }}"
     virtualenv: "{{ ovos_virtualenv_path }}"
     state: present
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/usr/local/bin:/usr/bin:/bin"
+    UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
 
 - name: Change files ownership of ovos virtualenv
   ansible.builtin.command:
