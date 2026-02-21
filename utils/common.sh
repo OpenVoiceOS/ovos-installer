@@ -298,7 +298,7 @@ function detect_cpu_instructions() {
         ;;
     esac
 
-    if printf '%s\n' "$cpu_capabilities" | grep -q -i -E "avx2|simd|asimd|neon"; then
+    if grep -q -i -E "avx2|simd|asimd|neon" <<<"$cpu_capabilities"; then
         export CPU_IS_CAPABLE="true"
     else
         export CPU_IS_CAPABLE="false"
