@@ -81,7 +81,9 @@
         label: "{{ item.label }} ({{ item.scope }})"
       when: item.state | bool
 
-    - name: Ensure OVOS launchd user services are enabled and started
+    # Use "reloaded" instead of "started" to avoid service-start failures in
+    # non-interactive sudo contexts on newer macOS; RunAtLoad controls startup.
+    - name: Ensure OVOS launchd user services are enabled and loaded
       vars:
         ovos_services_launchd_plist_name: "{{ item.label }}.plist"
       become: true
@@ -90,7 +92,7 @@
         name: "{{ item.label }}"
         plist: "{{ ovos_services_launchd_plist_name }}"
         enabled: true
-        state: started
+        state: reloaded
       loop: "{{ ovos_services_launchd_unit_definitions }}"
       loop_control:
         label: "{{ item.label }} ({{ item.scope }})"
@@ -98,7 +100,7 @@
         - item.scope == 'user'
         - item.state | bool
 
-    - name: Ensure OVOS launchd system services are enabled and started
+    - name: Ensure OVOS launchd system services are enabled and loaded
       vars:
         ovos_services_launchd_plist_name: "{{ item.label }}.plist"
       become: true
@@ -106,7 +108,7 @@
         name: "{{ item.label }}"
         plist: "{{ ovos_services_launchd_plist_name }}"
         enabled: true
-        state: started
+        state: reloaded
       loop: "{{ ovos_services_launchd_unit_definitions }}"
       loop_control:
         label: "{{ item.label }} ({{ item.scope }})"
