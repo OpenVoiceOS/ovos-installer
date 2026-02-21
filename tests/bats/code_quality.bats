@@ -356,6 +356,29 @@ function setup() {
     assert_success
 }
 
+@test "homeassistant_url_defaults_port_only_for_http" {
+    run grep -q 'if \[ "\$proto" == "http" \]; then' tui/homeassistant.sh
+    assert_success
+
+    run grep -q 'default_port="8123"' tui/homeassistant.sh
+    assert_success
+
+    run grep -q 'if \[ -n "\$default_port" \]; then' tui/homeassistant.sh
+    assert_success
+
+    run grep -q 'if \[ "\$proto" == "https" \]; then' tui/homeassistant.sh
+    assert_success
+
+    run grep -q 'authority="\${authority%:8123}"' tui/homeassistant.sh
+    assert_success
+
+    run grep -q 'normalize_homeassistant_url()' tui/homeassistant.sh
+    assert_success
+
+    run grep -q 'HOMEASSISTANT_URL="\$(normalize_homeassistant_url "\$ha_existing_url")"' tui/homeassistant.sh
+    assert_success
+}
+
 @test "macos_precise_onnx_is_cpu_guarded_in_requirements" {
     run grep -q "{% if (ovos_installer_cpu_is_capable | default(false)) | bool %}" ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
     assert_success
