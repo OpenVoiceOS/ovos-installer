@@ -290,6 +290,7 @@
     PATH: "{{ ovos_virtualenv_uv_exec_path }}"
     UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
   when:
+    - not (ovos_installer_cleaning | default(false) | bool)
     - ovos_installer_cpu_is_capable | bool
     - ansible_facts.system != 'Darwin'
 
@@ -304,6 +305,7 @@
     PATH: "{{ ovos_virtualenv_uv_exec_path }}"
     UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
   when:
+    - not (ovos_installer_cleaning | default(false) | bool)
     - ansible_facts.system == 'Darwin' or not (ovos_installer_cpu_is_capable | bool)
 
 - name: Install ggwave Python library
@@ -317,7 +319,9 @@
     HOME: "{{ ovos_installer_user_home }}"
     PATH: "{{ ovos_virtualenv_uv_exec_path }}"
     UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
-  when: ovos_installer_enable_ggwave | bool
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - ovos_installer_enable_ggwave | bool
 
 - name: Install Open Voice OS in Python venv
   become: true
@@ -367,6 +371,7 @@
     HOME: "{{ ovos_installer_user_home }}"
     PATH: "{{ ovos_virtualenv_uv_exec_path }}"
     UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
+  when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Ensure setuptools Python library is compatible with OVOS runtime
   become: true
@@ -379,6 +384,7 @@
     HOME: "{{ ovos_installer_user_home }}"
     PATH: "{{ ovos_virtualenv_uv_exec_path }}"
     UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
+  when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Check ovos virtualenv activate script exists
   ansible.builtin.stat:

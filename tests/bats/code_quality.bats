@@ -409,6 +409,25 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_uv_bootstrap_and_runtime_installs_skip_cleaning" {
+    local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run bash -c "grep -A12 -F -- \"- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Install ggwave Python library\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Ensure numpy Python library is installed\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Ensure setuptools Python library is compatible with OVOS runtime\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    assert_success
+}
+
 @test "virtualenv_repairs_ownership_before_python_package_installs" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
@@ -425,6 +444,13 @@ function setup() {
     assert_success
 
     run bash -c "awk '/Ensure OVOS virtualenv ownership is aligned before package installs/{owner_line=NR} /Ensure numpy Python library is installed/{numpy_line=NR} END{exit !(owner_line>0 && numpy_line>0 && owner_line<numpy_line)}' \"$file\""
+    assert_success
+}
+
+@test "ovos_config_defaults_guard_ansible_facts_system_references" {
+    local file="ansible/roles/ovos_config/defaults/main.yml"
+
+    run grep -F -q "(ansible_facts.system | default('')) == 'Linux'" "$file"
     assert_success
 }
 
@@ -491,13 +517,13 @@ function setup() {
     run grep -q "ovos_config_backup_paths_common" ansible/roles/ovos_config/defaults/main.yml
     assert_success
 
-    run grep -q "ansible_facts.system == 'Linux'" ansible/roles/ovos_config/defaults/main.yml
+    run grep -q "(ansible_facts.system | default('')) == 'Linux'" ansible/roles/ovos_config/defaults/main.yml
     assert_success
 
-    run grep -F -q '.config/systemd/user", enabled: "{{ ansible_facts.system == '\''Linux'\'' }}"' ansible/roles/ovos_config/defaults/main.yml
+    run grep -F -q "enabled: \"{{ (ansible_facts.system | default('')) == 'Linux' }}\"" ansible/roles/ovos_config/defaults/main.yml
     assert_success
 
-    run grep -F -q "/.config/systemd/user/*'] if ansible_facts.system == 'Linux' else []" ansible/roles/ovos_config/defaults/main.yml
+    run grep -F -q "/.config/systemd/user/*'] if (ansible_facts.system | default('')) == 'Linux' else []" ansible/roles/ovos_config/defaults/main.yml
     assert_success
 }
 
@@ -676,6 +702,14 @@ function setup() {
     assert_failure
 }
 
+@test "launchd_install_uses_collection_module_only" {
+    run grep -q "community.general.launchd" ansible/roles/ovos_services/tasks/launchd.yml
+    assert_success
+
+    run grep -q "launchctl" ansible/roles/ovos_services/tasks/launchd.yml
+    assert_failure
+}
+
 @test "launchd_uninstall_removes_plists_with_privilege_escalation" {
     run bash -c "grep -A4 -F -- \"- name: Remove OVOS launchd plist files\" ansible/roles/ovos_services/tasks/uninstall-launchd.yml | grep -q -- \"become: true\""
     assert_success
@@ -703,6 +737,19 @@ function setup() {
     assert_success
 
     run grep -q "'/var/root/.config' if item.scope == 'system'" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
+}
+
+@test "mycroft_conf_sanitizes_timezone_prefix" {
+    run grep -F -q "regex_replace('(?i)^\\\\s*time\\\\s*zone\\\\s*:\\\\s*', '')" ansible/roles/ovos_config/templates/mycroft.conf.j2
+    assert_success
+}
+
+@test "macos_cpu_detection_queries_leaf7_only_on_intel" {
+    run grep -q 'machine_arch="$(uname -m' utils/common.sh
+    assert_success
+
+    run bash -c 'grep -A4 -F -- "if [ \"\$machine_arch\" = \"x86_64\" ]; then" utils/common.sh | grep -q "machdep.cpu.leaf7_features"'
     assert_success
 }
 

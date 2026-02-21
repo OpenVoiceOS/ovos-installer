@@ -18,7 +18,7 @@ ovos_config_backup_paths_common:
 ovos_config_backup_paths: >-
   {{
     ovos_config_backup_paths_common
-    + ([ovos_installer_user_home + '/.config/systemd/user/*'] if ansible_facts.system == 'Linux' else [])
+    + ([ovos_installer_user_home + '/.config/systemd/user/*'] if (ansible_facts.system | default('')) == 'Linux' else [])
   }}
 ovos_config_backup_dest: "{{ ovos_installer_user_home }}/ovos-backup.tar.gz"
 ovos_config_backup_owner: "{{ ovos_installer_user }}"
@@ -33,7 +33,7 @@ ovos_config_container_dir_owner: "{{ ovos_installer_user }}"
 ovos_config_container_dir_group: "{{ ovos_installer_group }}"
 ovos_config_container_dir_mode: "0755"
 ovos_config_container_directories:
-  - { path: "{{ ovos_installer_user_home }}/.config/systemd/user", enabled: "{{ ansible_facts.system == 'Linux' }}" }
+  - { path: "{{ ovos_installer_user_home }}/.config/systemd/user", enabled: "{{ (ansible_facts.system | default('')) == 'Linux' }}" }
   - { path: "{{ ovos_installer_user_home }}/ovos", enabled: true }
   - { path: "{{ ovos_installer_user_home }}/ovos/config", enabled: true }
   - { path: "{{ ovos_installer_user_home }}/ovos/config/persona", enabled: true }
@@ -53,7 +53,7 @@ ovos_config_virtualenv_directories:
   - { path: "{{ ovos_installer_user_home }}/.local", enabled: true }
   - { path: "{{ ovos_installer_user_home }}/.local/bin", enabled: true }
   - { path: "{{ ovos_installer_user_home }}/.config/hivemind", enabled: "{{ ovos_installer_profile != 'ovos' }}" }
-  - { path: "{{ ovos_installer_user_home }}/.config/systemd/user", enabled: "{{ ansible_facts.system == 'Linux' }}" }
+  - { path: "{{ ovos_installer_user_home }}/.config/systemd/user", enabled: "{{ (ansible_facts.system | default('')) == 'Linux' }}" }
   - { path: "{{ ovos_installer_user_home }}/nltk_data", enabled: true }
 
 ovos_config_geoip_url: "{{ ovos_installer_geoip_url }}"
