@@ -33,6 +33,9 @@ sudo env OVOS_VENV_PYTHON=3.12 sh -c "$(curl -fsSL https://raw.githubusercontent
 
 # Speed up repeated runs by reusing cached artifacts (useful for debugging)
 sudo env REUSE_CACHED_ARTIFACTS=true sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
+
+# Forward proxy variables into generated launchd/systemd services
+sudo env HTTPS_PROXY=http://proxy.example:3128 HTTP_PROXY=http://proxy.example:3128 NO_PROXY=localhost,127.0.0.1 sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
 ```
 
 👉 Guide: [Howto - Begin your Open Voice OS journey with the OVOS installer](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)

@@ -37,6 +37,15 @@ ovos_services_launchd_user_lookup_environment:
   HOME: "{{ ovos_installer_user_home }}"
   LOGNAME: "{{ ovos_installer_user }}"
   USER: "{{ ovos_installer_user }}"
+# Allow launchd jobs to inherit network/proxy/TLS settings from installer env.
+ovos_services_launchd_extra_environment:
+  HTTP_PROXY: "{{ ansible_env.HTTP_PROXY | default(ansible_env.http_proxy | default('')) }}"
+  HTTPS_PROXY: "{{ ansible_env.HTTPS_PROXY | default(ansible_env.https_proxy | default('')) }}"
+  ALL_PROXY: "{{ ansible_env.ALL_PROXY | default(ansible_env.all_proxy | default('')) }}"
+  NO_PROXY: "{{ ansible_env.NO_PROXY | default(ansible_env.no_proxy | default('')) }}"
+  REQUESTS_CA_BUNDLE: "{{ ansible_env.REQUESTS_CA_BUNDLE | default('') }}"
+  SSL_CERT_FILE: "{{ ansible_env.SSL_CERT_FILE | default('') }}"
+  SSL_CERT_DIR: "{{ ansible_env.SSL_CERT_DIR | default('') }}"
 ovos_services_messagebus_target_arch: >-
   {{ 'aarch64' if ansible_facts.architecture in ['aarch64', 'arm64']
      else 'x86_64' if ansible_facts.architecture in ['x86_64', 'amd64']
