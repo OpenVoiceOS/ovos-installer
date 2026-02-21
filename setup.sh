@@ -127,6 +127,9 @@ echo "➤ Starting Ansible playbook... ☕🍵🧋"
 # Execute the Ansible playbook on localhost
 export ANSIBLE_CONFIG=ansible.cfg
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_FILE}"
+# Ensure collection discovery works even if ansible-galaxy installed under
+# either root or target-user HOME (common sudo/home variance on macOS).
+export ANSIBLE_COLLECTIONS_PATH="${RUN_AS_HOME}/.ansible/collections:/var/root/.ansible/collections:/root/.ansible/collections:/usr/share/ansible/collections"
 case "${DISTRO_NAME:-}" in
   fedora | almalinux | rocky | centos | rhel)
     if [ -x /usr/libexec/platform-python ]; then

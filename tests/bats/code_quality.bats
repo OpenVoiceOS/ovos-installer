@@ -434,6 +434,14 @@ function setup() {
     assert_success
 }
 
+@test "setup_exports_collection_paths_for_launchd_module_resolution" {
+    run grep -q "ANSIBLE_COLLECTIONS_PATH" setup.sh
+    assert_success
+
+    run grep -q "/var/root/.ansible/collections" setup.sh
+    assert_success
+}
+
 @test "launchd_module_uses_plist_basename_not_absolute_path" {
     run grep -q "ovos_services_launchd_plist_name: \"{{ item.label }}.plist\"" ansible/roles/ovos_services/tasks/launchd.yml
     assert_success
@@ -460,6 +468,14 @@ function setup() {
     assert_success
 
     run grep -q "plist: \"{{ ovos_services_launchd_agents_path }}/{{ item.label }}.plist\"" ansible/roles/ovos_services/tasks/launchd.yml
+    assert_failure
+}
+
+@test "launchd_uninstall_uses_collection_module" {
+    run grep -q "community.general.launchd" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
+    assert_success
+
+    run grep -q "/bin/launchctl" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
     assert_failure
 }
 
