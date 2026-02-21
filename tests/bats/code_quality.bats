@@ -716,7 +716,7 @@ function setup() {
 }
 
 @test "launchd_user_operations_use_configurable_execution_mode" {
-    run grep -q "ovos_services_launchd_user_management_mode: root" ansible/roles/ovos_services/defaults/main.yml
+    run grep -q "ovos_services_launchd_user_management_mode: user" ansible/roles/ovos_services/defaults/main.yml
     assert_success
 
     run grep -q "ovos_services_launchd_user_module_become_user" ansible/roles/ovos_services/defaults/main.yml

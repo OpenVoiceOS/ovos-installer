@@ -30,7 +30,7 @@ ovos_services_launchd_run_at_load: true
 ovos_services_launchd_keep_alive: true
 ovos_services_launchd_throttle_interval: "{{ 1 if (ovos_installer_tuning | default(false) | bool) else 5 }}"
 ovos_services_launchd_path: "{{ ovos_services_venv_path }}/bin:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-ovos_services_launchd_user_management_mode: root
+ovos_services_launchd_user_management_mode: user
 ovos_services_launchd_user_module_become_user: >-
   {{ ovos_installer_user if ovos_services_launchd_user_management_mode == 'user' else 'root' }}
 ovos_services_launchd_user_lookup_environment:
