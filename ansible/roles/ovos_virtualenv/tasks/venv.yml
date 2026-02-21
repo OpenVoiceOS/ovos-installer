@@ -83,62 +83,102 @@
     UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
   when: not (ovos_installer_cleaning | default(false) | bool)
 
-- name: Read OVOS venv base interpreter path from pyvenv.cfg
-  ansible.builtin.shell:
-    cmd: |
-      set -euo pipefail
-      cfg="{{ ovos_virtualenv_path }}/pyvenv.cfg"
-      requested="{{ ovos_virtualenv_venv_python }}"
-
-      executable="$(awk -F ' = ' '/^executable = / {print $2; exit}' "$cfg" 2>/dev/null || true)"
-      if [ -n "$executable" ] && [ -x "$executable" ]; then
-        printf '%s\n' "$executable"
-        exit 0
-      fi
-
-      home_dir="$(awk -F ' = ' '/^home = / {print $2; exit}' "$cfg" 2>/dev/null || true)"
-      if [ -n "$home_dir" ]; then
-        for candidate in "$home_dir/python${requested}" "$home_dir/python3" "$home_dir/python"; do
-          if [ -x "$candidate" ]; then
-            printf '%s\n' "$candidate"
-            exit 0
-          fi
-        done
-      fi
-
-      # Fallback to venv-local binaries if they are directly executable.
-      for candidate in \
-        "{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}" \
-        "{{ ovos_virtualenv_path }}/bin/python3" \
-        "{{ ovos_virtualenv_path }}/bin/python"; do
-        if [ -x "$candidate" ]; then
-          printf '%s\n' "$candidate"
-          exit 0
-        fi
-      done
-
-      exit 0
-    executable: /bin/bash
-  register: ovos_virtualenv_base_python_executable
+- name: Read OVOS venv pyvenv.cfg
+  ansible.builtin.slurp:
+    src: "{{ ovos_virtualenv_path }}/pyvenv.cfg"
+  register: ovos_virtualenv_pyvenv_cfg
+  failed_when: false
   changed_when: false
   when: not (ovos_installer_cleaning | default(false) | bool)
 
-- name: Check OVOS venv base interpreter exists
+- name: Parse OVOS venv interpreter hints from pyvenv.cfg
+  ansible.builtin.set_fact:
+    ovos_virtualenv_pyvenv_executable: >-
+      {{
+        (
+          (ovos_virtualenv_pyvenv_cfg.content | default('') | b64decode)
+          | regex_findall('^executable\\s*=\\s*(.+)$', multiline=True)
+          | first | default('')
+        ) | trim
+      }}
+    ovos_virtualenv_pyvenv_home: >-
+      {{
+        (
+          (ovos_virtualenv_pyvenv_cfg.content | default('') | b64decode)
+          | regex_findall('^home\\s*=\\s*(.+)$', multiline=True)
+          | first | default('')
+        ) | trim
+      }}
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Build OVOS venv base interpreter candidates
+  ansible.builtin.set_fact:
+    ovos_virtualenv_base_python_candidates: >-
+      {{
+        (
+          ([ovos_virtualenv_pyvenv_executable]
+           if (ovos_virtualenv_pyvenv_executable | default('') | length) > 0
+           else [])
+          +
+          ([
+            ovos_virtualenv_pyvenv_home ~ '/python' ~ ovos_virtualenv_venv_python,
+            ovos_virtualenv_pyvenv_home ~ '/python3',
+            ovos_virtualenv_pyvenv_home ~ '/python'
+          ] if (ovos_virtualenv_pyvenv_home | default('') | length) > 0 else [])
+          +
+          [
+            ovos_virtualenv_path ~ '/bin/python' ~ ovos_virtualenv_venv_python,
+            ovos_virtualenv_path ~ '/bin/python3',
+            ovos_virtualenv_path ~ '/bin/python'
+          ]
+        )
+        | reject('equalto', '')
+        | unique
+        | list
+      }}
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Check OVOS venv base interpreter candidates
   ansible.builtin.stat:
-    path: "{{ ovos_virtualenv_base_python_executable.stdout | default('') | trim }}"
+    path: "{{ item }}"
     follow: false
-  register: ovos_virtualenv_base_python_stat
+  register: ovos_virtualenv_base_python_candidate_stats
   changed_when: false
+  failed_when: false
+  loop: "{{ ovos_virtualenv_base_python_candidates }}"
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Initialize OVOS venv base interpreter
+  ansible.builtin.set_fact:
+    ovos_virtualenv_base_python_executable: ""
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Select OVOS venv base interpreter candidate
+  ansible.builtin.set_fact:
+    ovos_virtualenv_base_python_executable: "{{ item.stat.path }}"
+  loop: "{{ ovos_virtualenv_base_python_candidate_stats.results | default([]) }}"
   when:
     - not (ovos_installer_cleaning | default(false) | bool)
-    - (ovos_virtualenv_base_python_executable.stdout | default('') | trim | length) > 0
+    - (ovos_virtualenv_base_python_executable | length) == 0
+    - item.stat.exists | default(false)
+    - (item.stat.isreg | default(false)) or (item.stat.islnk | default(false))
+
+- name: Check OVOS venv base interpreter target
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_base_python_executable }}"
+    follow: true
+  register: ovos_virtualenv_base_python_target_stat
+  changed_when: false
+  failed_when: false
+  when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Assert OVOS venv base interpreter is available
   ansible.builtin.assert:
     that:
-      - (ovos_virtualenv_base_python_executable.stdout | default('') | trim | length) > 0
-      - ovos_virtualenv_base_python_stat.stat.exists | default(false)
-      - ovos_virtualenv_base_python_stat.stat.isreg | default(false)
+      - (ovos_virtualenv_base_python_executable | default('') | trim | length) > 0
+      - ovos_virtualenv_base_python_target_stat.stat.exists | default(false)
+      - ovos_virtualenv_base_python_target_stat.stat.isreg | default(false)
+      - ovos_virtualenv_base_python_target_stat.stat.executable | default(false)
     fail_msg: >-
       Unable to locate a valid base Python interpreter for {{ ovos_virtualenv_path }}.
       Check {{ ovos_virtualenv_path }}/pyvenv.cfg and recreate the venv if needed.
@@ -146,7 +186,7 @@
 
 - name: Ensure OVOS venv versioned python points to base interpreter
   ansible.builtin.file:
-    src: "{{ ovos_virtualenv_base_python_executable.stdout | trim }}"
+    src: "{{ ovos_virtualenv_base_python_executable | trim }}"
     dest: "{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}"
     state: link
     owner: "{{ ovos_installer_user }}"
@@ -175,6 +215,15 @@
     group: "{{ ovos_installer_group }}"
     force: true
     follow: false
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Ensure OVOS virtualenv ownership is aligned before package installs
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_path }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    recurse: true
   when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Ensure pip is available in OVOS venv
@@ -306,12 +355,6 @@
     HOME: "{{ ovos_installer_user_home }}"
     PATH: "{{ ovos_virtualenv_uv_exec_path }}"
     UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
-
-- name: Change files ownership of ovos virtualenv
-  ansible.builtin.command:
-    cmd: |
-      chown -R {{ ovos_installer_user }}:{{ ovos_installer_group }} {{ ovos_virtualenv_path }}
-  changed_when: false
 
 - name: Check ovos virtualenv activate script exists
   ansible.builtin.stat:

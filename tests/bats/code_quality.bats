@@ -320,13 +320,31 @@ function setup() {
 }
 
 @test "virtualenv_ensures_python_command_shim_exists" {
-    run grep -q "Read OVOS venv base interpreter path from pyvenv.cfg" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "Read OVOS venv pyvenv.cfg" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q '/^home = /' ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "ansible.builtin.slurp" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q 'home_dir/python${requested}' ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "Parse OVOS venv interpreter hints from pyvenv.cfg" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -F -q "regex_findall('^home\\\\s*=\\\\s*(.+)$', multiline=True)" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "Build OVOS venv base interpreter candidates" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "Check OVOS venv base interpreter candidates" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "Select OVOS venv base interpreter candidate" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "Check OVOS venv base interpreter target" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "stat.executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
     run grep -q "Assert OVOS venv base interpreter is available" ansible/roles/ovos_virtualenv/tasks/venv.yml
@@ -353,7 +371,7 @@ function setup() {
     run grep -q "force: true" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "src: \"{{ ovos_virtualenv_base_python_executable.stdout | trim }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "src: \"{{ ovos_virtualenv_base_python_executable | trim }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 }
 
@@ -376,6 +394,25 @@ function setup() {
     assert_success
 
     run bash -c "grep -A4 -F -- \"- name: Ensure setuptools Python library is compatible with OVOS runtime\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
+    assert_success
+}
+
+@test "virtualenv_repairs_ownership_before_python_package_installs" {
+    local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -q "Ensure OVOS virtualenv ownership is aligned before package installs" "$file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Ensure OVOS virtualenv ownership is aligned before package installs\" \"$file\" | grep -q -- 'recurse: true'"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Ensure OVOS virtualenv ownership is aligned before package installs\" \"$file\" | grep -q -- 'owner: \"{{ ovos_installer_user }}\"'"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Ensure OVOS virtualenv ownership is aligned before package installs\" \"$file\" | grep -q -- 'group: \"{{ ovos_installer_group }}\"'"
+    assert_success
+
+    run bash -c "awk '/Ensure OVOS virtualenv ownership is aligned before package installs/{owner_line=NR} /Ensure numpy Python library is installed/{numpy_line=NR} END{exit !(owner_line>0 && numpy_line>0 && owner_line<numpy_line)}' \"$file\""
     assert_success
 }
 
