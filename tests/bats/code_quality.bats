@@ -320,7 +320,16 @@ function setup() {
 }
 
 @test "virtualenv_ensures_python_command_shim_exists" {
+    run grep -q "Check OVOS venv python executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
     run grep -q "Check OVOS venv python3 executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "Check OVOS venv versioned python executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "Repair circular python symlink loop in OVOS venv" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
     run grep -q "Ensure python command compatibility shim exists in OVOS venv" ansible/roles/ovos_virtualenv/tasks/venv.yml
@@ -330,6 +339,12 @@ function setup() {
     assert_success
 
     run grep -q "src: \"{{ ovos_virtualenv_path }}/bin/python3\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "follow: false" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "force: false" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 }
 

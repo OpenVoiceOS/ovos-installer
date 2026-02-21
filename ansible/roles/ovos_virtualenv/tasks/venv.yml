@@ -95,12 +95,46 @@
   register: ovos_virtualenv_pip_bootstrap
   when: not (ovos_installer_cleaning | default(false) | bool)
 
+- name: Check OVOS venv python executable
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_path }}/bin/python"
+    follow: false
+  register: ovos_virtualenv_python_bin
+  changed_when: false
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
 - name: Check OVOS venv python3 executable
   ansible.builtin.stat:
     path: "{{ ovos_virtualenv_path }}/bin/python3"
+    follow: false
   register: ovos_virtualenv_python3_bin
   changed_when: false
   when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Check OVOS venv versioned python executable
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}"
+    follow: false
+  register: ovos_virtualenv_python_version_bin
+  changed_when: false
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Repair circular python symlink loop in OVOS venv
+  ansible.builtin.file:
+    src: "{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}"
+    dest: "{{ ovos_virtualenv_path }}/bin/python"
+    state: link
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    force: true
+    follow: false
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - ovos_virtualenv_python_bin.stat.islnk | default(false)
+    - ovos_virtualenv_python3_bin.stat.islnk | default(false)
+    - (ovos_virtualenv_python_bin.stat.lnk_target | default('')) in ['python3', ovos_virtualenv_path ~ '/bin/python3']
+    - (ovos_virtualenv_python3_bin.stat.lnk_target | default('')) in ['python', ovos_virtualenv_path ~ '/bin/python']
+    - ovos_virtualenv_python_version_bin.stat.exists | default(false)
 
 - name: Ensure python command compatibility shim exists in OVOS venv
   ansible.builtin.file:
@@ -109,9 +143,11 @@
     state: link
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
-    force: true
+    force: false
+    follow: false
   when:
     - not (ovos_installer_cleaning | default(false) | bool)
+    - not (ovos_virtualenv_python_bin.stat.exists | default(false))
     - ovos_virtualenv_python3_bin.stat.exists | default(false)
 
 - name: Upgrade pip tooling in OVOS venv
