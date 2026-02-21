@@ -33,7 +33,7 @@
 
 - name: Check installer uv binary
   ansible.builtin.stat:
-    path: "{{ ovos_installer_venv }}/bin/uv"
+    path: "{{ ovos_virtualenv_installer_venv_path }}/bin/uv"
   register: ovos_virtualenv_uv_bin
   changed_when: false
   when: not (ovos_installer_cleaning | default(false) | bool)
@@ -49,7 +49,7 @@
 
 - name: Install uv for user from installer venv
   ansible.builtin.copy:
-    src: "{{ ovos_installer_venv }}/bin/uv"
+    src: "{{ ovos_virtualenv_installer_venv_path }}/bin/uv"
     dest: "{{ ovos_installer_user_home }}/.local/bin/uv"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"

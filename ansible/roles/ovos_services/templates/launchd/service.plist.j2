@@ -26,7 +26,7 @@
       <key>VIRTUAL_ENV</key>
       <string>{{ ovos_services_venv_path }}</string>
       <key>XDG_CONFIG_HOME</key>
-      <string>{{ ovos_installer_user_home }}/.config</string>
+      <string>{{ '/var/root/.config' if item.scope == 'system' else ovos_installer_user_home + '/.config' }}</string>
       <key>XDG_CACHE_HOME</key>
       <string>{{ '/var/root/.cache' if item.scope == 'system' else ovos_installer_user_home + '/.cache' }}</string>
     </dict>

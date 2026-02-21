@@ -76,6 +76,34 @@
         - ansible_facts.system == 'Darwin'
         - ovos_timezone_macos_auto_enabled | default(false) | bool
 
+    - name: Read macOS timezone when automatic mode is enabled
+      ansible.builtin.command:
+        argv:
+          - /usr/sbin/systemsetup
+          - -gettimezone
+      register: ovos_timezone_macos_auto_current
+      changed_when: false
+      failed_when: false
+      when:
+        - ansible_facts.system == 'Darwin'
+        - ovos_timezone_macos_auto_enabled | default(false) | bool
+
+    - name: Align installer timezone fact with macOS auto-timezone value
+      ansible.builtin.set_fact:
+        ovos_timezone_value: >-
+          {{
+            (ovos_timezone_macos_auto_current.stdout | default('') | regex_replace('^Time Zone:\\s*', '') | trim)
+            | default(ovos_timezone_value, true)
+          }}
+        ovos_timezone_name: >-
+          {{
+            (ovos_timezone_macos_auto_current.stdout | default('') | regex_replace('^Time Zone:\\s*', '') | trim)
+            | default(ovos_timezone_name | default(ovos_timezone_value), true)
+          }}
+      when:
+        - ansible_facts.system == 'Darwin'
+        - ovos_timezone_macos_auto_enabled | default(false) | bool
+
     - name: Set system's timezone on macOS
       community.general.timezone:
         name: "{{ ovos_timezone_value }}"

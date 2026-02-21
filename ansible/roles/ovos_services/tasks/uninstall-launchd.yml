@@ -55,6 +55,7 @@
   when: item.scope == 'system'
 
 - name: Remove OVOS launchd plist files
+  become: true
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent

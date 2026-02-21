@@ -144,6 +144,7 @@
     cmd: "which swig"
   register: ovos_virtualenv_macos_swig_bin
   changed_when: false
+  failed_when: false
   environment:
     PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
   when: ansible_facts.system == "Darwin"

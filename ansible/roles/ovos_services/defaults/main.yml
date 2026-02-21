@@ -165,6 +165,7 @@ ovos_services_unit_backup_patterns:
   - "hivemind-*.service.*~"
 ovos_services_remove_directories:
   - "{{ ovos_installer_user_home }}/.cache/mycroft"
+  - "{{ ovos_installer_user_home }}/.cache/ovos_gui"
   - "{{ ovos_installer_user_home }}/.config/mycroft"
   - "{{ ovos_installer_user_home }}/.config/hivemind"
   - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS"

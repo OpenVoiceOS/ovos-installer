@@ -181,7 +181,10 @@ function setup() {
 }
 
 @test "mycroft_conf_uses_precise_onnx_for_macos_listener" {
-    run grep -q "(ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool" ansible/roles/ovos_config/templates/mycroft.conf.j2
+    run grep -q "ansible_facts.system == 'Darwin' or ovos_installer_tuning | bool" ansible/roles/ovos_config/templates/mycroft.conf.j2
+    assert_success
+
+    run grep -q "\"module\": \"ovos-microphone-plugin-sounddevice\"" ansible/roles/ovos_config/templates/mycroft.conf.j2
     assert_success
 
     run grep -q "\"module\": \"ovos-ww-plugin-precise-onnx\"" ansible/roles/ovos_config/templates/mycroft.conf.j2
@@ -259,6 +262,9 @@ function setup() {
 }
 
 @test "virtualenv_uv_uses_consistent_exec_path_with_homebrew_prefixes" {
+    run grep -q "ovos_virtualenv_installer_venv_path" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
     run grep -q "ovos_virtualenv_uv_exec_path" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
@@ -293,6 +299,9 @@ function setup() {
 
 @test "macos_fann2_build_has_swig2_compatibility_shim" {
     run grep -q "Resolve swig binary path for fann2 builds (macOS)" ansible/roles/ovos_virtualenv/tasks/packages.yml
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Resolve swig binary path for fann2 builds (macOS)\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -- \"failed_when: false\""
     assert_success
 
     run grep -q "Ensure swig2.0 compatibility shim exists (macOS)" ansible/roles/ovos_virtualenv/tasks/packages.yml
@@ -395,6 +404,12 @@ function setup() {
     run grep -q "Set macOS auto-timezone fact" ansible/roles/ovos_timezone/tasks/main.yml
     assert_success
 
+    run grep -q "Read macOS timezone when automatic mode is enabled" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run grep -q "Align installer timezone fact with macOS auto-timezone value" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
     run grep -q "Skip manual timezone change on macOS when automatic mode is enabled" ansible/roles/ovos_timezone/tasks/main.yml
     assert_success
 
@@ -405,6 +420,17 @@ function setup() {
     assert_failure
 
     run grep -q "Warn when macOS timezone update did not persist" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+}
+
+@test "services_asserts_messagebus_binary_before_starting_services" {
+    run grep -q "Check OVOS messagebus binary exists" ansible/roles/ovos_services/tasks/assert.yml
+    assert_success
+
+    run grep -q "Assert OVOS messagebus binary exists" ansible/roles/ovos_services/tasks/assert.yml
+    assert_success
+
+    run grep -q "path: \"{{ ovos_services_messagebus_command }}\"" ansible/roles/ovos_services/tasks/assert.yml
     assert_success
 }
 
@@ -437,11 +463,19 @@ function setup() {
     assert_failure
 }
 
+@test "launchd_uninstall_removes_plists_with_privilege_escalation" {
+    run bash -c "grep -A4 -F -- \"- name: Remove OVOS launchd plist files\" ansible/roles/ovos_services/tasks/uninstall-launchd.yml | grep -q -- \"become: true\""
+    assert_success
+}
+
 @test "services_repair_runtime_directory_ownership_on_install" {
     run grep -q "ovos_services_user_runtime_dirs" ansible/roles/ovos_services/defaults/main.yml
     assert_success
 
-    run grep -q "Ensure OVOS runtime user directories exist with correct ownership" ansible/roles/ovos_services/tasks/main.yml
+    run grep -q "Ensure OVOS runtime user directories exist" ansible/roles/ovos_services/tasks/main.yml
+    assert_success
+
+    run grep -q "Ensure OVOS runtime user directory ownership is corrected recursively" ansible/roles/ovos_services/tasks/main.yml
     assert_success
 
     run grep -q "recurse: true" ansible/roles/ovos_services/tasks/main.yml
@@ -454,16 +488,21 @@ function setup() {
 
     run grep -q "'/var/root/.cache' if item.scope == 'system'" ansible/roles/ovos_services/templates/launchd/service.plist.j2
     assert_success
+
+    run grep -q "'/var/root/.config' if item.scope == 'system'" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
 }
 
 @test "macos_scenario_smoke_runs_on_intel_and_arm" {
-    run bash -c 'grep -A14 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q "runs-on: \${{ matrix.runner }}"'
+    # Keep a generous context window because this job block may grow over time.
+    # When GitHub retires macos-15-intel, update the Intel runner assertion below.
+    run bash -c 'grep -A50 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q "runs-on: \${{ matrix.runner }}"'
     assert_success
 
-    run bash -c 'grep -A14 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q -- "- macos-15-intel"'
+    run bash -c 'grep -A50 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q -- "- macos-15-intel"'
     assert_success
 
-    run bash -c 'grep -A14 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q -- "- macos-14"'
+    run bash -c 'grep -A50 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q -- "- macos-14"'
     assert_success
 }
 

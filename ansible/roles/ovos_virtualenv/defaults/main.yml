@@ -14,8 +14,9 @@ ovos_virtualenv_uv_allow_prerelease: >-
      | default(ansible_facts.python.version.major == 3
      and (ansible_facts.python.version.minor | int) >= 13) }}
 ovos_virtualenv_uv_version: "{{ ovos_installer_uv_version | default('') }}"
+ovos_virtualenv_installer_venv_path: "{{ ovos_installer_venv | default(ovos_installer_user_home + '/.venvs/ovos-installer', true) }}"
 ovos_virtualenv_uv_cache_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-cache"
-ovos_virtualenv_uv_exec_path: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_installer_venv }}/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+ovos_virtualenv_uv_exec_path: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_virtualenv_installer_venv_path }}/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ovos_virtualenv_shell_init_file: "{{ ovos_installer_user_home }}/{{ '.zshrc' if ansible_facts.system == 'Darwin' else '.bashrc' }}"
 ovos_virtualenv_run_ovos_config: "{{ ovos_installer_run_ovos_config | default(false) }}"
 ovos_virtualenv_numpy_package: "{{ ovos_installer_numpy_package | default('numpy==1.26.4') }}"

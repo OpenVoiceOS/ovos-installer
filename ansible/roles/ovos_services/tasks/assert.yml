@@ -32,3 +32,26 @@
       - item is match('^/')
     fail_msg: "Services path must be absolute: {{ item }}"
   loop: "{{ ovos_services_paths_to_validate }}"
+
+- name: Check OVOS messagebus binary exists
+  ansible.builtin.stat:
+    path: "{{ ovos_services_messagebus_command }}"
+  register: ovos_services_messagebus_binary
+  changed_when: false
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - ovos_installer_method == 'virtualenv'
+    - ovos_installer_profile != 'satellite'
+
+- name: Assert OVOS messagebus binary exists
+  ansible.builtin.assert:
+    that:
+      - ovos_services_messagebus_binary.stat.exists | default(false)
+      - ovos_services_messagebus_binary.stat.isreg | default(false)
+    fail_msg: >-
+      OVOS messagebus binary was not found at {{ ovos_services_messagebus_command }}.
+      Ensure ovos_virtualenv role completed successfully before ovos_services.
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - ovos_installer_method == 'virtualenv'
+    - ovos_installer_profile != 'satellite'
