@@ -502,3 +502,53 @@
     - ovos_installer_profile != "server"
     - ovos_virtualenv_run_ovos_config | bool
     - not (ovos_virtualenv_mycroft_conf.stat.exists | default(false))
+
+- name: Ensure Piper TTS data directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_piper_data_dir }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+  when:
+    - ovos_installer_profile != "server"
+    - ovos_virtualenv_set_fallback_tts | bool
+
+- name: Read configured fallback TTS module
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv:
+      - ovos-config
+      - get
+      - -k
+      - /tts/fallback_module
+  environment:
+    PATH: "{{ ovos_virtualenv_path }}/bin"
+    VIRTUAL_ENV: "{{ ovos_virtualenv_path }}"
+  register: ovos_virtualenv_tts_fallback_module_value
+  changed_when: false
+  failed_when: false
+  when:
+    - ovos_installer_profile != "server"
+    - ovos_virtualenv_set_fallback_tts | bool
+
+- name: Configure default fallback TTS module
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv:
+      - ovos-config
+      - set
+      - -k
+      - /tts/fallback_module
+      - -v
+      - "{{ ovos_virtualenv_fallback_tts_module }}"
+  environment:
+    PATH: "{{ ovos_virtualenv_path }}/bin"
+    VIRTUAL_ENV: "{{ ovos_virtualenv_path }}"
+  changed_when: false
+  when:
+    - ovos_installer_profile != "server"
+    - ovos_virtualenv_set_fallback_tts | bool
+    - ovos_virtualenv_tts_fallback_module_value.rc != 0 or (ovos_virtualenv_tts_fallback_module_value.stdout is search('Value:\\s*,\\s*found in /tts/fallback_module'))
