@@ -34,6 +34,12 @@
     group: "{{ ovos_installer_group }}"
     mode: "0755"
 
+- name: Check Rust messagebus binary presence
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_rust_messagebus_binary_path }}"
+  register: ovos_virtualenv_rust_messagebus_binary_stat
+  changed_when: false
+
 - name: Extract Rust messagebus archive with tar
   ansible.builtin.command:
     argv:
@@ -43,6 +49,9 @@
       - -C
       - "{{ ovos_installer_user_home }}/.local/bin"
   changed_when: false
+  when:
+    - ovos_virtualenv_rust_messagebus_download is changed
+      or not (ovos_virtualenv_rust_messagebus_binary_stat.stat.exists | default(false))
 
 - name: Ensure Rust messagebus binary mode and ownership
   ansible.builtin.file:
@@ -51,8 +60,3 @@
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     state: file
-
-- name: Remove Rust messagebus archive after extraction
-  ansible.builtin.file:
-    path: "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
-    state: absent

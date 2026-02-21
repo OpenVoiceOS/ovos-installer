@@ -244,11 +244,23 @@ function setup() {
     run grep -q "Assert Rust messagebus checksum is available for selected target/version" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_success
 
+    run grep -q "Check Rust messagebus binary presence" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_rust_messagebus_download is changed" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_rust_messagebus_binary_stat.stat.exists" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_success
+
     run grep -q "Extract Rust messagebus archive with tar" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_success
 
     run grep -q -- "- -xzf" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_success
+
+    run grep -q "Remove Rust messagebus archive after extraction" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_failure
 }
 
 @test "macos_homebrew_uses_espeak_ng_formula" {
