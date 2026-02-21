@@ -284,9 +284,14 @@ function detect_sound() {
 function detect_cpu_instructions() {
     printf '%s' "➤ Detecting AVX2/SIMD support... "
     local cpu_capabilities=""
+    local machine_arch=""
     case "$(uname -s 2>>"$LOG_FILE" || true)" in
     Darwin)
-        cpu_capabilities="$(sysctl -n machdep.cpu.features 2>>"$LOG_FILE" || true) $(sysctl -n machdep.cpu.leaf7_features 2>>"$LOG_FILE" || true)"
+        machine_arch="$(uname -m 2>>"$LOG_FILE" || true)"
+        cpu_capabilities="$(sysctl -n machdep.cpu.features 2>>"$LOG_FILE" || true)"
+        if [ "$machine_arch" = "x86_64" ]; then
+            cpu_capabilities="${cpu_capabilities} $(sysctl -n machdep.cpu.leaf7_features 2>>"$LOG_FILE" || true)"
+        fi
         if [ "$(sysctl -n hw.optional.neon 2>>"$LOG_FILE" || echo 0)" == "1" ]; then
             cpu_capabilities="${cpu_capabilities} neon"
         fi
