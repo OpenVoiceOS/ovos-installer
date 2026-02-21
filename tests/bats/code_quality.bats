@@ -404,6 +404,9 @@ function setup() {
     run grep -q "Set macOS auto-timezone fact" ansible/roles/ovos_timezone/tasks/main.yml
     assert_success
 
+    run bash -c "grep -A8 -F -- \"- name: Read macOS timed auto-timezone preference\" ansible/roles/ovos_timezone/tasks/main.yml | grep -q -- \"become: true\""
+    assert_success
+
     run grep -q "Read macOS timezone when automatic mode is enabled" ansible/roles/ovos_timezone/tasks/main.yml
     assert_success
 
@@ -425,6 +428,9 @@ function setup() {
 
 @test "services_asserts_messagebus_binary_before_starting_services" {
     run grep -q "Check OVOS messagebus binary exists" ansible/roles/ovos_services/tasks/assert.yml
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"- name: Check OVOS messagebus binary exists\" ansible/roles/ovos_services/tasks/assert.yml | grep -q -- \"follow: true\""
     assert_success
 
     run grep -q "Assert OVOS messagebus binary exists" ansible/roles/ovos_services/tasks/assert.yml

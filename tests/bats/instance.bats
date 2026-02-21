@@ -121,6 +121,9 @@ function setup() {
 }
 
 @test "function_detect_existing_instance_skips_container_runtime_checks_on_macos" {
+    docker_called="false"
+    podman_called="false"
+
     function uname() {
         if [[ "$1" == "-s" ]]; then
             echo "Darwin"
@@ -129,10 +132,12 @@ function setup() {
         command uname "$@"
     }
     function docker() {
+        docker_called="true"
         echo "docker should not be called on macOS" >&2
         return 99
     }
     function podman() {
+        podman_called="true"
         echo "podman should not be called on macOS" >&2
         return 99
     }
@@ -141,6 +146,8 @@ function setup() {
     detect_existing_instance
     assert_equal "$EXISTING_INSTANCE" "false"
     assert_equal "${INSTANCE_TYPE:-}" ""
+    assert_equal "$docker_called" "false"
+    assert_equal "$podman_called" "false"
     unset uname docker podman
 }
 

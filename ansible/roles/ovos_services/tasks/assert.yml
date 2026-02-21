@@ -36,6 +36,7 @@
 - name: Check OVOS messagebus binary exists
   ansible.builtin.stat:
     path: "{{ ovos_services_messagebus_command }}"
+    follow: true
   register: ovos_services_messagebus_binary
   changed_when: false
   when:

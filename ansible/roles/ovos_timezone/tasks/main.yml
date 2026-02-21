@@ -44,6 +44,7 @@
       when: ansible_facts.system == 'Darwin'
 
     - name: Read macOS timed auto-timezone preference
+      become: true
       ansible.builtin.command:
         argv:
           - /usr/bin/defaults
