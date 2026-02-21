@@ -335,6 +335,15 @@ function setup() {
     run grep -q "Build OVOS venv external base interpreter candidates" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
+    run grep -q "Resolve OVOS base interpreter from uv managed Python when pyvenv hints are missing" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "Add uv managed base interpreter candidate" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "uv python find {{ ovos_virtualenv_venv_python }}" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
     run grep -q "Check OVOS venv external base interpreter candidates" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 

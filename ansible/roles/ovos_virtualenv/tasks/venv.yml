@@ -132,6 +132,34 @@
       }}
   when: not (ovos_installer_cleaning | default(false) | bool)
 
+- name: Resolve OVOS base interpreter from uv managed Python when pyvenv hints are missing
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    cmd: "uv python find {{ ovos_virtualenv_venv_python }}"
+  register: ovos_virtualenv_uv_python_find
+  changed_when: false
+  failed_when: false
+  environment:
+    HOME: "{{ ovos_installer_user_home }}"
+    PATH: "{{ ovos_virtualenv_uv_exec_path }}"
+    UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - (ovos_virtualenv_base_python_candidates | default([]) | length) == 0
+
+- name: Add uv managed base interpreter candidate
+  ansible.builtin.set_fact:
+    ovos_virtualenv_base_python_candidates: >-
+      {{
+        (ovos_virtualenv_base_python_candidates | default([]))
+        + [ovos_virtualenv_uv_python_find.stdout | trim]
+      }}
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - (ovos_virtualenv_base_python_candidates | default([]) | length) == 0
+    - (ovos_virtualenv_uv_python_find.stdout | default('') | trim | length) > 0
+
 - name: Check OVOS venv external base interpreter candidates
   ansible.builtin.stat:
     path: "{{ item }}"
