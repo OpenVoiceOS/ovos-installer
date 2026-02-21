@@ -27,6 +27,7 @@
         ovos_timezone_name: "{{ ovos_timezone_value }}"
 
     - name: Set system's timezone on Linux
+      become: true
       community.general.timezone:
         name: "{{ ovos_timezone_value }}"
       when: ansible_facts.system == 'Linux'

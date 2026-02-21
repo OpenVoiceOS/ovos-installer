@@ -27,9 +27,13 @@ ovos_virtualenv_rust_messagebus_version: v1.1.2
 ovos_virtualenv_rust_messagebus_target_arch: >-
   {{ 'aarch64' if ansible_facts.architecture in ['aarch64', 'arm64']
      else 'x86_64' if ansible_facts.architecture in ['x86_64', 'amd64']
+     else 'armv7' if ansible_facts.architecture in ['armv7', 'armv7l']
+     else 'arm' if ansible_facts.architecture in ['arm', 'armv6', 'armv6l']
      else ansible_facts.architecture }}
 ovos_virtualenv_rust_messagebus_target_platform: >-
-  {{ 'apple-darwin' if ansible_facts.system == 'Darwin' else 'unknown-linux-gnu' }}
+  {{ 'apple-darwin' if ansible_facts.system == 'Darwin'
+     else 'unknown-linux-gnueabihf' if ovos_virtualenv_rust_messagebus_target_arch in ['arm', 'armv7']
+     else 'unknown-linux-gnu' }}
 ovos_virtualenv_rust_messagebus_binary_name: >-
   ovos_messagebus-{{ ovos_virtualenv_rust_messagebus_target_arch }}-{{ ovos_virtualenv_rust_messagebus_target_platform }}
 ovos_virtualenv_rust_messagebus_archive_name: "{{ ovos_virtualenv_rust_messagebus_binary_name }}.tar.gz"

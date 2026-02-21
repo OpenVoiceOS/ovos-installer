@@ -226,6 +226,12 @@ function setup() {
     run grep -q "ovos_messagebus-x86_64-apple-darwin.tar.gz" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
+    run grep -q "armv7l" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "unknown-linux-gnueabihf" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
     run grep -q "ansible.builtin.get_url" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_success
 
@@ -433,6 +439,9 @@ function setup() {
 
 @test "timezone_role_uses_timezone_module_on_linux_and_macos" {
     run grep -q "Set system's timezone on Linux" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run bash -c "grep -A5 -F -- \"- name: Set system's timezone on Linux\" ansible/roles/ovos_timezone/tasks/main.yml | grep -q -- \"become: true\""
     assert_success
 
     run grep -q "community.general.timezone" ansible/roles/ovos_timezone/tasks/main.yml
