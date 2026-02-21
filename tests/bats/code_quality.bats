@@ -475,6 +475,20 @@ function setup() {
     assert_success
 }
 
+@test "macos_does_not_require_systemd_user_config_paths" {
+    run grep -q "ovos_config_backup_paths_common" ansible/roles/ovos_config/defaults/main.yml
+    assert_success
+
+    run grep -q "ansible_facts.system == 'Linux'" ansible/roles/ovos_config/defaults/main.yml
+    assert_success
+
+    run grep -F -q '.config/systemd/user", enabled: "{{ ansible_facts.system == '\''Linux'\'' }}"' ansible/roles/ovos_config/defaults/main.yml
+    assert_success
+
+    run grep -F -q "/.config/systemd/user/*'] if ansible_facts.system == 'Linux' else []" ansible/roles/ovos_config/defaults/main.yml
+    assert_success
+}
+
 @test "homeassistant_url_defaults_port_only_for_http" {
     run grep -q 'if \[ "\$proto" == "http" \]; then' tui/homeassistant.sh
     assert_success
