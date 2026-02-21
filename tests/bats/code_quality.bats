@@ -320,31 +320,34 @@ function setup() {
 }
 
 @test "virtualenv_ensures_python_command_shim_exists" {
-    run grep -q "Check OVOS venv python executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "Read OVOS venv base interpreter path from pyvenv.cfg" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "Check OVOS venv python3 executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "Assert OVOS venv base interpreter is available" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "Check OVOS venv versioned python executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "Ensure OVOS venv versioned python points to base interpreter" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "Repair circular python symlink loop in OVOS venv" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "Ensure OVOS venv python3 symlink points to versioned executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "Ensure python command compatibility shim exists in OVOS venv" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "Ensure OVOS venv python command points to versioned executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
     run grep -q "dest: \"{{ ovos_virtualenv_path }}/bin/python\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "src: \"{{ ovos_virtualenv_path }}/bin/python3\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "src: \"{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
     run grep -q "follow: false" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "force: false" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "force: true" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "src: \"{{ ovos_virtualenv_base_python_executable.stdout | trim }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 }
 

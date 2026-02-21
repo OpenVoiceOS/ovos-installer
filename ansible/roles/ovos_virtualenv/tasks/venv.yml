@@ -83,6 +83,72 @@
     UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
   when: not (ovos_installer_cleaning | default(false) | bool)
 
+- name: Read OVOS venv base interpreter path from pyvenv.cfg
+  ansible.builtin.command:
+    argv:
+      - awk
+      - -F
+      - " = "
+      - "/^executable = / {print $2; exit}"
+      - "{{ ovos_virtualenv_path }}/pyvenv.cfg"
+  register: ovos_virtualenv_base_python_executable
+  changed_when: false
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Check OVOS venv base interpreter exists
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_base_python_executable.stdout | default('') | trim }}"
+    follow: false
+  register: ovos_virtualenv_base_python_stat
+  changed_when: false
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - (ovos_virtualenv_base_python_executable.stdout | default('') | trim | length) > 0
+
+- name: Assert OVOS venv base interpreter is available
+  ansible.builtin.assert:
+    that:
+      - (ovos_virtualenv_base_python_executable.stdout | default('') | trim | length) > 0
+      - ovos_virtualenv_base_python_stat.stat.exists | default(false)
+      - ovos_virtualenv_base_python_stat.stat.isreg | default(false)
+    fail_msg: >-
+      Unable to locate a valid base Python interpreter for {{ ovos_virtualenv_path }}.
+      Check {{ ovos_virtualenv_path }}/pyvenv.cfg and recreate the venv if needed.
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Ensure OVOS venv versioned python points to base interpreter
+  ansible.builtin.file:
+    src: "{{ ovos_virtualenv_base_python_executable.stdout | trim }}"
+    dest: "{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}"
+    state: link
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    force: true
+    follow: false
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Ensure OVOS venv python3 symlink points to versioned executable
+  ansible.builtin.file:
+    src: "{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}"
+    dest: "{{ ovos_virtualenv_path }}/bin/python3"
+    state: link
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    force: true
+    follow: false
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Ensure OVOS venv python command points to versioned executable
+  ansible.builtin.file:
+    src: "{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}"
+    dest: "{{ ovos_virtualenv_path }}/bin/python"
+    state: link
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    force: true
+    follow: false
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
 - name: Ensure pip is available in OVOS venv
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -94,61 +160,6 @@
     HOME: "{{ ovos_installer_user_home }}"
   register: ovos_virtualenv_pip_bootstrap
   when: not (ovos_installer_cleaning | default(false) | bool)
-
-- name: Check OVOS venv python executable
-  ansible.builtin.stat:
-    path: "{{ ovos_virtualenv_path }}/bin/python"
-    follow: false
-  register: ovos_virtualenv_python_bin
-  changed_when: false
-  when: not (ovos_installer_cleaning | default(false) | bool)
-
-- name: Check OVOS venv python3 executable
-  ansible.builtin.stat:
-    path: "{{ ovos_virtualenv_path }}/bin/python3"
-    follow: false
-  register: ovos_virtualenv_python3_bin
-  changed_when: false
-  when: not (ovos_installer_cleaning | default(false) | bool)
-
-- name: Check OVOS venv versioned python executable
-  ansible.builtin.stat:
-    path: "{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}"
-    follow: false
-  register: ovos_virtualenv_python_version_bin
-  changed_when: false
-  when: not (ovos_installer_cleaning | default(false) | bool)
-
-- name: Repair circular python symlink loop in OVOS venv
-  ansible.builtin.file:
-    src: "{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}"
-    dest: "{{ ovos_virtualenv_path }}/bin/python"
-    state: link
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    force: true
-    follow: false
-  when:
-    - not (ovos_installer_cleaning | default(false) | bool)
-    - ovos_virtualenv_python_bin.stat.islnk | default(false)
-    - ovos_virtualenv_python3_bin.stat.islnk | default(false)
-    - (ovos_virtualenv_python_bin.stat.lnk_target | default('')) in ['python3', ovos_virtualenv_path ~ '/bin/python3']
-    - (ovos_virtualenv_python3_bin.stat.lnk_target | default('')) in ['python', ovos_virtualenv_path ~ '/bin/python']
-    - ovos_virtualenv_python_version_bin.stat.exists | default(false)
-
-- name: Ensure python command compatibility shim exists in OVOS venv
-  ansible.builtin.file:
-    src: "{{ ovos_virtualenv_path }}/bin/python3"
-    dest: "{{ ovos_virtualenv_path }}/bin/python"
-    state: link
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    force: false
-    follow: false
-  when:
-    - not (ovos_installer_cleaning | default(false) | bool)
-    - not (ovos_virtualenv_python_bin.stat.exists | default(false))
-    - ovos_virtualenv_python3_bin.stat.exists | default(false)
 
 - name: Upgrade pip tooling in OVOS venv
   become: true
