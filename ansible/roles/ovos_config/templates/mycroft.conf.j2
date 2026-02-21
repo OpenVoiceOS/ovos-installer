@@ -20,8 +20,8 @@
 {% if ovos_timezone_value is defined %}
   "location": {
     "timezone": {
-      "code": "{{ ovos_timezone_value }}",
-      "name": "{{ ovos_timezone_name | default(ovos_timezone_value) }}"
+      "code": "{{ ovos_timezone_value | string | regex_replace('(?i)^\\s*time\\s*zone\\s*:\\s*', '') | trim }}",
+      "name": "{{ (ovos_timezone_name | default(ovos_timezone_value)) | string | regex_replace('(?i)^\\s*time\\s*zone\\s*:\\s*', '') | trim }}"
     }
   },
 {% endif %}
