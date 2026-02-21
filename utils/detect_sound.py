@@ -1,12 +1,16 @@
 import os
 import platform
+import shutil
 import subprocess
 
 
 def get_process_names():
     """Return a set of running process names."""
     try:
-        output = subprocess.check_output(["pgrep", "-a", "."], text=True).splitlines()
+        pgrep_bin = shutil.which("pgrep")
+        if not pgrep_bin:
+            return set()
+        output = subprocess.check_output([pgrep_bin, "-a", "."], text=True).splitlines()
         processes = set()
         for line in output:
             parts = line.split(" ", 1)

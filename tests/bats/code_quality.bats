@@ -56,6 +56,9 @@ function setup() {
 
     run grep -q "return \"CoreAudio\"" utils/detect_sound.py
     assert_success
+
+    run grep -q "shutil.which(\"pgrep\")" utils/detect_sound.py
+    assert_success
 }
 
 @test "printf_migration_required_packages" {
@@ -238,6 +241,9 @@ function setup() {
     run grep -q "checksum: \"{{ ovos_virtualenv_rust_messagebus_archive_checksum }}\"" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_success
 
+    run grep -q "Assert Rust messagebus checksum is available for selected target/version" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_success
+
     run grep -q "Extract Rust messagebus archive with tar" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_success
 
@@ -298,6 +304,20 @@ function setup() {
     assert_success
 
     run grep -q "PATH: \"{{ ovos_virtualenv_uv_exec_path }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+}
+
+@test "virtualenv_ensures_python_command_shim_exists" {
+    run grep -q "Check OVOS venv python3 executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "Ensure python command compatibility shim exists in OVOS venv" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "dest: \"{{ ovos_virtualenv_path }}/bin/python\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "src: \"{{ ovos_virtualenv_path }}/bin/python3\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 }
 
@@ -417,7 +437,7 @@ function setup() {
     run grep -q "detect_hardware_model" setup.sh
     assert_success
 
-    run grep -q "ovos_installer_hardware='\\\${HARDWARE_MODEL}'" setup.sh
+    run grep -F -q "ovos_installer_hardware='\${HARDWARE_MODEL}'" setup.sh
     assert_success
 }
 

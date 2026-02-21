@@ -5,6 +5,16 @@
     state: directory
     mode: "0755"
 
+- name: Assert Rust messagebus checksum is available for selected target/version
+  ansible.builtin.assert:
+    that:
+      - ovos_virtualenv_rust_messagebus_archive_checksum | length > 0
+    fail_msg: >-
+      Missing checksum for {{ ovos_virtualenv_rust_messagebus_archive_name }}
+      (version {{ ovos_virtualenv_rust_messagebus_version }}). Update
+      ovos_virtualenv_rust_messagebus_archive_checksums when overriding the
+      messagebus version or target mapping.
+
 - name: Download Rust messagebus archive with checksum verification
   ansible.builtin.get_url:
     url: "{{ ovos_virtualenv_rust_messagebus_archive_url }}"

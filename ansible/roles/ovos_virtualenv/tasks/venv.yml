@@ -95,6 +95,25 @@
   register: ovos_virtualenv_pip_bootstrap
   when: not (ovos_installer_cleaning | default(false) | bool)
 
+- name: Check OVOS venv python3 executable
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_path }}/bin/python3"
+  register: ovos_virtualenv_python3_bin
+  changed_when: false
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Ensure python command compatibility shim exists in OVOS venv
+  ansible.builtin.file:
+    src: "{{ ovos_virtualenv_path }}/bin/python3"
+    dest: "{{ ovos_virtualenv_path }}/bin/python"
+    state: link
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    force: true
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - ovos_virtualenv_python3_bin.stat.exists | default(false)
+
 - name: Upgrade pip tooling in OVOS venv
   become: true
   become_user: "{{ ovos_installer_user }}"
