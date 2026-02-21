@@ -10,29 +10,50 @@ function setup() {
 }
 
 @test "function_detect_existing_instance_docker_exists" {
+    function uname() {
+        if [[ "$1" == "-s" ]]; then
+            echo "Linux"
+            return 0
+        fi
+        command uname "$@"
+    }
     function docker() {
         # Match the name-based detection in utils/common.sh
         if [[ "$1" == "ps" ]]; then
             echo "ovos_core"
         fi
     }
-    export -f docker
+    export -f uname docker
     detect_existing_instance
     assert_equal "$EXISTING_INSTANCE" "true"
-    unset docker
+    unset uname docker
 }
 
 @test "function_detect_existing_instance_docker_non_exists" {
+    function uname() {
+        if [[ "$1" == "-s" ]]; then
+            echo "Linux"
+            return 0
+        fi
+        command uname "$@"
+    }
     function docker() {
         return 0
     }
-    export -f docker
+    export -f uname docker
     detect_existing_instance
     assert_equal "$EXISTING_INSTANCE" "false"
-    unset docker
+    unset uname docker
 }
 
 @test "function_detect_existing_instance_podman_exists" {
+    function uname() {
+        if [[ "$1" == "-s" ]]; then
+            echo "Linux"
+            return 0
+        fi
+        command uname "$@"
+    }
     function docker() {
         return 0
     }
@@ -41,23 +62,30 @@ function setup() {
             echo "ovos_messagebus"
         fi
     }
-    export -f docker podman
+    export -f uname docker podman
     detect_existing_instance
     assert_equal "$EXISTING_INSTANCE" "true"
-    unset docker podman
+    unset uname docker podman
 }
 
 @test "function_detect_existing_instance_podman_non_exists" {
+    function uname() {
+        if [[ "$1" == "-s" ]]; then
+            echo "Linux"
+            return 0
+        fi
+        command uname "$@"
+    }
     function docker() {
         return 0
     }
     function podman() {
         return 0
     }
-    export -f docker podman
+    export -f uname docker podman
     detect_existing_instance
     assert_equal "$EXISTING_INSTANCE" "false"
-    unset docker podman
+    unset uname docker podman
 }
 
 @test "function_detect_existing_instance_venv_exists" {
