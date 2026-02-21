@@ -715,6 +715,35 @@ function setup() {
     assert_success
 }
 
+@test "launchd_user_operations_use_configurable_execution_mode" {
+    run grep -q "ovos_services_launchd_user_management_mode: root" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_user_module_become_user" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_user_lookup_environment" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_user_management_mode in \\['root', 'user'\\]" ansible/roles/ovos_services/tasks/assert.yml
+    assert_success
+
+    run bash -c "grep -A18 -F -- \"- name: Ensure OVOS launchd user services are enabled and loaded\" ansible/roles/ovos_services/tasks/launchd.yml | grep -q -- \"become_user: \\\"{{ ovos_services_launchd_user_module_become_user }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A18 -F -- \"- name: Ensure OVOS launchd user services are enabled and loaded\" ansible/roles/ovos_services/tasks/launchd.yml | grep -q -- \"ovos_services_launchd_user_lookup_environment\""
+    assert_success
+
+    run bash -c "grep -A18 -F -- \"- name: Disable and unload OVOS launchd user services\" ansible/roles/ovos_services/tasks/uninstall-launchd.yml | grep -q -- \"become_user: \\\"{{ ovos_services_launchd_user_module_become_user }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A18 -F -- \"- name: Restart OVOS services (launchd user)\" ansible/roles/ovos_services/handlers/main.yml | grep -q -- \"become_user: \\\"{{ ovos_services_launchd_user_module_become_user }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A18 -F -- \"- name: Restart OVOS services (launchd user)\" ansible/roles/ovos_services/handlers/main.yml | grep -q -- \"ovos_services_launchd_user_lookup_environment\""
+    assert_success
+}
+
 @test "services_repair_runtime_directory_ownership_on_install" {
     run grep -q "ovos_services_user_runtime_dirs" ansible/roles/ovos_services/defaults/main.yml
     assert_success

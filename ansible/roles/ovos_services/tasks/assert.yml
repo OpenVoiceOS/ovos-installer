@@ -5,6 +5,7 @@
       - ovos_services_manager in ['systemd', 'launchd']
       - ovos_services_manager != 'systemd' or ansible_facts.system == 'Linux'
       - ovos_services_manager != 'launchd' or ansible_facts.system == 'Darwin'
+      - ovos_services_manager != 'launchd' or ovos_services_launchd_user_management_mode in ['root', 'user']
       - ovos_services_systemd_user_path | length > 0
       - ovos_services_systemd_system_path | length > 0
       - ovos_services_launchd_agents_path | length > 0
