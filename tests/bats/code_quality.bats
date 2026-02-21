@@ -342,17 +342,17 @@ function setup() {
     assert_success
 }
 
-@test "homeassistant_settings_use_current_skill_id_and_keep_legacy_compatibility" {
-    run grep -q 'ovos_installer_homeassistant_skill_id: "skill-homeassistant"' ansible/roles/ovos_installer/defaults/main.yml
+@test "homeassistant_settings_use_single_skill_directory" {
+    run grep -q 'ovos_installer_homeassistant_skill_id: "skill-homeassistant.oscillatelabsllc"' ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 
     run grep -q "ovos_installer_homeassistant_legacy_skill_ids" ansible/roles/ovos_installer/defaults/main.yml
+    assert_failure
+
+    run grep -q "_ovos_homeassistant_skill_id" ansible/roles/ovos_config/tasks/main.yml
     assert_success
 
-    run grep -q "_ovos_homeassistant_skill_ids" ansible/roles/ovos_config/tasks/main.yml
-    assert_success
-
-    run grep -q "settings.json files" ansible/roles/ovos_config/tasks/main.yml
+    run grep -q "Write Home Assistant skill settings.json" ansible/roles/ovos_config/tasks/main.yml
     assert_success
 }
 
