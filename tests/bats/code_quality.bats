@@ -47,6 +47,17 @@ function setup() {
     skip "Complex sound server detection mocking"
 }
 
+@test "detect_sound_helper_exists_and_supports_macos" {
+    run test -f utils/detect_sound.py
+    assert_success
+
+    run grep -q "platform.system() == \"Darwin\"" utils/detect_sound.py
+    assert_success
+
+    run grep -q "return \"CoreAudio\"" utils/detect_sound.py
+    assert_success
+}
+
 @test "printf_migration_required_packages" {
     DISTRO_NAME="debian"
     function apt_ensure() {
@@ -204,6 +215,15 @@ function setup() {
 
 @test "rust_messagebus_download_uses_checksum_verification" {
     run grep -q "ovos_virtualenv_rust_messagebus_archive_checksum" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_rust_messagebus_archive_checksums" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_messagebus-aarch64-apple-darwin.tar.gz" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_messagebus-x86_64-apple-darwin.tar.gz" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
     run grep -q "ansible.builtin.get_url" ansible/roles/ovos_virtualenv/tasks/bus.yml
@@ -422,6 +442,9 @@ function setup() {
     assert_success
 
     run grep -q "Set system's timezone on macOS" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Set system's timezone on macOS\" ansible/roles/ovos_timezone/tasks/main.yml | grep -q -- \"become: true\""
     assert_success
 
     run grep -q "Set macOS auto-timezone fact" ansible/roles/ovos_timezone/tasks/main.yml

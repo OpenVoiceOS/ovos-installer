@@ -106,6 +106,7 @@
         - ovos_timezone_macos_auto_enabled | default(false) | bool
 
     - name: Set system's timezone on macOS
+      become: true
       community.general.timezone:
         name: "{{ ovos_timezone_value }}"
       register: ovos_timezone_macos_set
