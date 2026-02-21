@@ -323,6 +323,12 @@ function setup() {
     run grep -q "Read OVOS venv base interpreter path from pyvenv.cfg" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
+    run grep -q '/^home = /' ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q 'home_dir/python${requested}' ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
     run grep -q "Assert OVOS venv base interpreter is available" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 

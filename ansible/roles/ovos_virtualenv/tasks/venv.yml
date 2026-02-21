@@ -84,13 +84,41 @@
   when: not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Read OVOS venv base interpreter path from pyvenv.cfg
-  ansible.builtin.command:
-    argv:
-      - awk
-      - -F
-      - " = "
-      - "/^executable = / {print $2; exit}"
-      - "{{ ovos_virtualenv_path }}/pyvenv.cfg"
+  ansible.builtin.shell:
+    cmd: |
+      set -euo pipefail
+      cfg="{{ ovos_virtualenv_path }}/pyvenv.cfg"
+      requested="{{ ovos_virtualenv_venv_python }}"
+
+      executable="$(awk -F ' = ' '/^executable = / {print $2; exit}' "$cfg" 2>/dev/null || true)"
+      if [ -n "$executable" ] && [ -x "$executable" ]; then
+        printf '%s\n' "$executable"
+        exit 0
+      fi
+
+      home_dir="$(awk -F ' = ' '/^home = / {print $2; exit}' "$cfg" 2>/dev/null || true)"
+      if [ -n "$home_dir" ]; then
+        for candidate in "$home_dir/python${requested}" "$home_dir/python3" "$home_dir/python"; do
+          if [ -x "$candidate" ]; then
+            printf '%s\n' "$candidate"
+            exit 0
+          fi
+        done
+      fi
+
+      # Fallback to venv-local binaries if they are directly executable.
+      for candidate in \
+        "{{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }}" \
+        "{{ ovos_virtualenv_path }}/bin/python3" \
+        "{{ ovos_virtualenv_path }}/bin/python"; do
+        if [ -x "$candidate" ]; then
+          printf '%s\n' "$candidate"
+          exit 0
+        fi
+      done
+
+      exit 0
+    executable: /bin/bash
   register: ovos_virtualenv_base_python_executable
   changed_when: false
   when: not (ovos_installer_cleaning | default(false) | bool)
