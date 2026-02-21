@@ -438,7 +438,18 @@ function setup() {
     run grep -q "ANSIBLE_COLLECTIONS_PATH" setup.sh
     assert_success
 
+    run grep -F -q '${PWD}/.ansible/collections' setup.sh
+    assert_success
+
     run grep -q "/var/root/.ansible/collections" setup.sh
+    assert_success
+}
+
+@test "install_ansible_installs_collections_to_repo_local_path" {
+    run grep -F -q 'collections_path="${PWD}/.ansible/collections"' utils/common.sh
+    assert_success
+
+    run grep -F -q -- '--collections-path "$collections_path"' utils/common.sh
     assert_success
 }
 

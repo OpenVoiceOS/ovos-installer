@@ -943,14 +943,17 @@ function ensure_installer_tmpdir() {
 }
 
 # Install Ansible into the new Python virtual environment and install the
-# Ansible's collections required by the Ansible playbook as well. These
-# collections will be installed under the /root/.ansible directory.
+# collections required by the playbook. Collections are installed into a
+# repository-local path to avoid sudo/HOME collection discovery mismatches.
 function install_ansible() {
     printf '%s' "➤ Installing Ansible requirements in Python virtualenv... "
     ANSIBLE_VERSION="10.7.0"
+    local collections_path
+    collections_path="${PWD}/.ansible/collections"
+    mkdir -p "$collections_path" &>>"$LOG_FILE"
     [ "$(ver "$PYTHON")" -lt "$(ver 3.10)" ] && ANSIBLE_VERSION="8.7.0"
     $PIP_COMMAND install --no-cache-dir ansible=="$ANSIBLE_VERSION" docker==7.1.0 requests==2.32.5 &>>"$LOG_FILE"
-    ansible-galaxy collection install -r ansible/requirements.yml &>>"$LOG_FILE"
+    ansible-galaxy collection install -r ansible/requirements.yml --collections-path "$collections_path" &>>"$LOG_FILE"
     echo -e "[$done_format]"
 }
 
