@@ -598,6 +598,12 @@ function setup() {
 
     run grep -q "Warn when macOS timezone update did not persist" ansible/roles/ovos_timezone/tasks/main.yml
     assert_success
+
+    run grep -q "Normalize timezone facts for config consumers" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
+
+    run grep -F -q "regex_replace('(?i)^\\\\s*time\\\\s*zone\\\\s*:\\\\s*', '')" ansible/roles/ovos_timezone/tasks/main.yml
+    assert_success
 }
 
 @test "services_asserts_messagebus_binary_before_starting_services" {

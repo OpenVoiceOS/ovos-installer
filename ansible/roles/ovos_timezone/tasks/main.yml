@@ -182,3 +182,28 @@
     - name: Set timezone name (rescue)
       ansible.builtin.set_fact:
         ovos_timezone_name: "{{ ovos_timezone_value }}"
+
+- name: Normalize timezone facts for config consumers
+  ansible.builtin.set_fact:
+    ovos_timezone_value: >-
+      {{
+        (
+          ovos_timezone_value
+          | default(ovos_timezone_fallback_timezone, true)
+          | string
+          | regex_replace('(?i)^\\s*time\\s*zone\\s*:\\s*', '')
+          | trim
+        )
+        | default(ovos_timezone_fallback_timezone, true)
+      }}
+    ovos_timezone_name: >-
+      {{
+        (
+          ovos_timezone_name
+          | default(ovos_timezone_value, true)
+          | string
+          | regex_replace('(?i)^\\s*time\\s*zone\\s*:\\s*', '')
+          | trim
+        )
+        | default(ovos_timezone_value, true)
+      }}
