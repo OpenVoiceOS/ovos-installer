@@ -111,7 +111,7 @@
       }}
   when: not (ovos_installer_cleaning | default(false) | bool)
 
-- name: Build OVOS venv base interpreter candidates
+- name: Build OVOS venv external base interpreter candidates
   ansible.builtin.set_fact:
     ovos_virtualenv_base_python_candidates: >-
       {{
@@ -125,12 +125,6 @@
             ovos_virtualenv_pyvenv_home ~ '/python3',
             ovos_virtualenv_pyvenv_home ~ '/python'
           ] if (ovos_virtualenv_pyvenv_home | default('') | length) > 0 else [])
-          +
-          [
-            ovos_virtualenv_path ~ '/bin/python' ~ ovos_virtualenv_venv_python,
-            ovos_virtualenv_path ~ '/bin/python3',
-            ovos_virtualenv_path ~ '/bin/python'
-          ]
         )
         | reject('equalto', '')
         | unique
@@ -138,10 +132,10 @@
       }}
   when: not (ovos_installer_cleaning | default(false) | bool)
 
-- name: Check OVOS venv base interpreter candidates
+- name: Check OVOS venv external base interpreter candidates
   ansible.builtin.stat:
     path: "{{ item }}"
-    follow: false
+    follow: true
   register: ovos_virtualenv_base_python_candidate_stats
   changed_when: false
   failed_when: false
@@ -155,13 +149,14 @@
 
 - name: Select OVOS venv base interpreter candidate
   ansible.builtin.set_fact:
-    ovos_virtualenv_base_python_executable: "{{ item.stat.path }}"
+    ovos_virtualenv_base_python_executable: "{{ item.item }}"
   loop: "{{ ovos_virtualenv_base_python_candidate_stats.results | default([]) }}"
   when:
     - not (ovos_installer_cleaning | default(false) | bool)
     - (ovos_virtualenv_base_python_executable | length) == 0
     - item.stat.exists | default(false)
-    - (item.stat.isreg | default(false)) or (item.stat.islnk | default(false))
+    - item.stat.isreg | default(false)
+    - item.stat.executable | default(false)
 
 - name: Check OVOS venv base interpreter target
   ansible.builtin.stat:
@@ -175,6 +170,7 @@
 - name: Assert OVOS venv base interpreter is available
   ansible.builtin.assert:
     that:
+      - (ovos_virtualenv_base_python_candidates | default([]) | length) > 0
       - (ovos_virtualenv_base_python_executable | default('') | trim | length) > 0
       - ovos_virtualenv_base_python_target_stat.stat.exists | default(false)
       - ovos_virtualenv_base_python_target_stat.stat.isreg | default(false)

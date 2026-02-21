@@ -332,10 +332,10 @@ function setup() {
     run grep -F -q "regex_findall('^home\\\\s*=\\\\s*(.+)$', multiline=True)" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "Build OVOS venv base interpreter candidates" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "Build OVOS venv external base interpreter candidates" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "Check OVOS venv base interpreter candidates" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "Check OVOS venv external base interpreter candidates" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
     run grep -q "Select OVOS venv base interpreter candidate" ansible/roles/ovos_virtualenv/tasks/venv.yml
@@ -373,6 +373,9 @@ function setup() {
 
     run grep -q "src: \"{{ ovos_virtualenv_base_python_executable | trim }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
+
+    run grep -q "ovos_virtualenv_path ~ '/bin/python'" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_failure
 }
 
 @test "virtualenv_uv_pip_tasks_run_as_installer_user" {
