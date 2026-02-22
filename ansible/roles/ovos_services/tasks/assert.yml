@@ -11,6 +11,9 @@
       - ovos_services_launchd_agents_path | length > 0
       - ovos_services_launchd_daemons_path | length > 0
       - ovos_services_launchd_log_dir | length > 0
+      - ovos_services_launchd_shell_init_file | length > 0
+      - ovos_services_launchd_wrapper_path | length > 0
+      - ovos_services_launchd_wrapper_template | length > 0
       - ovos_services_launchd_core_label | length > 0
       - ovos_services_messagebus_command | length > 0
       - ovos_services_unit_definitions | length > 0
@@ -26,7 +29,8 @@
         + [ovos_services_messagebus_command]
         + ([ovos_services_systemd_user_path, ovos_services_systemd_system_path]
            if ovos_services_manager == 'systemd'
-           else [ovos_services_launchd_agents_path, ovos_services_launchd_daemons_path, ovos_services_launchd_log_dir])
+           else [ovos_services_launchd_agents_path, ovos_services_launchd_daemons_path, ovos_services_launchd_log_dir,
+                 ovos_services_launchd_shell_init_file, ovos_services_launchd_wrapper_path])
       }}
   ansible.builtin.assert:
     that:

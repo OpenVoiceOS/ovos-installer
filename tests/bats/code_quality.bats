@@ -837,6 +837,44 @@ function setup() {
     assert_success
 }
 
+@test "launchd_shell_wrapper_is_installed_and_removed_cleanly" {
+    run test -f ansible/roles/ovos_services/templates/launchd/ovos-launchd.zsh.j2
+    assert_success
+
+    run grep -q "ovos_services_launchd_wrapper_template" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_wrapper_path" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_shell_init_file" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "Install OVOS launchd zsh wrapper" ansible/roles/ovos_services/tasks/launchd.yml
+    assert_success
+
+    run grep -q "Ensure zsh sources OVOS launchd wrapper" ansible/roles/ovos_services/tasks/launchd.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_shell_marker" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_shell_marker" ansible/roles/ovos_services/tasks/launchd.yml
+    assert_success
+
+    run grep -q "Remove OVOS launchd wrapper source block from shell init file" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
+    assert_success
+
+    run grep -q "Remove OVOS launchd shell wrapper" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
+    assert_success
+
+    run grep -q "ovos() {" ansible/roles/ovos_services/templates/launchd/ovos-launchd.zsh.j2
+    assert_success
+
+    run grep -q "start|stop|restart|status" ansible/roles/ovos_services/templates/launchd/ovos-launchd.zsh.j2
+    assert_success
+}
+
 @test "launchd_keepalive_restarts_on_failure" {
     run grep -q "ovos_services_launchd_restart_on_failure: true" ansible/roles/ovos_services/defaults/main.yml
     assert_success

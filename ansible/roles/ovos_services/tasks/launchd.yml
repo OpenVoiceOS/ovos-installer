@@ -37,6 +37,35 @@
         group: "{{ ovos_installer_group }}"
         mode: "0755"
 
+    - name: Ensure launchd shell wrapper directory exists
+      ansible.builtin.file:
+        path: "{{ ovos_services_launchd_wrapper_path | dirname }}"
+        state: directory
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: "0755"
+
+    - name: Install OVOS launchd zsh wrapper
+      ansible.builtin.template:
+        src: "{{ ovos_services_launchd_wrapper_template }}"
+        dest: "{{ ovos_services_launchd_wrapper_path }}"
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: "0644"
+
+    - name: Ensure zsh sources OVOS launchd wrapper
+      ansible.builtin.blockinfile:
+        path: "{{ ovos_services_launchd_shell_init_file }}"
+        marker: "# {mark} {{ ovos_services_launchd_shell_marker }}"
+        block: |
+          if [ -f "{{ ovos_services_launchd_wrapper_path }}" ]; then
+            source "{{ ovos_services_launchd_wrapper_path }}"
+          fi
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: "0644"
+        create: true
+
     - name: Disable and unload legacy OVOS core launchd services
       vars:
         ovos_services_legacy_plist_name: "{{ item }}.plist"

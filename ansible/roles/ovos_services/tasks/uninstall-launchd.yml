@@ -73,6 +73,28 @@
     label: "{{ item }}"
   when: item != ovos_services_launchd_core_label
 
+- name: Check launchd shell init file
+  ansible.builtin.stat:
+    path: "{{ ovos_services_launchd_shell_init_file }}"
+  register: ovos_services_launchd_shell_init
+  changed_when: false
+
+- name: Remove OVOS launchd wrapper source block from shell init file
+  ansible.builtin.blockinfile:
+    path: "{{ ovos_services_launchd_shell_init_file }}"
+    marker: "# {mark} {{ ovos_services_launchd_shell_marker }}"
+    block: |
+      if [ -f "{{ ovos_services_launchd_wrapper_path }}" ]; then
+        source "{{ ovos_services_launchd_wrapper_path }}"
+      fi
+    state: absent
+  when: ovos_services_launchd_shell_init.stat.exists | default(false) | bool
+
+- name: Remove OVOS launchd shell wrapper
+  ansible.builtin.file:
+    path: "{{ ovos_services_launchd_wrapper_path }}"
+    state: absent
+
 - name: Remove wrapper script
   become: true
   ansible.builtin.file:

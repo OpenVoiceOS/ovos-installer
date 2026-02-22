@@ -22,6 +22,10 @@ ovos_services_launchd_agents_path: "{{ ovos_installer_user_home }}/Library/Launc
 ovos_services_launchd_daemons_path: /Library/LaunchDaemons
 ovos_services_launchd_system_group: wheel
 ovos_services_launchd_log_dir: "{{ ovos_installer_user_home }}/.local/state/mycroft/logs"
+ovos_services_launchd_wrapper_template: launchd/ovos-launchd.zsh.j2
+ovos_services_launchd_wrapper_path: "{{ ovos_installer_user_home }}/.config/ovos-installer/ovos-launchd.zsh"
+ovos_services_launchd_shell_init_file: "{{ ovos_installer_user_home }}/.zshrc"
+ovos_services_launchd_shell_marker: OVOS LAUNCHD WRAPPER
 ovos_services_launchd_label_prefix: com.openvoiceos
 ovos_services_launchd_core_label: com.ovos.service
 ovos_services_launchd_legacy_core_labels:
