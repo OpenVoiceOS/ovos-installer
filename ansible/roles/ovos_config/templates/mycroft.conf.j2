@@ -7,6 +7,8 @@
   },
 {% endif %}
 {% if ovos_installer_profile != "server" %}
+{% set _ovos_is_macos = (ansible_facts.system | default('')) == 'Darwin' %}
+{% set _ovos_listener_has_wake_word = (_ovos_is_macos and ((ovos_installer_cpu_is_capable | default(false)) | bool)) or (ovos_installer_tuning | bool) %}
   "play_wav_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
   "play_mp3_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
   "lang": "{{ ovos_installer_locale }}",
@@ -36,13 +38,13 @@
         "silence_duration": 0.5
       }
 {% endif %}
-    }{% if ansible_facts.system == 'Darwin' or ovos_installer_tuning | bool %},{{ '\n' }}{% endif %}
-{% if ansible_facts.system == 'Darwin' %}
+    }{% if _ovos_is_macos or _ovos_listener_has_wake_word %},{{ '\n' }}{% endif %}
+{% if _ovos_is_macos %}
     "microphone": {
       "module": "ovos-microphone-plugin-sounddevice"
-    }{% if (ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool %},{{ '\n' }}{% endif %}
+    }{% if _ovos_listener_has_wake_word %},{{ '\n' }}{% endif %}
 {% endif %}
-{% if (ansible_facts.system == 'Darwin' and (ovos_installer_cpu_is_capable | default(false)) | bool) or ovos_installer_tuning | bool %}
+{% if _ovos_listener_has_wake_word %}
     "wake_word": "hey_mycroft",
     "multiplier": {{ ovos_config_listener_multiplier }}{% if ovos_installer_tuning | bool %},
     "patience": 0.5{% endif %},

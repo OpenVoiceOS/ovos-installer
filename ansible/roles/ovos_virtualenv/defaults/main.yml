@@ -10,14 +10,22 @@ ovos_virtualenv_requirements_files: >-
 
 ovos_virtualenv_venv_python: "{{ ovos_installer_venv_python | default('3.11') }}"
 ovos_virtualenv_uv_allow_prerelease: >-
-  {{ ovos_installer_uv_allow_prerelease
-     | default(ansible_facts.python.version.major == 3
-     and (ansible_facts.python.version.minor | int) >= 13) }}
+  {{
+    ovos_installer_uv_allow_prerelease
+    | default(
+        (((ansible_facts.python | default({})).version | default({})).major | default(0) == 3)
+        and ((((ansible_facts.python | default({})).version | default({})).minor | default(0) | int) >= 13)
+      )
+  }}
 ovos_virtualenv_uv_version: "{{ ovos_installer_uv_version | default('') }}"
 ovos_virtualenv_installer_venv_path: "{{ ovos_installer_venv | default(ovos_installer_user_home + '/.venvs/ovos-installer', true) }}"
 ovos_virtualenv_uv_cache_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-cache"
 ovos_virtualenv_uv_exec_path: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_virtualenv_installer_venv_path }}/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
-ovos_virtualenv_shell_init_file: "{{ ovos_installer_user_home }}/{{ '.zshrc' if ansible_facts.system == 'Darwin' else '.bashrc' }}"
+ovos_virtualenv_uv_environment:
+  HOME: "{{ ovos_installer_user_home }}"
+  PATH: "{{ ovos_virtualenv_uv_exec_path }}"
+  UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
+ovos_virtualenv_shell_init_file: "{{ ovos_installer_user_home }}/{{ '.zshrc' if (ansible_facts.system | default('')) == 'Darwin' else '.bashrc' }}"
 ovos_virtualenv_run_ovos_config: "{{ ovos_installer_run_ovos_config | default(false) }}"
 ovos_virtualenv_numpy_package: "{{ ovos_installer_numpy_package | default('numpy==1.26.4') }}"
 ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | default('setuptools<82') }}"
@@ -25,13 +33,13 @@ ovos_virtualenv_messagebus_path: "{{ ovos_installer_user_home }}/.local/bin/ovos
 ovos_virtualenv_rust_messagebus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
 ovos_virtualenv_rust_messagebus_version: v1.1.2
 ovos_virtualenv_rust_messagebus_target_arch: >-
-  {{ 'aarch64' if ansible_facts.architecture in ['aarch64', 'arm64']
-     else 'x86_64' if ansible_facts.architecture in ['x86_64', 'amd64']
-     else 'armv7' if ansible_facts.architecture in ['armv7', 'armv7l']
-     else 'arm' if ansible_facts.architecture in ['arm', 'armv6', 'armv6l']
-     else ansible_facts.architecture }}
+  {{ 'aarch64' if (ansible_facts.architecture | default('')) in ['aarch64', 'arm64']
+     else 'x86_64' if (ansible_facts.architecture | default('')) in ['x86_64', 'amd64']
+     else 'armv7' if (ansible_facts.architecture | default('')) in ['armv7', 'armv7l']
+     else 'arm' if (ansible_facts.architecture | default('')) in ['arm', 'armv6', 'armv6l']
+     else (ansible_facts.architecture | default('')) }}
 ovos_virtualenv_rust_messagebus_target_platform: >-
-  {{ 'apple-darwin' if ansible_facts.system == 'Darwin'
+  {{ 'apple-darwin' if (ansible_facts.system | default('')) == 'Darwin'
      else 'unknown-linux-gnueabihf' if ovos_virtualenv_rust_messagebus_target_arch in ['arm', 'armv7']
      else 'unknown-linux-gnu' }}
 ovos_virtualenv_rust_messagebus_binary_name: >-
@@ -58,7 +66,7 @@ ovos_virtualenv_rust_messagebus_binary_path: >-
 ovos_virtualenv_homebrew_path: "/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin"
 ovos_virtualenv_macos_fann_source_lib_dir: >-
   {{ '/opt/homebrew/lib'
-     if ansible_facts.architecture in ['aarch64', 'arm64']
+     if (ansible_facts.architecture | default('')) in ['aarch64', 'arm64']
      else '/usr/local/lib' }}
 ovos_virtualenv_macos_fann_target_lib_dir: /usr/local/lib
 ovos_virtualenv_macos_fann_linker_flags: >-

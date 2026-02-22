@@ -94,12 +94,12 @@
       ansible.builtin.set_fact:
         ovos_timezone_value: >-
           {{
-            (ovos_timezone_macos_auto_current.stdout | default('') | regex_replace('^Time Zone:\\s*', '') | trim)
+            (ovos_timezone_macos_auto_current.stdout | default('') | regex_replace(ovos_timezone_macos_prefix_regex, '') | trim)
             | default(ovos_timezone_value, true)
           }}
         ovos_timezone_name: >-
           {{
-            (ovos_timezone_macos_auto_current.stdout | default('') | regex_replace('^Time Zone:\\s*', '') | trim)
+            (ovos_timezone_macos_auto_current.stdout | default('') | regex_replace(ovos_timezone_macos_prefix_regex, '') | trim)
             | default(ovos_timezone_name | default(ovos_timezone_value), true)
           }}
       when:
@@ -133,14 +133,14 @@
         msg: >-
           Unable to set macOS timezone to {{ ovos_timezone_value }}.
           Current timezone is {{
-            (ovos_timezone_macos_after.stdout | default('') | regex_replace('^Time Zone:\\s*', '') | trim)
+            (ovos_timezone_macos_after.stdout | default('') | regex_replace(ovos_timezone_macos_prefix_regex, '') | trim)
             | default('unknown', true)
           }}.
       when:
         - ansible_facts.system == 'Darwin'
         - not (ovos_timezone_macos_auto_enabled | default(false) | bool)
         - >-
-          (ovos_timezone_macos_after.stdout | default('') | regex_replace('^Time Zone:\\s*', '') | trim) != ovos_timezone_value or
+          (ovos_timezone_macos_after.stdout | default('') | regex_replace(ovos_timezone_macos_prefix_regex, '') | trim) != ovos_timezone_value or
           ('Error message:' in (ovos_timezone_macos_set.msg | default('')))
   rescue:
     - name: Rescue timezone
@@ -169,7 +169,7 @@
         ovos_timezone_value: >-
           {%- if ansible_facts.system == 'Darwin' -%}
           {{
-            (ovos_timezone_system_timezone_macos.stdout | default('') | regex_replace('^Time Zone:\\s*', '') | trim)
+            (ovos_timezone_system_timezone_macos.stdout | default('') | regex_replace(ovos_timezone_macos_prefix_regex, '') | trim)
             | default(ovos_timezone_fallback_timezone, true)
           }}
           {%- else -%}

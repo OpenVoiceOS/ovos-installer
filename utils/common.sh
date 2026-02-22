@@ -289,7 +289,7 @@ function detect_cpu_instructions() {
     Darwin)
         machine_arch="$(uname -m 2>>"$LOG_FILE" || true)"
         cpu_capabilities="$(sysctl -n machdep.cpu.features 2>>"$LOG_FILE" || true)"
-        if [ "$machine_arch" = "x86_64" ]; then
+        if [ "$machine_arch" = "x86_64" ] && sysctl -n machdep.cpu.leaf7_features &>>"$LOG_FILE"; then
             cpu_capabilities="${cpu_capabilities} $(sysctl -n machdep.cpu.leaf7_features 2>>"$LOG_FILE" || true)"
         fi
         if [ "$(sysctl -n hw.optional.neon 2>>"$LOG_FILE" || echo 0)" == "1" ]; then
@@ -298,7 +298,7 @@ function detect_cpu_instructions() {
         ;;
     *)
         if [ -r /proc/cpuinfo ]; then
-            cpu_capabilities="$(cat /proc/cpuinfo 2>>"$LOG_FILE" || true)"
+            cpu_capabilities="$(< /proc/cpuinfo)"
         fi
         ;;
     esac

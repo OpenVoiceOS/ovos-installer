@@ -195,7 +195,7 @@ function setup() {
 }
 
 @test "mycroft_conf_uses_precise_onnx_for_macos_listener" {
-    run grep -q "ansible_facts.system == 'Darwin' or ovos_installer_tuning | bool" ansible/roles/ovos_config/templates/mycroft.conf.j2
+    run grep -q "_ovos_listener_has_wake_word" ansible/roles/ovos_config/templates/mycroft.conf.j2
     assert_success
 
     run grep -q "\"module\": \"ovos-microphone-plugin-sounddevice\"" ansible/roles/ovos_config/templates/mycroft.conf.j2
@@ -295,13 +295,16 @@ function setup() {
     run grep -q "ovos_virtualenv_uv_cache_dir" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
+    run grep -q "ovos_virtualenv_uv_environment" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "UV_CACHE_DIR: \"{{ ovos_virtualenv_uv_cache_dir }}\"" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
     run grep -q "Ensure dedicated uv cache directory exists" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "UV_CACHE_DIR: \"{{ ovos_virtualenv_uv_cache_dir }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
-    assert_success
-
-    run grep -q "_ovos_virtualenv_uv_env:" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "environment: \"{{ ovos_virtualenv_uv_environment }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 }
 
@@ -315,48 +318,27 @@ function setup() {
     run grep -q "/opt/homebrew/bin:/usr/local/bin" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
-    run grep -q "PATH: \"{{ ovos_virtualenv_uv_exec_path }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "PATH: \"{{ ovos_virtualenv_uv_exec_path }}\"" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 }
 
 @test "virtualenv_ensures_python_command_shim_exists" {
-    run grep -q "Read OVOS venv pyvenv.cfg" ansible/roles/ovos_virtualenv/tasks/venv.yml
-    assert_success
-
-    run grep -q "ansible.builtin.slurp" ansible/roles/ovos_virtualenv/tasks/venv.yml
-    assert_success
-
-    run grep -q "Parse OVOS venv interpreter hints from pyvenv.cfg" ansible/roles/ovos_virtualenv/tasks/venv.yml
-    assert_success
-
-    run grep -F -q "regex_findall('^home\\\\s*=\\\\s*(.+)$', multiline=True)" ansible/roles/ovos_virtualenv/tasks/venv.yml
-    assert_success
-
-    run grep -q "Build OVOS venv external base interpreter candidates" ansible/roles/ovos_virtualenv/tasks/venv.yml
-    assert_success
-
-    run grep -q "Resolve OVOS base interpreter from uv managed Python when pyvenv hints are missing" ansible/roles/ovos_virtualenv/tasks/venv.yml
-    assert_success
-
-    run grep -q "Add uv managed base interpreter candidate" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "Resolve OVOS venv base interpreter with uv" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
     run grep -q "uv python find {{ ovos_virtualenv_venv_python }}" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "Check OVOS venv external base interpreter candidates" ansible/roles/ovos_virtualenv/tasks/venv.yml
-    assert_success
-
-    run grep -q "Select OVOS venv base interpreter candidate" ansible/roles/ovos_virtualenv/tasks/venv.yml
-    assert_success
-
     run grep -q "Check OVOS venv base interpreter target" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "stat.executable" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "executable | default(false)" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
     run grep -q "Assert OVOS venv base interpreter is available" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run grep -q "regex_escape" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
     run grep -q "Ensure OVOS venv versioned python points to base interpreter" ansible/roles/ovos_virtualenv/tasks/venv.yml
@@ -380,10 +362,13 @@ function setup() {
     run grep -q "force: true" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "src: \"{{ ovos_virtualenv_base_python_executable | trim }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    run grep -q "src: \"{{ ovos_virtualenv_base_python_executable.stdout | trim }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
     run grep -q "ovos_virtualenv_path ~ '/bin/python'" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_failure
+
+    run grep -q "Read OVOS venv pyvenv.cfg" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_failure
 }
 
@@ -472,7 +457,7 @@ function setup() {
     run grep -q "ovos_virtualenv_shell_init_file" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
-    run grep -q "'.zshrc' if ansible_facts.system == 'Darwin' else '.bashrc'" ansible/roles/ovos_virtualenv/defaults/main.yml
+    run grep -q "'.zshrc' if (ansible_facts.system | default('')) == 'Darwin' else '.bashrc'" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
     run grep -q "path: \"{{ ovos_virtualenv_shell_init_file }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
@@ -725,13 +710,16 @@ function setup() {
     run grep -q "ovos_services_launchd_user_lookup_environment" ansible/roles/ovos_services/defaults/main.yml
     assert_success
 
+    run grep -q "ovos_services_launchd_user_module_environment" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
     run grep -q "ovos_services_launchd_user_management_mode in \\['root', 'user'\\]" ansible/roles/ovos_services/tasks/assert.yml
     assert_success
 
     run bash -c "grep -A18 -F -- \"- name: Ensure OVOS launchd user services are enabled and loaded\" ansible/roles/ovos_services/tasks/launchd.yml | grep -q -- \"become_user: \\\"{{ ovos_services_launchd_user_module_become_user }}\\\"\""
     assert_success
 
-    run bash -c "grep -A18 -F -- \"- name: Ensure OVOS launchd user services are enabled and loaded\" ansible/roles/ovos_services/tasks/launchd.yml | grep -q -- \"ovos_services_launchd_user_lookup_environment\""
+    run bash -c "grep -A18 -F -- \"- name: Ensure OVOS launchd user services are enabled and loaded\" ansible/roles/ovos_services/tasks/launchd.yml | grep -q -- \"ovos_services_launchd_user_module_environment\""
     assert_success
 
     run bash -c "grep -A18 -F -- \"- name: Disable and unload OVOS launchd user services\" ansible/roles/ovos_services/tasks/uninstall-launchd.yml | grep -q -- \"become_user: \\\"{{ ovos_services_launchd_user_module_become_user }}\\\"\""
@@ -740,7 +728,7 @@ function setup() {
     run bash -c "grep -A18 -F -- \"- name: Restart OVOS services (launchd user)\" ansible/roles/ovos_services/handlers/main.yml | grep -q -- \"become_user: \\\"{{ ovos_services_launchd_user_module_become_user }}\\\"\""
     assert_success
 
-    run bash -c "grep -A18 -F -- \"- name: Restart OVOS services (launchd user)\" ansible/roles/ovos_services/handlers/main.yml | grep -q -- \"ovos_services_launchd_user_lookup_environment\""
+    run bash -c "grep -A18 -F -- \"- name: Restart OVOS services (launchd user)\" ansible/roles/ovos_services/handlers/main.yml | grep -q -- \"ovos_services_launchd_user_module_environment\""
     assert_success
 }
 
@@ -792,7 +780,7 @@ function setup() {
     run grep -q 'machine_arch="$(uname -m' utils/common.sh
     assert_success
 
-    run bash -c 'grep -A4 -F -- "if [ \"\$machine_arch\" = \"x86_64\" ]; then" utils/common.sh | grep -q "machdep.cpu.leaf7_features"'
+    run grep -q 'if \[ "\$machine_arch" = "x86_64" \] && sysctl -n machdep.cpu.leaf7_features' utils/common.sh
     assert_success
 }
 

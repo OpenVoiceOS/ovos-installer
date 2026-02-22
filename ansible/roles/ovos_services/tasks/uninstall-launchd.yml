@@ -17,12 +17,7 @@
     plist: "{{ ovos_services_launchd_plist_name }}"
     enabled: false
     state: unloaded
-  environment: >-
-    {{
-      ovos_services_launchd_user_lookup_environment
-      if ovos_services_launchd_user_management_mode == 'root'
-      else omit
-    }}
+  environment: "{{ ovos_services_launchd_user_module_environment }}"
   failed_when: false
   loop: "{{ ovos_services_launchd_unit_definitions }}"
   loop_control:
@@ -39,12 +34,7 @@
     plist: "{{ ovos_services_launchd_plist_name }}"
     enabled: false
     state: unloaded
-  environment: >-
-    {{
-      ovos_services_launchd_user_lookup_environment
-      if ovos_services_launchd_user_management_mode == 'root'
-      else omit
-    }}
+  environment: "{{ ovos_services_launchd_user_module_environment }}"
   failed_when: false
   loop: "{{ ovos_services_launchd_legacy_core_labels }}"
   loop_control:

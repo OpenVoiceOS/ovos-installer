@@ -1,5 +1,5 @@
 ---
-ovos_services_manager: "{{ 'launchd' if ansible_facts.system == 'Darwin' else 'systemd' }}"
+ovos_services_manager: "{{ 'launchd' if (ansible_facts.system | default('')) == 'Darwin' else 'systemd' }}"
 ovos_services_wrapper_template: virtualenv/wrapper-ovos-phal-admin.sh.j2
 ovos_services_wrapper_path: /usr/local/bin/wrapper-ovos-phal-admin.sh
 ovos_services_wrapper_mode: "0755"
@@ -38,6 +38,12 @@ ovos_services_launchd_user_lookup_environment:
   HOME: "{{ ovos_installer_user_home }}"
   LOGNAME: "{{ ovos_installer_user }}"
   USER: "{{ ovos_installer_user }}"
+ovos_services_launchd_user_module_environment: >-
+  {{
+    ovos_services_launchd_user_lookup_environment
+    if ovos_services_launchd_user_management_mode == 'root'
+    else {}
+  }}
 # Allow launchd jobs to inherit network/proxy/TLS settings from installer env.
 ovos_services_launchd_extra_environment:
   HTTP_PROXY: "{{ ansible_env.HTTP_PROXY | default(ansible_env.http_proxy | default('')) }}"
@@ -48,11 +54,11 @@ ovos_services_launchd_extra_environment:
   SSL_CERT_FILE: "{{ ansible_env.SSL_CERT_FILE | default('') }}"
   SSL_CERT_DIR: "{{ ansible_env.SSL_CERT_DIR | default('') }}"
 ovos_services_messagebus_target_arch: >-
-  {{ 'aarch64' if ansible_facts.architecture in ['aarch64', 'arm64']
-     else 'x86_64' if ansible_facts.architecture in ['x86_64', 'amd64']
-     else ansible_facts.architecture }}
+  {{ 'aarch64' if (ansible_facts.architecture | default('')) in ['aarch64', 'arm64']
+     else 'x86_64' if (ansible_facts.architecture | default('')) in ['x86_64', 'amd64']
+     else (ansible_facts.architecture | default('')) }}
 ovos_services_messagebus_target_platform: >-
-  {{ 'apple-darwin' if ansible_facts.system == 'Darwin' else 'unknown-linux-gnu' }}
+  {{ 'apple-darwin' if (ansible_facts.system | default('')) == 'Darwin' else 'unknown-linux-gnu' }}
 ovos_services_messagebus_binary_name: >-
   ovos_messagebus-{{ ovos_services_messagebus_target_arch }}-{{ ovos_services_messagebus_target_platform }}
 ovos_services_messagebus_command: "{{ ovos_installer_user_home }}/.local/bin/{{ ovos_services_messagebus_binary_name }}"
