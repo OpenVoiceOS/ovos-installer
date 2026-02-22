@@ -64,6 +64,7 @@
   loop: "{{ ovos_services_launchd_unit_files_system + ovos_services_launchd_unit_files_user }}"
 
 - name: Remove legacy OVOS core launchd plist files
+  become: true
   ansible.builtin.file:
     path: "{{ ovos_services_launchd_agents_path }}/{{ item }}.plist"
     state: absent

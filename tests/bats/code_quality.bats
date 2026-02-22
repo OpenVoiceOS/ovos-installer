@@ -698,6 +698,9 @@ function setup() {
 @test "launchd_uninstall_removes_plists_with_privilege_escalation" {
     run bash -c "grep -A4 -F -- \"- name: Remove OVOS launchd plist files\" ansible/roles/ovos_services/tasks/uninstall-launchd.yml | grep -q -- \"become: true\""
     assert_success
+
+    run bash -c "grep -A4 -F -- \"- name: Remove legacy OVOS core launchd plist files\" ansible/roles/ovos_services/tasks/uninstall-launchd.yml | grep -q -- \"become: true\""
+    assert_success
 }
 
 @test "launchd_user_operations_use_configurable_execution_mode" {
