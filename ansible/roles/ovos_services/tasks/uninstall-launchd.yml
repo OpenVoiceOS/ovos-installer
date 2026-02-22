@@ -74,6 +74,7 @@
   when: item != ovos_services_launchd_core_label
 
 - name: Remove wrapper script
+  become: true
   ansible.builtin.file:
     path: "{{ ovos_services_wrapper_path }}"
     state: absent

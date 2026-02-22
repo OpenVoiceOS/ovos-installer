@@ -3,6 +3,7 @@
   when: not (ovos_installer_cleaning | default(false) | bool)
   block:
     - name: Copy wrapper-ovos-phal-admin.sh file
+      become: true
       ansible.builtin.template:
         src: "{{ ovos_services_wrapper_template }}"
         dest: "{{ ovos_services_wrapper_path }}"
@@ -20,6 +21,7 @@
         mode: "0755"
 
     - name: Ensure launchd system daemons directory exists
+      become: true
       ansible.builtin.file:
         path: "{{ ovos_services_launchd_daemons_path }}"
         state: directory
@@ -62,6 +64,7 @@
       when: item != ovos_services_launchd_core_label
 
     - name: Copy OVOS launchd plist files
+      become: true
       vars:
         ovos_services_launchd_plist_path: >-
           {{ (item.scope == 'system')

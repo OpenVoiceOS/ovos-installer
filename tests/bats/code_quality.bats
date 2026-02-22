@@ -322,6 +322,41 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_uv_prerelease_gating_uses_target_venv_python" {
+    run grep -q "ovos_installer_venv_python_parts" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_installer_venv_python_major" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_installer_venv_python_minor" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_installer_uv_allow_prerelease: \"{{ ovos_installer_venv_python_major == 3 and ovos_installer_venv_python_minor >= 13 }}\"" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ansible_facts.python.version" ansible/roles/ovos_installer/defaults/main.yml
+    assert_failure
+
+    run grep -q "ovos_virtualenv_venv_python_parts" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_venv_python_major" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_venv_python_minor" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "(ovos_virtualenv_venv_python_major == 3)" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "(ovos_virtualenv_venv_python_minor >= 13)" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"ovos_virtualenv_uv_allow_prerelease\" ansible/roles/ovos_virtualenv/defaults/main.yml | grep -q -- \"ansible_facts.python\""
+    assert_failure
+}
+
 @test "virtualenv_ensures_python_command_shim_exists" {
     run grep -q "Resolve OVOS venv base interpreter with uv" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
@@ -695,11 +730,25 @@ function setup() {
     assert_failure
 }
 
+@test "launchd_install_system_path_tasks_use_privilege_escalation" {
+    run bash -c "grep -A8 -F -- \"- name: Copy wrapper-ovos-phal-admin.sh file\" ansible/roles/ovos_services/tasks/launchd.yml | grep -q -- \"become: true\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Ensure launchd system daemons directory exists\" ansible/roles/ovos_services/tasks/launchd.yml | grep -q -- \"become: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Copy OVOS launchd plist files\" ansible/roles/ovos_services/tasks/launchd.yml | grep -q -- \"become: true\""
+    assert_success
+}
+
 @test "launchd_uninstall_removes_plists_with_privilege_escalation" {
     run bash -c "grep -A4 -F -- \"- name: Remove OVOS launchd plist files\" ansible/roles/ovos_services/tasks/uninstall-launchd.yml | grep -q -- \"become: true\""
     assert_success
 
     run bash -c "grep -A4 -F -- \"- name: Remove legacy OVOS core launchd plist files\" ansible/roles/ovos_services/tasks/uninstall-launchd.yml | grep -q -- \"become: true\""
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"- name: Remove wrapper script\" ansible/roles/ovos_services/tasks/uninstall-launchd.yml | grep -q -- \"become: true\""
     assert_success
 }
 
@@ -757,6 +806,14 @@ function setup() {
     assert_success
 
     run grep -q "'/var/root/.config' if item.scope == 'system'" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
+}
+
+@test "launchd_template_omits_empty_extra_environment_entries" {
+    run grep -q "_ovos_launchd_env_value = env_value | string | trim" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
+
+    run grep -q "_ovos_launchd_env_value | length" ansible/roles/ovos_services/templates/launchd/service.plist.j2
     assert_success
 }
 

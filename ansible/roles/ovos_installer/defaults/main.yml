@@ -82,7 +82,7 @@ ovos_installer_enable_ggwave: >-
   {{ ansible_facts.system != 'Darwin'
      and (ovos_installer_channel | default('')) in ['stable', 'testing']
      and ansible_facts.architecture in ovos_installer_supported_desktop_architectures }}
-ovos_installer_uv_allow_prerelease: "{{ ansible_facts.python.version.major == 3 and (ansible_facts.python.version.minor | int) >= 13 }}"
+ovos_installer_uv_allow_prerelease: "{{ ovos_installer_venv_python_major == 3 and ovos_installer_venv_python_minor >= 13 }}"
 ovos_installer_tuning: false
 ovos_installer_setuptools_package: "setuptools<82"
 ovos_installer_tuning_performance: >-
@@ -111,6 +111,9 @@ ovos_installer_overclock_over_voltage: "6"
 ovos_installer_overclock_arm_freq: "{{ '2800' if 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default('')) else '2000' }}"
 ovos_installer_overclock_gpu_freq: "750"
 ovos_installer_uv_version: ""
+ovos_installer_venv_python_parts: "{{ ovos_installer_venv_python | string | regex_findall('[0-9]+') }}"
+ovos_installer_venv_python_major: "{{ (ovos_installer_venv_python_parts | first | default('0')) | int }}"
+ovos_installer_venv_python_minor: "{{ (ovos_installer_venv_python_parts[1] | default('0')) | int }}"
 ovos_installer_hotword_sensitivity: 0.95
 ovos_installer_hotword_trigger_level: 1
 ovos_installer_listener_multiplier: 1.5

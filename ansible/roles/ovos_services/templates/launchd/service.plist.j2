@@ -30,9 +30,10 @@
       <key>XDG_CACHE_HOME</key>
       <string>{{ '/var/root/.cache' if item.scope == 'system' else ovos_installer_user_home + '/.cache' }}</string>
 {% for env_key, env_value in (ovos_services_launchd_extra_environment | default({})).items() %}
-{% if (env_value | string | length) > 0 %}
+{% set _ovos_launchd_env_value = env_value | string | trim %}
+{% if (_ovos_launchd_env_value | length) > 0 %}
       <key>{{ env_key }}</key>
-      <string>{{ env_value }}</string>
+      <string>{{ _ovos_launchd_env_value }}</string>
 {% endif %}
 {% endfor %}
     </dict>
