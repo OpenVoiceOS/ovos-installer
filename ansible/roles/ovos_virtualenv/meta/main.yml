@@ -32,6 +32,9 @@ galaxy_info:
     - name: ArchLinux
       versions:
         - all
+    - name: MacOSX
+      versions:
+        - all
     - name: opensuse
       versions:
         - '15.0'

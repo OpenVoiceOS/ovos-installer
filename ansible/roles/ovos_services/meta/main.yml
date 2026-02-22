@@ -1,7 +1,7 @@
 ---
 galaxy_info:
   author: Gaëtan Trellu (@goldyfruit)
-  description: Open Voice OS installer systemd services and handlers
+  description: Open Voice OS installer service units and handlers (systemd/launchd)
   company: Smart'Gic
   standalone: true
   issue_tracker_url: https://github.com/openvoiceos/ovos-installer/issues
@@ -32,6 +32,9 @@ galaxy_info:
     - name: ArchLinux
       versions:
         - all
+    - name: MacOSX
+      versions:
+        - all
     - name: opensuse
       versions:
         - '15.0'
@@ -45,6 +48,7 @@ galaxy_info:
     - openvoiceos
     - ovos
     - systemd
+    - launchd
     - services
 
 dependencies: []

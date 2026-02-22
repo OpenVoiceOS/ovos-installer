@@ -10,6 +10,7 @@ function setup() {
         run bash -euc "
             DISTRO_NAME=debian
             DISTRO_VERSION='Debian 12'
+            DISTRO_LABEL='macOS 15.7.2'
             KERNEL='6.0.0'
             RASPBERRYPI_MODEL='N/A'
             PYTHON='3.11'
@@ -19,6 +20,7 @@ function setup() {
             SOUND_SERVER='PipeWire'
             DISPLAY_SERVER='wayland'
             source '$f'
+            printf '%s\n' \"\$CONTENT\"
         "
 
         if [ "$status" -ne 0 ]; then
@@ -26,6 +28,6 @@ function setup() {
             echo \"$output\" >&2
             return 1
         fi
+        assert_output --partial "macOS 15.7.2"
     done
 }
-

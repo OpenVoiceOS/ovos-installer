@@ -76,6 +76,19 @@ if [ -f "$ha_settings_file" ]; then
   ha_existing_api_key="$(jq -r '.api_key // ""' "$ha_settings_file" 2>>"$LOG_FILE" || true)"
 fi
 
+normalize_homeassistant_url() {
+  local normalized_url="$1"
+
+  # Old installer logic could carry the HTTP default port into HTTPS URLs.
+  if [[ "$normalized_url" =~ ^https://\[[^]]+\]:8123(/.*)?$ ]]; then
+    normalized_url="${normalized_url/]:8123/]}"
+  elif [[ "$normalized_url" =~ ^https://[^/:]+:8123(/.*)?$ ]]; then
+    normalized_url="${normalized_url/:8123/}"
+  fi
+
+  printf '%s' "$normalized_url"
+}
+
 persist_homeassistant_url() {
   # Persist URL (non-secret) for defaults when navigating back or re-running.
   local state_tmp
@@ -114,7 +127,7 @@ if [ -n "$ha_existing_url" ] && [ -n "$ha_existing_api_key" ]; then
   exit_status=$?
   if [ "$exit_status" -eq 0 ]; then
     export FEATURE_HOMEASSISTANT="true"
-    HOMEASSISTANT_URL="$ha_existing_url"
+    HOMEASSISTANT_URL="$(normalize_homeassistant_url "$ha_existing_url")"
     HOMEASSISTANT_API_KEY="$ha_existing_api_key"
 
     persist_homeassistant_url
@@ -137,6 +150,7 @@ if [ -n "$ha_existing_url" ]; then
 elif [ -f "$INSTALLER_STATE_FILE" ]; then
   ha_url_default="$(jq -r '.homeassistant.url // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
 fi
+ha_url_default="$(normalize_homeassistant_url "$ha_url_default")"
 if [ -z "$ha_url_default" ]; then
   ha_url_default="http://homeassistant.local:8123"
 fi
@@ -188,10 +202,15 @@ while :; do
     HOMEASSISTANT_URL="http://${HOMEASSISTANT_URL}"
   fi
 
-  # Home Assistant defaults to port 8123. If the user doesn't specify a port,
-  # add it so "homeassistant.local" works out of the box.
+  # Home Assistant commonly uses port 8123 for HTTP. For HTTPS, do not append
+  # a port implicitly; preserve the host as entered unless the user provides
+  # an explicit port.
   proto="${HOMEASSISTANT_URL%%://*}"
   rest="${HOMEASSISTANT_URL#*://}"
+  default_port=""
+  if [ "$proto" == "http" ]; then
+    default_port="8123"
+  fi
   authority="${rest%%/*}"
   if [[ "$rest" == */* ]]; then
     path="/${rest#*/}"
@@ -207,7 +226,9 @@ while :; do
   if [[ "$authority" == \[* ]]; then
     # Bracketed IPv6 host, with optional numeric port.
     if [[ "$authority" =~ ^\\[[^\\]]+\\]$ ]]; then
-      authority="${authority}:8123"
+      if [ -n "$default_port" ]; then
+        authority="${authority}:${default_port}"
+      fi
     elif [[ "$authority" =~ ^\\[[^\\]]+\\]:[0-9]+$ ]]; then
       :
     else
@@ -224,7 +245,19 @@ while :; do
         continue
       fi
     else
-      authority="${authority}:8123"
+      if [ -n "$default_port" ]; then
+        authority="${authority}:${default_port}"
+      fi
+    fi
+  fi
+
+  # Preserve HTTPS hostnames without an explicit custom port. This also
+  # normalizes previous defaults that carried the HTTP 8123 port into HTTPS.
+  if [ "$proto" == "https" ]; then
+    if [[ "$authority" =~ ^\\[[^\\]]+\\]:8123$ ]]; then
+      authority="${authority%:8123}"
+    elif [[ "$authority" =~ ^[^:/]+:8123$ ]]; then
+      authority="${authority%:8123}"
     fi
   fi
 

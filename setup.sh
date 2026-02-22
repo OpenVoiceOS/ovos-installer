@@ -1,6 +1,36 @@
 #!/usr/bin/env bash
-# Override system's locales only during the installation
-export LANG=C.UTF-8 LC_ALL=C.UTF-8
+
+# shellcheck source=utils/bash_runtime.sh
+source utils/bash_runtime.sh
+
+# Ensure a modern Bash runtime before sourcing files that use associative arrays.
+if [ -z "${BASH_VERSINFO:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
+  BASH_RUNTIME="$(resolve_bash_runtime 4 || true)"
+  printf '%s\n' "This installer requires Bash 4 or newer."
+  if [ "$(uname -s 2>/dev/null || true)" = "Darwin" ]; then
+    if [ -n "${BASH_RUNTIME:-}" ]; then
+      printf '%s\n' "On macOS, rerun with ${BASH_RUNTIME} setup.sh."
+    else
+      printf '%s\n' "On macOS, install Bash with Homebrew and rerun with /opt/homebrew/bin/bash (Apple Silicon) or /usr/local/bin/bash (Intel)."
+    fi
+  elif [ -n "${BASH_RUNTIME:-}" ]; then
+    printf '%s\n' "Rerun with ${BASH_RUNTIME} setup.sh."
+  fi
+  exit 5
+fi
+
+# Override system locales only during the installation.
+if command -v locale >/dev/null 2>&1; then
+  if locale -a 2>/dev/null | grep -qiE '^c\.utf-?8$'; then
+    export LANG=C.UTF-8 LC_ALL=C.UTF-8
+  elif locale -a 2>/dev/null | grep -qiE '^en_US\.utf-?8$'; then
+    export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+  else
+    export LANG=C LC_ALL=C
+  fi
+else
+  export LANG=C LC_ALL=C
+fi
 
 # Base installer version on commit hash
 INSTALLER_VERSION="$(git rev-parse --short=8 HEAD)"
@@ -38,13 +68,14 @@ detect_user
 delete_log
 detect_existing_instance
 get_os_information
-check_python_compatibility
 wsl2_requirements
 detect_cpu_instructions
 is_raspeberrypi_soc
+detect_hardware_model
+required_packages
+check_python_compatibility
 detect_sound
 detect_display
-required_packages
 create_python_venv
 install_ansible
 download_yq
@@ -96,6 +127,9 @@ echo "➤ Starting Ansible playbook... ☕🍵🧋"
 # Execute the Ansible playbook on localhost
 export ANSIBLE_CONFIG=ansible.cfg
 export ANSIBLE_LOG_PATH="${ANSIBLE_LOG_FILE}"
+# Ensure collection discovery works even if ansible-galaxy installed under
+# either root or target-user HOME (common sudo/home variance on macOS).
+export ANSIBLE_COLLECTIONS_PATH="${PWD}/.ansible/collections:${RUN_AS_HOME}/.ansible/collections:/var/root/.ansible/collections:/root/.ansible/collections:/usr/share/ansible/collections"
 case "${DISTRO_NAME:-}" in
   fedora | almalinux | rocky | centos | rhel)
     if [ -x /usr/libexec/platform-python ]; then
@@ -163,6 +197,7 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_profile=${PROFILE}" \
   -e "ovos_installer_sound_server=$(echo "$SOUND_SERVER" | awk '{ print $1 }')" \
   -e "ovos_installer_raspberrypi='${RASPBERRYPI_MODEL}'" \
+  -e "ovos_installer_hardware='${HARDWARE_MODEL}'" \
   -e "ovos_installer_channel=${CHANNEL}" \
   -e "ovos_installer_feature_gui=${FEATURE_GUI}" \
   -e "ovos_installer_feature_skills=${FEATURE_SKILLS}" \

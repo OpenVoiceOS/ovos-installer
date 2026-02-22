@@ -6,6 +6,12 @@ declare -a available_methods
 active_method="virtualenv"
 available_methods=(containers virtualenv)
 
+# Containers are not supported in the macOS TUI flow.
+if [[ "${DISTRO_NAME:-}" == "macos" ]]; then
+  active_method="virtualenv"
+  available_methods=(virtualenv)
+fi
+
 # When 32-bit CPU is detected, the only method available
 # will be Python virtualenv as there are no 32-bit container
 # images available. Same for Raspberry Pi 3 as containers
@@ -20,9 +26,15 @@ fi
 # method will be available.
 if [ "$EXISTING_INSTANCE" == "true" ]; then
   case "${INSTANCE_TYPE:-}" in
-    containers|virtualenv)
+    virtualenv)
       active_method="$INSTANCE_TYPE"
       available_methods=("$INSTANCE_TYPE")
+      ;;
+    containers)
+      if [[ "${DISTRO_NAME:-}" != "macos" ]]; then
+        active_method="$INSTANCE_TYPE"
+        available_methods=("$INSTANCE_TYPE")
+      fi
       ;;
   esac
 fi

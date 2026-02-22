@@ -2,7 +2,7 @@
 CONTENT="
 Mesedez, aurkitu detektatutako informazioa:
 
-    - OS: ${DISTRO_NAME^} $DISTRO_VERSION
+    - OS: $DISTRO_LABEL
     - Kernel: $KERNEL
     - RPi: $RASPBERRYPI_MODEL
     - Python: $(echo "$PYTHON" | awk '{ print $NF }')

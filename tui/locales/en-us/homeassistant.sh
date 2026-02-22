@@ -32,7 +32,8 @@ TITLE_URL="Open Voice OS Installation - Home Assistant URL"
 CONTENT_URL="
 Please enter your Home Assistant URL.
 
-If you omit the port, 8123 will be used.
+If you use http:// and omit the port, 8123 will be used.
+If you use https:// and omit the port, no port will be appended.
 Example: http://homeassistant.local:8123
 "
 

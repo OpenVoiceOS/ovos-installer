@@ -31,6 +31,14 @@
              else (ansible_python_version | default('unknown')) }}
         _telemetry_country: >-
           {{ (((ovos_telemetry_isp_data | default({})).json | default({})).country | default('unknown')) | lower }}
+        _telemetry_sound_server: >-
+          {{
+            ((ovos_sound_detect_sound_server | default({})).stdout
+             | default(ovos_installer_sound_server | default('unknown'), true)
+             | string
+             | trim
+             | lower)
+          }}
       ansible.builtin.uri:
         url: "{{ ovos_telemetry_url }}"
         method: POST
@@ -40,7 +48,7 @@
           os_version: "{{ ansible_facts.distribution_version }}"
           os_kernel: "{{ ansible_facts.kernel }}"
           architecture: "{{ ansible_facts.architecture }}"
-          sound_server: "{{ ((ovos_sound_detect_sound_server | default({})).stdout | default('unknown')) }}"
+          sound_server: "{{ _telemetry_sound_server }}"
           python_version: "{{ _python_version_final }}"
           display_server: "{{ ovos_installer_display_server | default('unknown') | lower }}"
           container: "{{ ovos_installer_method == 'containers' }}"
@@ -72,7 +80,10 @@
             {%- if devs is string -%}
             {%-   set devs = [devs] -%}
             {%- endif -%}
-            {{ 'n/a' if (devs | default([]) | length) < 1 else (devs | first) }}
+            {%- set installer_hw = ovos_installer_hardware | default('n/a', true) | string | trim -%}
+            {%- if (devs | default([]) | length) < 1 -%}
+            {{ 'n/a' if (installer_hw | length) < 1 or (installer_hw | lower) == 'n/a' else installer_hw }}{%- else -%}
+            {{ devs | first }}{%- endif -%}
         status_code: "{{ ovos_telemetry_post_status_codes }}"
         body_format: json
         headers:

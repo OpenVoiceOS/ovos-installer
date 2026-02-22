@@ -14,7 +14,10 @@
 
 - name: Include bus.yml
   ansible.builtin.import_tasks: bus.yml
-  when: not (ovos_installer_cleaning | default(false) | bool)
+  when:
+    - ansible_facts.system in ['Linux', 'Darwin']
+    - ovos_installer_profile != 'satellite'
+    - not (ovos_installer_cleaning | default(false) | bool)
 
 - name: Include uninstall tasks
   ansible.builtin.import_tasks: uninstall.yml

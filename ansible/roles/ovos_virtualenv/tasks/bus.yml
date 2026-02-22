@@ -1,14 +1,62 @@
 ---
-- name: Download and extract Rust messagebus
-  vars:
-    _ovos_rust_bus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
-    _ovos_rust_bus_version: v1.1.0
-    _ovos_rust_bus_archive_name: "ovos_messagebus-{{ ansible_facts.architecture }}-unknown-linux-gnu.tar.gz"
-    _ovos_rust_bus_url: "{{ _ovos_rust_bus_repo }}/releases/download/{{ _ovos_rust_bus_version }}/{{ _ovos_rust_bus_archive_name }}"
-  ansible.builtin.unarchive:
-    src: "{{ _ovos_rust_bus_url }}"
-    dest: "{{ ovos_installer_user_home }}/.local/bin"
+- name: Ensure Rust messagebus archive directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_tmp_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Assert Rust messagebus checksum is available for selected target/version
+  ansible.builtin.assert:
+    that:
+      - ovos_virtualenv_rust_messagebus_archive_checksum | length > 0
+    fail_msg: >-
+      Missing checksum for {{ ovos_virtualenv_rust_messagebus_archive_name }}
+      (version {{ ovos_virtualenv_rust_messagebus_version }}). Update
+      ovos_virtualenv_rust_messagebus_archive_checksums when overriding the
+      messagebus version or target mapping.
+
+- name: Download Rust messagebus archive with checksum verification
+  ansible.builtin.get_url:
+    url: "{{ ovos_virtualenv_rust_messagebus_archive_url }}"
+    dest: "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
+    checksum: "{{ ovos_virtualenv_rust_messagebus_archive_checksum }}"
+    mode: "0644"
+  register: ovos_virtualenv_rust_messagebus_download
+  retries: 3
+  delay: 3
+  until: ovos_virtualenv_rust_messagebus_download is succeeded
+
+- name: Ensure Rust messagebus destination directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.local/bin"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+
+- name: Check Rust messagebus binary presence
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_rust_messagebus_binary_path }}"
+  register: ovos_virtualenv_rust_messagebus_binary_stat
+  changed_when: false
+
+- name: Extract Rust messagebus archive with tar
+  ansible.builtin.command:
+    argv:
+      - tar
+      - -xzf
+      - "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
+      - -C
+      - "{{ ovos_installer_user_home }}/.local/bin"
+  changed_when: false
+  when:
+    - ovos_virtualenv_rust_messagebus_download is changed
+      or not (ovos_virtualenv_rust_messagebus_binary_stat.stat.exists | default(false))
+
+- name: Ensure Rust messagebus binary mode and ownership
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_rust_messagebus_binary_path }}"
     mode: "0755"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
-    remote_src: true
+    state: file

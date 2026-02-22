@@ -2,6 +2,7 @@
 - name: Assert installer configuration values
   ansible.builtin.assert:
     that:
+      - ansible_facts.system in ['Linux', 'Darwin']
       - ovos_installer_user | length > 0
       - ovos_installer_user_home | length > 0
       - ovos_installer_group | length > 0
@@ -9,6 +10,14 @@
       - ovos_installer_profile in ['ovos', 'listener', 'server', 'satellite']
       - ovos_installer_method in ['virtualenv', 'containers']
     fail_msg: "Invalid installer configuration: check required user/profile variables."
+
+- name: Assert macOS-supported installer modes
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_method == 'virtualenv'
+      - not (ovos_installer_tuning | bool)
+    fail_msg: "On macOS only virtualenv mode is currently supported and tuning must be disabled."
+  when: ansible_facts.system == 'Darwin'
 
 - name: Assert containers required variables
   ansible.builtin.assert:

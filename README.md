@@ -1,6 +1,6 @@
 # 🎉 Open Voice OS and HiveMind Installer 🎉
 
-Installer for Open Voice OS (OVOS) and HiveMind on Linux. Supports interactive installs, scenario-based automation, and optional container deployment.
+Installer for Open Voice OS (OVOS) and HiveMind on Linux and macOS (virtualenv method). Supports interactive installs, scenario-based automation, and optional container deployment.
 
 ## 🤖 What is Open Voice OS?
 
@@ -33,9 +33,29 @@ sudo env OVOS_VENV_PYTHON=3.12 sh -c "$(curl -fsSL https://raw.githubusercontent
 
 # Speed up repeated runs by reusing cached artifacts (useful for debugging)
 sudo env REUSE_CACHED_ARTIFACTS=true sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
+
+# Forward proxy variables into generated launchd/systemd services
+sudo env HTTPS_PROXY=http://proxy.example:3128 HTTP_PROXY=http://proxy.example:3128 NO_PROXY=localhost,127.0.0.1 sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
 ```
 
 👉 Guide: [Howto - Begin your Open Voice OS journey with the OVOS installer](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
+
+## 🍎 macOS support (Intel + Apple Silicon)
+
+macOS installs use `launchd` service management and the `virtualenv` method.
+
+Prerequisites:
+
+- Homebrew installed and available in `PATH`.
+- Xcode Command Line Tools installed (`xcode-select --install`).
+- Microphone permission granted to your terminal app (System Settings > Privacy & Security > Microphone).
+
+Useful launchd checks:
+
+```shell
+launchctl print gui/$(id -u)/com.ovos.service
+launchctl print gui/$(id -u)/com.openvoiceos.ovos-messagebus
+```
 
 ## 🐧 Supported Linux distributions
 

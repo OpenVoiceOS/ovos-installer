@@ -66,6 +66,23 @@ function setup() {
     unset python3
 }
 
+@test "function_detect_display_aqua" {
+    function python3() {
+        if [[ "$1" == *"detect_display.py"* ]]; then
+             echo "aqua"
+        fi
+    }
+    export -f python3
+    touch "utils/detect_display.py"
+
+    DISPLAY_SERVER=""
+    detect_display
+    assert_equal "$DISPLAY_SERVER" "aqua"
+
+    rm -f "utils/detect_display.py"
+    unset python3
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
     if [ -n "$DETECT_DISPLAY_BACKUP" ]; then

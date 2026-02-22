@@ -2,7 +2,7 @@
 CONTENT="
 Trobeu la informació detectada:
 
-    - Sistema operatiu: ${DISTRO_NAME^} $DISTRO_VERSION
+    - Sistema operatiu: $DISTRO_LABEL
     - Nucli: $KERNEL
     - RPi: $RASPBERRYPI_MODEL
     - Python: $(echo "$PYTHON" | awk '{ print $NF }')
