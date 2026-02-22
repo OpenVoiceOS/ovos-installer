@@ -28,6 +28,7 @@ ovos_services_launchd_legacy_core_labels:
   - "{{ ovos_services_launchd_label_prefix }}.ovos-core"
 ovos_services_launchd_run_at_load: true
 ovos_services_launchd_keep_alive: true
+ovos_services_launchd_restart_on_failure: true
 ovos_services_launchd_throttle_interval: "{{ 1 if (ovos_installer_tuning | default(false) | bool) else 5 }}"
 ovos_services_launchd_path: "{{ ovos_services_venv_path }}/bin:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ovos_services_launchd_user_management_mode: user

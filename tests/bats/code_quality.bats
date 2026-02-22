@@ -769,6 +769,20 @@ function setup() {
     assert_success
 }
 
+@test "launchd_keepalive_restarts_on_failure" {
+    run grep -q "ovos_services_launchd_restart_on_failure: true" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_services_launchd_restart_on_failure" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
+
+    run grep -q "<key>SuccessfulExit</key>" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
+
+    run grep -q "<false/>" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
+}
+
 @test "mycroft_conf_sanitizes_timezone_prefix" {
     run grep -F -q "regex_replace('(?i)^\\\\s*time\\\\s*zone\\\\s*:\\\\s*', '')" ansible/roles/ovos_config/templates/mycroft.conf.j2
     assert_success
