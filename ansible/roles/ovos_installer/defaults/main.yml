@@ -114,7 +114,7 @@ ovos_installer_overclock_gpu_freq: "750"
 ovos_installer_uv_version: ""
 ovos_installer_venv_python_parts: "{{ ovos_installer_venv_python | string | regex_findall('[0-9]+') }}"
 ovos_installer_venv_python_major: "{{ (ovos_installer_venv_python_parts | first | default('0')) | int }}"
-ovos_installer_venv_python_minor: "{{ (ovos_installer_venv_python_parts[1] | default('0')) | int }}"
+ovos_installer_venv_python_minor: "{{ (ovos_installer_venv_python_parts[1:] | first | default('0')) | int }}"
 ovos_installer_hotword_sensitivity: 0.95
 ovos_installer_hotword_trigger_level: 1
 ovos_installer_listener_multiplier: 1.5

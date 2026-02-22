@@ -45,15 +45,13 @@
     <false/>
 {% endif %}
     <key>KeepAlive</key>
-{% if ovos_services_launchd_keep_alive | bool %}
 {% if ovos_services_launchd_restart_on_failure | default(true) | bool %}
     <dict>
       <key>SuccessfulExit</key>
       <false/>
     </dict>
-{% else %}
+{% elif ovos_services_launchd_keep_alive | bool %}
     <true/>
-{% endif %}
 {% else %}
     <false/>
 {% endif %}

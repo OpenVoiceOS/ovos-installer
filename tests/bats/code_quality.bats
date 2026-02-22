@@ -332,6 +332,9 @@ function setup() {
     run grep -q "ovos_installer_venv_python_minor" ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 
+    run grep -q "ovos_installer_venv_python_parts\\[1:\\] | first | default('0')" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
     run grep -q "ovos_installer_uv_allow_prerelease: \"{{ (ovos_installer_venv_python_major | int) == 3 and (ovos_installer_venv_python_minor | int) >= 13 }}\"" ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 
@@ -345,6 +348,9 @@ function setup() {
     assert_success
 
     run grep -q "ovos_virtualenv_venv_python_minor" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_venv_python_parts\\[1:\\] | first | default('0')" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
     run grep -q "((ovos_virtualenv_venv_python_major | int) == 3)" ansible/roles/ovos_virtualenv/defaults/main.yml
@@ -799,6 +805,9 @@ function setup() {
     run grep -q "ovos_services_user_runtime_dirs" ansible/roles/ovos_services/defaults/main.yml
     assert_success
 
+    run grep -q "ovos_services_launchd_log_dir" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
     run grep -q "Ensure OVOS runtime user directories exist" ansible/roles/ovos_services/tasks/main.yml
     assert_success
 
@@ -833,6 +842,12 @@ function setup() {
     assert_success
 
     run grep -q "ovos_services_launchd_restart_on_failure" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
+
+    run grep -q "{% if ovos_services_launchd_restart_on_failure | default(true) | bool %}" ansible/roles/ovos_services/templates/launchd/service.plist.j2
+    assert_success
+
+    run grep -q "{% elif ovos_services_launchd_keep_alive | bool %}" ansible/roles/ovos_services/templates/launchd/service.plist.j2
     assert_success
 
     run grep -q "<key>SuccessfulExit</key>" ansible/roles/ovos_services/templates/launchd/service.plist.j2

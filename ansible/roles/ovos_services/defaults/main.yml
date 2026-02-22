@@ -173,6 +173,7 @@ ovos_services_user_runtime_dirs:
   - "{{ ovos_installer_user_home }}/.cache/mycroft"
   - "{{ ovos_installer_user_home }}/.cache/ovos_gui"
   - "{{ ovos_installer_user_home }}/.local/state/mycroft"
+  - "{{ ovos_services_launchd_log_dir }}"
 ovos_services_launchd_unit_files_user: >-
   {{ ovos_services_launchd_unit_definitions
      | selectattr('scope', 'equalto', 'user')

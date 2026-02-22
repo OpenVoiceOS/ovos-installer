@@ -11,7 +11,7 @@ ovos_virtualenv_requirements_files: >-
 ovos_virtualenv_venv_python: "{{ ovos_installer_venv_python | default('3.11') }}"
 ovos_virtualenv_venv_python_parts: "{{ ovos_virtualenv_venv_python | string | regex_findall('[0-9]+') }}"
 ovos_virtualenv_venv_python_major: "{{ (ovos_virtualenv_venv_python_parts | first | default('0')) | int }}"
-ovos_virtualenv_venv_python_minor: "{{ (ovos_virtualenv_venv_python_parts[1] | default('0')) | int }}"
+ovos_virtualenv_venv_python_minor: "{{ (ovos_virtualenv_venv_python_parts[1:] | first | default('0')) | int }}"
 ovos_virtualenv_uv_allow_prerelease: >-
   {{
     ovos_installer_uv_allow_prerelease
