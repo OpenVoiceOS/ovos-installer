@@ -332,7 +332,7 @@ function setup() {
     run grep -q "ovos_installer_venv_python_minor" ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 
-    run grep -q "ovos_installer_uv_allow_prerelease: \"{{ ovos_installer_venv_python_major == 3 and ovos_installer_venv_python_minor >= 13 }}\"" ansible/roles/ovos_installer/defaults/main.yml
+    run grep -q "ovos_installer_uv_allow_prerelease: \"{{ (ovos_installer_venv_python_major | int) == 3 and (ovos_installer_venv_python_minor | int) >= 13 }}\"" ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 
     run grep -q "ansible_facts.python.version" ansible/roles/ovos_installer/defaults/main.yml
@@ -347,10 +347,10 @@ function setup() {
     run grep -q "ovos_virtualenv_venv_python_minor" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
-    run grep -q "(ovos_virtualenv_venv_python_major == 3)" ansible/roles/ovos_virtualenv/defaults/main.yml
+    run grep -q "((ovos_virtualenv_venv_python_major | int) == 3)" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
-    run grep -q "(ovos_virtualenv_venv_python_minor >= 13)" ansible/roles/ovos_virtualenv/defaults/main.yml
+    run grep -q "((ovos_virtualenv_venv_python_minor | int) >= 13)" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
     run bash -c "grep -A8 -F -- \"ovos_virtualenv_uv_allow_prerelease\" ansible/roles/ovos_virtualenv/defaults/main.yml | grep -q -- \"ansible_facts.python\""
@@ -663,6 +663,17 @@ function setup() {
     assert_success
 
     run grep -q "path: \"{{ ovos_services_messagebus_command }}\"" ansible/roles/ovos_services/tasks/assert.yml
+    assert_success
+}
+
+@test "services_messagebus_arch_platform_match_virtualenv_logic" {
+    run grep -q "else 'armv7' if (ansible_facts.architecture | default('')) in \\['armv7', 'armv7l'\\]" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "else 'arm' if (ansible_facts.architecture | default('')) in \\['arm', 'armv6', 'armv6l'\\]" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "else 'unknown-linux-gnueabihf' if ovos_services_messagebus_target_arch in \\['arm', 'armv7'\\]" ansible/roles/ovos_services/defaults/main.yml
     assert_success
 }
 

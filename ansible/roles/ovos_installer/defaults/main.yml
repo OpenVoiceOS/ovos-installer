@@ -70,6 +70,7 @@ ovos_installer_docker_compose_remove_volumes: true
 ovos_installer_uninstall: "{{ 'present' if not (ovos_installer_cleaning | default(false) | bool) else 'absent' }}"
 ovos_installer_uninstall_autoremove: true
 ovos_installer_uninstall_remove_packages: false
+# Keep this quoted (e.g., "3.11"). Unquoted YAML like 3.10 may parse as 3.1.
 ovos_installer_venv_python: "3.11"
 ovos_installer_supported_desktop_architectures:
   - x86_64
@@ -82,7 +83,7 @@ ovos_installer_enable_ggwave: >-
   {{ ansible_facts.system != 'Darwin'
      and (ovos_installer_channel | default('')) in ['stable', 'testing']
      and ansible_facts.architecture in ovos_installer_supported_desktop_architectures }}
-ovos_installer_uv_allow_prerelease: "{{ ovos_installer_venv_python_major == 3 and ovos_installer_venv_python_minor >= 13 }}"
+ovos_installer_uv_allow_prerelease: "{{ (ovos_installer_venv_python_major | int) == 3 and (ovos_installer_venv_python_minor | int) >= 13 }}"
 ovos_installer_tuning: false
 ovos_installer_setuptools_package: "setuptools<82"
 ovos_installer_tuning_performance: >-

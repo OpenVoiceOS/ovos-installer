@@ -16,8 +16,8 @@ ovos_virtualenv_uv_allow_prerelease: >-
   {{
     ovos_installer_uv_allow_prerelease
     | default(
-        (ovos_virtualenv_venv_python_major == 3)
-        and (ovos_virtualenv_venv_python_minor >= 13)
+        ((ovos_virtualenv_venv_python_major | int) == 3)
+        and ((ovos_virtualenv_venv_python_minor | int) >= 13)
       )
   }}
 ovos_virtualenv_uv_version: "{{ ovos_installer_uv_version | default('') }}"

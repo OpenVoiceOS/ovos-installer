@@ -56,9 +56,13 @@ ovos_services_launchd_extra_environment:
 ovos_services_messagebus_target_arch: >-
   {{ 'aarch64' if (ansible_facts.architecture | default('')) in ['aarch64', 'arm64']
      else 'x86_64' if (ansible_facts.architecture | default('')) in ['x86_64', 'amd64']
+     else 'armv7' if (ansible_facts.architecture | default('')) in ['armv7', 'armv7l']
+     else 'arm' if (ansible_facts.architecture | default('')) in ['arm', 'armv6', 'armv6l']
      else (ansible_facts.architecture | default('')) }}
 ovos_services_messagebus_target_platform: >-
-  {{ 'apple-darwin' if (ansible_facts.system | default('')) == 'Darwin' else 'unknown-linux-gnu' }}
+  {{ 'apple-darwin' if (ansible_facts.system | default('')) == 'Darwin'
+     else 'unknown-linux-gnueabihf' if ovos_services_messagebus_target_arch in ['arm', 'armv7']
+     else 'unknown-linux-gnu' }}
 ovos_services_messagebus_binary_name: >-
   ovos_messagebus-{{ ovos_services_messagebus_target_arch }}-{{ ovos_services_messagebus_target_platform }}
 ovos_services_messagebus_command: "{{ ovos_installer_user_home }}/.local/bin/{{ ovos_services_messagebus_binary_name }}"
