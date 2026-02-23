@@ -706,7 +706,7 @@ function setup() {
     run grep -q "ovos_services_launchd_plist_name: \"{{ item.label }}.plist\"" ansible/roles/ovos_services/tasks/launchd.yml
     assert_success
 
-    run grep -q "ovos_services_legacy_plist_name: \"{{ item }}.plist\"" ansible/roles/ovos_services/tasks/launchd.yml
+    run grep -q "ovos_services_legacy_plist_name: \"{{ item.item }}.plist\"" ansible/roles/ovos_services/tasks/launchd.yml
     assert_success
 
     run grep -q "plist: \"{{ ovos_services_launchd_plist_name }}\"" ansible/roles/ovos_services/tasks/launchd.yml
@@ -718,7 +718,7 @@ function setup() {
     run grep -q "ovos_services_launchd_plist_name: \"{{ item.label }}.plist\"" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
     assert_success
 
-    run grep -q "ovos_services_launchd_plist_name: \"{{ item }}.plist\"" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
+    run grep -q "ovos_services_launchd_plist_name: \"{{ item.item }}.plist\"" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
     assert_success
 
     run grep -q "plist: \"{{ ovos_services_launchd_plist_name }}\"" ansible/roles/ovos_services/handlers/main.yml

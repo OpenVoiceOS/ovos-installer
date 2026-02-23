@@ -51,7 +51,7 @@ _ovos_launchd_service_status() {
 
   if [[ ! -f "$plist" ]]; then
     printf '%-22s %s\n' "$service" "not-installed"
-    return 3
+    return 4
   fi
 
   if status_output="$(launchctl print "gui/${uid}/${label}" 2>/dev/null)"; then
@@ -64,6 +64,7 @@ _ovos_launchd_service_status() {
   fi
 
   printf '%-22s %s\n' "$service" "unloaded"
+  return 3
 }
 
 _ovos_launchd_service_start() {

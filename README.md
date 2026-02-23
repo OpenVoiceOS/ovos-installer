@@ -1,6 +1,6 @@
 # 🎉 Open Voice OS and HiveMind Installer 🎉
 
-Installer for Open Voice OS (OVOS) and HiveMind on Linux and macOS (virtualenv method). Supports interactive installs, scenario-based automation, and optional container deployment.
+Installer for Open Voice OS (OVOS) and HiveMind on Linux. Also supports macOS (virtualenv method on macOS only). Supports interactive installs, scenario-based automation, and optional container deployment.
 
 ## 🤖 What is Open Voice OS?
 

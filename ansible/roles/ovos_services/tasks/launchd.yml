@@ -66,22 +66,36 @@
         mode: "0644"
         create: true
 
+    - name: Check legacy OVOS core launchd plist files
+      ansible.builtin.stat:
+        path: "{{ ovos_services_launchd_agents_path }}/{{ item }}.plist"
+      register: ovos_services_legacy_core_plists
+      changed_when: false
+      loop: "{{ ovos_services_launchd_legacy_core_labels }}"
+      loop_control:
+        label: "{{ item }}"
+      when: item != ovos_services_launchd_core_label
+
     - name: Disable and unload legacy OVOS core launchd services
       vars:
-        ovos_services_legacy_plist_name: "{{ item }}.plist"
+        # community.general.launchd resolves plist names in the expected launchd
+        # directories; keep basename form for compatibility.
+        ovos_services_legacy_plist_name: "{{ item.item }}.plist"
       become: true
       become_user: "{{ ovos_services_launchd_user_module_become_user }}"
       community.general.launchd:
-        name: "{{ item }}"
+        name: "{{ item.item }}"
         plist: "{{ ovos_services_legacy_plist_name }}"
         enabled: false
         state: unloaded
       environment: "{{ ovos_services_launchd_user_module_environment }}"
       failed_when: false
-      loop: "{{ ovos_services_launchd_legacy_core_labels }}"
+      loop: "{{ ovos_services_legacy_core_plists.results | default([]) }}"
       loop_control:
-        label: "{{ item }}"
-      when: item != ovos_services_launchd_core_label
+        label: "{{ item.item }}"
+      when:
+        - item.item != ovos_services_launchd_core_label
+        - item.stat.exists | default(false)
 
     - name: Remove legacy OVOS core launchd plist files
       ansible.builtin.file:
