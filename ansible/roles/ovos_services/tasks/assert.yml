@@ -2,18 +2,62 @@
 - name: Assert services configuration values
   ansible.builtin.assert:
     that:
+      - ovos_services_manager in ['systemd', 'launchd']
+      - ovos_services_manager != 'systemd' or ansible_facts.system == 'Linux'
+      - ovos_services_manager != 'launchd' or ansible_facts.system == 'Darwin'
+      - ovos_services_manager != 'launchd' or ovos_services_launchd_user_management_mode in ['root', 'user']
       - ovos_services_systemd_user_path | length > 0
       - ovos_services_systemd_system_path | length > 0
+      - ovos_services_launchd_agents_path | length > 0
+      - ovos_services_launchd_daemons_path | length > 0
+      - ovos_services_launchd_log_dir | length > 0
+      - ovos_services_launchd_shell_init_file | length > 0
+      - ovos_services_launchd_wrapper_path | length > 0
+      - ovos_services_launchd_wrapper_template | length > 0
+      - ovos_services_launchd_core_label | length > 0
+      - ovos_services_messagebus_command | length > 0
       - ovos_services_unit_definitions | length > 0
+      - ovos_services_launchd_unit_definitions | length > 0
       - ovos_services_wrapper_path | length > 0
     fail_msg: "Invalid services configuration."
 
 - name: Assert services path formats
+  vars:
+    ovos_services_paths_to_validate: >-
+      {{
+        [ovos_services_wrapper_path]
+        + [ovos_services_messagebus_command]
+        + ([ovos_services_systemd_user_path, ovos_services_systemd_system_path]
+           if ovos_services_manager == 'systemd'
+           else [ovos_services_launchd_agents_path, ovos_services_launchd_daemons_path, ovos_services_launchd_log_dir,
+                 ovos_services_launchd_shell_init_file, ovos_services_launchd_wrapper_path])
+      }}
   ansible.builtin.assert:
     that:
       - item is match('^/')
     fail_msg: "Services path must be absolute: {{ item }}"
-  loop:
-    - "{{ ovos_services_systemd_user_path }}"
-    - "{{ ovos_services_systemd_system_path }}"
-    - "{{ ovos_services_wrapper_path }}"
+  loop: "{{ ovos_services_paths_to_validate }}"
+
+- name: Check OVOS messagebus binary exists
+  ansible.builtin.stat:
+    path: "{{ ovos_services_messagebus_command }}"
+    follow: true
+  register: ovos_services_messagebus_binary
+  changed_when: false
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - ovos_installer_method == 'virtualenv'
+    - ovos_installer_profile != 'satellite'
+
+- name: Assert OVOS messagebus binary exists
+  ansible.builtin.assert:
+    that:
+      - ovos_services_messagebus_binary.stat.exists | default(false)
+      - ovos_services_messagebus_binary.stat.isreg | default(false)
+    fail_msg: >-
+      OVOS messagebus binary was not found at {{ ovos_services_messagebus_command }}.
+      Ensure ovos_virtualenv role completed successfully before ovos_services.
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - ovos_installer_method == 'virtualenv'
+    - ovos_installer_profile != 'satellite'

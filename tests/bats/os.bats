@@ -5,9 +5,9 @@ function setup() {
     load "$HOME/shell-testing/test_helper/bats-assert/load"
     load ../../utils/constants.sh
     load ../../utils/common.sh
-    LOG_FILE=/tmp/ovos-installer.log
-    OS_RELEASE=/tmp/os-release
-    WSL_FILE=/tmp/wsl.conf
+    LOG_FILE="$BATS_TMPDIR/ovos-installer.log"
+    OS_RELEASE="$BATS_TMPDIR/os-release"
+    WSL_FILE="$BATS_TMPDIR/wsl.conf"
     cat <<EOF >"$OS_RELEASE"
 VERSION="39 (Workstation Edition)"
 VERSION_ID="39"
@@ -21,12 +21,17 @@ EOF
 
 @test "function_get_os_information_kernel_version" {
     function uname() {
-        echo "6.1.61-v8+"
+        case "$1" in
+        -m) echo "aarch64" ;;
+        -r) echo "6.1.61-v8+" ;;
+        -s) echo "Linux" ;;
+        *) echo "Linux" ;;
+        esac
     }
     export -f uname
     get_os_information
     assert_equal "$KERNEL" "6.1.61-v8+"
-    unset uname
+    unset -f uname
 }
 
 @test "function_get_os_information_python_version" {
@@ -40,29 +45,114 @@ EOF
 }
 
 @test "function_get_os_information_os_name" {
+    function uname() {
+        case "$1" in
+        -m) echo "x86_64" ;;
+        -r) echo "6.8.12" ;;
+        -s) echo "Linux" ;;
+        *) echo "Linux" ;;
+        esac
+    }
+    export -f uname
     get_os_information
     assert_equal "$DISTRO_NAME" "fedora"
+    unset -f uname
 }
 
 @test "function_get_os_information_os_version" {
+    function uname() {
+        case "$1" in
+        -m) echo "x86_64" ;;
+        -r) echo "6.8.12" ;;
+        -s) echo "Linux" ;;
+        *) echo "Linux" ;;
+        esac
+    }
+    export -f uname
     get_os_information
     assert_equal "$DISTRO_VERSION" "39 (Workstation Edition)"
+    assert_equal "$DISTRO_LABEL" "Fedora 39 (Workstation Edition)"
+    unset -f uname
 }
 
 @test "function_get_os_information_no_os_release" {
-    OS_RELEASE=/tmp/no-os-release
+    OS_RELEASE="$BATS_TMPDIR/no-os-release"
     function uname() {
-        echo "Darwin MacBook-Pro.local 20.1.0 Darwin Kernel"
+        case "$1" in
+        -m) echo "x86_64" ;;
+        -r) echo "6.8.12" ;;
+        -s) echo "Linux" ;;
+        *) echo "Linux" ;;
+        esac
     }
     export -f uname
-    run get_os_information
-    assert_output --partial "Darwin MacBook-Pro.local 20.1.0 Darwin Kernel"
-    unset uname
+    get_os_information
+    assert_equal "$DISTRO_NAME" "Linux"
+    assert_equal "$DISTRO_VERSION" ""
+    assert_equal "$DISTRO_VERSION_ID" ""
+    assert_equal "$DISTRO_LABEL" "Linux"
+    unset -f uname
+}
+
+@test "function_get_os_information_macos" {
+    OS_RELEASE="$BATS_TMPDIR/no-os-release"
+    function uname() {
+        case "$1" in
+        -m) echo "arm64" ;;
+        -r) echo "23.5.0" ;;
+        -s) echo "Darwin" ;;
+        *) echo "Darwin" ;;
+        esac
+    }
+    function sw_vers() {
+        if [ "$1" == "-productVersion" ]; then
+            echo "14.5"
+        fi
+    }
+    export -f uname sw_vers
+    get_os_information
+    assert_equal "$DISTRO_NAME" "macos"
+    assert_equal "$DISTRO_VERSION_ID" "14.5"
+    assert_equal "$DISTRO_VERSION" "macOS 14.5"
+    assert_equal "$DISTRO_LABEL" "macOS 14.5"
+    assert_equal "$ARCH" "arm64"
+    assert_equal "$KERNEL" "23.5.0"
+    unset -f uname sw_vers
+}
+
+@test "function_detect_hardware_model_macos" {
+    function uname() {
+        case "$1" in
+        -s) echo "Darwin" ;;
+        *) echo "Darwin" ;;
+        esac
+    }
+    function sysctl() {
+        if [ "$1" == "-n" ] && [ "$2" == "hw.model" ]; then
+            echo "Mac14,7"
+        fi
+    }
+    export -f uname sysctl
+    detect_hardware_model
+    assert_equal "$HARDWARE_MODEL" "Mac14,7"
+    unset -f uname sysctl
+}
+
+@test "function_detect_hardware_model_non_macos" {
+    function uname() {
+        case "$1" in
+        -s) echo "Linux" ;;
+        *) echo "Linux" ;;
+        esac
+    }
+    export -f uname
+    detect_hardware_model
+    assert_equal "$HARDWARE_MODEL" "N/A"
+    unset -f uname
 }
 
 @test "function_wsl2_requirements_valid" {
-    WSL_FILE=/tmp/wsl.conf
-    KERNEL="5.15.133.1-microsoft-standard-WSL2"
+    KERNEL="5.15.133.1-microsoft-standard-wsl2"
     run wsl2_requirements
     assert_success
 }

@@ -2,3 +2,4 @@
 ovos_timezone_geoip_url: http://ip-api.com/json
 ovos_timezone_fallback_timezone: UTC
 ovos_timezone_timedatectl_cmd: "timedatectl show -p Timezone --value"
+ovos_timezone_macos_prefix_regex: "(?i)^\\s*time\\s*zone\\s*:\\s*"

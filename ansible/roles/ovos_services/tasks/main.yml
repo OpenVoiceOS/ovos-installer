@@ -4,127 +4,51 @@
   tags:
     - always
 
-- name: Block OVOS systemd services
-  when: ovos_installer_method == "virtualenv" or ovos_installer_cleaning | default(false) | bool
-  block:
-    - name: Copy wrapper-ovos-phal-admin.sh file
-      ansible.builtin.template:
-        src: "{{ ovos_services_wrapper_template }}"
-        dest: "{{ ovos_services_wrapper_path }}"
-        owner: root
-        group: root
-        mode: "{{ ovos_services_wrapper_mode }}"
-      when: ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server'
+- name: Ensure user cache root directory exists with correct ownership
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.cache"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+  when:
+    - ovos_installer_method == "virtualenv"
+    - not (ovos_installer_cleaning | default(false) | bool)
 
-    - name: Remove user scope units when using system scope
-      when: (ovos_installer_systemd_scope | default('user')) == 'system'
-      block:
-        - name: Stop and disable OVOS user units from previous installs
-          become: true
-          become_user: "{{ ovos_installer_user }}"
-          ansible.builtin.systemd_service:
-            name: "{{ item }}"
-            enabled: false
-            state: stopped
-            scope: user
-          loop: "{{ ovos_services_managed_units }}"
-          failed_when: false
+- name: Ensure OVOS runtime user directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+  loop: "{{ ovos_services_user_runtime_dirs }}"
+  when:
+    - ovos_installer_method == "virtualenv"
+    - not (ovos_installer_cleaning | default(false) | bool)
 
-        - name: Remove OVOS user unit files from previous installs
-          ansible.builtin.file:
-            path: "{{ ovos_services_systemd_user_path }}/{{ item }}"
-            state: absent
-          loop: "{{ ovos_services_managed_units }}"
-          notify: Reload Systemd User
+- name: Ensure OVOS runtime user directory ownership is corrected recursively
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    recurse: true
+  loop: "{{ ovos_services_user_runtime_dirs }}"
+  when:
+    - ovos_installer_method == "virtualenv"
+    - not (ovos_installer_cleaning | default(false) | bool)
 
-    - name: Remove system scope units when using user scope
-      when: (ovos_installer_systemd_scope | default('user')) == 'user'
-      block:
-        - name: Stop and disable OVOS system units from previous installs
-          ansible.builtin.systemd_service:
-            name: "{{ item }}"
-            enabled: false
-            state: stopped
-            scope: system
-          loop: "{{ ovos_services_managed_units }}"
-          failed_when: false
+- name: Include systemd backend tasks
+  ansible.builtin.import_tasks: systemd.yml
+  when:
+    - ansible_facts.system == 'Linux'
+    - ovos_services_manager == 'systemd'
+    - ovos_installer_method == "virtualenv" or ovos_installer_cleaning | default(false) | bool
 
-        - name: Remove OVOS system unit files from previous installs
-          ansible.builtin.file:
-            path: "{{ ovos_services_systemd_system_path }}/{{ item }}"
-            state: absent
-          loop: "{{ ovos_services_managed_units }}"
-          notify: Reload Systemd
-
-    - name: Ensure user runtime directory exists for system scope
-      when: (ovos_installer_systemd_scope | default('user')) == 'system'
-      block:
-        - name: Enable lingering for {{ ovos_installer_user }}
-          ansible.builtin.command: "{{ ovos_services_enable_linger_cmd }}"
-          changed_when: false
-          failed_when: false
-
-        - name: Ensure /run/user exists for {{ ovos_installer_uid }}
-          ansible.builtin.file:
-            path: "{{ ovos_services_user_runtime_dir }}"
-            state: directory
-            owner: "{{ ovos_installer_user }}"
-            group: "{{ ovos_installer_group }}"
-            mode: "{{ ovos_services_user_runtime_mode }}"
-
-        - name: Ensure user systemd instance is running
-          ansible.builtin.systemd_service:
-            name: "{{ ovos_services_user_systemd_unit }}"
-            state: started
-
-    - name: Copy OVOS systemd unit files
-      vars:
-        ovos_installer_systemd_path_user: "{{ ovos_services_systemd_user_path }}"
-        ovos_installer_systemd_path_system: "{{ ovos_services_systemd_system_path }}"
-        ovos_installer_ovos_scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-        ovos_installer_ovos_unit_user: "{{ 'root' if ovos_installer_ovos_scope == 'system' else ovos_installer_user }}"
-        ovos_installer_ovos_unit_group: "{{ 'root' if ovos_installer_ovos_scope == 'system' else ovos_installer_group }}"
-        ovos_services_unit_user: "{{ 'root' if item.scope == 'system' else ovos_installer_ovos_unit_user }}"
-        ovos_services_unit_group: "{{ 'root' if item.scope == 'system' else ovos_installer_ovos_unit_group }}"
-        ovos_installer_notify_scope: "{{ 'Reload Systemd' if item.scope == 'system' else 'Reload Systemd User' }}"
-      ansible.builtin.template:
-        src: "virtualenv/{{ item.unit }}.j2"
-        dest: "{{ (item.scope == 'system') | ternary(ovos_installer_systemd_path_system, ovos_installer_systemd_path_user) }}/{{ item.unit }}"
-        owner: "{{ ovos_services_unit_user }}"
-        group: "{{ ovos_services_unit_group }}"
-        mode: "{{ ovos_services_systemd_unit_mode }}"
-        backup: true
-      notify: "{{ ovos_installer_notify_scope }}"
-      loop: "{{ ovos_services_unit_definitions }}"
-      loop_control:
-        label: "{{ item.unit }} ({{ item.scope }})"
-      when: item.state | bool
-
-    - name: Flush handlers ovos
-      ansible.builtin.meta: flush_handlers
-
-    - name: Enable and start OVOS and/or HiveMind systemd units
-      vars:
-        ovos_installer_systemd_state: >-
-          {{ 'restarted' if (ovos_config_configuration.changed | default(false)) | bool else 'started' }}
-        ovos_installer_ovos_scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-        ovos_installer_ovos_unit_user: "{{ 'root' if ovos_installer_ovos_scope == 'system' else ovos_installer_user }}"
-        ovos_services_unit_user: "{{ 'root' if item.scope == 'system' else ovos_installer_ovos_unit_user }}"
-      become: true
-      become_user: "{{ ovos_services_unit_user }}"
-      ansible.builtin.systemd_service:
-        name: "{{ item.unit }}"
-        enabled: true
-        force: true
-        state: "{{ ovos_installer_systemd_state }}"
-        scope: "{{ item.scope }}"
-      loop: "{{ ovos_services_unit_definitions }}"
-      loop_control:
-        label: "{{ item.unit }} ({{ item.scope }})"
-      when: item.state | bool and not ansible_check_mode
-
-    - name: Include uninstall tasks
-      ansible.builtin.import_tasks: uninstall.yml
-      when: ovos_installer_cleaning | default(false) | bool
-      tags:
-        - uninstall
+- name: Include launchd backend tasks
+  ansible.builtin.import_tasks: launchd.yml
+  when:
+    - ansible_facts.system == 'Darwin'
+    - ovos_services_manager == 'launchd'
+    - ovos_installer_method == "virtualenv" or ovos_installer_cleaning | default(false) | bool

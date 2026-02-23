@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>{{ item.label }}</string>
+
+    <key>ProgramArguments</key>
+    <array>
+      <string>{{ item.command }}</string>
+{% for arg in item.arguments | default([]) %}
+      <string>{{ arg }}</string>
+{% endfor %}
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>{{ ovos_services_venv_path }}</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+      <key>HOME</key>
+      <string>{{ '/var/root' if item.scope == 'system' else ovos_installer_user_home }}</string>
+      <key>PATH</key>
+      <string>{{ ovos_services_launchd_path }}</string>
+      <key>VIRTUAL_ENV</key>
+      <string>{{ ovos_services_venv_path }}</string>
+      <key>XDG_CONFIG_HOME</key>
+      <string>{{ '/var/root/.config' if item.scope == 'system' else ovos_installer_user_home + '/.config' }}</string>
+      <key>XDG_CACHE_HOME</key>
+      <string>{{ '/var/root/.cache' if item.scope == 'system' else ovos_installer_user_home + '/.cache' }}</string>
+{% for env_key, env_value in (ovos_services_launchd_extra_environment | default({})).items() %}
+{% set _ovos_launchd_env_value = env_value | string | trim %}
+{% if (_ovos_launchd_env_value | length) > 0 %}
+      <key>{{ env_key }}</key>
+      <string>{{ _ovos_launchd_env_value }}</string>
+{% endif %}
+{% endfor %}
+    </dict>
+
+    <key>RunAtLoad</key>
+{% if ovos_services_launchd_run_at_load | bool %}
+    <true/>
+{% else %}
+    <false/>
+{% endif %}
+    <key>KeepAlive</key>
+{% if ovos_services_launchd_restart_on_failure | default(true) | bool %}
+    <dict>
+      <key>SuccessfulExit</key>
+      <false/>
+    </dict>
+{% elif ovos_services_launchd_keep_alive | bool %}
+    <true/>
+{% else %}
+    <false/>
+{% endif %}
+    <key>ThrottleInterval</key>
+    <integer>{{ ovos_services_launchd_throttle_interval | int }}</integer>
+
+    <key>StandardOutPath</key>
+    <string>{{ ovos_services_launchd_log_dir }}/{{ item.name }}.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ ovos_services_launchd_log_dir }}/{{ item.name }}.err</string>
+  </dict>
+</plist>

@@ -30,13 +30,17 @@
 - name: Include tuning.yml
   ansible.builtin.import_tasks: tuning.yml
   when:
-    (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_tuning | bool) or
-    (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_cleaning | default(false) | bool)
+    - ansible_facts.system == 'Linux'
+    - >-
+      (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_tuning | bool) or
+      (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_cleaning | default(false) | bool)
 
 - name: Include ovos_sound role
   ansible.builtin.import_role:
     name: ovos_sound
-  when: ovos_installer_profile != "server"
+  when:
+    - ansible_facts.system == 'Linux'
+    - ovos_installer_profile != "server"
   tags:
     - ovos_sound
 
@@ -55,7 +59,9 @@
 - name: Include ovos_containers role
   ansible.builtin.import_role:
     name: ovos_containers
-  when: ovos_installer_method == "containers" or ovos_installer_cleaning | default(false) | bool
+  when:
+    - ansible_facts.system == 'Linux'
+    - ovos_installer_method == "containers" or ovos_installer_cleaning | default(false) | bool
   tags:
     - ovos_containers
 

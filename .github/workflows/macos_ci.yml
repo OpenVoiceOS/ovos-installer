@@ -1,0 +1,175 @@
+name: macOS installer CI
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/macos_ci.yml
+      - installer.sh
+      - setup.sh
+      - utils/**
+      - ansible/**
+      - tests/bats/**
+  push:
+    paths:
+      - .github/workflows/macos_ci.yml
+      - installer.sh
+      - setup.sh
+      - utils/**
+      - ansible/**
+      - tests/bats/**
+  workflow_dispatch:
+
+jobs:
+  macos-lint-and-bats:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - macos-15-intel
+          - macos-14
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install macOS requirements
+        run: |
+          brew install bash bats-core jq expect newt
+
+      - name: Install BATS helper libraries
+        run: |
+          mkdir -p "$HOME/shell-testing/test_helper"
+          git clone --depth 1 https://github.com/bats-core/bats-support.git "$HOME/shell-testing/test_helper/bats-support"
+          git clone --depth 1 https://github.com/bats-core/bats-assert.git "$HOME/shell-testing/test_helper/bats-assert"
+
+      - name: Install ansible-lint dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ansible ansible-lint
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Run ansible-lint (production profile)
+        run: ansible-lint --profile production
+
+      - name: Run BATS test suite
+        run: bats tests/bats --verbose-run --print-output-on-failure
+
+  macos-scenario-smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - macos-15-intel
+          - macos-14
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 75
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install macOS installer requirements
+        run: |
+          brew install bash jq expect newt
+
+      - name: Resolve bash runtime
+        run: |
+          if [ -x /opt/homebrew/bin/bash ]; then
+            echo "BASH_BIN=/opt/homebrew/bin/bash" >> "$GITHUB_ENV"
+          elif [ -x /usr/local/bin/bash ]; then
+            echo "BASH_BIN=/usr/local/bin/bash" >> "$GITHUB_ENV"
+          else
+            echo "BASH_BIN=$(command -v bash)" >> "$GITHUB_ENV"
+          fi
+
+      - name: Create non-interactive scenario
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from textwrap import dedent
+
+          scenario = dedent("""\
+          ---
+          uninstall: false
+          method: virtualenv
+          channel: stable
+          profile: server
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          """)
+
+          scenario_path = Path.home() / ".config/ovos-installer/scenario.yaml"
+          scenario_path.parent.mkdir(parents=True, exist_ok=True)
+          scenario_path.write_text(scenario, encoding="utf-8")
+          PY
+
+      - name: Seed root-owned uv cache paths (permission regression canary)
+        run: |
+          sudo mkdir -p "$HOME/.cache/uv" "$HOME/.ovos-installer/uv-cache"
+          sudo chown root:wheel "$HOME/.cache/uv" "$HOME/.ovos-installer/uv-cache"
+          sudo chmod 0755 "$HOME/.cache" "$HOME/.ovos-installer"
+          sudo chmod 0700 "$HOME/.cache/uv" "$HOME/.ovos-installer/uv-cache"
+
+      - name: Run installer scenario smoke test
+        run: sudo "$BASH_BIN" setup.sh
+
+      - name: Validate uv ownership for installer user
+        run: |
+          test "$(stat -f '%Su' "$HOME/.ovos-installer/uv-cache")" = "$USER"
+
+          if [ -d "$HOME/.local/share/uv" ]; then
+            test "$(stat -f '%Su' "$HOME/.local/share/uv")" = "$USER"
+          fi
+
+          if find "$HOME/.ovos-installer/uv-cache" -mindepth 1 -not -user "$USER" | head -n 1 | grep -q .; then
+            echo "Found non-${USER} files in $HOME/.ovos-installer/uv-cache"
+            exit 1
+          fi
+
+          if [ -d "$HOME/.local/share/uv" ] && find "$HOME/.local/share/uv" -mindepth 1 -not -user "$USER" | head -n 1 | grep -q .; then
+            echo "Found non-${USER} files in $HOME/.local/share/uv"
+            exit 1
+          fi
+
+      - name: Validate launchd smoke services
+        run: |
+          VENV_PATH="$HOME/.venvs/ovos"
+          if [ "$(uname -m)" = "arm64" ]; then
+            BUS_BIN="$HOME/.local/bin/ovos_messagebus-aarch64-apple-darwin"
+          else
+            BUS_BIN="$HOME/.local/bin/ovos_messagebus-x86_64-apple-darwin"
+          fi
+
+          test -x "$VENV_PATH/bin/ovos-core"
+          test -x "$BUS_BIN"
+
+          test -f "$HOME/Library/LaunchAgents/com.ovos.service.plist"
+          test -f "$HOME/Library/LaunchAgents/com.openvoiceos.ovos-messagebus.plist"
+
+          launchctl print "gui/$(id -u)/com.ovos.service" >/dev/null
+          launchctl print "gui/$(id -u)/com.openvoiceos.ovos-messagebus" >/dev/null
+
+          if launchctl print "gui/$(id -u)/com.openvoiceos.ovos-core" >/dev/null 2>&1; then
+            echo "Legacy launchd label com.openvoiceos.ovos-core should not be loaded."
+            exit 1
+          fi
+
+      - name: Dump launchd diagnostics on failure
+        if: failure()
+        run: |
+          launchctl list | grep -E 'ovos|hivemind' || true
+          ls -la "$HOME/Library/LaunchAgents" || true
+          ls -la "$HOME/.local/state/mycroft/logs" || true

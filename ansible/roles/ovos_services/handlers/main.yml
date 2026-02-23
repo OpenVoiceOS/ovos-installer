@@ -1,6 +1,7 @@
 ---
 - name: Start Sound Server
   ansible.builtin.include_tasks: block-sound.yml
+  when: ovos_services_manager == 'systemd'
 
 - name: Restart OVOS services (user)
   listen: Restart OVOS services
@@ -13,6 +14,7 @@
   failed_when: false
   when:
     - ovos_installer_method == "virtualenv"
+    - ovos_services_manager == 'systemd'
     - (ovos_installer_systemd_scope | default('user')) == 'user'
 
 - name: Restart OVOS services (system)
@@ -24,7 +26,50 @@
   failed_when: false
   when:
     - ovos_installer_method == "virtualenv"
+    - ovos_services_manager == 'systemd'
     - (ovos_installer_systemd_scope | default('user')) == 'system'
+
+- name: Restart OVOS services (launchd user)
+  listen: Restart OVOS services
+  vars:
+    ovos_services_launchd_plist_name: "{{ item.label }}.plist"
+  become: true
+  become_user: "{{ ovos_services_launchd_user_module_become_user }}"
+  community.general.launchd:
+    name: "{{ item.label }}"
+    plist: "{{ ovos_services_launchd_plist_name }}"
+    enabled: true
+    state: restarted
+  environment: "{{ ovos_services_launchd_user_module_environment }}"
+  failed_when: false
+  loop: "{{ ovos_services_launchd_unit_definitions }}"
+  loop_control:
+    label: "{{ item.label }}"
+  when:
+    - ovos_installer_method == "virtualenv"
+    - ovos_services_manager == 'launchd'
+    - item.scope == 'user'
+    - item.state | bool
+
+- name: Restart OVOS services (launchd system)
+  listen: Restart OVOS services
+  vars:
+    ovos_services_launchd_plist_name: "{{ item.label }}.plist"
+  become: true
+  community.general.launchd:
+    name: "{{ item.label }}"
+    plist: "{{ ovos_services_launchd_plist_name }}"
+    enabled: true
+    state: restarted
+  failed_when: false
+  loop: "{{ ovos_services_launchd_unit_definitions }}"
+  loop_control:
+    label: "{{ item.label }}"
+  when:
+    - ovos_installer_method == "virtualenv"
+    - ovos_services_manager == 'launchd'
+    - item.scope == 'system'
+    - item.state | bool
 
 - name: Restart WirePlumber
   listen:
@@ -39,6 +84,7 @@
   failed_when: false
   when:
     - ovos_installer_method == "virtualenv"
+    - ovos_services_manager == 'systemd'
     - ovos_sound_detect_sound_server is defined
     - ovos_sound_detect_sound_server.stdout == "pipewire"
 
@@ -53,6 +99,7 @@
   failed_when: false
   when:
     - ovos_installer_method == "virtualenv"
+    - ovos_services_manager == 'systemd'
     - ovos_sound_detect_sound_server is defined
     - ovos_sound_detect_sound_server.stdout == "pipewire"
 
@@ -62,10 +109,12 @@
   ansible.builtin.systemd_service:
     daemon_reload: true
     scope: user
+  when: ovos_services_manager == 'systemd'
 
 - name: Reload Systemd
   ansible.builtin.systemd_service:
     daemon_reload: true
+  when: ovos_services_manager == 'systemd'
 
 - name: Set Reboot
   ansible.builtin.set_fact:
@@ -75,17 +124,20 @@
   listen: Reload Udev
   ansible.builtin.command: udevadm control --reload-rules
   changed_when: false
+  when: ovos_services_manager == 'systemd'
 
 - name: Trigger Udev
   listen: Reload Udev
   ansible.builtin.command: udevadm trigger
   changed_when: false
+  when: ovos_services_manager == 'systemd'
 
 - name: Restart NetworkManager
   ansible.builtin.systemd_service:
     name: NetworkManager
     state: restarted
   when:
+    - ovos_services_manager == 'systemd'
     - ovos_installer_networkmanager_dir is defined
     - ovos_installer_networkmanager_dir.stat is defined
     - ovos_installer_networkmanager_dir.stat.exists | default(false) | bool

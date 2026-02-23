@@ -9,15 +9,89 @@ ovos_virtualenv_requirements_files: >-
   {{ ovos_installer_requirements_files | default(_ovos_virtualenv_requirements_files) }}
 
 ovos_virtualenv_venv_python: "{{ ovos_installer_venv_python | default('3.11') }}"
+ovos_virtualenv_venv_python_parts: "{{ ovos_virtualenv_venv_python | string | regex_findall('[0-9]+') }}"
+ovos_virtualenv_venv_python_major: "{{ (ovos_virtualenv_venv_python_parts | first | default('0')) | int }}"
+ovos_virtualenv_venv_python_minor: "{{ (ovos_virtualenv_venv_python_parts[1:] | first | default('0')) | int }}"
 ovos_virtualenv_uv_allow_prerelease: >-
-  {{ ovos_installer_uv_allow_prerelease
-     | default(ansible_facts.python.version.major == 3
-     and (ansible_facts.python.version.minor | int) >= 13) }}
+  {{
+    ovos_installer_uv_allow_prerelease
+    | default(
+        ((ovos_virtualenv_venv_python_major | int) == 3)
+        and ((ovos_virtualenv_venv_python_minor | int) >= 13)
+      )
+  }}
 ovos_virtualenv_uv_version: "{{ ovos_installer_uv_version | default('') }}"
+ovos_virtualenv_installer_venv_path: "{{ ovos_installer_venv | default(ovos_installer_user_home + '/.venvs/ovos-installer', true) }}"
+ovos_virtualenv_uv_cache_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-cache"
+ovos_virtualenv_uv_exec_path: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_virtualenv_installer_venv_path }}/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+ovos_virtualenv_uv_environment:
+  HOME: "{{ ovos_installer_user_home }}"
+  PATH: "{{ ovos_virtualenv_uv_exec_path }}"
+  UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
+ovos_virtualenv_shell_init_file: "{{ ovos_installer_user_home }}/{{ '.zshrc' if (ansible_facts.system | default('')) == 'Darwin' else '.bashrc' }}"
 ovos_virtualenv_run_ovos_config: "{{ ovos_installer_run_ovos_config | default(false) }}"
 ovos_virtualenv_numpy_package: "{{ ovos_installer_numpy_package | default('numpy==1.26.4') }}"
 ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | default('setuptools<82') }}"
 ovos_virtualenv_messagebus_path: "{{ ovos_installer_user_home }}/.local/bin/ovos-messagebus"
+ovos_virtualenv_rust_messagebus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
+ovos_virtualenv_rust_messagebus_version: v1.1.2
+ovos_virtualenv_rust_messagebus_target_arch: >-
+  {{ 'aarch64' if (ansible_facts.architecture | default('')) in ['aarch64', 'arm64']
+     else 'x86_64' if (ansible_facts.architecture | default('')) in ['x86_64', 'amd64']
+     else 'armv7' if (ansible_facts.architecture | default('')) in ['armv7', 'armv7l']
+     else 'arm' if (ansible_facts.architecture | default('')) in ['arm', 'armv6', 'armv6l']
+     else (ansible_facts.architecture | default('')) }}
+ovos_virtualenv_rust_messagebus_target_platform: >-
+  {{ 'apple-darwin' if (ansible_facts.system | default('')) == 'Darwin'
+     else 'unknown-linux-gnueabihf' if ovos_virtualenv_rust_messagebus_target_arch in ['arm', 'armv7']
+     else 'unknown-linux-gnu' }}
+ovos_virtualenv_rust_messagebus_binary_name: >-
+  ovos_messagebus-{{ ovos_virtualenv_rust_messagebus_target_arch }}-{{ ovos_virtualenv_rust_messagebus_target_platform }}
+ovos_virtualenv_rust_messagebus_archive_name: "{{ ovos_virtualenv_rust_messagebus_binary_name }}.tar.gz"
+ovos_virtualenv_rust_messagebus_archive_url: >-
+  {{ ovos_virtualenv_rust_messagebus_repo }}/releases/download/{{ ovos_virtualenv_rust_messagebus_version }}/{{ ovos_virtualenv_rust_messagebus_archive_name }}
+ovos_virtualenv_rust_messagebus_archive_checksums:
+  ovos_messagebus-aarch64-apple-darwin.tar.gz: 405d4328ade33fb88fcde009edadfd28dc7af583ba16dc77673c70a58990c7c2
+  ovos_messagebus-aarch64-unknown-linux-gnu.tar.gz: 2468ef6c1fdb27566dc92ebb0e9d92a9b804b808c590cc863e128fab70790a47
+  ovos_messagebus-arm-unknown-linux-gnueabihf.tar.gz: ed72b4ef9cea3bb23d8b73178c35a0f2c6df335c3af533d77a76c3650ecfefc3
+  ovos_messagebus-armv7-unknown-linux-gnueabihf.tar.gz: 6a9000ffebce7419bac606f7391ce15dce4d77af50800530d4eb96174e310d68
+  ovos_messagebus-x86_64-apple-darwin.tar.gz: c44d311fd62d5172001513050e3f1797625ada1d6c2fad0e6758c28644b1b5d3
+  ovos_messagebus-x86_64-unknown-linux-gnu.tar.gz: b1e668eba19be0b8c01ae1b8f6116b2a56cc823f441f6fdba1121b5b6374191d
+ovos_virtualenv_rust_messagebus_archive_checksum_value: >-
+  {{ ovos_virtualenv_rust_messagebus_archive_checksums[ovos_virtualenv_rust_messagebus_archive_name] | default('') }}
+ovos_virtualenv_rust_messagebus_archive_checksum: >-
+  {{ ('sha256:' ~ ovos_virtualenv_rust_messagebus_archive_checksum_value)
+     if (ovos_virtualenv_rust_messagebus_archive_checksum_value | length > 0)
+     else '' }}
+ovos_virtualenv_rust_messagebus_archive_path: "{{ ovos_virtualenv_tmp_dir }}/{{ ovos_virtualenv_rust_messagebus_archive_name }}"
+ovos_virtualenv_rust_messagebus_binary_path: >-
+  {{ ovos_installer_user_home }}/.local/bin/{{ ovos_virtualenv_rust_messagebus_binary_name }}
+ovos_virtualenv_homebrew_path: "/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin"
+ovos_virtualenv_macos_fann_source_lib_dir: >-
+  {{ '/opt/homebrew/lib'
+     if (ansible_facts.architecture | default('')) in ['aarch64', 'arm64']
+     else '/usr/local/lib' }}
+ovos_virtualenv_macos_fann_target_lib_dir: /usr/local/lib
+ovos_virtualenv_macos_fann_linker_flags: >-
+  -L{{ ovos_virtualenv_macos_fann_source_lib_dir }}{{ ' -L' ~ ovos_virtualenv_macos_fann_target_lib_dir if ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir else '' }}
+ovos_virtualenv_macos_fann_library_path: >-
+  {{ ovos_virtualenv_macos_fann_source_lib_dir }}{{ ':' ~ ovos_virtualenv_macos_fann_target_lib_dir if ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir else '' }}
+ovos_virtualenv_macos_fann_pkg_config_path: >-
+  {{ ovos_virtualenv_macos_fann_source_lib_dir }}/pkgconfig{{ ':' ~ ovos_virtualenv_macos_fann_target_lib_dir ~ '/pkgconfig' if ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir else '' }}
+ovos_virtualenv_macos_packages:
+  - fann
+  - swig
+  - pkg-config
+  - portaudio
+  - mpg123
+  - sox
+  - flac
+  - mpv
+  - libxslt
+  - openblas
+  - icu4c
+  - jpeg-turbo
+  - espeak-ng
 ovos_virtualenv_uninstall_extra_paths:
   - "{{ ovos_hardware_mark1_working_directory | default('/opt/mark1') }}"
   - "{{ ovos_hardware_mark2_working_dir | default('/opt/sj201') }}"

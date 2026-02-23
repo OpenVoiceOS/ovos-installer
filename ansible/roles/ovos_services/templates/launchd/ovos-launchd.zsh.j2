@@ -1,0 +1,210 @@
+# OVOS launchd helper for interactive zsh sessions on macOS.
+# Managed by ovos-installer. Local edits may be overwritten.
+
+typeset -a _OVOS_LAUNCHD_USER_SERVICES=(
+{% for svc in ovos_services_launchd_unit_definitions if svc.scope == 'user' %}
+  "{{ svc.name }}"
+{% endfor %}
+)
+
+typeset -A _OVOS_LAUNCHD_LABEL_BY_SERVICE=(
+{% for svc in ovos_services_launchd_unit_definitions if svc.scope == 'user' %}
+  "{{ svc.name }}" "{{ svc.label }}"
+{% endfor %}
+)
+
+typeset -A _OVOS_LAUNCHD_PLIST_BY_SERVICE=(
+{% for svc in ovos_services_launchd_unit_definitions if svc.scope == 'user' %}
+  "{{ svc.name }}" "{{ ovos_services_launchd_agents_path }}/{{ svc.label }}.plist"
+{% endfor %}
+)
+
+_ovos_launchd_usage() {
+  printf '%s\n' "Usage: ovos <start|stop|restart|status> <service|ovos>"
+  printf '%s\n' "       ovos list"
+  printf '%s\n' "       ovos help"
+  printf '%s\n' ""
+  printf '%s\n' "Services:"
+  local service
+  for service in "${_OVOS_LAUNCHD_USER_SERVICES[@]}"; do
+    printf '  - %s\n' "$service"
+  done
+  printf '%s\n' "  - ovos (all installed user services)"
+}
+
+_ovos_launchd_check_domain() {
+  local uid="$1"
+  if ! launchctl print "gui/${uid}" >/dev/null 2>&1; then
+    printf 'ovos: launchd GUI domain gui/%s is not available.\n' "$uid" >&2
+    printf '%s\n' "ovos: log in to the macOS desktop session and retry." >&2
+    return 1
+  fi
+}
+
+_ovos_launchd_service_status() {
+  local uid="$1"
+  local service="$2"
+  local label="${_OVOS_LAUNCHD_LABEL_BY_SERVICE[$service]}"
+  local plist="${_OVOS_LAUNCHD_PLIST_BY_SERVICE[$service]}"
+  local status_output
+  local state
+
+  if [[ ! -f "$plist" ]]; then
+    printf '%-22s %s\n' "$service" "not-installed"
+    return 4
+  fi
+
+  if status_output="$(launchctl print "gui/${uid}/${label}" 2>/dev/null)"; then
+    state="$(printf '%s\n' "$status_output" | awk -F' = ' '/state = / {print $2; exit}')"
+    if [[ -z "$state" ]]; then
+      state="loaded"
+    fi
+    printf '%-22s %s\n' "$service" "$state"
+    return 0
+  fi
+
+  printf '%-22s %s\n' "$service" "unloaded"
+  return 3
+}
+
+_ovos_launchd_service_start() {
+  local uid="$1"
+  local service="$2"
+  local label="${_OVOS_LAUNCHD_LABEL_BY_SERVICE[$service]}"
+  local plist="${_OVOS_LAUNCHD_PLIST_BY_SERVICE[$service]}"
+
+  if [[ ! -f "$plist" ]]; then
+    printf 'ovos: service "%s" is not installed (missing %s).\n' "$service" "$plist" >&2
+    return 3
+  fi
+
+  launchctl enable "gui/${uid}/${label}" >/dev/null 2>&1 || true
+
+  if ! launchctl bootstrap "gui/${uid}" "$plist" >/dev/null 2>&1; then
+    if ! launchctl print "gui/${uid}/${label}" >/dev/null 2>&1; then
+      printf 'ovos: failed to load service "%s".\n' "$service" >&2
+      return 1
+    fi
+  fi
+
+  if ! launchctl kickstart -k "gui/${uid}/${label}" >/dev/null 2>&1; then
+    printf 'ovos: failed to start service "%s".\n' "$service" >&2
+    return 1
+  fi
+
+  printf 'started %s\n' "$service"
+}
+
+_ovos_launchd_service_stop() {
+  local uid="$1"
+  local service="$2"
+  local label="${_OVOS_LAUNCHD_LABEL_BY_SERVICE[$service]}"
+  local plist="${_OVOS_LAUNCHD_PLIST_BY_SERVICE[$service]}"
+
+  if [[ ! -f "$plist" ]]; then
+    printf 'ovos: service "%s" is not installed (missing %s).\n' "$service" "$plist" >&2
+    return 3
+  fi
+
+  launchctl disable "gui/${uid}/${label}" >/dev/null 2>&1 || true
+
+  if ! launchctl bootout "gui/${uid}/${label}" >/dev/null 2>&1; then
+    if launchctl print "gui/${uid}/${label}" >/dev/null 2>&1; then
+      printf 'ovos: failed to stop service "%s".\n' "$service" >&2
+      return 1
+    fi
+  fi
+
+  printf 'stopped %s\n' "$service"
+}
+
+ovos() {
+  local action="${1:-help}"
+  local target="${2:-ovos}"
+  local uid
+  local service
+  local rc=0
+  local result
+  local -a targets
+  local allow_missing=0
+  local ovos_binary=""
+
+  case "$action" in
+    start|stop|restart|status)
+      ;;
+    list)
+      uid="$(id -u)"
+      if ! _ovos_launchd_check_domain "$uid"; then
+        return 1
+      fi
+      for service in "${_OVOS_LAUNCHD_USER_SERVICES[@]}"; do
+        _ovos_launchd_service_status "$uid" "$service" || true
+      done
+      return 0
+      ;;
+    help|-h|--help)
+      _ovos_launchd_usage
+      return 0
+      ;;
+    *)
+      ovos_binary="$(whence -p ovos 2>/dev/null || true)"
+      if [[ -n "$ovos_binary" ]]; then
+        "$ovos_binary" "$@"
+        return $?
+      fi
+      _ovos_launchd_usage
+      return 2
+      ;;
+  esac
+
+  uid="$(id -u)"
+  if ! _ovos_launchd_check_domain "$uid"; then
+    return 1
+  fi
+
+  if [[ "$target" == "ovos" ]]; then
+    targets=("${_OVOS_LAUNCHD_USER_SERVICES[@]}")
+    allow_missing=1
+  elif [[ -n "${_OVOS_LAUNCHD_LABEL_BY_SERVICE[$target]:-}" ]]; then
+    targets=("$target")
+  else
+    printf 'ovos: unknown service "%s".\n' "$target" >&2
+    _ovos_launchd_usage
+    return 2
+  fi
+
+  for service in "${targets[@]}"; do
+    if [[ "$allow_missing" -eq 1 && ! -f "${_OVOS_LAUNCHD_PLIST_BY_SERVICE[$service]}" ]]; then
+      if [[ "$action" == "status" ]]; then
+        printf '%-22s %s\n' "$service" "not-installed"
+      fi
+      continue
+    fi
+
+    case "$action" in
+      start)
+        _ovos_launchd_service_start "$uid" "$service"
+        ;;
+      stop)
+        _ovos_launchd_service_stop "$uid" "$service"
+        ;;
+      restart)
+        _ovos_launchd_service_stop "$uid" "$service" &&
+          _ovos_launchd_service_start "$uid" "$service"
+        ;;
+      status)
+        _ovos_launchd_service_status "$uid" "$service"
+        ;;
+    esac
+
+    result=$?
+    if [[ "$result" -ne 0 ]]; then
+      rc="$result"
+      if [[ "$allow_missing" -eq 0 ]]; then
+        return "$result"
+      fi
+    fi
+  done
+
+  return "$rc"
+}
