@@ -42,7 +42,10 @@ sudo env HTTPS_PROXY=http://proxy.example:3128 HTTP_PROXY=http://proxy.example:3
 
 ## 🍎 macOS support (Intel + Apple Silicon)
 
-macOS installs use `launchd` service management and the `virtualenv` method.
+macOS installs use `launchd` service management and are currently supported with this matrix only:
+
+- `method: virtualenv`
+- `channel: alpha`
 
 Prerequisites:
 
@@ -50,12 +53,7 @@ Prerequisites:
 - Xcode Command Line Tools installed (`xcode-select --install`).
 - Microphone permission granted to your terminal app (System Settings > Privacy & Security > Microphone).
 
-Useful launchd checks:
-
-```shell
-launchctl print gui/$(id -u)/com.ovos.service
-launchctl print gui/$(id -u)/com.openvoiceos.ovos-messagebus
-```
+The installer also deploys a zsh wrapper (`~/.config/ovos-installer/ovos-launchd.zsh`) and sources it from `~/.zshrc` so you can manage launchd services with `ovos ...` commands.
 
 ## 🐧 Supported Linux distributions
 
@@ -90,7 +88,30 @@ Note: 'rolling' indicates a rolling release distribution with no fixed version n
 
 To update, optionally back up your configuration (`~/.config/mycroft/mycroft.conf` or `~/ovos/config/mycroft.conf`) and re-run the installer. When prompted, answer **"No"** to _"Do you want to uninstall Open Voice OS?"_.
 
-## ⚙️ Start and stop services
+## ⚙️ Service management
+
+### 🍎 macOS (launchd wrapper)
+
+Use the `ovos` wrapper command:
+
+```shell
+ovos restart ovos-listener
+ovos stop ovos
+ovos start ovos-audio
+ovos restart ovos-core
+```
+
+Additional commands:
+
+```shell
+ovos status ovos-core
+ovos status ovos
+ovos list
+```
+
+`ovos` is a meta target for all installed OVOS user services on macOS.
+
+### 🐧 Linux (systemd)
 
 When the `virtualenv` method is chosen (default), systemd unit files are created to manage OVOS services. Some installs run services in system scope for performance/realtime tuning; use the matching commands below.
 
@@ -183,8 +204,8 @@ EOF
 
 ### Configuration options explained:
 - `uninstall`: Set to `true` to uninstall instead of install.
-- `method`: Installation method (`containers` for Docker, `virtualenv` for Python virtual environment).
-- `channel`: Release channel (`stable`, `testing`, `development`).
+- `method`: Installation method (`containers` for Docker, `virtualenv` for Python virtual environment). On macOS, use `virtualenv` only.
+- `channel`: Release channel (`stable`, `testing`, `development`, `alpha`). On macOS, use `alpha` only.
 - `profile`: Installation profile (`ovos` for standard setup).
 - `features.skills`: Install default voice skills.
 - `features.extra_skills`: Install additional community skills.
