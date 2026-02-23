@@ -5,7 +5,7 @@ collections:
   - name: community.docker
     version: 4.8.7
   - name: community.general
-    version: 12.3.0
+    version: 12.4.0
   - name: kewlfft.aur
     version: 0.13.0
   - name: moreati.uv
