@@ -808,6 +808,9 @@ function setup() {
     run grep -q "ovos_services_launchd_log_dir" ansible/roles/ovos_services/defaults/main.yml
     assert_success
 
+    run grep -q "/.cache/huggingface" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
     run grep -q "Ensure OVOS runtime user directories exist" ansible/roles/ovos_services/tasks/main.yml
     assert_success
 
