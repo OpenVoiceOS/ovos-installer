@@ -40,6 +40,7 @@
 {% endif %}
     }{% if _ovos_is_macos or _ovos_listener_has_wake_word %},{{ '\n' }}{% endif %}
 {% if _ovos_is_macos %}
+    "fake_barge_in": false,
     "microphone": {
       "module": "ovos-microphone-plugin-sounddevice"
     }{% if _ovos_listener_has_wake_word %},{{ '\n' }}{% endif %}
