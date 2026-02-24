@@ -198,6 +198,9 @@ function setup() {
     run grep -q "_ovos_listener_has_wake_word" ansible/roles/ovos_config/templates/mycroft.conf.j2
     assert_success
 
+    run grep -q "\"fake_barge_in\": false" ansible/roles/ovos_config/templates/mycroft.conf.j2
+    assert_success
+
     run grep -q "\"module\": \"ovos-microphone-plugin-sounddevice\"" ansible/roles/ovos_config/templates/mycroft.conf.j2
     assert_success
 
