@@ -118,6 +118,19 @@ function spy_value() {
     assert_equal "$(spy_value list_height)" "4"
 }
 
+@test "channels: hides non-alpha channels on Mark 2 hardware" {
+    EXISTING_INSTANCE="false"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION="alpha"
+
+    # shellcheck source=tui/channels.sh
+    source tui/channels.sh
+
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value list_height)" "4"
+    assert_equal "$(spy_value tags)" "alpha"
+}
+
 @test "profiles: shows all options when navigating back in a new install" {
     printf '%s\n' '{"profile":"ovos"}' >"$INSTALLER_STATE_FILE"
     EXISTING_INSTANCE="false"
