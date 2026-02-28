@@ -55,7 +55,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install ansible ansible-lint
-          ansible-galaxy collection install -r ansible/requirements.yml
+          for attempt in 1 2 3; do
+            if ansible-galaxy collection install -r ansible/requirements.yml --server https://galaxy.ansible.com/api/v2/; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "ansible-galaxy collection install failed after ${attempt} attempts"
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done
 
       - name: Run ansible-lint (production profile)
         run: ansible-lint --profile production

@@ -22,7 +22,16 @@ jobs:
           rm -rf ~/.ansible
           pip install ansible-playbook-grapher ansible ansible-lint
           sudo apt-get --no-install-recommends -y install graphviz
-          ansible-galaxy collection install -r ansible/requirements.yml --force
+          for attempt in 1 2 3; do
+            if ansible-galaxy collection install -r ansible/requirements.yml --force --server https://galaxy.ansible.com/api/v2/; then
+              break
+            fi
+            if [ "$attempt" -eq 3 ]; then
+              echo "ansible-galaxy collection install failed after ${attempt} attempts"
+              exit 1
+            fi
+            sleep $((attempt * 5))
+          done
 
       - name: Run ansible-lint
         working-directory: ./ansible
