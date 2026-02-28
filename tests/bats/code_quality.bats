@@ -514,6 +514,30 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_gui_uninstall_removes_debian_mark2_packages" {
+    local file="ansible/roles/ovos_virtualenv/tasks/uninstall.yml"
+
+    run grep -q "Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)" "$file"
+    assert_success
+
+    run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"state: absent\""
+    assert_success
+
+    run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"purge: true\""
+    assert_success
+
+    run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A50 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
+    assert_success
+}
+
+@test "uninstall_enables_package_removal_by_default" {
+    run grep -q 'ovos_installer_uninstall_remove_packages: "{{ ovos_installer_cleaning | default(false) | bool }}"' ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+}
+
 @test "telemetry_uses_installer_detected_sound_fallback" {
     run grep -q "ovos_installer_sound_server" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success
@@ -684,6 +708,14 @@ function setup() {
 
     run grep -q "else 'unknown-linux-gnueabihf' if ovos_services_messagebus_target_arch in \\['arm', 'armv7'\\]" ansible/roles/ovos_services/defaults/main.yml
     assert_success
+}
+
+@test "gui_systemd_units_have_ordering_and_no_venv_workdir" {
+    run grep -q "^After=ovos.service ovos-messagebus.service$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui-websocket.service.j2
+    assert_success
+
+    run grep -q "^WorkingDirectory=.*\\.venvs/ovos$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_failure
 }
 
 @test "setup_exports_collection_paths_for_launchd_module_resolution" {

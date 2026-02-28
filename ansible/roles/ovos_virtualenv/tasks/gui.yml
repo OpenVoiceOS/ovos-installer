@@ -147,17 +147,3 @@
   loop:
     - video
     - render
-
-- name: Configure EGLFS for Raspberry Pi 5 headless GUI
-  ansible.builtin.copy:
-    content: |
-      {
-        "device": "/dev/dri/card1"
-      }
-    dest: "{{ ovos_installer_user_home }}/.config/ovos-eglfs.json"
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    mode: "0600"
-  when:
-    - "'Raspberry Pi 5' in (ovos_installer_raspberrypi | default(''))"
-    - (ovos_installer_display_server | default('N/A')) == "N/A"

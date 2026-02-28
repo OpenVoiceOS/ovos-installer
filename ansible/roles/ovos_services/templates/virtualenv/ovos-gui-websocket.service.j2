@@ -3,6 +3,7 @@ Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/component
 Description=Open Voice OS - GUI websocket
 PartOf=ovos.service
 Requires=ovos.service ovos-messagebus.service
+After=ovos.service ovos-messagebus.service
 
 [Service]
 {% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
