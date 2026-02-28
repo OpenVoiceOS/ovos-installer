@@ -1105,7 +1105,34 @@ function i2c_scan() {
         echo -e "[$done_format]"
     fi
 
+    enforce_mark2_alpha_channel
     enforce_mark2_devkit_trixie_requirement
+}
+
+# Enforce alpha channel when Mark II hardware is detected.
+# Mark II detection requires tas5806 present and attiny1614 absent.
+function enforce_mark2_alpha_channel() {
+    local device
+    local mark2_detected="false"
+    local devkit_detected="false"
+
+    for device in "${DETECTED_DEVICES[@]}"; do
+        case "$device" in
+        tas5806)
+            mark2_detected="true"
+            ;;
+        attiny1614)
+            devkit_detected="true"
+            ;;
+        esac
+    done
+
+    if [[ "$mark2_detected" == "true" && "$devkit_detected" != "true" ]]; then
+        if [ "${CHANNEL:-}" != "alpha" ]; then
+            export CHANNEL="alpha"
+            echo "Mark II requires alpha channel. Forcing CHANNEL=alpha." | tee -a "$LOG_FILE"
+        fi
+    fi
 }
 
 # Enforce Debian Trixie (13) when Mark II/DevKit hardware is detected.

@@ -25,9 +25,27 @@ if [[ "${DISTRO_NAME:-}" == "macos" ]]; then
   available_channels=(alpha)
 fi
 
+# Mark 2 devices support only the alpha stream.
+mark2_detected="false"
+devkit_detected="false"
+for device in "${DETECTED_DEVICES[@]}"; do
+  case "$device" in
+    tas5806)
+      mark2_detected="true"
+      ;;
+    attiny1614)
+      devkit_detected="true"
+      ;;
+  esac
+done
+if [[ "$mark2_detected" == "true" && "$devkit_detected" != "true" ]]; then
+  active_channel="alpha"
+  available_channels=(alpha)
+fi
+
 list_height="${#available_channels[@]}"
 if [ "$list_height" -lt 1 ]; then
-  if [[ "${DISTRO_NAME:-}" == "macos" ]]; then
+  if [[ "${DISTRO_NAME:-}" == "macos" ]] || [[ "$mark2_detected" == "true" && "$devkit_detected" != "true" ]]; then
     available_channels=(alpha)
   else
     available_channels=(stable testing alpha)

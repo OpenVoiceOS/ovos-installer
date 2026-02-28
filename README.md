@@ -84,8 +84,6 @@ The installer has been tested on the following Linux distributions and versions:
 
 Note: 'rolling' indicates a rolling release distribution with no fixed version number. Role metadata in `ansible/roles/*/meta/main.yml` lists the base OS families/versions (e.g., Debian/Ubuntu/EL/Fedora/Arch/Suse) that cover these distributions.
 
-Hardware requirement note: Mark II and DevKit installations require Debian Trixie (13). The installer exits if this requirement is not met when that hardware is detected.
-
 ## 🔄 Update
 
 To update, optionally back up your configuration (`~/.config/mycroft/mycroft.conf` or `~/ovos/config/mycroft.conf`) and re-run the installer. When prompted, answer **"No"** to _"Do you want to uninstall Open Voice OS?"_.

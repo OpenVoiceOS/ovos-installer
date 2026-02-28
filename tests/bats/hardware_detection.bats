@@ -102,6 +102,22 @@ function setup() {
     assert_success
 }
 
+@test "function_enforce_mark2_alpha_channel_forces_alpha" {
+    DETECTED_DEVICES=("tas5806")
+    CHANNEL="stable"
+
+    enforce_mark2_alpha_channel
+    assert_equal "$CHANNEL" "alpha"
+}
+
+@test "function_enforce_mark2_alpha_channel_does_not_force_devkit" {
+    DETECTED_DEVICES=("attiny1614" "tas5806")
+    CHANNEL="stable"
+
+    enforce_mark2_alpha_channel
+    assert_equal "$CHANNEL" "stable"
+}
+
 @test "function_enforce_mark2_devkit_trixie_requirement_rejects_non_trixie" {
     DETECTED_DEVICES=("tas5806")
     DISTRO_NAME="debian"
