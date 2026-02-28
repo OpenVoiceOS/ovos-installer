@@ -1105,8 +1105,9 @@ function i2c_scan() {
         echo -e "[$done_format]"
     fi
 
-    enforce_mark2_alpha_channel
     enforce_mark2_devkit_trixie_requirement
+    enforce_mark2_alpha_channel
+    enforce_mark2_devkit_gui_support
 }
 
 # Enforce alpha channel when Mark II hardware is detected.
@@ -1131,6 +1132,45 @@ function enforce_mark2_alpha_channel() {
         if [ "${CHANNEL:-}" != "alpha" ]; then
             export CHANNEL="alpha"
             echo "Mark II requires alpha channel. Forcing CHANNEL=alpha." | tee -a "$LOG_FILE"
+        fi
+    fi
+}
+
+# Enforce GUI support when Mark II/DevKit hardware is detected on Debian Trixie.
+function enforce_mark2_devkit_gui_support() {
+    local device
+    local mark2_or_devkit_detected="false"
+    local version_is_trixie="false"
+
+    for device in "${DETECTED_DEVICES[@]}"; do
+        if [ "$device" == "tas5806" ]; then
+            mark2_or_devkit_detected="true"
+            break
+        fi
+    done
+
+    if [ "$mark2_or_devkit_detected" != "true" ]; then
+        return 0
+    fi
+
+    if [[ "${DISTRO_VERSION_ID:-}" == 13* ]]; then
+        version_is_trixie="true"
+    fi
+    if [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]; then
+        version_is_trixie="true"
+    fi
+
+    if [ "${DISTRO_NAME:-unknown}" == "debian" ] && [ "$version_is_trixie" == "true" ]; then
+        if [ "${PROFILE:-ovos}" == "server" ] || [ "${PROFILE:-ovos}" == "satellite" ]; then
+            if [ "${FEATURE_GUI:-false}" == "true" ]; then
+                export FEATURE_GUI="false"
+                echo "Mark II/DevKit GUI is disabled for ${PROFILE} profile. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
+            fi
+            return 0
+        fi
+        if [ "${FEATURE_GUI:-false}" != "true" ]; then
+            export FEATURE_GUI="true"
+            echo "Mark II/DevKit on Debian Trixie requires GUI support. Forcing FEATURE_GUI=true." | tee -a "$LOG_FILE"
         fi
     fi
 }

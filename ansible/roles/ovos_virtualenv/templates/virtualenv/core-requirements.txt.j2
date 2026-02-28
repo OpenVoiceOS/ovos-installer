@@ -8,6 +8,9 @@ ovos-ww-plugin-precise-onnx
 {% endif %}
 {% endif %}
 ovos-docs-viewer
+{% if ovos_installer_feature_gui | bool %}
+ovos-gui-service
+{% endif %}
 ovos-PHAL[{{ 'mac' if ansible_facts.system == 'Darwin' else 'linux' }}]
 ovos-phal-plugin-ipgeo
 {% if (ovos_installer_locale != "ca-es") and (ovos_installer_locale != "eu-es") and (ovos_installer_locale != "gl-es") %}

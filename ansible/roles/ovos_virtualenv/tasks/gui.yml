@@ -1,0 +1,163 @@
+---
+- name: Assert GUI build constraints
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.system == "Linux"
+      - ansible_facts.distribution == "Debian"
+      - ansible_facts.distribution_major_version == "13"
+      - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
+    fail_msg: "GUI build is only supported on Debian Trixie Mark II/DevKit."
+
+- name: Install package requirements for ovos-gui (Debian Trixie)
+  ansible.builtin.apt:
+    name:
+      - cmake
+      - gettext
+      - pkg-kde-tools
+      - qtbase5-dev
+      - qtdeclarative5-dev
+      - libkf5kio-dev
+      - libqt5websockets5-dev
+      - libkf5i18n-dev
+      - libkf5notifications-dev
+      - libkf5plasma-dev
+      - libqt5webview5-dev
+      - qtmultimedia5-dev
+      - kdeconnect
+      - kirigami2-dev
+      - libkf5dbusaddons-dev
+      - libqt5webview5
+      - libkf5configcore5
+      - qml-module-qtwebengine
+      - qml-module-qtmultimedia
+      - qml-module-qtquick-shapes
+      - qtvirtualkeyboard-plugin
+      - libqt5multimedia5
+      - libqt5virtualkeyboard5
+      - breeze-icon-theme
+    install_recommends: false
+    state: present
+
+- name: Define GUI build components
+  ansible.builtin.set_fact:
+    ovos_virtualenv_gui_components:
+      - name: mycroft-gui
+        url: https://github.com/OpenVoiceOS/mycroft-gui-qt5.git
+        dest: /opt/mycroft-gui
+        branch: dev
+        build_dir: /opt/mycroft-gui/build-testing
+        marker: "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-mycroft-gui.built"
+      - name: ovos-shell
+        url: https://github.com/OpenVoiceOS/ovos-shell.git
+        dest: /opt/ovos-shell
+        branch: master
+        build_dir: /opt/ovos-shell/build-testing
+        marker: "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-ovos-shell.built"
+      - name: lottie
+        url: https://github.com/kbroulik/lottie-qml.git
+        dest: /opt/lottie
+        branch: master
+        build_dir: /opt/lottie/build-testing
+        marker: "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-lottie.built"
+
+- name: Clone GUI repositories
+  ansible.builtin.git:
+    repo: "{{ item.url }}"
+    dest: "{{ item.dest }}"
+    version: "{{ item.branch }}"
+  loop: "{{ ovos_virtualenv_gui_components }}"
+  register: ovos_virtualenv_gui_checkout
+
+- name: Ignore GUI build directories in git status
+  ansible.builtin.lineinfile:
+    path: "{{ item.dest }}/.git/info/exclude"
+    line: "build-testing/"
+    create: true
+    mode: "0644"
+    state: present
+  loop: "{{ ovos_virtualenv_gui_components }}"
+
+- name: Ensure GUI build marker directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.cache/ovos-installer"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+
+- name: Reset GUI build markers when sources change
+  ansible.builtin.file:
+    path: "{{ item.item.marker }}"
+    state: absent
+  loop: "{{ ovos_virtualenv_gui_checkout.results | default([]) | selectattr('changed', 'equalto', true) | list }}"
+
+- name: Create GUI build directories
+  ansible.builtin.file:
+    path: "{{ item.build_dir }}"
+    owner: root
+    group: root
+    mode: "0755"
+    state: directory
+  loop: "{{ ovos_virtualenv_gui_components }}"
+
+- name: Configure GUI components
+  ansible.builtin.command:
+    cmd: cmake .. -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DKDE_INSTALL_LIBDIR=lib -DKDE_INSTALL_USE_QT_SYS_PATHS=ON
+  args:
+    chdir: "{{ item.build_dir }}"
+    creates: "{{ item.marker }}"
+  loop: "{{ ovos_virtualenv_gui_components }}"
+
+- name: Define GUI build parallelism
+  vars:
+    _vcpus: "{{ ansible_processor_vcpus | default(ansible_facts.processor_vcpus | default(1)) | int }}"
+  ansible.builtin.set_fact:
+    ovos_virtualenv_gui_make_jobs: "{{ [((_vcpus | int) - 1), 1] | max }}"
+
+- name: Build GUI components
+  ansible.builtin.command:
+    cmd: "make -j {{ ovos_virtualenv_gui_make_jobs }}"
+  args:
+    chdir: "{{ item.build_dir }}"
+    creates: "{{ item.marker }}"
+  loop: "{{ ovos_virtualenv_gui_components }}"
+
+- name: Install GUI components
+  ansible.builtin.command:
+    cmd: make install
+  args:
+    chdir: "{{ item.build_dir }}"
+    creates: "{{ item.marker }}"
+  loop: "{{ ovos_virtualenv_gui_components }}"
+
+- name: Mark GUI components installed
+  ansible.builtin.file:
+    path: "{{ item.marker }}"
+    state: touch
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+  loop: "{{ ovos_virtualenv_gui_components }}"
+
+- name: Add {{ ovos_installer_user }} to video and render groups
+  ansible.builtin.user:
+    name: "{{ ovos_installer_user }}"
+    groups: "{{ item }}"
+    append: true
+  loop:
+    - video
+    - render
+
+- name: Configure EGLFS for Raspberry Pi 5 headless GUI
+  ansible.builtin.copy:
+    content: |
+      {
+        "device": "/dev/dri/card1"
+      }
+    dest: "{{ ovos_installer_user_home }}/.config/ovos-eglfs.json"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0600"
+  when:
+    - "'Raspberry Pi 5' in (ovos_installer_raspberrypi | default(''))"
+    - (ovos_installer_display_server | default('N/A')) == "N/A"

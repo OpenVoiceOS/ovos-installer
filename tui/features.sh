@@ -8,6 +8,21 @@ export FEATURE_GUI="false"
 export FEATURE_HOMEASSISTANT="false"
 export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
 
+_mark2_or_devkit_detected="false"
+for _device in "${DETECTED_DEVICES[@]}"; do
+  if [ "$_device" == "tas5806" ]; then
+    _mark2_or_devkit_detected="true"
+    break
+  fi
+done
+if [[ "$_mark2_or_devkit_detected" == "true" ]] && \
+  [[ "${PROFILE:-}" != "server" ]] && \
+  [[ "${PROFILE:-}" != "satellite" ]] && \
+  [[ "${DISTRO_NAME:-}" == "debian" ]] && \
+  { [[ "${DISTRO_VERSION_ID:-}" == 13* ]] || [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]; }; then
+  export FEATURE_GUI="true"
+fi
+
 _ha_supported="false"
 if [[ "${METHOD:-virtualenv}" == "virtualenv" || "${METHOD:-virtualenv}" == "containers" ]] && \
   [[ "${PROFILE:-}" != "server" ]] && \

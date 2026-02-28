@@ -118,6 +118,40 @@ function setup() {
     assert_equal "$CHANNEL" "stable"
 }
 
+@test "function_enforce_mark2_devkit_gui_support_forces_feature_gui_on_trixie" {
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    FEATURE_GUI="false"
+
+    enforce_mark2_devkit_gui_support
+    assert_equal "$FEATURE_GUI" "true"
+}
+
+@test "function_enforce_mark2_devkit_gui_support_does_not_force_on_non_trixie" {
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="12"
+    DISTRO_VERSION="Debian GNU/Linux 12 (bookworm)"
+    FEATURE_GUI="false"
+
+    enforce_mark2_devkit_gui_support
+    assert_equal "$FEATURE_GUI" "false"
+}
+
+@test "function_enforce_mark2_devkit_gui_support_disables_server_profile" {
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    PROFILE="server"
+    FEATURE_GUI="true"
+
+    enforce_mark2_devkit_gui_support
+    assert_equal "$FEATURE_GUI" "false"
+}
+
 @test "function_enforce_mark2_devkit_trixie_requirement_rejects_non_trixie" {
     DETECTED_DEVICES=("tas5806")
     DISTRO_NAME="debian"
@@ -202,5 +236,5 @@ function setup() {
 
 function teardown() {
     rm -f "$LOG_FILE"
-    unset DETECTED_DEVICES AVRDUDE_BINARY_PATH RUN_AS_HOME RASPBERRYPI_MODEL
+    unset DETECTED_DEVICES AVRDUDE_BINARY_PATH RUN_AS_HOME RASPBERRYPI_MODEL FEATURE_GUI PROFILE DISTRO_NAME DISTRO_VERSION_ID DISTRO_VERSION
 }

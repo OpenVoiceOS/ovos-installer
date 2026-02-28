@@ -7,6 +7,29 @@
   tags:
     - uninstall
 
+- name: Remove compiled GUI components and sources
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /opt/mycroft-gui
+    - /opt/ovos-shell
+    - /opt/lottie
+    - /usr/bin/ovos-shell
+    - /usr/bin/ovos-gui-app
+    - /usr/share/applications/ovos-shell.desktop
+    - /usr/share/applications/ai.ovos.gui-app.desktop
+    - /usr/share/OVOS
+    - /usr/lib64/qt5/qml/org/kde/lottie
+    - /usr/lib/aarch64-linux-gnu/qt5/qml/org/kde/lottie
+    - /usr/lib/aarch64-linux-gnu/qt5/qml/Mycroft
+    - /usr/lib/aarch64-linux-gnu/qt5/qml/OVOSPlugin
+    - "{{ ovos_installer_user_home }}/.config/ovos-eglfs.json"
+    - "{{ ovos_installer_user_home }}/.cache/mycroft.gui"
+    - "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-mycroft-gui.built"
+    - "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-ovos-shell.built"
+    - "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-lottie.built"
+
 - name: Remove virtualenv package requirements (Debian/Zorin)
   ansible.builtin.apt:
     name:

@@ -29,6 +29,19 @@
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
     - "'attiny1614' not in (ovos_installer_i2c_devices | default([]))"
 
+- name: Assert GUI support constraints
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_method == 'virtualenv'
+      - ansible_facts.system == 'Linux'
+      - ansible_facts.distribution == 'Debian'
+      - ansible_facts.distribution_major_version == '13'
+      - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
+    fail_msg: "GUI support is only available on Debian Trixie Mark II/DevKit virtualenv installs."
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - ovos_installer_feature_gui | bool
+
 - name: Assert containers required variables
   ansible.builtin.assert:
     that:

@@ -8,6 +8,14 @@
   ansible.builtin.import_tasks: packages.yml
   when: not (ovos_installer_cleaning | default(false) | bool)
 
+- name: Include gui.yml
+  ansible.builtin.import_tasks: gui.yml
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - ovos_installer_feature_gui | bool
+    - ovos_installer_profile != 'satellite'
+    - ovos_installer_profile != 'server'
+
 - name: Include venv.yml
   ansible.builtin.import_tasks: venv.yml
   when: not (ovos_installer_cleaning | default(false) | bool)
