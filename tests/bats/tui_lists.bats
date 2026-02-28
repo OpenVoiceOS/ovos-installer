@@ -20,6 +20,7 @@ function setup() {
     export ARCH="x86_64"
     export RASPBERRYPI_MODEL="N/A"
     export DISTRO_NAME="ubuntu"
+    DETECTED_DEVICES=()
 
     # Whiptail spy values (written from subshells via $WHIPTAIL_SPY_FILE)
     WHIPTAIL_FORCE_SELECTION=""
@@ -180,6 +181,47 @@ function spy_value() {
     assert_equal "$(spy_value option_count)" "1"
     assert_equal "$(spy_value list_height)" "4"
     assert_equal "$(spy_value tags)" "virtualenv"
+}
+
+@test "methods: hides containers on Mark 2 hardware" {
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value list_height)" "4"
+    assert_equal "$(spy_value tags)" "virtualenv"
+}
+
+@test "methods: keeps containers hidden on Mark 2 for existing container installs" {
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="containers"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value list_height)" "4"
+    assert_equal "$(spy_value tags)" "virtualenv"
+}
+
+@test "methods: does not apply Mark 2 restriction to DevKit detection" {
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    DETECTED_DEVICES=("attiny1614" "tas5806")
+    WHIPTAIL_FORCE_SELECTION="containers"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value list_height)" "4"
 }
 
 @test "features: checklist always has non-zero list-height and options" {

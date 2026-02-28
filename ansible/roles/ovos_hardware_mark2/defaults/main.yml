@@ -13,7 +13,7 @@ ovos_hardware_mark2_kernel_headers_package: >-
   }}
 ovos_hardware_mark2_working_dir: /opt/sj201
 ovos_hardware_mark2_systemd_user_dir: "{{ ovos_installer_user_home }}/.config/systemd/user"
-ovos_hardware_mark2_wireplumber_dir: "{{ ovos_installer_user_home }}/.config/wireplumber/main.lua.d"
+ovos_hardware_mark2_wireplumber_conf_dir: "{{ ovos_installer_user_home }}/.config/wireplumber/wireplumber.conf.d"
 ovos_hardware_mark2_boot_overlays_dir: >-
   {{ (ovos_hardware_mark2_boot_directory
       | default(ovos_installer_boot_directory
@@ -80,5 +80,5 @@ ovos_hardware_mark2_backlight_overlay: "dtoverlay=rpi-backlight"
 ovos_hardware_mark2_touchscreen_overlays:
   - { overlay: "dtoverlay=vc4-kms-v3d", state: "absent" }
   - { overlay: "dtoverlay=vc4-fkms-v3d", state: "present" }
-ovos_hardware_mark2_wireplumber_alsa_conf_src: 50-alsa-config.lua
-ovos_hardware_mark2_wireplumber_alsa_conf_mode: "0644"
+ovos_hardware_mark2_wireplumber_profile_conf_src: 90-sj201-profile.conf
+ovos_hardware_mark2_wireplumber_profile_conf_mode: "0644"

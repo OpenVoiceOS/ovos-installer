@@ -1104,6 +1104,40 @@ function i2c_scan() {
         done
         echo -e "[$done_format]"
     fi
+
+    enforce_mark2_devkit_trixie_requirement
+}
+
+# Enforce Debian Trixie (13) when Mark II/DevKit hardware is detected.
+# Hardware detection is based on the tas5806 codec presence.
+function enforce_mark2_devkit_trixie_requirement() {
+    local device
+    local mark2_or_devkit_detected="false"
+
+    for device in "${DETECTED_DEVICES[@]}"; do
+        if [ "$device" == "tas5806" ]; then
+            mark2_or_devkit_detected="true"
+            break
+        fi
+    done
+
+    if [ "$mark2_or_devkit_detected" != "true" ]; then
+        return 0
+    fi
+
+    local version_is_trixie="false"
+    if [[ "${DISTRO_VERSION_ID:-}" == 13* ]]; then
+        version_is_trixie="true"
+    fi
+    if [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]; then
+        version_is_trixie="true"
+    fi
+
+    if [ "${DISTRO_NAME:-unknown}" != "debian" ] || [ "$version_is_trixie" != "true" ]; then
+        echo -e "[$fail_format]"
+        echo "Mark II/DevKit requires Debian Trixie (13). Detected ${DISTRO_NAME:-unknown} ${DISTRO_VERSION_ID:-unknown} (${DISTRO_VERSION:-unknown})." | tee -a "$LOG_FILE"
+        exit "${EXIT_OS_NOT_SUPPORTED}"
+    fi
 }
 
 # Downloads avrdude binary with libgpiod support from

@@ -106,6 +106,7 @@ teardown() {
     handle_options
     assert_equal "${USE_UV}" "true"
     assert_equal "${REUSE_CACHED_ARTIFACTS}" "false"
+    assert_equal "${TUNING}" "yes"
 }
 
 @test "function_handle_options_mixed_args_and_env" {
@@ -117,6 +118,16 @@ teardown() {
     assert_equal "${USE_UV}" "true"
 
     unset USE_UV
+}
+
+@test "function_handle_options_preserves_explicit_tuning" {
+    TUNING="no"
+    export TUNING
+
+    handle_options
+    assert_equal "${TUNING}" "no"
+
+    unset TUNING
 }
 
 # Test argument parsing edge cases

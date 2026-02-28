@@ -53,7 +53,7 @@ function handle_options() {
     export METHOD="${METHOD:-virtualenv}"
     export PROFILE="${PROFILE:-ovos}"
     export CHANNEL="${CHANNEL:-stable}"
-    export TUNING="${TUNING:-no}"
+    export TUNING="${TUNING:-yes}"
     export TUNING_OVERCLOCK="${TUNING_OVERCLOCK:-no}"
     export OVERCLOCK_ARM_BOOST="${OVERCLOCK_ARM_BOOST:-1}"
     export OVERCLOCK_INITIAL_TURBO="${OVERCLOCK_INITIAL_TURBO:-60}"

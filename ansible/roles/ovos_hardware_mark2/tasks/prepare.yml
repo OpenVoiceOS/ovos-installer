@@ -9,7 +9,7 @@
   loop:
     - "{{ ovos_hardware_mark2_working_dir }}"
     - "{{ ovos_hardware_mark2_systemd_user_dir }}"
-    - "{{ ovos_hardware_mark2_wireplumber_dir }}"
+    - "{{ ovos_hardware_mark2_wireplumber_conf_dir }}"
 
 - name: Check for /boot/firmware directory
   ansible.builtin.stat:
