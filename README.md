@@ -1,6 +1,6 @@
 # 🎉 Open Voice OS and HiveMind Installer 🎉
 
-Installer for Open Voice OS (OVOS) and HiveMind on Linux. Also supports macOS (virtualenv method on macOS only). Supports interactive installs, scenario-based automation, and optional container deployment.
+Installer for Open Voice OS (OVOS) and HiveMind on Linux and macOS. Supports interactive installs, scenario-based automation, and optional container deployment.
 
 ## 🤖 What is Open Voice OS?
 
@@ -83,6 +83,8 @@ The installer has been tested on the following Linux distributions and versions:
 | Zorin OS            | `>= 16`   |
 
 Note: 'rolling' indicates a rolling release distribution with no fixed version number. Role metadata in `ansible/roles/*/meta/main.yml` lists the base OS families/versions (e.g., Debian/Ubuntu/EL/Fedora/Arch/Suse) that cover these distributions.
+
+Hardware requirement note: Mark II and DevKit installations require Debian Trixie (13). The installer exits if this requirement is not met when that hardware is detected.
 
 ## 🔄 Update
 
@@ -202,9 +204,10 @@ share_usage_telemetry: true
 EOF
 ```
 
-### Configuration options explained:
+### Configuration options explained
+
 - `uninstall`: Set to `true` to uninstall instead of install.
-- `method`: Installation method (`containers` for Docker, `virtualenv` for Python virtual environment). On macOS, use `virtualenv` only.
+- `method`: Installation method (`containers` for Docker, `virtualenv` for Python virtual environment). On macOS and Mark 2 hardware, use `virtualenv` only.
 - `channel`: Release channel (`stable`, `testing`, `development`, `alpha`). On macOS, use `alpha` only.
 - `profile`: Installation profile (`ovos` for standard setup).
 - `features.skills`: Install default voice skills.

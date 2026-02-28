@@ -92,6 +92,28 @@ function setup() {
     # Should not attempt I2C operations
 }
 
+@test "function_enforce_mark2_devkit_trixie_requirement_accepts_debian_trixie" {
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+
+    run enforce_mark2_devkit_trixie_requirement
+    assert_success
+}
+
+@test "function_enforce_mark2_devkit_trixie_requirement_rejects_non_trixie" {
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="12"
+    DISTRO_VERSION="Debian GNU/Linux 12 (bookworm)"
+
+    run enforce_mark2_devkit_trixie_requirement
+    assert_failure
+    assert_equal "$status" "$EXIT_OS_NOT_SUPPORTED"
+    assert_output --partial "Mark II/DevKit requires Debian Trixie (13)."
+}
+
 # Test apt_ensure function
 @test "function_apt_ensure_all_packages_installed" {
     function dpkg-query() {

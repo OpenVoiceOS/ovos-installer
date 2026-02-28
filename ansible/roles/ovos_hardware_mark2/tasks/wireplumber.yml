@@ -1,8 +1,18 @@
 ---
-- name: Configure ALSA for WirePlumber
+- name: Deploy Mark 2 WirePlumber profile override
   ansible.builtin.copy:
-    src: "{{ ovos_hardware_mark2_wireplumber_alsa_conf_src }}"
-    dest: "{{ ovos_hardware_mark2_wireplumber_dir }}/{{ ovos_hardware_mark2_wireplumber_alsa_conf_src }}"
+    src: "{{ ovos_hardware_mark2_wireplumber_profile_conf_src }}"
+    dest: "{{ ovos_hardware_mark2_wireplumber_conf_dir }}/{{ ovos_hardware_mark2_wireplumber_profile_conf_src }}"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
-    mode: "{{ ovos_hardware_mark2_wireplumber_alsa_conf_mode }}"
+    mode: "{{ ovos_hardware_mark2_wireplumber_profile_conf_mode }}"
+
+- name: Remove legacy WirePlumber Lua config
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.config/wireplumber/main.lua.d/50-alsa-config.lua"
+    state: absent
+
+- name: Remove renamed legacy WirePlumber Lua config
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.config/wireplumber/main.lua.d/50-alsa-config.lua.disabled-0.5"
+    state: absent
