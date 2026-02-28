@@ -714,6 +714,9 @@ function setup() {
     run grep -q "^After=ovos.service ovos-messagebus.service$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui-websocket.service.j2
     assert_success
 
+    run grep -q "^After=ovos.service ovos-gui-websocket.service ovos-phal.service$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_success
+
     run grep -q "^WorkingDirectory=.*\\.venvs/ovos$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
     assert_failure
 }
