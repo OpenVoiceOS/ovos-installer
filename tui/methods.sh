@@ -39,6 +39,24 @@ if [ "$EXISTING_INSTANCE" == "true" ]; then
   esac
 fi
 
+# Mark 2 devices only support virtualenv installs.
+mark2_detected="false"
+devkit_detected="false"
+for device in "${DETECTED_DEVICES[@]}"; do
+  case "$device" in
+    tas5806)
+      mark2_detected="true"
+      ;;
+    attiny1614)
+      devkit_detected="true"
+      ;;
+  esac
+done
+if [[ "$mark2_detected" == "true" && "$devkit_detected" != "true" ]]; then
+  active_method="virtualenv"
+  available_methods=(virtualenv)
+fi
+
 list_height="${#available_methods[@]}"
 if [ "$list_height" -lt 1 ]; then
   available_methods=(virtualenv)
