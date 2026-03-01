@@ -267,21 +267,30 @@ function setup() {
 
 @test "mycroft_conf_enables_ipgeo_phal_plugin_and_sets_mark2_ip_lookup_url" {
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+    local mark2_scoped_file
+    mark2_scoped_file="$(mktemp)"
 
-    run grep -F -q "{% if 'tas5806' in ovos_installer_i2c_devices %}" "$conf_file"
+    run awk "/{% if 'tas5806' in ovos_installer_i2c_devices %}/ { in_mark2=1 } in_mark2 { print } in_mark2 && /{% endif %}/ { in_mark2=0 }" "$conf_file"
     assert_success
 
-    run grep -F -q "\"network_tests\": {" "$conf_file"
+    printf "%s\n" "$output" > "$mark2_scoped_file"
+
+    run test -s "$mark2_scoped_file"
     assert_success
 
-    run grep -F -q "\"ip_url\": \"{{ ovos_config_mark2_network_tests_ip_url }}\"" "$conf_file"
+    run grep -F -q "\"network_tests\": {" "$mark2_scoped_file"
     assert_success
 
-    run grep -F -q "\"ovos-phal-plugin-ipgeo\": {" "$conf_file"
+    run grep -F -q "\"ip_url\": \"{{ ovos_config_mark2_network_tests_ip_url }}\"" "$mark2_scoped_file"
     assert_success
 
-    run bash -c "grep -A4 -F -- \"\\\"ovos-phal-plugin-ipgeo\\\": {\" \"$conf_file\" | grep -q -- \"\\\"enabled\\\": true\""
+    run grep -F -q "\"ovos-phal-plugin-ipgeo\": {" "$mark2_scoped_file"
     assert_success
+
+    run bash -c "grep -A4 -F -- \"\\\"ovos-phal-plugin-ipgeo\\\": {\" \"$mark2_scoped_file\" | grep -q -- \"\\\"enabled\\\": true\""
+    assert_success
+
+    rm -f "$mark2_scoped_file"
 }
 
 @test "macos_never_requests_precise_lite_plugin" {
