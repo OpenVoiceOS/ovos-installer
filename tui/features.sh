@@ -9,6 +9,7 @@ export FEATURE_HOMEASSISTANT="false"
 export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
 
 _mark2_or_devkit_detected="false"
+_gui_supported="false"
 for _device in "${DETECTED_DEVICES[@]}"; do
   if [ "$_device" == "tas5806" ]; then
     _mark2_or_devkit_detected="true"
@@ -20,7 +21,12 @@ if [[ "$_mark2_or_devkit_detected" == "true" ]] && \
   [[ "${PROFILE:-}" != "satellite" ]] && \
   [[ "${DISTRO_NAME:-}" == "debian" ]] && \
   { [[ "${DISTRO_VERSION_ID:-}" == 13* ]] || [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]; }; then
+  _gui_supported="true"
   export FEATURE_GUI="true"
+fi
+_gui_description="${GUI_DESCRIPTION:-Enable OVOS GUI support}"
+if [ "${_gui_supported}" == "true" ]; then
+  _gui_description="${GUI_DESCRIPTION:-Enable OVOS GUI support (required on Mark II/DevKit)}"
 fi
 
 _ha_supported="false"
@@ -33,6 +39,9 @@ fi
 declare -a features
 features=("skills" "$SKILL_DESCRIPTION" "ON")
 features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
+if [ "${_gui_supported}" == "true" ]; then
+  features+=("gui" "${_gui_description}" "ON")
+fi
 if [ "${_ha_supported}" == "true" ]; then
   features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
 fi
@@ -48,6 +57,9 @@ if [ -f "$INSTALLER_STATE_FILE" ] && \
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "ON")
   else
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
+  fi
+  if [ "${_gui_supported}" == "true" ]; then
+    features+=("gui" "${_gui_description}" "ON")
   fi
   if [ "${_ha_supported}" == "true" ]; then
     if jq -e '.features|any(. == "homeassistant")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
@@ -65,6 +77,9 @@ if [ "${#features[@]}" -lt 3 ] || [ $(( ${#features[@]} % 3 )) -ne 0 ]; then
     "skills" "$SKILL_DESCRIPTION" "ON"
     "extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF"
   )
+  if [ "${_gui_supported}" == "true" ]; then
+    features+=("gui" "${_gui_description}" "ON")
+  fi
   if [ "${_ha_supported}" == "true" ]; then
     features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
   fi
@@ -113,6 +128,10 @@ for FEATURE in $OVOS_FEATURES; do
   "extra-skills")
     export FEATURE_EXTRA_SKILLS="true"
     FEATURES_STATE+=("extra-skills")
+    ;;
+  "gui")
+    export FEATURE_GUI="true"
+    FEATURES_STATE+=("gui")
     ;;
   "homeassistant")
     # Collect Home Assistant details; only enable if fully configured.

@@ -260,6 +260,12 @@ function spy_value() {
     # shellcheck source=tui/features.sh
     source tui/features.sh
 
+    assert_equal "$(spy_value option_count)" "4"
+    tags="$(spy_value tags)"
+    if [[ "$tags" != *gui* ]]; then
+        echo "expected gui in tag list: $tags" >&2
+        return 1
+    fi
     assert_equal "$FEATURE_GUI" "true"
 }
 
