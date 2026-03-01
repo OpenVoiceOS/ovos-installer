@@ -725,7 +725,7 @@ function setup() {
     run grep -R -n '\${DISPLAY_SERVER\^}' tui/locales/*/detection.sh
     assert_failure
 
-    run grep -R -n '\${DISPLAY_DETECTED}' tui/locales/*/detection.sh
+    run grep -R -n '\${DISPLAY_DETECTED:-\${DISPLAY_SERVER:-N/A}}' tui/locales/*/detection.sh
     assert_success
 }
 

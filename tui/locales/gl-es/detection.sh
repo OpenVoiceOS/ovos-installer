@@ -10,7 +10,7 @@ Información detectada:
     - Hardware: $HARDWARE_DETECTED
     - Venv:     $VENV_PATH
     - Son:      $SOUND_SERVER
-    - Pantalla: ${DISPLAY_DETECTED}
+    - Pantalla: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}
 "
 TITLE="Instalación de Open Voice OS - Detección"
 

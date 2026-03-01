@@ -10,7 +10,7 @@ Queste sono le proprietà del sistema che sono state riconosciute automaticament
 - Hardware: $HARDWARE_DETECTED
 - Venv: $VENV_PATH
 - Audio: $SOUND_SERVER
-- Schermo: ${DISPLAY_DETECTED}
+- Schermo: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}
 "
 TITLE="Installazione di Open Voice OS - Proprietà del sistema"
 
