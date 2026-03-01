@@ -249,13 +249,13 @@ function spy_value() {
     assert_equal "$(spy_value list_height)" "4"
 }
 
-@test "features: forces GUI on Debian Trixie Mark 2 hardware" {
+@test "features: shows GUI on Debian Trixie Mark 2 hardware and enables it when selected" {
     PROFILE="ovos"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
     DETECTED_DEVICES=("tas5806")
-    WHIPTAIL_FORCE_SELECTION="skills"
+    WHIPTAIL_FORCE_SELECTION=$'skills\ngui'
 
     # shellcheck source=tui/features.sh
     source tui/features.sh
@@ -267,6 +267,21 @@ function spy_value() {
         return 1
     fi
     assert_equal "$FEATURE_GUI" "true"
+}
+
+@test "features: honors persisted GUI disabled state on Debian Trixie Mark 2 hardware" {
+    printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"]}' >"$INSTALLER_STATE_FILE"
+    PROFILE="ovos"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION="skills"
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    assert_equal "$FEATURE_GUI" "false"
 }
 
 @test "features: shows Home Assistant option for containers installs" {

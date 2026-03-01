@@ -10,6 +10,7 @@ export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
 
 _mark2_or_devkit_detected="false"
 _gui_supported="false"
+_gui_default_state="OFF"
 for _device in "${DETECTED_DEVICES[@]}"; do
   if [ "$_device" == "tas5806" ]; then
     _mark2_or_devkit_detected="true"
@@ -22,11 +23,14 @@ if [[ "$_mark2_or_devkit_detected" == "true" ]] && \
   [[ "${DISTRO_NAME:-}" == "debian" ]] && \
   { [[ "${DISTRO_VERSION_ID:-}" == 13* ]] || [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]; }; then
   _gui_supported="true"
-  export FEATURE_GUI="true"
+  _gui_default_state="ON"
 fi
 _gui_description="${GUI_DESCRIPTION:-Enable OVOS GUI support}"
 if [ "${_gui_supported}" == "true" ]; then
-  _gui_description="${GUI_DESCRIPTION:-Enable OVOS GUI support (required on Mark II/DevKit)}"
+  _gui_description="${GUI_DESCRIPTION:-Enable OVOS GUI support (Mark II/DevKit on Debian Trixie)}"
+  if [ "${_gui_default_state}" == "ON" ]; then
+    export FEATURE_GUI="true"
+  fi
 fi
 
 _ha_supported="false"
@@ -40,7 +44,7 @@ declare -a features
 features=("skills" "$SKILL_DESCRIPTION" "ON")
 features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
 if [ "${_gui_supported}" == "true" ]; then
-  features+=("gui" "${_gui_description}" "ON")
+  features+=("gui" "${_gui_description}" "${_gui_default_state}")
 fi
 if [ "${_ha_supported}" == "true" ]; then
   features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
@@ -59,7 +63,13 @@ if [ -f "$INSTALLER_STATE_FILE" ] && \
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
   fi
   if [ "${_gui_supported}" == "true" ]; then
-    features+=("gui" "${_gui_description}" "ON")
+    if jq -e '.features|any(. == "gui")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
+      features+=("gui" "${_gui_description}" "ON")
+      export FEATURE_GUI="true"
+    else
+      features+=("gui" "${_gui_description}" "OFF")
+      export FEATURE_GUI="false"
+    fi
   fi
   if [ "${_ha_supported}" == "true" ]; then
     if jq -e '.features|any(. == "homeassistant")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
@@ -78,7 +88,7 @@ if [ "${#features[@]}" -lt 3 ] || [ $(( ${#features[@]} % 3 )) -ne 0 ]; then
     "extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF"
   )
   if [ "${_gui_supported}" == "true" ]; then
-    features+=("gui" "${_gui_description}" "ON")
+    features+=("gui" "${_gui_description}" "${_gui_default_state}")
   fi
   if [ "${_ha_supported}" == "true" ]; then
     features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
@@ -119,6 +129,9 @@ if [ "$exit_status" -ne 0 ]; then
 fi
 
 FEATURES_STATE=()
+if [ "${_gui_supported}" == "true" ]; then
+  export FEATURE_GUI="false"
+fi
 for FEATURE in $OVOS_FEATURES; do
   case "$FEATURE" in
   "skills")

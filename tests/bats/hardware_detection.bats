@@ -118,7 +118,7 @@ function setup() {
     assert_equal "$CHANNEL" "stable"
 }
 
-@test "function_enforce_mark2_devkit_gui_support_forces_feature_gui_on_trixie" {
+@test "function_enforce_mark2_devkit_gui_support_does_not_force_feature_gui_on_trixie" {
     DETECTED_DEVICES=("tas5806")
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
@@ -126,15 +126,26 @@ function setup() {
     FEATURE_GUI="false"
 
     enforce_mark2_devkit_gui_support
+    assert_equal "$FEATURE_GUI" "false"
+}
+
+@test "function_enforce_mark2_devkit_gui_support_preserves_feature_gui_on_supported_trixie" {
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    FEATURE_GUI="true"
+
+    enforce_mark2_devkit_gui_support
     assert_equal "$FEATURE_GUI" "true"
 }
 
-@test "function_enforce_mark2_devkit_gui_support_does_not_force_on_non_trixie" {
+@test "function_enforce_mark2_devkit_gui_support_disables_feature_gui_on_non_trixie" {
     DETECTED_DEVICES=("tas5806")
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="12"
     DISTRO_VERSION="Debian GNU/Linux 12 (bookworm)"
-    FEATURE_GUI="false"
+    FEATURE_GUI="true"
 
     enforce_mark2_devkit_gui_support
     assert_equal "$FEATURE_GUI" "false"

@@ -1136,7 +1136,9 @@ function enforce_mark2_alpha_channel() {
     fi
 }
 
-# Enforce GUI support when Mark II/DevKit hardware is detected on Debian Trixie.
+# Normalize GUI support constraints for Mark II/DevKit.
+# GUI remains user-selectable on supported profiles, but is always disabled for
+# unsupported profiles.
 function enforce_mark2_devkit_gui_support() {
     local device
     local mark2_or_devkit_detected="false"
@@ -1160,17 +1162,18 @@ function enforce_mark2_devkit_gui_support() {
         version_is_trixie="true"
     fi
 
-    if [ "${DISTRO_NAME:-unknown}" == "debian" ] && [ "$version_is_trixie" == "true" ]; then
-        if [ "${PROFILE:-ovos}" == "server" ] || [ "${PROFILE:-ovos}" == "satellite" ]; then
-            if [ "${FEATURE_GUI:-false}" == "true" ]; then
-                export FEATURE_GUI="false"
-                echo "Mark II/DevKit GUI is disabled for ${PROFILE} profile. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
-            fi
-            return 0
+    if [ "${DISTRO_NAME:-unknown}" != "debian" ] || [ "$version_is_trixie" != "true" ]; then
+        if [ "${FEATURE_GUI:-false}" == "true" ]; then
+            export FEATURE_GUI="false"
+            echo "Mark II/DevKit GUI is only supported on Debian Trixie. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
         fi
-        if [ "${FEATURE_GUI:-false}" != "true" ]; then
-            export FEATURE_GUI="true"
-            echo "Mark II/DevKit on Debian Trixie requires GUI support. Forcing FEATURE_GUI=true." | tee -a "$LOG_FILE"
+        return 0
+    fi
+
+    if [ "${PROFILE:-ovos}" == "server" ] || [ "${PROFILE:-ovos}" == "satellite" ]; then
+        if [ "${FEATURE_GUI:-false}" == "true" ]; then
+            export FEATURE_GUI="false"
+            echo "Mark II/DevKit GUI is disabled for ${PROFILE} profile. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
         fi
     fi
 }
