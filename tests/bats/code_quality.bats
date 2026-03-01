@@ -910,6 +910,25 @@ function setup() {
     assert_success
 }
 
+@test "listener_systemd_unit_waits_for_core_intent_readiness" {
+    local file="ansible/roles/ovos_services/templates/virtualenv/ovos-listener.service.j2"
+
+    run grep -q "^Requires=ovos.service ovos-messagebus.service ovos-core.service ovos-phal.service$" "$file"
+    assert_success
+
+    run grep -q "^After=ovos.service ovos-messagebus.service ovos-core.service ovos-phal.service$" "$file"
+    assert_success
+
+    run grep -F -q "ExecStartPre=/bin/bash -c 'for ((_ovos_retry=1;" "$file"
+    assert_success
+
+    run grep -F -q "mycroft.intents.is_ready" "$file"
+    assert_success
+
+    run grep -F -q "ovos-listener timed out waiting for core intent readiness" "$file"
+    assert_success
+}
+
 @test "gui_systemd_units_have_ordering_and_no_venv_workdir" {
     run grep -q "^After=ovos.service ovos-messagebus.service$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui-websocket.service.j2
     assert_success
