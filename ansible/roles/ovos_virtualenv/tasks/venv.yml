@@ -250,6 +250,32 @@
     label: "{{ item.file }}"
   when: item.state | bool
 
+- name: Install known-good date-time skill for Mark II
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  moreati.uv.pip:
+    name: "{{ ovos_virtualenv_mark2_datetime_package }}"
+    virtualenv: "{{ ovos_virtualenv_path }}"
+    extra_args: "--no-deps"
+    state: present
+  environment: "{{ ovos_virtualenv_uv_environment }}"
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
+
+- name: Install stable weather skill for Mark II
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  moreati.uv.pip:
+    name: "{{ ovos_virtualenv_mark2_weather_package }}"
+    virtualenv: "{{ ovos_virtualenv_path }}"
+    extra_args: "--no-deps"
+    state: present
+  environment: "{{ ovos_virtualenv_uv_environment }}"
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
+
 - name: Ensure numpy Python library is installed
   become: true
   become_user: "{{ ovos_installer_user }}"

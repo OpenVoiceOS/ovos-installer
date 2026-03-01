@@ -655,6 +655,46 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_mark2_pins_datetime_skill_without_dependency_resolution" {
+    local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -F -q "ovos_virtualenv_mark2_datetime_package:" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos-skill-date-time==1.1.5" "$defaults_file"
+    assert_success
+
+    run grep -F -q "Install known-good date-time skill for Mark II" "$tasks_file"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Install known-good date-time skill for Mark II\" \"$tasks_file\" | grep -F -q -- \"extra_args: \\\"--no-deps\\\"\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Install known-good date-time skill for Mark II\" \"$tasks_file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
+    assert_success
+}
+
+@test "virtualenv_mark2_pins_stable_weather_skill_without_dependency_resolution" {
+    local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -F -q "ovos_virtualenv_mark2_weather_package:" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos-skill-weather==1.0.6" "$defaults_file"
+    assert_success
+
+    run grep -F -q "Install stable weather skill for Mark II" "$tasks_file"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Install stable weather skill for Mark II\" \"$tasks_file\" | grep -F -q -- \"extra_args: \\\"--no-deps\\\"\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Install stable weather skill for Mark II\" \"$tasks_file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
+    assert_success
+}
+
 @test "virtualenv_mark2_does_not_force_remove_phal_network_plugins" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
@@ -991,7 +1031,7 @@ function setup() {
     assert_success
 }
 
-@test "listener_systemd_unit_waits_for_core_intent_readiness" {
+@test "listener_systemd_unit_orders_with_core_dependencies_without_prestart_gate" {
     local file="ansible/roles/ovos_services/templates/virtualenv/ovos-listener.service.j2"
 
     run grep -q "^Requires=ovos.service ovos-messagebus.service ovos-core.service ovos-phal.service$" "$file"
@@ -1000,17 +1040,8 @@ function setup() {
     run grep -q "^After=ovos.service ovos-messagebus.service ovos-core.service ovos-phal.service$" "$file"
     assert_success
 
-    run grep -F -q 'ExecStartPre=/bin/bash -c "for ((_ovos_retry=1;' "$file"
-    assert_success
-
-    run grep -F -q "python -c 'import sys;" "$file"
-    assert_success
-
-    run grep -F -q "mycroft.intents.is_ready" "$file"
-    assert_success
-
-    run grep -F -q "ovos-listener timed out waiting for core intent readiness" "$file"
-    assert_success
+    run grep -q "^ExecStartPre=" "$file"
+    assert_failure
 
     run grep -q "^TimeoutStartSec=5min$" "$file"
     assert_success
