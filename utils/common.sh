@@ -1163,18 +1163,18 @@ function enforce_mark2_devkit_gui_support() {
     fi
 
     if [ "${DISTRO_NAME:-unknown}" != "debian" ] || [ "$version_is_trixie" != "true" ]; then
-        if [ "${FEATURE_GUI:-false}" == "true" ]; then
-            export FEATURE_GUI="false"
+        if [ "${FEATURE_GUI:-false}" != "false" ]; then
             echo "Mark II/DevKit GUI is only supported on Debian Trixie. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
         fi
+        export FEATURE_GUI="false"
         return 0
     fi
 
     if [ "${PROFILE:-ovos}" == "server" ] || [ "${PROFILE:-ovos}" == "satellite" ]; then
-        if [ "${FEATURE_GUI:-false}" == "true" ]; then
-            export FEATURE_GUI="false"
+        if [ "${FEATURE_GUI:-false}" != "false" ]; then
             echo "Mark II/DevKit GUI is disabled for ${PROFILE} profile. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
         fi
+        export FEATURE_GUI="false"
     fi
 }
 

@@ -151,6 +151,17 @@ function setup() {
     assert_equal "$FEATURE_GUI" "false"
 }
 
+@test "function_enforce_mark2_devkit_gui_support_sets_feature_gui_false_on_non_trixie_when_unset" {
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="12"
+    DISTRO_VERSION="Debian GNU/Linux 12 (bookworm)"
+    unset FEATURE_GUI
+
+    enforce_mark2_devkit_gui_support
+    assert_equal "$FEATURE_GUI" "false"
+}
+
 @test "function_enforce_mark2_devkit_gui_support_disables_server_profile" {
     DETECTED_DEVICES=("tas5806")
     DISTRO_NAME="debian"
