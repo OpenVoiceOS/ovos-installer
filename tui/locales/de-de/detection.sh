@@ -10,7 +10,7 @@ Automatisch erkannte Systemeigenschaften:
     - Hardware: $HARDWARE_DETECTED
     - Venv:     $VENV_PATH
     - Sound:    $SOUND_SERVER
-    - Display:  ${DISPLAY_SERVER^}
+    - Display:  ${DISPLAY_DETECTED}
 "
 TITLE="Eine vorhandene Open Voice OS Installation entdeckt"
 

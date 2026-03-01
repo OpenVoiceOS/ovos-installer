@@ -10,7 +10,7 @@ Automatisch herkende systeemeigenschappen:
     - Hardware:           $HARDWARE_DETECTED
     - Venv:               $VENV_PATH
     - Geluid:             $SOUND_SERVER
-    - Display:            ${DISPLAY_SERVER^}
+    - Display:            ${DISPLAY_DETECTED}
 "
 TITLE="OpenVoice OS Installatie - Systeemeigenschappen"
 

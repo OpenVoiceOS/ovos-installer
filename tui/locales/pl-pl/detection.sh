@@ -10,7 +10,7 @@ Znajdź wykryte informacje:
 - Sprzęt: $HARDWARE_DETECTED
 - Venv: $VENV_PATH
 - Dźwięk: $SOUND_SERVER
-- Wyświetlacz: ${DISPLAY_SERVER^}
+- Wyświetlacz: ${DISPLAY_DETECTED}
 "
 TITLE="Instalacja Open Voice OS - Wykryto"
 

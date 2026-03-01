@@ -10,7 +10,7 @@ Mesedez, aurkitu detektatutako informazioa:
     - Hardwarea: $HARDWARE_DETECTED
     - Venv: $VENV_PATH
     - Soinua: $SOUND_SERVER
-    - Pantaila: ${DISPLAY_SERVER^}
+    - Pantaila: ${DISPLAY_DETECTED}
 "
 TITLE="Ireki Voice OS instalazioa - Detektatua"
 

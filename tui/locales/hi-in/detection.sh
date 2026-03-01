@@ -10,7 +10,7 @@ CONTENT="
     - Hardware: $HARDWARE_DETECTED
     - Venv:     $VENV_PATH
     - Sound:    $SOUND_SERVER
-    - Display:  ${DISPLAY_SERVER^}
+    - Display:  ${DISPLAY_DETECTED}
 "
 TITLE="Open Voice OS Installation - सिस्टम जानकारी की पहचान"
 

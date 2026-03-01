@@ -10,7 +10,7 @@ Trobeu la informació detectada:
     - Maquinari: $HARDWARE_DETECTED
     - Venv: $VENV_PATH
     - So: $SOUND_SERVER
-    - Pantalla: ${DISPLAY_SERVER^}
+    - Pantalla: ${DISPLAY_DETECTED}
 "
 TITLE="Instal·lació de l'Open Voice OS - Informació detectada"
 

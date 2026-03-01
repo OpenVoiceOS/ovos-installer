@@ -707,6 +707,25 @@ function setup() {
     assert_success
 }
 
+@test "tui_display_shows_eglfs_for_headless_mark2_and_devkit" {
+    run grep -q 'DISPLAY_DETECTED="${DISPLAY_SERVER^}"' tui/detection.sh
+    assert_success
+
+    run grep -q '\[ "${DISPLAY_SERVER:-N/A}" == "N/A" \] && \\' tui/detection.sh
+    assert_success
+
+    run grep -q 'DISPLAY_DETECTED="eglfs"' tui/detection.sh
+    assert_success
+}
+
+@test "tui_detection_locales_use_display_detected_label" {
+    run grep -R -n '\${DISPLAY_SERVER\^}' tui/locales/*/detection.sh
+    assert_failure
+
+    run grep -R -n '\${DISPLAY_DETECTED}' tui/locales/*/detection.sh
+    assert_success
+}
+
 @test "telemetry_uses_existing_hardware_field_with_installer_fallback" {
     run grep -q "ovos_installer_hardware" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success
