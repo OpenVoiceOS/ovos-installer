@@ -952,7 +952,10 @@ function setup() {
     run grep -q "^After=ovos.service ovos-messagebus.service ovos-core.service ovos-phal.service$" "$file"
     assert_success
 
-    run grep -F -q "ExecStartPre=/bin/bash -c 'for ((_ovos_retry=1;" "$file"
+    run grep -F -q 'ExecStartPre=/bin/bash -c "for ((_ovos_retry=1;' "$file"
+    assert_success
+
+    run grep -F -q "python -c 'import sys;" "$file"
     assert_success
 
     run grep -F -q "mycroft.intents.is_ready" "$file"
