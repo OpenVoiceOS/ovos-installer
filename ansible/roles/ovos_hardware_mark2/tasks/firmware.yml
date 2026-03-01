@@ -1,4 +1,12 @@
 ---
+- name: Ensure /tmp permissions are apt-compatible
+  ansible.builtin.file:
+    path: /tmp
+    state: directory
+    owner: root
+    group: root
+    mode: "1777"
+
 - name: Install kernel headers
   ansible.builtin.apt:
     name: "{{ ovos_hardware_mark2_kernel_headers_package }}"
