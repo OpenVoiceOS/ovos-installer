@@ -626,7 +626,7 @@ function setup() {
     assert_failure
 }
 
-@test "virtualenv_mark2_adds_hotkeys_without_pyee_pin" {
+@test "virtualenv_mark2_uses_phal_mk2_without_pyee_pin" {
     local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
 
     run grep -F -q "{% if 'tas5806' in ovos_installer_i2c_devices %}" "$file"
@@ -636,10 +636,10 @@ function setup() {
     assert_failure
 
     run grep -F -q "ovos-PHAL-plugin-hotkeys" "$file"
-    assert_success
+    assert_failure
 
     run grep -F -q "ovos-PHAL[mk2]" "$file"
-    assert_failure
+    assert_success
 }
 
 @test "virtualenv_mark2_does_not_force_remove_phal_network_plugins" {
@@ -952,7 +952,10 @@ function setup() {
     run grep -q "^After=ovos.service ovos-messagebus.service ovos-core.service ovos-phal.service$" "$file"
     assert_success
 
-    run grep -F -q "ExecStartPre=/bin/bash -c 'for ((_ovos_retry=1;" "$file"
+    run grep -F -q 'ExecStartPre=/bin/bash -c "for ((_ovos_retry=1;' "$file"
+    assert_success
+
+    run grep -F -q "python -c 'import sys;" "$file"
     assert_success
 
     run grep -F -q "mycroft.intents.is_ready" "$file"
