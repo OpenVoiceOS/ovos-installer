@@ -226,6 +226,22 @@ function setup() {
     assert_success
 }
 
+@test "mycroft_conf_applies_sounddevice_tuning_for_mark2_only" {
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run grep -F -q "{% set _ovos_is_mark2 = ('tas5806' in (ovos_installer_i2c_devices | default([]))) and ('attiny1614' not in (ovos_installer_i2c_devices | default([]))) %}" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"module\": \"ovos-microphone-plugin-sounddevice\"{% if _ovos_is_mark2 %}" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-microphone-plugin-sounddevice\": {" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"queue_maxsize\": 32" "$conf_file"
+    assert_success
+}
+
 @test "mycroft_conf_sets_gui_idle_display_skill_to_current_homescreen_id" {
     local file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
@@ -613,6 +629,20 @@ function setup() {
     assert_success
 
     run test -f ansible/roles/ovos_hardware_mark2/files/90-sj201-profile.conf
+    assert_success
+}
+
+@test "mark2_sj201_service_includes_sbin_in_runtime_path" {
+    local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
+    local service_file="ansible/roles/ovos_hardware_mark2/templates/sj201.service.j2"
+
+    run grep -q "ovos_hardware_mark2_sj201_runtime_path: /usr/local/bin:/usr/sbin:/usr/bin:/bin" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ExecStart={{ ovos_hardware_mark2_sudo_path }} -E env PATH={{ ovos_hardware_mark2_sj201_runtime_path }}" "$service_file"
+    assert_success
+
+    run grep -F -q "ExecStartPost=/usr/bin/env PATH={{ ovos_hardware_mark2_sj201_runtime_path }}" "$service_file"
     assert_success
 }
 

@@ -6,8 +6,8 @@ After=network-online.target
 [Service]
 Type=oneshot
 WorkingDirectory={{ ovos_hardware_mark2_sj201_venv_path }}
-ExecStart={{ ovos_hardware_mark2_sudo_path }} -E env PATH=$PATH {{ ovos_hardware_mark2_sj201_venv_path }}/bin/python {{ ovos_hardware_mark2_working_dir }}/{{ ovos_hardware_mark2_sj201_flash_tool }} --direct {{ ovos_hardware_mark2_working_dir }}/{{ ovos_hardware_mark2_sj201_firmware_image }} --verbose
-ExecStartPost={{ ovos_hardware_mark2_sj201_venv_path }}/bin/python {{ ovos_hardware_mark2_working_dir }}/{{ ovos_hardware_mark2_sj201_post_init_script }}
+ExecStart={{ ovos_hardware_mark2_sudo_path }} -E env PATH={{ ovos_hardware_mark2_sj201_runtime_path }} {{ ovos_hardware_mark2_sj201_venv_path }}/bin/python {{ ovos_hardware_mark2_working_dir }}/{{ ovos_hardware_mark2_sj201_flash_tool }} --direct {{ ovos_hardware_mark2_working_dir }}/{{ ovos_hardware_mark2_sj201_firmware_image }} --verbose
+ExecStartPost=/usr/bin/env PATH={{ ovos_hardware_mark2_sj201_runtime_path }} {{ ovos_hardware_mark2_sj201_venv_path }}/bin/python {{ ovos_hardware_mark2_working_dir }}/{{ ovos_hardware_mark2_sj201_post_init_script }}
 Restart=on-failure
 RestartSec={{ ovos_hardware_mark2_sj201_unit_restart_sec }}
 RemainAfterExit=yes
