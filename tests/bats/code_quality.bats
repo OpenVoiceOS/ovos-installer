@@ -265,16 +265,22 @@ function setup() {
     assert_failure
 }
 
-@test "mycroft_conf_disables_ipgeo_phal_plugin_for_mark2" {
+@test "mycroft_conf_enables_ipgeo_phal_plugin_and_sets_mark2_ip_lookup_url" {
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
     run grep -F -q "{% if 'tas5806' in ovos_installer_i2c_devices %}" "$conf_file"
     assert_success
 
+    run grep -F -q "\"network_tests\": {" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ip_url\": \"{{ ovos_config_mark2_network_tests_ip_url }}\"" "$conf_file"
+    assert_success
+
     run grep -F -q "\"ovos-phal-plugin-ipgeo\": {" "$conf_file"
     assert_success
 
-    run bash -c "grep -A4 -F -- \"\\\"ovos-phal-plugin-ipgeo\\\": {\" \"$conf_file\" | grep -q -- \"\\\"enabled\\\": false\""
+    run bash -c "grep -A4 -F -- \"\\\"ovos-phal-plugin-ipgeo\\\": {\" \"$conf_file\" | grep -q -- \"\\\"enabled\\\": true\""
     assert_success
 }
 

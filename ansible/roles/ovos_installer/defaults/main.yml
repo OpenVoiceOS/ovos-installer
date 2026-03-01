@@ -136,6 +136,7 @@ ovos_installer_telemetry: "{{ ovos_installer_usage_telemetry | bool }}"
 ovos_installer_run_ovos_config: false
 ovos_installer_geoip_enabled: false
 ovos_installer_geoip_url: "https://ipapi.co/json/"
+ovos_installer_mark2_network_tests_ip_url: "https://ifconfig.me/ip"
 ovos_installer_system_unit: "metric"
 ovos_installer_temperature_unit: "celsius"
 ovos_installer_precipitation_unit: "mm"
