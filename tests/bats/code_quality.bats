@@ -729,6 +729,38 @@ function setup() {
     assert_success
 }
 
+@test "existing_instance_skips_telemetry_prompts_in_tui" {
+    local file="tui/main.sh"
+
+    run grep -q '\[\[ "${EXISTING_INSTANCE:-false}" == "true" \]\]' "$file"
+    assert_success
+
+    run grep -q 'export SHARE_TELEMETRY="false"' "$file"
+    assert_success
+
+    run grep -q 'export SHARE_USAGE_TELEMETRY="false"' "$file"
+    assert_success
+
+    run grep -q "source tui/telemetry.sh" "$file"
+    assert_success
+
+    run grep -q "source tui/usage_telemetry.sh" "$file"
+    assert_success
+}
+
+@test "setup_forces_telemetry_off_for_existing_instance" {
+    local file="setup.sh"
+
+    run grep -q 'if \[ "\$EXISTING_INSTANCE" == "true" \]; then' "$file"
+    assert_success
+
+    run grep -q 'export SHARE_TELEMETRY="false"' "$file"
+    assert_success
+
+    run grep -q 'export SHARE_USAGE_TELEMETRY="false"' "$file"
+    assert_success
+}
+
 @test "telemetry_uses_existing_hardware_field_with_installer_fallback" {
     run grep -q "ovos_installer_hardware" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success

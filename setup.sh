@@ -122,6 +122,11 @@ else
   fi
 fi
 
+if [ "$EXISTING_INSTANCE" == "true" ]; then
+  export SHARE_TELEMETRY="false"
+  export SHARE_USAGE_TELEMETRY="false"
+fi
+
 echo "➤ Starting Ansible playbook... ☕🍵🧋"
 
 # Execute the Ansible playbook on localhost

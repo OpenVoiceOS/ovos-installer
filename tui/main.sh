@@ -40,8 +40,13 @@ fi
 # shellcheck source=tui/summary.sh
 source tui/summary.sh
 
-# shellcheck source=tui/telemetry.sh
-source tui/telemetry.sh
+if [[ "${EXISTING_INSTANCE:-false}" == "true" ]]; then
+    export SHARE_TELEMETRY="false"
+    export SHARE_USAGE_TELEMETRY="false"
+else
+    # shellcheck source=tui/telemetry.sh
+    source tui/telemetry.sh
 
-# shellcheck source=tui/usage_telemetry.sh
-source tui/usage_telemetry.sh
+    # shellcheck source=tui/usage_telemetry.sh
+    source tui/usage_telemetry.sh
+fi
