@@ -1,13 +1,19 @@
 ovos-audio[extras]
 ovos-core[lgpl,plugins]
 ovos-dinkum-listener[{{ 'extras' if ansible_facts.system == 'Darwin' else 'extras,linux' }}]
-{% if ansible_facts.system == 'Darwin' %}
+{% if ansible_facts.system == 'Darwin' or 'tas5806' in (ovos_installer_i2c_devices | default([])) %}
 ovos-microphone-plugin-sounddevice
+{% endif %}
+{% if ansible_facts.system == 'Darwin' %}
 {% if (ovos_installer_cpu_is_capable | default(false)) | bool %}
 ovos-ww-plugin-precise-onnx
 {% endif %}
 {% endif %}
 ovos-docs-viewer
+{% if ovos_installer_feature_gui | bool %}
+ovos-gui[extras]
+ovos-skill-homescreen
+{% endif %}
 ovos-PHAL[{{ 'mac' if ansible_facts.system == 'Darwin' else 'linux' }}]
 ovos-phal-plugin-ipgeo
 {% if (ovos_installer_locale != "ca-es") and (ovos_installer_locale != "eu-es") and (ovos_installer_locale != "gl-es") %}

@@ -7,6 +7,65 @@
   tags:
     - uninstall
 
+- name: Remove compiled GUI components and sources
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /opt/mycroft-gui
+    - /opt/ovos-shell
+    - /opt/lottie
+    - /usr/bin/ovos-shell
+    - /usr/bin/ovos-gui-app
+    - /usr/share/applications/ovos-shell.desktop
+    - /usr/share/applications/ai.ovos.gui-app.desktop
+    - /usr/share/OVOS
+    - /usr/lib64/qt5/qml/org/kde/lottie
+    - /usr/lib/aarch64-linux-gnu/qt5/qml/org/kde/lottie
+    - /usr/lib/aarch64-linux-gnu/qt5/qml/Mycroft
+    - /usr/lib/aarch64-linux-gnu/qt5/qml/OVOSPlugin
+    - "{{ ovos_installer_user_home }}/.config/ovos-eglfs.json"
+    - "{{ ovos_installer_user_home }}/.cache/mycroft.gui"
+    - "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-mycroft-gui.built"
+    - "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-ovos-shell.built"
+    - "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-lottie.built"
+
+- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)
+  ansible.builtin.apt:
+    name:
+      - cmake
+      - gettext
+      - pkg-kde-tools
+      - qtbase5-dev
+      - qtdeclarative5-dev
+      - libkf5kio-dev
+      - libqt5websockets5-dev
+      - libkf5i18n-dev
+      - libkf5notifications-dev
+      - libkf5plasma-dev
+      - libqt5webview5-dev
+      - qtmultimedia5-dev
+      - kdeconnect
+      - kirigami2-dev
+      - libkf5dbusaddons-dev
+      - libqt5webview5
+      - libkf5configcore5
+      - qml-module-qtwebengine
+      - qml-module-qtmultimedia
+      - qml-module-qtquick-shapes
+      - qtvirtualkeyboard-plugin
+      - libqt5multimedia5
+      - libqt5virtualkeyboard5
+      - breeze-icon-theme
+    state: absent
+    purge: true
+    autoremove: true
+  failed_when: false
+  when:
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "13"
+    - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
+
 - name: Remove virtualenv package requirements (Debian/Zorin)
   ansible.builtin.apt:
     name:

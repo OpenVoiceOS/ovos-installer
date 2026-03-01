@@ -10,7 +10,7 @@ Find de fundne oplysninger:
     - Hardware: $HARDWARE_DETECTED
     - Venv: $VENV_PATH
     - Lyd: $SOUND_SERVER
-    - Skærm: ${DISPLAY_SERVER^}
+    - Skærm: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}
 "
 TITLE="Open Voice OS-installation - fundet"
 

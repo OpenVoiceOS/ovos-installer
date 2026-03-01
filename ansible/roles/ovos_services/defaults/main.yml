@@ -77,6 +77,8 @@ ovos_services_managed_units:
   - ovos-phal.service
   - ovos-listener.service
   - ovos-audio.service
+  - ovos-gui-websocket.service
+  - ovos-gui.service
   - ovos-ggwave-listener.service
   - hivemind-listener.service
   - hivemind-satellite.service
@@ -103,6 +105,12 @@ ovos_services_unit_definitions:
   - unit: ovos-audio.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
     state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+  - unit: ovos-gui-websocket.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+  - unit: ovos-gui.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
   - unit: ovos-ggwave-listener.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
     state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool) }}"

@@ -208,6 +208,37 @@ function setup() {
     assert_success
 }
 
+@test "sounddevice_microphone_defaults_include_mark2_and_devkit" {
+    local core_file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+    local sat_file="ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2"
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run grep -F -q "{% if ansible_facts.system == 'Darwin' or 'tas5806' in (ovos_installer_i2c_devices | default([])) %}" "$core_file"
+    assert_success
+
+    run grep -F -q "{% if ansible_facts.system == 'Darwin' or 'tas5806' in (ovos_installer_i2c_devices | default([])) %}" "$sat_file"
+    assert_success
+
+    run grep -q "_ovos_use_sounddevice_mic" "$conf_file"
+    assert_success
+
+    run grep -F -q "{% if _ovos_use_sounddevice_mic %}" "$conf_file"
+    assert_success
+}
+
+@test "mycroft_conf_sets_gui_idle_display_skill_to_current_homescreen_id" {
+    local file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run grep -q "{% if ovos_installer_feature_gui | bool %}" "$file"
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"{% if ovos_installer_feature_gui | bool %}\" \"$file\" | grep -q -- \"\\\"idle_display_skill\\\": \\\"skill-ovos-homescreen.openvoiceos\\\"\""
+    assert_success
+
+    run grep -q "\"idle_display_skill\": \"ovos-skill-homescreen.openvoiceos\"" "$file"
+    assert_failure
+}
+
 @test "macos_never_requests_precise_lite_plugin" {
     run grep -R -n "ovos-ww-plugin-precise-lite" ansible/roles/ovos_virtualenv/templates/virtualenv
     assert_failure
@@ -514,6 +545,82 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_gui_uninstall_removes_debian_mark2_packages" {
+    local file="ansible/roles/ovos_virtualenv/tasks/uninstall.yml"
+
+    run grep -q "Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)" "$file"
+    assert_success
+
+    run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"state: absent\""
+    assert_success
+
+    run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"purge: true\""
+    assert_success
+
+    run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A50 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
+    assert_success
+}
+
+@test "installer_assert_enforces_virtualenv_for_mark2_and_devkit" {
+    local file="ansible/roles/ovos_installer/tasks/assert.yml"
+
+    run grep -q "Assert Mark 2/DevKit-supported installer modes" "$file"
+    assert_success
+
+    run grep -F -q -- "'tas5806' in (ovos_installer_i2c_devices | default([]))" "$file"
+    assert_success
+
+    run grep -F -q -- "'attiny1614' not in (ovos_installer_i2c_devices | default([]))" "$file"
+    assert_failure
+}
+
+@test "virtualenv_gui_core_requirements_use_installable_package_name" {
+    local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+
+    run grep -q "ovos-gui\\[extras\\]" "$file"
+    assert_success
+
+    run grep -q "ovos-gui-service" "$file"
+    assert_failure
+}
+
+@test "virtualenv_gui_core_requirements_include_homescreen_skill" {
+    local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+
+    run bash -c "grep -A3 -F -- \"{% if ovos_installer_feature_gui | bool %}\" \"$file\" | grep -q -- \"ovos-gui\\[extras\\]\""
+    assert_success
+
+    run bash -c "grep -A3 -F -- \"{% if ovos_installer_feature_gui | bool %}\" \"$file\" | grep -q -- \"ovos-skill-homescreen\""
+    assert_success
+
+    run bash -c "sed -n '1,20p' \"$file\" | grep -q -- \"{% if 'tas5806' in ovos_installer_i2c_devices %}\""
+    assert_failure
+}
+
+@test "mark2_wireplumber_tasks_deploy_profile_and_remove_legacy_lua" {
+    local file="ansible/roles/ovos_hardware_mark2/tasks/wireplumber.yml"
+
+    run grep -q "Deploy Mark 2 WirePlumber profile override" "$file"
+    assert_success
+
+    run grep -q "main.lua.d/50-alsa-config.lua" "$file"
+    assert_success
+
+    run grep -q "50-alsa-config.lua.disabled-0.5" "$file"
+    assert_success
+
+    run test -f ansible/roles/ovos_hardware_mark2/files/90-sj201-profile.conf
+    assert_success
+}
+
+@test "uninstall_enables_package_removal_by_default" {
+    run grep -q 'ovos_installer_uninstall_remove_packages: "{{ ovos_installer_cleaning | default(false) | bool }}"' ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+}
+
 @test "telemetry_uses_installer_detected_sound_fallback" {
     run grep -q "ovos_installer_sound_server" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success
@@ -597,6 +704,28 @@ function setup() {
 
 @test "tui_hardware_falls_back_to_detected_model" {
     run grep -F -q 'if [ "$HARDWARE_DETECTED" == "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then' tui/detection.sh
+    assert_success
+}
+
+@test "tui_display_shows_EGLFS_for_headless_mark2_and_devkit" {
+    run grep -q 'DISPLAY_DETECTED="${DISPLAY_SERVER^}"' tui/detection.sh
+    assert_success
+
+    run grep -q '\[ "${DISPLAY_SERVER,,}" == "eglfs" \]' tui/detection.sh
+    assert_success
+
+    run grep -q '\[ "${DISPLAY_SERVER:-N/A}" == "N/A" \] && \\' tui/detection.sh
+    assert_success
+
+    run grep -q 'DISPLAY_DETECTED="${DISPLAY_SERVER^^}"' tui/detection.sh
+    assert_success
+}
+
+@test "tui_detection_locales_use_display_detected_label" {
+    run grep -R -n '\${DISPLAY_SERVER\^}' tui/locales/*/detection.sh
+    assert_failure
+
+    run grep -R -n '\${DISPLAY_DETECTED:-\${DISPLAY_SERVER:-N/A}}' tui/locales/*/detection.sh
     assert_success
 }
 
@@ -684,6 +813,26 @@ function setup() {
 
     run grep -q "else 'unknown-linux-gnueabihf' if ovos_services_messagebus_target_arch in \\['arm', 'armv7'\\]" ansible/roles/ovos_services/defaults/main.yml
     assert_success
+}
+
+@test "gui_systemd_units_have_ordering_and_no_venv_workdir" {
+    run grep -q "^After=ovos.service ovos-messagebus.service$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui-websocket.service.j2
+    assert_success
+
+    run grep -q "^After=ovos.service ovos-gui-websocket.service ovos-phal.service$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_success
+
+    run grep -q "_ovos_headless_display = (ovos_installer_display_server | default('') | lower) in \\['n/a', 'eglfs'\\]" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_success
+
+    run grep -q "QT_QPA_PLATFORM={{ 'eglfs' if _ovos_headless_display else 'wayland;xcb' }}" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_success
+
+    run grep -q "{{ 'ovos-shell' if _ovos_headless_display else 'ovos-gui-app' }}" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_success
+
+    run grep -q "^WorkingDirectory=.*\\.venvs/ovos$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_failure
 }
 
 @test "setup_exports_collection_paths_for_launchd_module_resolution" {

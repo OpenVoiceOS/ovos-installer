@@ -55,7 +55,20 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install ansible ansible-lint
-          ansible-galaxy collection install -r ansible/requirements.yml
+          galaxy_install_ok="false"
+          for galaxy_server in "https://galaxy.ansible.com/api/v2/" "https://galaxy.ansible.com"; do
+            for attempt in 1 2 3; do
+              if ansible-galaxy collection install -r ansible/requirements.yml --server "$galaxy_server"; then
+                galaxy_install_ok="true"
+                break 2
+              fi
+              sleep $((attempt * 5))
+            done
+          done
+          if [ "$galaxy_install_ok" != "true" ]; then
+            echo "ansible-galaxy collection install failed for all known Galaxy endpoints"
+            exit 1
+          fi
 
       - name: Run ansible-lint (production profile)
         run: ansible-lint --profile production

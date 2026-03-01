@@ -20,6 +20,15 @@ if [ "$HARDWARE_DETECTED" == "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARD
 fi
 export HARDWARE_DETECTED
 
+DISPLAY_DETECTED="${DISPLAY_SERVER^}"
+if [ "${DISPLAY_SERVER,,}" == "eglfs" ]; then
+    DISPLAY_DETECTED="${DISPLAY_SERVER^^}"
+elif [ "${DISPLAY_SERVER:-N/A}" == "N/A" ] && \
+    { [ "$HARDWARE_DETECTED" == "Mycroft Mark II" ] || [ "$HARDWARE_DETECTED" == "Mycroft DevKit" ]; }; then
+    DISPLAY_DETECTED="EGLFS"
+fi
+export DISPLAY_DETECTED
+
 # Keep locale templates simple by exposing a single display-ready OS label.
 if [ -z "${DISTRO_LABEL:-}" ]; then
     if [ -n "${DISTRO_VERSION:-}" ]; then
