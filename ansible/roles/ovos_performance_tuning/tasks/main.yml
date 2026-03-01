@@ -4,6 +4,10 @@
   tags:
     - always
 
+- name: Include tuning/eeprom.yml
+  ansible.builtin.import_tasks: eeprom.yml
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
 - name: Include tuning/governor.yml
   ansible.builtin.import_tasks: governor.yml
   when: not (ovos_installer_cleaning | default(false) | bool)

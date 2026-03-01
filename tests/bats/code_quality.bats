@@ -790,6 +790,39 @@ function setup() {
     assert_success
 }
 
+@test "performance_tuning_applies_rpi_eeprom_updates_and_flags_reboot" {
+    local main_file="ansible/roles/ovos_performance_tuning/tasks/main.yml"
+    local eeprom_file="ansible/roles/ovos_performance_tuning/tasks/eeprom.yml"
+    local defaults_file="ansible/roles/ovos_performance_tuning/defaults/main.yml"
+
+    run grep -q "Include tuning/eeprom.yml" "$main_file"
+    assert_success
+
+    run grep -q "ovos_performance_tuning_rpi_eeprom_update_cmd" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_performance_tuning_rpi_eeprom_package" "$defaults_file"
+    assert_success
+
+    run grep -q "Apply Raspberry Pi EEPROM updates" "$eeprom_file"
+    assert_success
+
+    run grep -q "Gather package facts for EEPROM gating" "$eeprom_file"
+    assert_success
+
+    run grep -q "ovos_performance_tuning_rpi_eeprom_installed" "$eeprom_file"
+    assert_success
+
+    run grep -q "regex_search(ovos_performance_tuning_rpi_eeprom_reboot_regex)" "$eeprom_file"
+    assert_success
+
+    run grep -q "ovos_performance_tuning_rpi_eeprom_installed | default(false) | bool" "$eeprom_file"
+    assert_success
+
+    run grep -q "notify: Set Reboot" "$eeprom_file"
+    assert_success
+}
+
 @test "services_asserts_messagebus_binary_before_starting_services" {
     run grep -q "Check OVOS messagebus binary exists" ansible/roles/ovos_services/tasks/assert.yml
     assert_success
