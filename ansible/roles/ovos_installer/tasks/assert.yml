@@ -19,15 +19,14 @@
     fail_msg: "On macOS only virtualenv mode is currently supported and tuning must be disabled."
   when: ansible_facts.system == 'Darwin'
 
-- name: Assert Mark 2-supported installer modes
+- name: Assert Mark 2/DevKit-supported installer modes
   ansible.builtin.assert:
     that:
       - ovos_installer_method == 'virtualenv'
-    fail_msg: "On Mark 2 hardware only virtualenv mode is currently supported."
+    fail_msg: "On Mark 2/DevKit hardware only virtualenv mode is currently supported."
   when:
     - not (ovos_installer_cleaning | default(false) | bool)
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
-    - "'attiny1614' not in (ovos_installer_i2c_devices | default([]))"
 
 - name: Assert GUI support constraints
   ansible.builtin.assert:

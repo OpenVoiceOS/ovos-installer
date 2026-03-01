@@ -208,6 +208,24 @@ function setup() {
     assert_success
 }
 
+@test "sounddevice_microphone_defaults_include_mark2_and_devkit" {
+    local core_file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+    local sat_file="ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2"
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run grep -F -q "{% if ansible_facts.system == 'Darwin' or 'tas5806' in (ovos_installer_i2c_devices | default([])) %}" "$core_file"
+    assert_success
+
+    run grep -F -q "{% if ansible_facts.system == 'Darwin' or 'tas5806' in (ovos_installer_i2c_devices | default([])) %}" "$sat_file"
+    assert_success
+
+    run grep -q "_ovos_use_sounddevice_mic" "$conf_file"
+    assert_success
+
+    run grep -F -q "{% if _ovos_use_sounddevice_mic %}" "$conf_file"
+    assert_success
+}
+
 @test "mycroft_conf_sets_gui_idle_display_skill_to_current_homescreen_id" {
     local file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
@@ -546,6 +564,19 @@ function setup() {
     assert_success
 }
 
+@test "installer_assert_enforces_virtualenv_for_mark2_and_devkit" {
+    local file="ansible/roles/ovos_installer/tasks/assert.yml"
+
+    run grep -q "Assert Mark 2/DevKit-supported installer modes" "$file"
+    assert_success
+
+    run grep -F -q -- "'tas5806' in (ovos_installer_i2c_devices | default([]))" "$file"
+    assert_success
+
+    run grep -F -q -- "'attiny1614' not in (ovos_installer_i2c_devices | default([]))" "$file"
+    assert_failure
+}
+
 @test "virtualenv_gui_core_requirements_use_installable_package_name" {
     local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
 
@@ -567,6 +598,22 @@ function setup() {
 
     run bash -c "sed -n '1,20p' \"$file\" | grep -q -- \"{% if 'tas5806' in ovos_installer_i2c_devices %}\""
     assert_failure
+}
+
+@test "mark2_wireplumber_tasks_deploy_profile_and_remove_legacy_lua" {
+    local file="ansible/roles/ovos_hardware_mark2/tasks/wireplumber.yml"
+
+    run grep -q "Deploy Mark 2 WirePlumber profile override" "$file"
+    assert_success
+
+    run grep -q "main.lua.d/50-alsa-config.lua" "$file"
+    assert_success
+
+    run grep -q "50-alsa-config.lua.disabled-0.5" "$file"
+    assert_success
+
+    run test -f ansible/roles/ovos_hardware_mark2/files/90-sj201-profile.conf
+    assert_success
 }
 
 @test "uninstall_enables_package_removal_by_default" {

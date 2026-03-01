@@ -1,8 +1,10 @@
 ovos-audio[extras]
 ovos-core[lgpl,plugins]
 ovos-dinkum-listener[{{ 'extras' if ansible_facts.system == 'Darwin' else 'extras,linux' }}]
-{% if ansible_facts.system == 'Darwin' %}
+{% if ansible_facts.system == 'Darwin' or 'tas5806' in (ovos_installer_i2c_devices | default([])) %}
 ovos-microphone-plugin-sounddevice
+{% endif %}
+{% if ansible_facts.system == 'Darwin' %}
 {% if (ovos_installer_cpu_is_capable | default(false)) | bool %}
 ovos-ww-plugin-precise-onnx
 {% endif %}
