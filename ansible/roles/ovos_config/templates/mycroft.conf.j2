@@ -8,6 +8,7 @@
 {% endif %}
 {% if ovos_installer_profile != "server" %}
 {% set _ovos_is_macos = (ansible_facts.system | default('')) == 'Darwin' %}
+{% set _ovos_is_mark2 = ('tas5806' in (ovos_installer_i2c_devices | default([]))) and ('attiny1614' not in (ovos_installer_i2c_devices | default([]))) %}
 {% set _ovos_use_sounddevice_mic = _ovos_is_macos or ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}
 {% set _ovos_listener_has_wake_word = (_ovos_is_macos and ((ovos_installer_cpu_is_capable | default(false)) | bool)) or (ovos_installer_tuning | bool) %}
   "play_wav_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
@@ -45,7 +46,16 @@
     "fake_barge_in": false,
 {% endif %}
     "microphone": {
-      "module": "ovos-microphone-plugin-sounddevice"
+      "module": "ovos-microphone-plugin-sounddevice"{% if _ovos_is_mark2 %},{{ '\n' }}
+      "ovos-microphone-plugin-sounddevice": {
+        "device": "default",
+        "latency": "high",
+        "blocksize": 2048,
+        "queue_maxsize": 32,
+        "auto_sample_rate_fallback": true,
+        "auto_channel_fallback": true,
+        "auto_latency_fallback": true
+      }{% endif %}
     }{% if _ovos_listener_has_wake_word %},{{ '\n' }}{% endif %}
 {% endif %}
 {% if _ovos_listener_has_wake_word %}

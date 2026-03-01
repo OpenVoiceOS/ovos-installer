@@ -36,6 +36,7 @@ ovos_hardware_mark2_vocalfusion_make_cmd: >-
 ovos_hardware_mark2_sj201_flash_tool: xvf3510-flash
 ovos_hardware_mark2_sj201_firmware_image: app_xvf3510_int_spi_boot_v4_2_0.bin
 ovos_hardware_mark2_sj201_post_init_script: init_tas5806
+ovos_hardware_mark2_sj201_runtime_path: /usr/local/bin:/usr/sbin:/usr/bin:/bin
 ovos_hardware_mark2_vocalfusion_dtbo_overlays:
   - sj201
   - sj201-buttons-overlay
