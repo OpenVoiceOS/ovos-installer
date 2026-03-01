@@ -681,6 +681,25 @@ function setup() {
     assert_success
 }
 
+@test "mark2_touchscreen_applies_overlay_management_to_tas5806_devices" {
+    local file="ansible/roles/ovos_hardware_mark2/tasks/touchscreen.yml"
+
+    run grep -q "Add rpi-backlight DT overlay" "$file"
+    assert_success
+
+    run bash -c "grep -A5 -F -- \"- name: Add rpi-backlight DT overlay\" \"$file\" | grep -q -- \"regexp: \\\"^dtoverlay=rpi-backlight\\$\\\"\""
+    assert_success
+
+    run grep -q "Manage touchscreen, DevKit vs Mark II" "$file"
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Manage touchscreen, DevKit vs Mark II\" \"$file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Manage touchscreen, DevKit vs Mark II\" \"$file\" | grep -q -- \"attiny1614\""
+    assert_failure
+}
+
 @test "mark2_sj201_service_includes_sbin_in_runtime_path" {
     local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
     local service_file="ansible/roles/ovos_hardware_mark2/templates/sj201.service.j2"
