@@ -208,6 +208,19 @@ function setup() {
     assert_success
 }
 
+@test "mycroft_conf_sets_gui_idle_display_skill_to_current_homescreen_id" {
+    local file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run grep -q "{% if ovos_installer_feature_gui | bool %}" "$file"
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"{% if ovos_installer_feature_gui | bool %}\" \"$file\" | grep -q -- \"\\\"idle_display_skill\\\": \\\"skill-ovos-homescreen.openvoiceos\\\"\""
+    assert_success
+
+    run grep -q "\"idle_display_skill\": \"ovos-skill-homescreen.openvoiceos\"" "$file"
+    assert_failure
+}
+
 @test "macos_never_requests_precise_lite_plugin" {
     run grep -R -n "ovos-ww-plugin-precise-lite" ansible/roles/ovos_virtualenv/templates/virtualenv
     assert_failure
@@ -540,6 +553,19 @@ function setup() {
     assert_success
 
     run grep -q "ovos-gui-service" "$file"
+    assert_failure
+}
+
+@test "virtualenv_gui_core_requirements_include_homescreen_skill" {
+    local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+
+    run bash -c "grep -A3 -F -- \"{% if ovos_installer_feature_gui | bool %}\" \"$file\" | grep -q -- \"ovos-gui\\[extras\\]\""
+    assert_success
+
+    run bash -c "grep -A3 -F -- \"{% if ovos_installer_feature_gui | bool %}\" \"$file\" | grep -q -- \"ovos-skill-homescreen\""
+    assert_success
+
+    run bash -c "sed -n '1,20p' \"$file\" | grep -q -- \"{% if 'tas5806' in ovos_installer_i2c_devices %}\""
     assert_failure
 }
 

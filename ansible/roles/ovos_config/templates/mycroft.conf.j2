@@ -66,6 +66,11 @@
     }
   },
 {% endif %}
+{% if ovos_installer_feature_gui | bool %}
+  "gui": {
+    "idle_display_skill": "skill-ovos-homescreen.openvoiceos"
+  },
+{% endif %}
 {% if 'tas5806' in ovos_installer_i2c_devices %}
   "Audio": {
     "backends": {
