@@ -242,6 +242,16 @@ function setup() {
     assert_success
 }
 
+@test "mycroft_conf_does_not_force_mark2_intent_pipeline" {
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run grep -F -q "{% if 'tas5806' in ovos_installer_i2c_devices %}" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"pipeline\": [" "$conf_file"
+    assert_failure
+}
+
 @test "mycroft_conf_sets_gui_idle_display_skill_to_current_homescreen_id" {
     local file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
@@ -616,6 +626,29 @@ function setup() {
     assert_failure
 }
 
+@test "virtualenv_mark2_adds_hotkeys_without_pyee_pin" {
+    local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+
+    run grep -F -q "{% if 'tas5806' in ovos_installer_i2c_devices %}" "$file"
+    assert_success
+
+    run grep -F -q "pyee==8.1.0" "$file"
+    assert_failure
+
+    run grep -F -q "ovos-PHAL-plugin-hotkeys" "$file"
+    assert_success
+
+    run grep -F -q "ovos-PHAL[mk2]" "$file"
+    assert_failure
+}
+
+@test "virtualenv_mark2_does_not_force_remove_phal_network_plugins" {
+    local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -q "Remove incompatible PHAL network plugins on Mark II/DevKit" "$file"
+    assert_failure
+}
+
 @test "mark2_wireplumber_tasks_deploy_profile_and_remove_legacy_lua" {
     local file="ansible/roles/ovos_hardware_mark2/tasks/wireplumber.yml"
 
@@ -926,6 +959,9 @@ function setup() {
     assert_success
 
     run grep -F -q "ovos-listener timed out waiting for core intent readiness" "$file"
+    assert_success
+
+    run grep -q "^TimeoutStartSec=5min$" "$file"
     assert_success
 }
 

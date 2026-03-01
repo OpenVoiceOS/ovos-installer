@@ -35,9 +35,6 @@
 {% if ovos_installer_tuning | bool %}
       "ovos-vad-plugin-silero": {
         "silence_duration": 0.5
-      },
-      "ovos-vad-plugin-webrtcvad": {
-        "silence_duration": 0.5
       }
 {% endif %}
     }{% if _ovos_use_sounddevice_mic or _ovos_listener_has_wake_word %},{{ '\n' }}{% endif %}
