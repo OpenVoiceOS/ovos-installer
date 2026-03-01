@@ -265,6 +265,19 @@ function setup() {
     assert_failure
 }
 
+@test "mycroft_conf_disables_ipgeo_phal_plugin_for_mark2" {
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run grep -F -q "{% if 'tas5806' in ovos_installer_i2c_devices %}" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-phal-plugin-ipgeo\": {" "$conf_file"
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"\\\"ovos-phal-plugin-ipgeo\\\": {\" \"$conf_file\" | grep -q -- \"\\\"enabled\\\": false\""
+    assert_success
+}
+
 @test "macos_never_requests_precise_lite_plugin" {
     run grep -R -n "ovos-ww-plugin-precise-lite" ansible/roles/ovos_virtualenv/templates/virtualenv
     assert_failure
