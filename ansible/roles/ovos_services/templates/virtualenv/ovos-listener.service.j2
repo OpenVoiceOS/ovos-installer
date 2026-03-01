@@ -2,9 +2,11 @@
 Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/components/#ovos-listener
 Description=Open Voice OS - Listener
 PartOf=ovos.service
-Requires=ovos.service ovos-messagebus.service ovos-phal.service
+Requires=ovos.service ovos-messagebus.service ovos-core.service ovos-phal.service
+After=ovos.service ovos-messagebus.service ovos-core.service ovos-phal.service
 
 [Service]
+{% set _ovos_service_user_home = ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' %}
 {% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
 User={{ ovos_installer_user }}
 Group={{ ovos_installer_group }}
@@ -13,12 +15,14 @@ Environment=XDG_RUNTIME_DIR=/run/user/{{ ovos_installer_uid }}
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{{ ovos_installer_uid }}/bus
 EnvironmentFile=-{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tuning.conf
 {% endif %}
-WorkingDirectory={{ ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' }}/.venvs/ovos
-ExecStart={{ ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' }}/.venvs/ovos/bin/ovos-dinkum-listener
+WorkingDirectory={{ _ovos_service_user_home }}/.venvs/ovos
+ExecStartPre=/bin/bash -c 'for ((_ovos_retry=1; _ovos_retry<=90; _ovos_retry++)); do {{ _ovos_service_user_home }}/.venvs/ovos/bin/python -c "import sys; from ovos_bus_client.message import Message; from ovos_bus_client.util import wait_for_reply; response = wait_for_reply(Message(\"mycroft.intents.is_ready\"), timeout=2); sys.exit(0 if response else 1)" && exit 0; sleep 1; done; echo "ovos-listener timed out waiting for core intent readiness" >&2; exit 1'
+ExecStart={{ _ovos_service_user_home }}/.venvs/ovos/bin/ovos-dinkum-listener
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec={{ '1s' if ovos_installer_tuning | bool else '5s' }}
+TimeoutStartSec=5min
 {% if ovos_installer_tuning_performance | bool and (ovos_installer_systemd_scope | default('user')) == 'system' %}
 Nice=-10
 IOSchedulingClass=best-effort
