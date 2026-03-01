@@ -655,44 +655,45 @@ function setup() {
     assert_success
 }
 
-@test "virtualenv_mark2_pins_datetime_skill_without_dependency_resolution" {
+@test "virtualenv_mark2_pins_stable_skills_without_dependency_resolution" {
     local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
     local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
-    run grep -F -q "ovos_virtualenv_mark2_datetime_package:" "$defaults_file"
+    run grep -F -q "ovos_virtualenv_mark2_skill_pins:" "$defaults_file"
     assert_success
 
     run grep -F -q "ovos-skill-date-time==1.1.5" "$defaults_file"
     assert_success
 
-    run grep -F -q "Install known-good date-time skill for Mark II" "$tasks_file"
-    assert_success
-
-    run bash -c "grep -A12 -F -- \"Install known-good date-time skill for Mark II\" \"$tasks_file\" | grep -F -q -- \"extra_args: \\\"--no-deps\\\"\""
-    assert_success
-
-    run bash -c "grep -A12 -F -- \"Install known-good date-time skill for Mark II\" \"$tasks_file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
-    assert_success
-}
-
-@test "virtualenv_mark2_pins_stable_weather_skill_without_dependency_resolution" {
-    local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
-    local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
-
-    run grep -F -q "ovos_virtualenv_mark2_weather_package:" "$defaults_file"
-    assert_success
-
     run grep -F -q "ovos-skill-weather==1.0.6" "$defaults_file"
     assert_success
 
+    run grep -F -q "Install stable skill pins for Mark II" "$tasks_file"
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"loop: \\\"{{ ovos_virtualenv_mark2_skill_pins }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"name: \\\"{{ item }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"extra_args: \\\"--no-deps\\\"\""
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
+    assert_success
+
+    run grep -F -q "Install known-good date-time skill for Mark II" "$tasks_file"
+    assert_failure
+
     run grep -F -q "Install stable weather skill for Mark II" "$tasks_file"
-    assert_success
+    assert_failure
 
-    run bash -c "grep -A12 -F -- \"Install stable weather skill for Mark II\" \"$tasks_file\" | grep -F -q -- \"extra_args: \\\"--no-deps\\\"\""
-    assert_success
+    run grep -F -q "ovos_virtualenv_mark2_datetime_package:" "$defaults_file"
+    assert_failure
 
-    run bash -c "grep -A12 -F -- \"Install stable weather skill for Mark II\" \"$tasks_file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
-    assert_success
+    run grep -F -q "ovos_virtualenv_mark2_weather_package:" "$defaults_file"
+    assert_failure
 }
 
 @test "virtualenv_mark2_does_not_force_remove_phal_network_plugins" {
