@@ -1108,6 +1108,7 @@ function i2c_scan() {
     enforce_mark2_devkit_trixie_requirement
     enforce_mark2_alpha_channel
     enforce_mark2_devkit_gui_support
+    enforce_mark2_devkit_display_server
 }
 
 # Enforce alpha channel when Mark II hardware is detected.
@@ -1175,6 +1176,29 @@ function enforce_mark2_devkit_gui_support() {
             echo "Mark II/DevKit GUI is disabled for ${PROFILE} profile. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
         fi
         export FEATURE_GUI="false"
+    fi
+}
+
+# Normalize display server for Mark II/DevKit headless setups.
+# When no compositor is detected, report eglfs before running the playbook.
+function enforce_mark2_devkit_display_server() {
+    local device
+    local mark2_or_devkit_detected="false"
+
+    for device in "${DETECTED_DEVICES[@]}"; do
+        if [ "$device" == "tas5806" ]; then
+            mark2_or_devkit_detected="true"
+            break
+        fi
+    done
+
+    if [ "$mark2_or_devkit_detected" != "true" ]; then
+        return 0
+    fi
+
+    if [ "${DISPLAY_SERVER:-N/A}" == "N/A" ]; then
+        export DISPLAY_SERVER="eglfs"
+        echo "Mark II/DevKit headless display detected. Setting DISPLAY_SERVER=eglfs." | tee -a "$LOG_FILE"
     fi
 }
 

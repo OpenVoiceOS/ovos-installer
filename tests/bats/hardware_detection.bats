@@ -174,6 +174,22 @@ function setup() {
     assert_equal "$FEATURE_GUI" "false"
 }
 
+@test "function_enforce_mark2_devkit_display_server_sets_eglfs_for_headless" {
+    DETECTED_DEVICES=("tas5806")
+    DISPLAY_SERVER="N/A"
+
+    enforce_mark2_devkit_display_server
+    assert_equal "$DISPLAY_SERVER" "eglfs"
+}
+
+@test "function_enforce_mark2_devkit_display_server_keeps_detected_compositor" {
+    DETECTED_DEVICES=("tas5806")
+    DISPLAY_SERVER="wayland"
+
+    enforce_mark2_devkit_display_server
+    assert_equal "$DISPLAY_SERVER" "wayland"
+}
+
 @test "function_enforce_mark2_devkit_trixie_requirement_rejects_non_trixie" {
     DETECTED_DEVICES=("tas5806")
     DISTRO_NAME="debian"
@@ -258,5 +274,5 @@ function setup() {
 
 function teardown() {
     rm -f "$LOG_FILE"
-    unset DETECTED_DEVICES AVRDUDE_BINARY_PATH RUN_AS_HOME RASPBERRYPI_MODEL FEATURE_GUI PROFILE DISTRO_NAME DISTRO_VERSION_ID DISTRO_VERSION
+    unset DETECTED_DEVICES AVRDUDE_BINARY_PATH RUN_AS_HOME RASPBERRYPI_MODEL FEATURE_GUI PROFILE DISTRO_NAME DISTRO_VERSION_ID DISTRO_VERSION DISPLAY_SERVER
 }

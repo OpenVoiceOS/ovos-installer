@@ -707,14 +707,17 @@ function setup() {
     assert_success
 }
 
-@test "tui_display_shows_eglfs_for_headless_mark2_and_devkit" {
+@test "tui_display_shows_EGLFS_for_headless_mark2_and_devkit" {
     run grep -q 'DISPLAY_DETECTED="${DISPLAY_SERVER^}"' tui/detection.sh
+    assert_success
+
+    run grep -q '\[ "${DISPLAY_SERVER,,}" == "eglfs" \]' tui/detection.sh
     assert_success
 
     run grep -q '\[ "${DISPLAY_SERVER:-N/A}" == "N/A" \] && \\' tui/detection.sh
     assert_success
 
-    run grep -q 'DISPLAY_DETECTED="eglfs"' tui/detection.sh
+    run grep -q 'DISPLAY_DETECTED="${DISPLAY_SERVER^^}"' tui/detection.sh
     assert_success
 }
 
@@ -817,6 +820,15 @@ function setup() {
     assert_success
 
     run grep -q "^After=ovos.service ovos-gui-websocket.service ovos-phal.service$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_success
+
+    run grep -q "_ovos_headless_display = (ovos_installer_display_server | default('') | lower) in \\['n/a', 'eglfs'\\]" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_success
+
+    run grep -q "QT_QPA_PLATFORM={{ 'eglfs' if _ovos_headless_display else 'wayland;xcb' }}" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_success
+
+    run grep -q "{{ 'ovos-shell' if _ovos_headless_display else 'ovos-gui-app' }}" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
     assert_success
 
     run grep -q "^WorkingDirectory=.*\\.venvs/ovos$" ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2

@@ -6,6 +6,7 @@ Requires=ovos.service ovos-gui-websocket.service ovos-phal.service
 After=ovos.service ovos-gui-websocket.service ovos-phal.service
 
 [Service]
+{% set _ovos_headless_display = (ovos_installer_display_server | default('') | lower) in ['n/a', 'eglfs'] %}
 {% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
 User={{ ovos_installer_user }}
 Group={{ ovos_installer_group }}
@@ -14,11 +15,11 @@ Environment=XDG_RUNTIME_DIR=/run/user/{{ ovos_installer_uid }}
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{{ ovos_installer_uid }}/bus
 EnvironmentFile=-{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tuning.conf
 {% endif %}
-{% if ovos_installer_display_server != "N/A" %}
+{% if not _ovos_headless_display %}
 Environment=DISPLAY={{ ovos_installer_display_server_number | default(':0') }}
 Environment=WAYLAND_DISPLAY={{ ovos_installer_wayland_display | default('wayland-0') }}
 {% endif %}
-Environment="QT_QPA_PLATFORM={{ 'eglfs' if ovos_installer_display_server == "N/A" else 'wayland;xcb' }}"
+Environment="QT_QPA_PLATFORM={{ 'eglfs' if _ovos_headless_display else 'wayland;xcb' }}"
 Environment="QT_QPA_PLATFORMTHEME=qt5ct"
 Environment="QT_QPA_EGLFS_KMS_ATOMIC=1"
 Environment="QT_FONT_DPI=120"
@@ -28,7 +29,7 @@ Environment="QT_QPA_EGLFS_HIDECURSOR=1"
 {% if 'tas5806' in ovos_installer_i2c_devices %}
 Environment="QT_IM_MODULE=qtvirtualkeyboard"
 {% endif %}
-ExecStart=/usr/bin/{{ 'ovos-shell' if ovos_installer_display_server == "N/A" else 'ovos-gui-app' }}
+ExecStart=/usr/bin/{{ 'ovos-shell' if _ovos_headless_display else 'ovos-gui-app' }}
 ExecReload=/usr/bin/kill -s HUP $MAINPID
 ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
