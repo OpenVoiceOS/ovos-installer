@@ -533,6 +533,16 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_gui_core_requirements_use_installable_package_name" {
+    local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+
+    run grep -q "ovos-gui\\[extras\\]" "$file"
+    assert_success
+
+    run grep -q "ovos-gui-service" "$file"
+    assert_failure
+}
+
 @test "uninstall_enables_package_removal_by_default" {
     run grep -q 'ovos_installer_uninstall_remove_packages: "{{ ovos_installer_cleaning | default(false) | bool }}"' ansible/roles/ovos_installer/defaults/main.yml
     assert_success
