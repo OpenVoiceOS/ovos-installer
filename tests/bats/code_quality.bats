@@ -665,6 +665,22 @@ function setup() {
     assert_success
 }
 
+@test "mark2_firmware_repairs_tmp_permissions_before_apt_update" {
+    local file="ansible/roles/ovos_hardware_mark2/tasks/firmware.yml"
+
+    run grep -q "Ensure /tmp permissions are apt-compatible" "$file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Ensure /tmp permissions are apt-compatible\" \"$file\" | grep -q -- \"path: /tmp\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Ensure /tmp permissions are apt-compatible\" \"$file\" | grep -q -- \"mode: \\\"1777\\\"\""
+    assert_success
+
+    run grep -q "Install kernel headers" "$file"
+    assert_success
+}
+
 @test "mark2_sj201_service_includes_sbin_in_runtime_path" {
     local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
     local service_file="ansible/roles/ovos_hardware_mark2/templates/sj201.service.j2"
