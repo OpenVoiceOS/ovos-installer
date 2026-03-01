@@ -24,6 +24,10 @@ ovos_performance_tuning_devfreq_path: /sys/class/devfreq
 ovos_performance_tuning_gpu_vcgencmd_cmd: "vcgencmd measure_clock core"
 ovos_performance_tuning_boot_config_path: "{{ ovos_installer_boot_directory }}/config.txt"
 ovos_performance_tuning_cmdline_path: "{{ ovos_installer_boot_directory }}/cmdline.txt"
+ovos_performance_tuning_rpi_eeprom_package: rpi-eeprom
+ovos_performance_tuning_rpi_eeprom_update_path: /usr/bin/rpi-eeprom-update
+ovos_performance_tuning_rpi_eeprom_update_cmd: "{{ ovos_performance_tuning_rpi_eeprom_update_path }} -a"
+ovos_performance_tuning_rpi_eeprom_reboot_regex: reboot
 
 ovos_performance_tuning_scheduler_rule_path: /etc/udev/rules.d/60-scheduler.rules
 ovos_performance_tuning_scheduler_devices: "mmcblk[0-9]*|sd[a-z]*"

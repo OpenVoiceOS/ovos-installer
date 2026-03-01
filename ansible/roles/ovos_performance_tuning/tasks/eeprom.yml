@@ -1,0 +1,47 @@
+---
+- name: Gather package facts for EEPROM gating
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Set EEPROM package-installed fact
+  ansible.builtin.set_fact:
+    ovos_performance_tuning_rpi_eeprom_installed: >-
+      {{
+        (
+          (
+            ansible_facts.packages
+            | default({})
+          )[ovos_performance_tuning_rpi_eeprom_package]
+          | default([])
+          | length
+        ) > 0
+      }}
+
+- name: Check rpi-eeprom-update binary
+  ansible.builtin.stat:
+    path: "{{ ovos_performance_tuning_rpi_eeprom_update_path }}"
+  register: ovos_performance_tuning_rpi_eeprom_update_bin
+  changed_when: false
+
+- name: Apply Raspberry Pi EEPROM updates
+  ansible.builtin.command:
+    cmd: "{{ ovos_performance_tuning_rpi_eeprom_update_cmd }}"
+  register: ovos_performance_tuning_rpi_eeprom_update
+  changed_when: >-
+    {{
+      (
+        (
+          ovos_performance_tuning_rpi_eeprom_update.stdout | default('')
+        ) ~ ' ' ~ (
+          ovos_performance_tuning_rpi_eeprom_update.stderr | default('')
+        )
+      )
+      | lower
+      | regex_search(ovos_performance_tuning_rpi_eeprom_reboot_regex)
+      | default('', true)
+      | length > 0
+    }}
+  notify: Set Reboot
+  when:
+    - ovos_performance_tuning_rpi_eeprom_installed | default(false) | bool
+    - ovos_performance_tuning_rpi_eeprom_update_bin.stat.exists | default(false) | bool
