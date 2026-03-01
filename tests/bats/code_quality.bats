@@ -265,6 +265,34 @@ function setup() {
     assert_failure
 }
 
+@test "mycroft_conf_enables_ipgeo_phal_plugin_and_sets_mark2_ip_lookup_url" {
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+    local mark2_scoped_file
+    mark2_scoped_file="$(mktemp)"
+
+    run awk "/{% if 'tas5806' in ovos_installer_i2c_devices %}/ { in_mark2=1 } in_mark2 { print } in_mark2 && /{% endif %}/ { in_mark2=0 }" "$conf_file"
+    assert_success
+
+    printf "%s\n" "$output" > "$mark2_scoped_file"
+
+    run test -s "$mark2_scoped_file"
+    assert_success
+
+    run grep -F -q "\"network_tests\": {" "$mark2_scoped_file"
+    assert_success
+
+    run grep -F -q "\"ip_url\": \"{{ ovos_config_mark2_network_tests_ip_url }}\"" "$mark2_scoped_file"
+    assert_success
+
+    run grep -F -q "\"ovos-phal-plugin-ipgeo\": {" "$mark2_scoped_file"
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"\\\"ovos-phal-plugin-ipgeo\\\": {\" \"$mark2_scoped_file\" | grep -q -- \"\\\"enabled\\\": true\""
+    assert_success
+
+    rm -f "$mark2_scoped_file"
+}
+
 @test "macos_never_requests_precise_lite_plugin" {
     run grep -R -n "ovos-ww-plugin-precise-lite" ansible/roles/ovos_virtualenv/templates/virtualenv
     assert_failure
@@ -642,6 +670,47 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_mark2_pins_stable_skills_without_dependency_resolution" {
+    local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -F -q "ovos_virtualenv_mark2_skill_pins:" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos-skill-date-time==1.1.5" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos-skill-weather==1.0.6" "$defaults_file"
+    assert_success
+
+    run grep -F -q "Install stable skill pins for Mark II" "$tasks_file"
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"loop: \\\"{{ ovos_virtualenv_mark2_skill_pins }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"name: \\\"{{ item }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"extra_args: \\\"--no-deps\\\"\""
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
+    assert_success
+
+    run grep -F -q "Install known-good date-time skill for Mark II" "$tasks_file"
+    assert_failure
+
+    run grep -F -q "Install stable weather skill for Mark II" "$tasks_file"
+    assert_failure
+
+    run grep -F -q "ovos_virtualenv_mark2_datetime_package:" "$defaults_file"
+    assert_failure
+
+    run grep -F -q "ovos_virtualenv_mark2_weather_package:" "$defaults_file"
+    assert_failure
+}
+
 @test "virtualenv_mark2_does_not_force_remove_phal_network_plugins" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
@@ -978,7 +1047,7 @@ function setup() {
     assert_success
 }
 
-@test "listener_systemd_unit_waits_for_core_intent_readiness" {
+@test "listener_systemd_unit_orders_with_core_dependencies_without_prestart_gate" {
     local file="ansible/roles/ovos_services/templates/virtualenv/ovos-listener.service.j2"
 
     run grep -q "^Requires=ovos.service ovos-messagebus.service ovos-core.service ovos-phal.service$" "$file"
@@ -987,17 +1056,8 @@ function setup() {
     run grep -q "^After=ovos.service ovos-messagebus.service ovos-core.service ovos-phal.service$" "$file"
     assert_success
 
-    run grep -F -q 'ExecStartPre=/bin/bash -c "for ((_ovos_retry=1;' "$file"
-    assert_success
-
-    run grep -F -q "python -c 'import sys;" "$file"
-    assert_success
-
-    run grep -F -q "mycroft.intents.is_ready" "$file"
-    assert_success
-
-    run grep -F -q "ovos-listener timed out waiting for core intent readiness" "$file"
-    assert_success
+    run grep -q "^ExecStartPre=" "$file"
+    assert_failure
 
     run grep -q "^TimeoutStartSec=5min$" "$file"
     assert_success

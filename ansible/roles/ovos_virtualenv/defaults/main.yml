@@ -32,6 +32,9 @@ ovos_virtualenv_shell_init_file: "{{ ovos_installer_user_home }}/{{ '.zshrc' if 
 ovos_virtualenv_run_ovos_config: "{{ ovos_installer_run_ovos_config | default(false) }}"
 ovos_virtualenv_numpy_package: "{{ ovos_installer_numpy_package | default('numpy==1.26.4') }}"
 ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | default('setuptools<82') }}"
+ovos_virtualenv_mark2_skill_pins:
+  - "{{ ovos_installer_mark2_datetime_package | default('ovos-skill-date-time==1.1.5') }}"
+  - "{{ ovos_installer_mark2_weather_package | default('ovos-skill-weather==1.0.6') }}"
 ovos_virtualenv_messagebus_path: "{{ ovos_installer_user_home }}/.local/bin/ovos-messagebus"
 ovos_virtualenv_rust_messagebus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
 ovos_virtualenv_rust_messagebus_version: v1.1.2

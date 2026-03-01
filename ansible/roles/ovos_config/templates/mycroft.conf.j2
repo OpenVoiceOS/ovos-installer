@@ -100,6 +100,11 @@
     "host": "{{ '0.0.0.0' if ovos_installer_method == "containers" else '127.0.0.1' }}",
     "max_msg_size": 25
   },
+{% if 'tas5806' in ovos_installer_i2c_devices %}
+  "network_tests": {
+    "ip_url": "{{ ovos_config_mark2_network_tests_ip_url }}"
+  },
+{% endif %}
   "PHAL": {
     "admin": {
       "ovos-PHAL-plugin-system": {
@@ -117,6 +122,9 @@
       "key_up": {
         "mycroft.mic.unmute": 248
       }
+    },
+    "ovos-phal-plugin-ipgeo": {
+      "enabled": true
     }
 {% endif %}
   }{% if ovos_installer_usage_telemetry| bool %},

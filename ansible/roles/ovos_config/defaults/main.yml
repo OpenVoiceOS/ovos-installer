@@ -59,6 +59,7 @@ ovos_config_virtualenv_directories:
 ovos_config_geoip_url: "{{ ovos_installer_geoip_url }}"
 ovos_config_geoip_enabled: "{{ ovos_installer_geoip_enabled | default(false) }}"
 ovos_config_geoip_timeout: 5
+ovos_config_mark2_network_tests_ip_url: "{{ ovos_installer_mark2_network_tests_ip_url }}"
 ovos_config_mycroft_conf_relpath: "{{ '.config/mycroft' if ovos_installer_method == 'virtualenv' else 'ovos/config' }}"
 ovos_config_mycroft_conf_mode: "0600"
 ovos_config_system_unit: "{{ ovos_installer_system_unit }}"
