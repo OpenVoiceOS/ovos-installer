@@ -109,17 +109,33 @@
       ) } }}
   changed_when: false
 
+- name: Resolve ALSA default backend for .asoundrc
+  ansible.builtin.set_fact:
+    ovos_sound_asoundrc_server: >-
+      {{
+        (ovos_sound_detect_sound_server.stdout | default('') | lower)
+        if ((ovos_sound_detect_sound_server.stdout | default('') | lower) in ovos_sound_supported_alsa_defaults)
+        else (ovos_sound_expected_server | default('') | lower)
+        if ((ovos_sound_expected_server | default('') | lower) in ovos_sound_supported_alsa_defaults)
+        else (ovos_sound_mark2_default_server | default('pipewire'))
+        if ('tas5806' in (ovos_installer_i2c_devices | default([])))
+        else ''
+      }}
+  changed_when: false
+
 - name: Generate .asoundrc based on detected sound server (Raspberry Pi only)
   ansible.builtin.copy:
     content: |
-      pcm.!default {{ ovos_sound_detect_sound_server.stdout }}
-      ctl.!default {{ ovos_sound_detect_sound_server.stdout }}
+      pcm.!default {{ ovos_sound_asoundrc_server }}
+      ctl.!default {{ ovos_sound_asoundrc_server }}
     dest: "{{ ovos_sound_asoundrc_path }}"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     mode: "{{ ovos_sound_asoundrc_mode }}"
     backup: true
-  when: ovos_installer_raspberrypi | default('N/A') != "N/A"
+  when:
+    - ovos_installer_raspberrypi | default('N/A') != "N/A"
+    - ovos_sound_asoundrc_server | length > 0
 
 - name: Include uninstall tasks
   ansible.builtin.import_tasks: uninstall.yml
