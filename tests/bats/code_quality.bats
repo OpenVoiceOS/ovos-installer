@@ -1213,10 +1213,28 @@ function setup() {
     run grep -q "^After=sound.target$" "$file"
     assert_success
 
+    run grep -F -q "{% set _ovos_sound_server = (ovos_installer_sound_server | default('N/A')) | lower %}" "$file"
+    assert_success
+
+    run grep -F -q "{% if _ovos_sound_server == 'pipewire' %}" "$file"
+    assert_success
+
     run grep -q "^Wants=pipewire.service wireplumber.service$" "$file"
     assert_success
 
     run grep -q "^After=pipewire.service wireplumber.service$" "$file"
+    assert_success
+
+    run grep -F -q "{% elif _ovos_sound_server == 'pulseaudio' %}" "$file"
+    assert_success
+
+    run grep -q "^Wants=pulseaudio.service$" "$file"
+    assert_success
+
+    run grep -q "^After=pulseaudio.service$" "$file"
+    assert_success
+
+    run grep -F -q "{% if ansible_facts.system != 'Darwin' and ((ovos_installer_sound_server | default('N/A')) | lower) == 'pipewire' %}" "$file"
     assert_success
 
     run grep -F -q "ExecStartPre=/bin/bash -c 'for _ovos_retry in {1..30}; do [ -S /run/user/{{ ovos_installer_uid }}/pipewire-0 ] && exit 0; sleep 1; done; echo \"PipeWire socket unavailable: /run/user/{{ ovos_installer_uid }}/pipewire-0\" >&2; exit 1'" "$file"
