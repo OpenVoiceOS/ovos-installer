@@ -771,6 +771,12 @@ function setup() {
     run grep -F -q "ovos_virtualenv_padatious_cache_dir:" "$defaults_file"
     assert_success
 
+    run grep -F -q "ovos_virtualenv_padatious_cache_staging_dir:" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos_virtualenv_padatious_cache_backup_dir:" "$defaults_file"
+    assert_success
+
     run grep -F -q "Checkout padatious cache repository" "$tasks_file"
     assert_success
 
@@ -780,16 +786,37 @@ function setup() {
     run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$tasks_file\" | grep -F -q -- \"version: \\\"{{ ovos_virtualenv_padatious_cache_repo_version }}\\\"\""
     assert_success
 
-    run grep -F -q "Deploy OVOS intent cache from padatious_cache" "$tasks_file"
+    run grep -F -q "Check staged OVOS intent cache payload exists" "$tasks_file"
     assert_success
 
-    run bash -c "grep -A8 -F -- \"- name: Deploy OVOS intent cache from padatious_cache\" \"$tasks_file\" | grep -F -q -- \"src: \\\"{{ ovos_virtualenv_padatious_cache_repo_path }}/intent_cache\\\"\""
+    run grep -F -q "Assert staged OVOS intent cache payload is valid" "$tasks_file"
     assert_success
 
-    run bash -c "grep -A8 -F -- \"- name: Deploy OVOS intent cache from padatious_cache\" \"$tasks_file\" | grep -F -q -- \"dest: \\\"{{ ovos_virtualenv_padatious_cache_dir | dirname }}\\\"\""
+    run grep -F -q "Stage OVOS intent cache payload from padatious_cache" "$tasks_file"
     assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Stage OVOS intent cache payload from padatious_cache\" \"$tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_repo_path }}/intent_cache\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Stage OVOS intent cache payload from padatious_cache\" \"$tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_staging_dir }}\""
+    assert_success
+
+    run grep -F -q "Backup existing OVOS intent cache directory" "$tasks_file"
+    assert_success
+
+    run grep -F -q "Activate staged OVOS intent cache directory" "$tasks_file"
+    assert_success
+
+    run grep -F -q "Remove existing OVOS intent cache directory" "$tasks_file"
+    assert_failure
 
     run grep -F -q -- "- \"{{ ovos_virtualenv_padatious_cache_dir }}\"" "$defaults_file"
+    assert_success
+
+    run grep -F -q -- "- \"{{ ovos_virtualenv_padatious_cache_staging_dir }}\"" "$defaults_file"
+    assert_success
+
+    run grep -F -q -- "- \"{{ ovos_virtualenv_padatious_cache_backup_dir }}\"" "$defaults_file"
     assert_success
 }
 
