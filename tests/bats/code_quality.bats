@@ -937,6 +937,54 @@ function setup() {
     assert_success
 }
 
+@test "sound_role_never_writes_invalid_n_a_asound_defaults" {
+    local defaults_file="ansible/roles/ovos_sound/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_sound/tasks/main.yml"
+
+    run grep -q "ovos_sound_supported_alsa_defaults" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_sound_mark2_default_server: pipewire" "$defaults_file"
+    assert_success
+
+    run grep -q "Resolve ALSA default backend for .asoundrc" "$tasks_file"
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"- name: Resolve ALSA default backend for .asoundrc\" \"$tasks_file\" | grep -F -q -- \"ovos_sound_mark2_default_server\""
+    assert_success
+
+    run bash -c "grep -A22 -F -- \"- name: Resolve ALSA default backend for .asoundrc\" \"$tasks_file\" | grep -F -q -- \"_ovos_sound_mark2_fallback_server in ovos_sound_supported_alsa_defaults\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Generate .asoundrc based on detected sound server (Raspberry Pi only)\" \"$tasks_file\" | grep -F -q -- \"pcm.!default {{ ovos_sound_asoundrc_server }}\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Generate .asoundrc based on detected sound server (Raspberry Pi only)\" \"$tasks_file\" | grep -F -q -- \"ctl.!default {{ ovos_sound_asoundrc_server }}\""
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"- name: Generate .asoundrc based on detected sound server (Raspberry Pi only)\" \"$tasks_file\" | grep -F -q -- \"ovos_sound_asoundrc_server | length > 0\""
+    assert_success
+
+    run grep -q "pcm.!default {{ ovos_sound_detect_sound_server.stdout }}" "$tasks_file"
+    assert_failure
+}
+
+@test "sound_role_starts_sound_server_before_redetection" {
+    local tasks_file="ansible/roles/ovos_sound/tasks/main.yml"
+
+    run grep -q "Ensure PipeWire user sound services are running before detection" "$tasks_file"
+    assert_success
+
+    run grep -q "Ensure PulseAudio user sound service is running before detection" "$tasks_file"
+    assert_success
+
+    run bash -c "pipewire_line=\$(grep -n \"Ensure PipeWire user sound services are running before detection\" \"$tasks_file\" | head -n1 | cut -d: -f1); redetect_line=\$(grep -n \"Re-detect sound server\" \"$tasks_file\" | head -n1 | cut -d: -f1); [ -n \"\$pipewire_line\" ] && [ -n \"\$redetect_line\" ] && [ \"\$pipewire_line\" -lt \"\$redetect_line\" ]"
+    assert_success
+
+    run bash -c "pulseaudio_line=\$(grep -n \"Ensure PulseAudio user sound service is running before detection\" \"$tasks_file\" | head -n1 | cut -d: -f1); redetect_line=\$(grep -n \"Re-detect sound server\" \"$tasks_file\" | head -n1 | cut -d: -f1); [ -n \"\$pulseaudio_line\" ] && [ -n \"\$redetect_line\" ] && [ \"\$pulseaudio_line\" -lt \"\$redetect_line\" ]"
+    assert_success
+}
+
 @test "homeassistant_settings_use_single_skill_directory" {
     run grep -q 'ovos_installer_homeassistant_skill_id: "skill-homeassistant.oscillatelabsllc"' ansible/roles/ovos_installer/defaults/main.yml
     assert_success
