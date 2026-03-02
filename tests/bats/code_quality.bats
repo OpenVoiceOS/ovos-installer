@@ -208,6 +208,53 @@ function setup() {
     assert_success
 }
 
+@test "mycroft_conf_uses_top_level_hotwords_configuration" {
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+    local listener_scope_file
+    listener_scope_file="$(mktemp)"
+
+    run awk '/"listener": \{/{in_listener=1} in_listener {print} in_listener && /^  },$/{in_listener=0; exit}' "$conf_file"
+    assert_success
+
+    printf "%s\n" "$output" > "$listener_scope_file"
+
+    run grep -F -q "\"hotwords\": {" "$listener_scope_file"
+    assert_failure
+
+    run grep -F -q "\"hotwords\": {" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"listen\": true" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"active\": true" "$conf_file"
+    assert_success
+
+    rm -f "$listener_scope_file"
+}
+
+@test "mycroft_conf_hardens_mark2_wakeword_defaults" {
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run grep -q "ovos_installer_mark2_hotword_sensitivity: 0.55" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_installer_mark2_hotword_trigger_level: 3" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_installer_mark2_vad_pre_wake_enabled: false" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -F -q "{% set _ovos_hotword_sensitivity = ovos_config_mark2_hotword_sensitivity if _ovos_is_mark2 else ovos_config_hotword_sensitivity %}" "$conf_file"
+    assert_success
+
+    run grep -F -q "{% set _ovos_hotword_trigger_level = ovos_config_mark2_hotword_trigger_level if _ovos_is_mark2 else ovos_config_hotword_trigger_level %}" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"vad_pre_wake_enabled\": {{ ovos_config_mark2_vad_pre_wake_enabled | bool | lower }}" "$conf_file"
+    assert_success
+}
+
 @test "sounddevice_microphone_defaults_include_mark2_and_devkit" {
     local core_file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
     local sat_file="ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2"

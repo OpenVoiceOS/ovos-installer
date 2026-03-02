@@ -117,6 +117,9 @@ ovos_installer_venv_python_major: "{{ (ovos_installer_venv_python_parts | first 
 ovos_installer_venv_python_minor: "{{ (ovos_installer_venv_python_parts[1:] | first | default('0')) | int }}"
 ovos_installer_hotword_sensitivity: 0.95
 ovos_installer_hotword_trigger_level: 1
+ovos_installer_mark2_hotword_sensitivity: 0.55
+ovos_installer_mark2_hotword_trigger_level: 3
+ovos_installer_mark2_vad_pre_wake_enabled: false
 ovos_installer_listener_multiplier: 1.5
 ovos_installer_tuning_source_volume: 1.0
 ovos_installer_cpu_is_capable: false

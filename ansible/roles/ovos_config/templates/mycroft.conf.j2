@@ -11,6 +11,8 @@
 {% set _ovos_is_mark2 = ('tas5806' in (ovos_installer_i2c_devices | default([]))) and ('attiny1614' not in (ovos_installer_i2c_devices | default([]))) %}
 {% set _ovos_use_sounddevice_mic = _ovos_is_macos or ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}
 {% set _ovos_listener_has_wake_word = (_ovos_is_macos and ((ovos_installer_cpu_is_capable | default(false)) | bool)) or (ovos_installer_tuning | bool) %}
+{% set _ovos_hotword_sensitivity = ovos_config_mark2_hotword_sensitivity if _ovos_is_mark2 else ovos_config_hotword_sensitivity %}
+{% set _ovos_hotword_trigger_level = ovos_config_mark2_hotword_trigger_level if _ovos_is_mark2 else ovos_config_hotword_trigger_level %}
   "play_wav_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
   "play_mp3_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
   "lang": "{{ ovos_installer_locale }}",
@@ -57,17 +59,24 @@
 {% endif %}
 {% if _ovos_listener_has_wake_word %}
     "wake_word": "hey_mycroft",
+{% if _ovos_is_mark2 %}
+    "vad_pre_wake_enabled": {{ ovos_config_mark2_vad_pre_wake_enabled | bool | lower }},
+{% endif %}
     "multiplier": {{ ovos_config_listener_multiplier }}{% if ovos_installer_tuning | bool %},
-    "patience": 0.5{% endif %},
-    "hotwords": {
-      "hey_mycroft": {
-        "module": "ovos-ww-plugin-precise-onnx",
-        "sensitivity": {{ ovos_config_hotword_sensitivity }},
-        "trigger_level": {{ ovos_config_hotword_trigger_level }}
-      }
-    }
+    "patience": 0.5{% endif %}
 {% endif %}
   },
+{% if _ovos_listener_has_wake_word %}
+  "hotwords": {
+    "hey_mycroft": {
+      "module": "ovos-ww-plugin-precise-onnx",
+      "sensitivity": {{ _ovos_hotword_sensitivity }},
+      "trigger_level": {{ _ovos_hotword_trigger_level }},
+      "listen": true,
+      "active": true
+    }
+  },
+{% endif %}
 {% if ansible_facts.architecture in (ovos_installer_supported_desktop_architectures | default(['x86_64', 'aarch64', 'arm64'])) %}
   "skills": {
     "installer": {
