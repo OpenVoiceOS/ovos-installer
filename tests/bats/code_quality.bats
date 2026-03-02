@@ -758,6 +758,41 @@ function setup() {
     assert_failure
 }
 
+@test "virtualenv_installs_padatious_cache_for_all_virtualenv_installs" {
+    local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -F -q "ovos_virtualenv_padatious_cache_repo_url: https://github.com/OpenVoiceOS/padatious_cache" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos_virtualenv_padatious_cache_repo_version: dev" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos_virtualenv_padatious_cache_dir:" "$defaults_file"
+    assert_success
+
+    run grep -F -q "Checkout padatious cache repository" "$tasks_file"
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$tasks_file\" | grep -F -q -- \"repo: \\\"{{ ovos_virtualenv_padatious_cache_repo_url }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$tasks_file\" | grep -F -q -- \"version: \\\"{{ ovos_virtualenv_padatious_cache_repo_version }}\\\"\""
+    assert_success
+
+    run grep -F -q "Deploy OVOS intent cache from padatious_cache" "$tasks_file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Deploy OVOS intent cache from padatious_cache\" \"$tasks_file\" | grep -F -q -- \"src: \\\"{{ ovos_virtualenv_padatious_cache_repo_path }}/intent_cache\\\"\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Deploy OVOS intent cache from padatious_cache\" \"$tasks_file\" | grep -F -q -- \"dest: \\\"{{ ovos_virtualenv_padatious_cache_dir | dirname }}\\\"\""
+    assert_success
+
+    run grep -F -q -- "- \"{{ ovos_virtualenv_padatious_cache_dir }}\"" "$defaults_file"
+    assert_success
+}
+
 @test "virtualenv_mark2_does_not_force_remove_phal_network_plugins" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 

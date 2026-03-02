@@ -266,6 +266,41 @@
     - not (ovos_installer_cleaning | default(false) | bool)
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
 
+- name: Checkout padatious cache repository
+  ansible.builtin.git:
+    repo: "{{ ovos_virtualenv_padatious_cache_repo_url }}"
+    version: "{{ ovos_virtualenv_padatious_cache_repo_version }}"
+    dest: "{{ ovos_virtualenv_padatious_cache_repo_path }}"
+    update: true
+    force: true
+    depth: 1
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Ensure OVOS intent cache parent directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_padatious_cache_dir | dirname }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Remove existing OVOS intent cache directory
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_padatious_cache_dir }}"
+    state: absent
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
+- name: Deploy OVOS intent cache from padatious_cache
+  ansible.builtin.copy:
+    src: "{{ ovos_virtualenv_padatious_cache_repo_path }}/intent_cache"
+    dest: "{{ ovos_virtualenv_padatious_cache_dir | dirname }}"
+    remote_src: true
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: preserve
+  when: not (ovos_installer_cleaning | default(false) | bool)
+
 - name: Ensure numpy Python library is installed
   become: true
   become_user: "{{ ovos_installer_user }}"
