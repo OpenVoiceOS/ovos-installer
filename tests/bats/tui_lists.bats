@@ -40,6 +40,7 @@ function setup() {
                 if (( remaining >= 3 && remaining % 3 == 0 )); then
                     # Validate status fields and collect tags.
                     local -a parsed_tags=()
+                    local -a parsed_statuses=()
                     for ((k = options_start; k < ${#args[@]}; k += 3)); do
                         local tag="${args[$k]}"
                         local status="${args[$((k + 2))]}"
@@ -59,6 +60,7 @@ function setup() {
                         esac
 
                         parsed_tags+=("$tag")
+                        parsed_statuses+=("${status^^}")
                     done
 
                     local parsed_list_height="${args[$((j + 2))]}"
@@ -74,6 +76,7 @@ function setup() {
                         printf 'list_height=%s\n' "$parsed_list_height"
                         printf 'option_count=%s\n' "$parsed_option_count"
                         printf 'tags=%s\n' "${parsed_tags[*]}"
+                        printf 'statuses=%s\n' "${parsed_statuses[*]}"
                     } >"$WHIPTAIL_SPY_FILE"
 
                     local selection="${WHIPTAIL_FORCE_SELECTION:-${parsed_tags[0]}}"
@@ -270,7 +273,7 @@ function spy_value() {
 }
 
 @test "features: honors persisted GUI disabled state on Debian Trixie Mark 2 hardware" {
-    printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"]}' >"$INSTALLER_STATE_FILE"
+    printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"],"feature_gui_selected":false}' >"$INSTALLER_STATE_FILE"
     PROFILE="ovos"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
@@ -282,6 +285,22 @@ function spy_value() {
     source tui/features.sh
 
     assert_equal "$FEATURE_GUI" "false"
+}
+
+@test "features: legacy state defaults GUI to ON on Debian Trixie Mark 2 hardware" {
+    printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"]}' >"$INSTALLER_STATE_FILE"
+    PROFILE="ovos"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION=$'skills\ngui'
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    assert_equal "$(spy_value statuses)" "ON OFF ON OFF"
+    assert_equal "$FEATURE_GUI" "true"
 }
 
 @test "features: shows Home Assistant option for containers installs" {

@@ -63,12 +63,25 @@ if [ -f "$INSTALLER_STATE_FILE" ] && \
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
   fi
   if [ "${_gui_supported}" == "true" ]; then
-    if jq -e '.features|any(. == "gui")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
+    if jq -e 'has("feature_gui_selected")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
+      if jq -e '.feature_gui_selected == true' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
+        features+=("gui" "${_gui_description}" "ON")
+        export FEATURE_GUI="true"
+      else
+        features+=("gui" "${_gui_description}" "OFF")
+        export FEATURE_GUI="false"
+      fi
+    elif jq -e '.features|any(. == "gui")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
       features+=("gui" "${_gui_description}" "ON")
       export FEATURE_GUI="true"
     else
-      features+=("gui" "${_gui_description}" "OFF")
-      export FEATURE_GUI="false"
+      # Legacy state without explicit GUI selection should follow Mark II default.
+      features+=("gui" "${_gui_description}" "${_gui_default_state}")
+      if [ "${_gui_default_state}" == "ON" ]; then
+        export FEATURE_GUI="true"
+      else
+        export FEATURE_GUI="false"
+      fi
     fi
   fi
   if [ "${_ha_supported}" == "true" ]; then
@@ -165,13 +178,26 @@ done
 # Persist selection (used for defaults when navigating back or re-running).
 features_json="$(jq -c -n --args '$ARGS.positional' "${FEATURES_STATE[@]}" 2>>"$LOG_FILE")"
 state_tmp="$(mktemp)"
+_feature_gui_selected_json="null"
+if [ "${_gui_supported}" == "true" ]; then
+  if [ "${FEATURE_GUI}" == "true" ]; then
+    _feature_gui_selected_json="true"
+  else
+    _feature_gui_selected_json="false"
+  fi
+fi
 if [ -f "$INSTALLER_STATE_FILE" ] && \
   jq --argjson features "$features_json" \
-    'if type=="object" then . else {} end | .features = $features' \
+    --argjson feature_gui_selected "$_feature_gui_selected_json" \
+    'if type=="object" then . else {} end
+     | .features = $features
+     | if $feature_gui_selected == null then . else .feature_gui_selected = $feature_gui_selected end' \
     "$INSTALLER_STATE_FILE" >"$state_tmp" 2>>"$LOG_FILE"; then
   mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
 else
-  jq -n --argjson features "$features_json" '{features: $features}' >"$state_tmp" 2>>"$LOG_FILE" && \
+  jq -n --argjson features "$features_json" --argjson feature_gui_selected "$_feature_gui_selected_json" \
+    '{features: $features} | if $feature_gui_selected == null then . else .feature_gui_selected = $feature_gui_selected end' \
+    >"$state_tmp" 2>>"$LOG_FILE" && \
     mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
 fi
 
