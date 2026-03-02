@@ -966,6 +966,22 @@ function setup() {
     assert_failure
 }
 
+@test "sound_role_starts_sound_server_before_redetection" {
+    local tasks_file="ansible/roles/ovos_sound/tasks/main.yml"
+
+    run grep -q "Ensure PipeWire user sound services are running before detection" "$tasks_file"
+    assert_success
+
+    run grep -q "Ensure PulseAudio user sound service is running before detection" "$tasks_file"
+    assert_success
+
+    run bash -c "pipewire_line=\$(grep -n \"Ensure PipeWire user sound services are running before detection\" \"$tasks_file\" | head -n1 | cut -d: -f1); redetect_line=\$(grep -n \"Re-detect sound server\" \"$tasks_file\" | head -n1 | cut -d: -f1); [ -n \"\$pipewire_line\" ] && [ -n \"\$redetect_line\" ] && [ \"\$pipewire_line\" -lt \"\$redetect_line\" ]"
+    assert_success
+
+    run bash -c "pulseaudio_line=\$(grep -n \"Ensure PulseAudio user sound service is running before detection\" \"$tasks_file\" | head -n1 | cut -d: -f1); redetect_line=\$(grep -n \"Re-detect sound server\" \"$tasks_file\" | head -n1 | cut -d: -f1); [ -n \"\$pulseaudio_line\" ] && [ -n \"\$redetect_line\" ] && [ \"\$pulseaudio_line\" -lt \"\$redetect_line\" ]"
+    assert_success
+}
+
 @test "homeassistant_settings_use_single_skill_directory" {
     run grep -q 'ovos_installer_homeassistant_skill_id: "skill-homeassistant.oscillatelabsllc"' ansible/roles/ovos_installer/defaults/main.yml
     assert_success

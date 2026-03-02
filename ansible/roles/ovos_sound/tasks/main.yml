@@ -80,6 +80,41 @@
 - name: Flush handlers sound
   ansible.builtin.meta: flush_handlers
 
+- name: Ensure PipeWire user sound services are running before detection
+  when:
+    - ovos_services_manager == 'systemd'
+    - ovos_sound_pipewire_install is defined
+    - "'skipped' not in ovos_sound_pipewire_install.keys()"
+  block:
+    - name: Ensure PipeWire user service is started
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.systemd_service:
+        name: pipewire
+        scope: user
+        state: started
+
+    - name: Ensure PipeWire PulseAudio compatibility user service is started
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.systemd_service:
+        name: pipewire-pulse
+        scope: user
+        state: started
+      when: ovos_sound_expected_server == 'pulseaudio'
+
+- name: Ensure PulseAudio user sound service is running before detection
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.systemd_service:
+    name: pulseaudio
+    scope: user
+    state: started
+  when:
+    - ovos_services_manager == 'systemd'
+    - ovos_sound_pulseaudio_install is defined
+    - "'skipped' not in ovos_sound_pulseaudio_install.keys()"
+
 - name: Check for pipewire-pulse
   ansible.builtin.command: "{{ ovos_sound_pgrep_cmd }} -x {{ ovos_sound_pipewire_pulse_process }}"
   register: ovos_sound_pipewire_pulse_pgrep
