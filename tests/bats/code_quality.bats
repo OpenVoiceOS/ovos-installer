@@ -338,10 +338,7 @@ function setup() {
     assert_success
 
     run grep -F -q "\"ovos-PHAL-plugin-alsa\": {" "$mark2_scoped_file"
-    assert_success
-
-    run bash -c "grep -A4 -F -- \"\\\"ovos-PHAL-plugin-alsa\\\": {\" \"$mark2_scoped_file\" | grep -q -- \"\\\"enabled\\\": false\""
-    assert_success
+    assert_failure
 
     rm -f "$mark2_scoped_file"
 }
@@ -1201,6 +1198,28 @@ function setup() {
     assert_failure
 
     run grep -q "^TimeoutStartSec=5min$" "$file"
+    assert_success
+}
+
+@test "phal_systemd_unit_orders_with_audio_stack_for_user_and_system_scopes" {
+    local file="ansible/roles/ovos_services/templates/virtualenv/ovos-phal.service.j2"
+
+    run grep -q "^After=ovos.service ovos-messagebus.service$" "$file"
+    assert_success
+
+    run grep -q "^Wants=sound.target$" "$file"
+    assert_success
+
+    run grep -q "^After=sound.target$" "$file"
+    assert_success
+
+    run grep -q "^Wants=pipewire.service wireplumber.service$" "$file"
+    assert_success
+
+    run grep -q "^After=pipewire.service wireplumber.service$" "$file"
+    assert_success
+
+    run grep -F -q "ExecStartPre=/bin/bash -c 'for _ovos_retry in {1..30}; do [ -S /run/user/{{ ovos_installer_uid }}/pipewire-0 ] && exit 0; sleep 1; done; exit 0'" "$file"
     assert_success
 }
 
