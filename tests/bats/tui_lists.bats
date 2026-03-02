@@ -303,6 +303,22 @@ function spy_value() {
     assert_equal "$FEATURE_GUI" "true"
 }
 
+@test "features: invalid persisted GUI type falls back to Mark 2 default ON" {
+    printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"],"feature_gui_selected":"false"}' >"$INSTALLER_STATE_FILE"
+    PROFILE="ovos"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION=$'skills\ngui'
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    assert_equal "$(spy_value statuses)" "ON OFF ON OFF"
+    assert_equal "$FEATURE_GUI" "true"
+}
+
 @test "features: shows Home Assistant option for containers installs" {
     printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"]}' >"$INSTALLER_STATE_FILE"
     PROFILE="ovos"

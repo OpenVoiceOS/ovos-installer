@@ -63,7 +63,7 @@ if [ -f "$INSTALLER_STATE_FILE" ] && \
     features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
   fi
   if [ "${_gui_supported}" == "true" ]; then
-    if jq -e 'has("feature_gui_selected")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
+    if jq -e '.feature_gui_selected | type == "boolean"' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
       if jq -e '.feature_gui_selected == true' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
         features+=("gui" "${_gui_description}" "ON")
         export FEATURE_GUI="true"
