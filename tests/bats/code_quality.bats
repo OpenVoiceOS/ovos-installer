@@ -1124,6 +1124,9 @@ function setup() {
     run grep -q "regex_search(ovos_performance_tuning_rpi_eeprom_reboot_regex)" "$eeprom_file"
     assert_success
 
+    run bash -c "awk '/changed_when: >-/{getline; print; exit}' \"$eeprom_file\" | grep -q -- \"{{\""
+    assert_failure
+
     run grep -q "ovos_performance_tuning_rpi_eeprom_installed | default(false) | bool" "$eeprom_file"
     assert_success
 
