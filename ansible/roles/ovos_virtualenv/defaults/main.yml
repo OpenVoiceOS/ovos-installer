@@ -35,6 +35,7 @@ ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | defa
 ovos_virtualenv_mark2_skill_pins:
   - "{{ ovos_installer_mark2_datetime_package | default('ovos-skill-date-time==1.1.5') }}"
   - "{{ ovos_installer_mark2_weather_package | default('ovos-skill-weather==1.0.6') }}"
+ovos_virtualenv_mark2_padatious_package: "{{ ovos_installer_mark2_padatious_package | default('ovos-padatious==1.4.3') }}"
 ovos_virtualenv_padatious_cache_repo_url: https://github.com/OpenVoiceOS/padatious_cache
 ovos_virtualenv_padatious_cache_repo_version: dev
 ovos_virtualenv_padatious_cache_repo_path: "{{ ovos_virtualenv_tmp_dir }}/padatious_cache"

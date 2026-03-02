@@ -337,6 +337,12 @@ function setup() {
     run bash -c "grep -A4 -F -- \"\\\"ovos-phal-plugin-ipgeo\\\": {\" \"$mark2_scoped_file\" | grep -q -- \"\\\"enabled\\\": true\""
     assert_success
 
+    run grep -F -q "\"ovos-PHAL-plugin-alsa\": {" "$mark2_scoped_file"
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"\\\"ovos-PHAL-plugin-alsa\\\": {\" \"$mark2_scoped_file\" | grep -q -- \"\\\"enabled\\\": false\""
+    assert_success
+
     rm -f "$mark2_scoped_file"
 }
 
@@ -756,6 +762,29 @@ function setup() {
 
     run grep -F -q "ovos_virtualenv_mark2_weather_package:" "$defaults_file"
     assert_failure
+}
+
+@test "virtualenv_mark2_pins_stable_padatious_parser" {
+    local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -F -q "ovos_virtualenv_mark2_padatious_package:" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos-padatious==1.4.3" "$defaults_file"
+    assert_success
+
+    run grep -F -q "Install stable padatious parser for Mark II" "$tasks_file"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Install stable padatious parser for Mark II\" \"$tasks_file\" | grep -F -q -- \"name: \\\"{{ ovos_virtualenv_mark2_padatious_package }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Install stable padatious parser for Mark II\" \"$tasks_file\" | grep -F -q -- \"extra_args: \\\"--no-deps\\\"\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Install stable padatious parser for Mark II\" \"$tasks_file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
+    assert_success
 }
 
 @test "virtualenv_installs_padatious_cache_for_all_virtualenv_installs" {
