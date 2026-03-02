@@ -1219,7 +1219,7 @@ function setup() {
     run grep -q "^After=pipewire.service wireplumber.service$" "$file"
     assert_success
 
-    run grep -F -q "ExecStartPre=/bin/bash -c 'for _ovos_retry in {1..30}; do [ -S /run/user/{{ ovos_installer_uid }}/pipewire-0 ] && exit 0; sleep 1; done; exit 0'" "$file"
+    run grep -F -q "ExecStartPre=/bin/bash -c 'for _ovos_retry in {1..30}; do [ -S /run/user/{{ ovos_installer_uid }}/pipewire-0 ] && exit 0; sleep 1; done; echo \"PipeWire socket unavailable: /run/user/{{ ovos_installer_uid }}/pipewire-0\" >&2; exit 1'" "$file"
     assert_success
 }
 
