@@ -3,6 +3,16 @@ Documentation=https://openvoiceos.github.io/ovos-docker/about/glossary/component
 Description=Open Voice OS - PHAL
 PartOf=ovos.service
 Requires=ovos.service ovos-messagebus.service
+After=ovos.service ovos-messagebus.service
+{% if ansible_facts.system != 'Darwin' %}
+{% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
+Wants=sound.target
+After=sound.target
+{% else %}
+Wants=pipewire.service wireplumber.service
+After=pipewire.service wireplumber.service
+{% endif %}
+{% endif %}
 
 [Service]
 {% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
@@ -12,6 +22,9 @@ Environment=HOME={{ ovos_installer_user_home }}
 Environment=XDG_RUNTIME_DIR=/run/user/{{ ovos_installer_uid }}
 Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{{ ovos_installer_uid }}/bus
 EnvironmentFile=-{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tuning.conf
+{% if ansible_facts.system != 'Darwin' %}
+ExecStartPre=/bin/bash -c 'for _ovos_retry in {1..30}; do [ -S /run/user/{{ ovos_installer_uid }}/pipewire-0 ] && exit 0; sleep 1; done; exit 0'
+{% endif %}
 {% endif %}
 WorkingDirectory={{ ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' }}/.venvs/ovos
 ExecStart={{ ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' }}/.venvs/ovos/bin/ovos_PHAL
