@@ -1,6 +1,9 @@
 ---
 ovos_config_hotword_sensitivity: "{{ ovos_installer_hotword_sensitivity | default(0.95) }}"
 ovos_config_hotword_trigger_level: "{{ ovos_installer_hotword_trigger_level | default(1) }}"
+ovos_config_mark2_hotword_sensitivity: "{{ ovos_installer_mark2_hotword_sensitivity | default(0.55) }}"
+ovos_config_mark2_hotword_trigger_level: "{{ ovos_installer_mark2_hotword_trigger_level | default(3) }}"
+ovos_config_mark2_vad_pre_wake_enabled: "{{ ovos_installer_mark2_vad_pre_wake_enabled | default(false) }}"
 ovos_config_listener_multiplier: "{{ ovos_installer_listener_multiplier | default(1.5) }}"
 
 ovos_config_backup_paths_common:
