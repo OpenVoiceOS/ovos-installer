@@ -953,6 +953,9 @@ function setup() {
     run bash -c "grep -A14 -F -- \"- name: Resolve ALSA default backend for .asoundrc\" \"$tasks_file\" | grep -F -q -- \"ovos_sound_mark2_default_server\""
     assert_success
 
+    run bash -c "grep -A22 -F -- \"- name: Resolve ALSA default backend for .asoundrc\" \"$tasks_file\" | grep -F -q -- \"_ovos_sound_mark2_fallback_server in ovos_sound_supported_alsa_defaults\""
+    assert_success
+
     run bash -c "grep -A10 -F -- \"- name: Generate .asoundrc based on detected sound server (Raspberry Pi only)\" \"$tasks_file\" | grep -F -q -- \"pcm.!default {{ ovos_sound_asoundrc_server }}\""
     assert_success
 

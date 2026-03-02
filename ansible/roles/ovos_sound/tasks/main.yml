@@ -145,15 +145,22 @@
   changed_when: false
 
 - name: Resolve ALSA default backend for .asoundrc
+  vars:
+    _ovos_sound_detected_server: "{{ ovos_sound_detect_sound_server.stdout | default('') | lower }}"
+    _ovos_sound_expected_server: "{{ ovos_sound_expected_server | default('') | lower }}"
+    _ovos_sound_mark2_fallback_server: "{{ ovos_sound_mark2_default_server | default('pipewire') | lower }}"
   ansible.builtin.set_fact:
     ovos_sound_asoundrc_server: >-
       {{
-        (ovos_sound_detect_sound_server.stdout | default('') | lower)
-        if ((ovos_sound_detect_sound_server.stdout | default('') | lower) in ovos_sound_supported_alsa_defaults)
-        else (ovos_sound_expected_server | default('') | lower)
-        if ((ovos_sound_expected_server | default('') | lower) in ovos_sound_supported_alsa_defaults)
-        else (ovos_sound_mark2_default_server | default('pipewire'))
-        if ('tas5806' in (ovos_installer_i2c_devices | default([])))
+        _ovos_sound_detected_server
+        if (_ovos_sound_detected_server in ovos_sound_supported_alsa_defaults)
+        else _ovos_sound_expected_server
+        if (_ovos_sound_expected_server in ovos_sound_supported_alsa_defaults)
+        else _ovos_sound_mark2_fallback_server
+        if (
+          ('tas5806' in (ovos_installer_i2c_devices | default([]))) and
+          (_ovos_sound_mark2_fallback_server in ovos_sound_supported_alsa_defaults)
+        )
         else ''
       }}
   changed_when: false
