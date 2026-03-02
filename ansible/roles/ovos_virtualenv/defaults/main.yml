@@ -35,6 +35,12 @@ ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | defa
 ovos_virtualenv_mark2_skill_pins:
   - "{{ ovos_installer_mark2_datetime_package | default('ovos-skill-date-time==1.1.5') }}"
   - "{{ ovos_installer_mark2_weather_package | default('ovos-skill-weather==1.0.6') }}"
+ovos_virtualenv_padatious_cache_repo_url: https://github.com/OpenVoiceOS/padatious_cache
+ovos_virtualenv_padatious_cache_repo_version: dev
+ovos_virtualenv_padatious_cache_repo_path: "{{ ovos_virtualenv_tmp_dir }}/padatious_cache"
+ovos_virtualenv_padatious_cache_dir: "{{ ovos_installer_user_home }}/.local/share/mycroft/intent_cache"
+ovos_virtualenv_padatious_cache_staging_dir: "{{ ovos_virtualenv_padatious_cache_dir }}.staged"
+ovos_virtualenv_padatious_cache_backup_dir: "{{ ovos_virtualenv_padatious_cache_dir }}.bak"
 ovos_virtualenv_messagebus_path: "{{ ovos_installer_user_home }}/.local/bin/ovos-messagebus"
 ovos_virtualenv_rust_messagebus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
 ovos_virtualenv_rust_messagebus_version: v1.1.2
@@ -98,3 +104,6 @@ ovos_virtualenv_macos_packages:
 ovos_virtualenv_uninstall_extra_paths:
   - "{{ ovos_hardware_mark1_working_directory | default('/opt/mark1') }}"
   - "{{ ovos_hardware_mark2_working_dir | default('/opt/sj201') }}"
+  - "{{ ovos_virtualenv_padatious_cache_dir }}"
+  - "{{ ovos_virtualenv_padatious_cache_staging_dir }}"
+  - "{{ ovos_virtualenv_padatious_cache_backup_dir }}"
