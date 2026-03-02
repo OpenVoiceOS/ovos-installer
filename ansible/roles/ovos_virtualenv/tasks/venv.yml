@@ -266,6 +266,19 @@
     - not (ovos_installer_cleaning | default(false) | bool)
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
 
+- name: Install stable padatious parser for Mark II
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  moreati.uv.pip:
+    name: "{{ ovos_virtualenv_mark2_padatious_package }}"
+    virtualenv: "{{ ovos_virtualenv_path }}"
+    extra_args: "--no-deps"
+    state: present
+  environment: "{{ ovos_virtualenv_uv_environment }}"
+  when:
+    - not (ovos_installer_cleaning | default(false) | bool)
+    - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
+
 - name: Checkout padatious cache repository
   ansible.builtin.git:
     repo: "{{ ovos_virtualenv_padatious_cache_repo_url }}"
