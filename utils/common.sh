@@ -1132,7 +1132,7 @@ function enforce_mark2_alpha_channel() {
     if [[ "$mark2_detected" == "true" && "$devkit_detected" != "true" ]]; then
         if [ "${CHANNEL:-}" != "alpha" ]; then
             export CHANNEL="alpha"
-            echo "Mark II requires alpha channel. Forcing CHANNEL=alpha." | tee -a "$LOG_FILE"
+            printf '%s\n' "Mark II requires alpha channel. Forcing CHANNEL=alpha." >>"$LOG_FILE"
         fi
     fi
 }
@@ -1198,7 +1198,7 @@ function enforce_mark2_devkit_display_server() {
 
     if [ "${DISPLAY_SERVER:-N/A}" == "N/A" ]; then
         export DISPLAY_SERVER="eglfs"
-        echo "Mark II/DevKit headless display detected. Setting DISPLAY_SERVER=eglfs." | tee -a "$LOG_FILE"
+        printf '%s\n' "Mark II/DevKit headless display detected. Setting DISPLAY_SERVER=eglfs." >>"$LOG_FILE"
     fi
 }
 
