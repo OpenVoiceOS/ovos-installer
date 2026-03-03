@@ -1,5 +1,13 @@
 ---
 ovos_services_manager: "{{ 'launchd' if (ansible_facts.system | default('')) == 'Darwin' else 'systemd' }}"
+ovos_services_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
+ovos_services_is_desktop_profile: "{{ ovos_installer_is_desktop_profile | default(ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') | bool }}"
+ovos_services_enable_non_satellite: "{{ ovos_installer_profile != 'satellite' }}"
+ovos_services_enable_desktop: "{{ ovos_services_is_desktop_profile | bool }}"
+ovos_services_enable_gui: "{{ ovos_installer_feature_gui | bool and ovos_services_enable_desktop | bool }}"
+ovos_services_enable_ggwave: "{{ ovos_services_enable_desktop | bool and (ovos_installer_enable_ggwave | bool) }}"
+ovos_services_enable_listener_or_server: "{{ ovos_installer_profile == 'listener' or ovos_installer_profile == 'server' }}"
+ovos_services_enable_satellite: "{{ ovos_installer_profile == 'satellite' }}"
 ovos_services_wrapper_template: virtualenv/wrapper-ovos-phal-admin.sh.j2
 ovos_services_wrapper_path: /usr/local/bin/wrapper-ovos-phal-admin.sh
 ovos_services_wrapper_mode: "0755"
@@ -86,94 +94,94 @@ ovos_services_admin_unit: ovos-phal-admin.service
 ovos_services_unit_definitions:
   - unit: ovos.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_profile != 'satellite' }}"
+    state: "{{ ovos_services_enable_non_satellite | bool }}"
   - unit: ovos-messagebus.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_profile != 'satellite' }}"
+    state: "{{ ovos_services_enable_non_satellite | bool }}"
   - unit: ovos-core.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_profile != 'satellite' }}"
+    state: "{{ ovos_services_enable_non_satellite | bool }}"
   - unit: ovos-phal.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_services_enable_desktop | bool }}"
   - unit: "{{ ovos_services_admin_unit }}"
     scope: system
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_services_enable_desktop | bool }}"
   - unit: ovos-listener.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_services_enable_desktop | bool }}"
   - unit: ovos-audio.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_services_enable_desktop | bool }}"
   - unit: ovos-gui-websocket.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_services_enable_gui | bool }}"
   - unit: ovos-gui.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_feature_gui | bool and ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_services_enable_gui | bool }}"
   - unit: ovos-ggwave-listener.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool) }}"
+    state: "{{ ovos_services_enable_ggwave | bool }}"
   - unit: hivemind-listener.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_profile == 'listener' or ovos_installer_profile == 'server' }}"
+    state: "{{ ovos_services_enable_listener_or_server | bool }}"
   - unit: hivemind-satellite.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
-    state: "{{ ovos_installer_profile == 'satellite' }}"
+    state: "{{ ovos_services_enable_satellite | bool }}"
 ovos_services_launchd_unit_definitions:
   - name: ovos-messagebus
     label: "{{ ovos_services_launchd_label_prefix }}.ovos-messagebus"
     scope: user
-    state: "{{ ovos_installer_profile != 'satellite' }}"
+    state: "{{ ovos_services_enable_non_satellite | bool }}"
     command: "{{ ovos_services_messagebus_command }}"
     arguments: []
   - name: ovos-core
     label: "{{ ovos_services_launchd_core_label }}"
     scope: user
-    state: "{{ ovos_installer_profile != 'satellite' }}"
+    state: "{{ ovos_services_enable_non_satellite | bool }}"
     command: "{{ ovos_services_venv_path }}/bin/ovos-core"
     arguments: []
   - name: ovos-phal
     label: "{{ ovos_services_launchd_label_prefix }}.ovos-phal"
     scope: user
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_services_enable_desktop | bool }}"
     command: "{{ ovos_services_venv_path }}/bin/ovos_PHAL"
     arguments: []
   - name: ovos-listener
     label: "{{ ovos_services_launchd_label_prefix }}.ovos-listener"
     scope: user
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_services_enable_desktop | bool }}"
     command: "{{ ovos_services_venv_path }}/bin/ovos-dinkum-listener"
     arguments: []
   - name: ovos-audio
     label: "{{ ovos_services_launchd_label_prefix }}.ovos-audio"
     scope: user
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_services_enable_desktop | bool }}"
     command: "{{ ovos_services_venv_path }}/bin/ovos-audio"
     arguments: []
   - name: ovos-ggwave-listener
     label: "{{ ovos_services_launchd_label_prefix }}.ovos-ggwave-listener"
     scope: user
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_enable_ggwave | bool) }}"
+    state: "{{ ovos_services_enable_ggwave | bool }}"
     command: "{{ ovos_services_venv_path }}/bin/ovos-ggwave-listener"
     arguments: []
   - name: hivemind-listener
     label: "{{ ovos_services_launchd_label_prefix }}.hivemind-listener"
     scope: user
-    state: "{{ ovos_installer_profile == 'listener' or ovos_installer_profile == 'server' }}"
+    state: "{{ ovos_services_enable_listener_or_server | bool }}"
     command: "{{ ovos_services_venv_path }}/bin/hivemind-core"
     arguments:
       - listen
   - name: hivemind-satellite
     label: "{{ ovos_services_launchd_label_prefix }}.hivemind-satellite"
     scope: user
-    state: "{{ ovos_installer_profile == 'satellite' }}"
+    state: "{{ ovos_services_enable_satellite | bool }}"
     command: "{{ ovos_services_venv_path }}/bin/hivemind-voice-sat"
     arguments: []
   - name: ovos-phal-admin
     label: "{{ ovos_services_launchd_label_prefix }}.ovos-phal-admin"
     scope: system
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_services_enable_desktop | bool }}"
     command: "{{ ovos_services_wrapper_path }}"
     arguments: []
 ovos_services_unit_files_system: >-
