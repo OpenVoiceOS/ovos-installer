@@ -14,7 +14,7 @@
     - ansible_facts.os_family == "RedHat"
     - ansible_facts.distribution != "Fedora"
 
-- name: Handle virtualenv package requirements (ovos/hivemind)
+- name: Handle virtualenv package requirements (ovos/hivemind) on Debian/Zorin
   ansible.builtin.apt:
     name:
       - build-essential
@@ -41,7 +41,7 @@
     state: present
   when: ansible_facts.os_family in ['Debian', 'Zorin OS']
 
-- name: Handle virtualenv package requirements (ovos/hivemind)
+- name: Handle virtualenv package requirements (ovos/hivemind) on RedHat
   ansible.builtin.dnf:
     name:
       - gcc-c++
@@ -62,7 +62,7 @@
     state: present
   when: ansible_facts.os_family == "RedHat"
 
-- name: Handle virtualenv package requirements (ovos/hivemind)
+- name: Handle virtualenv package requirements (ovos/hivemind) on SUSE
   community.general.zypper:
     name:
       - gcc-c++
@@ -82,7 +82,7 @@
     state: present
   when: ansible_facts.os_family == "Suse"
 
-- name: Handle virtualenv package requirements (ovos/hivemind)
+- name: Handle virtualenv package requirements (ovos/hivemind) on Archlinux
   community.general.pacman:
     name:
       - base-devel
@@ -116,7 +116,7 @@
       and rerun the installer.
   when: ansible_facts.system == "Darwin"
 
-- name: Handle virtualenv package requirements (ovos/hivemind)
+- name: Handle virtualenv package requirements (ovos/hivemind) on macOS
   become: true
   become_user: "{{ ovos_installer_user }}"
   community.general.homebrew:

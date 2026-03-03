@@ -576,19 +576,19 @@ function setup() {
 @test "virtualenv_uv_bootstrap_and_runtime_installs_skip_cleaning" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
-    run bash -c "grep -A12 -F -- \"- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    run bash -c "grep -A12 -F -- \"- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_virtualenv_is_cleaning | bool)'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    run bash -c "grep -A12 -F -- \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_virtualenv_is_cleaning | bool)'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Install ggwave Python library\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    run bash -c "grep -A12 -F -- \"- name: Install ggwave Python library\" \"$file\" | grep -F -q -- 'not (ovos_virtualenv_is_cleaning | bool)'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Ensure numpy Python library is installed\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    run bash -c "grep -A12 -F -- \"- name: Ensure numpy Python library is installed\" \"$file\" | grep -F -q -- 'not (ovos_virtualenv_is_cleaning | bool)'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Ensure setuptools Python library is compatible with OVOS runtime\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    run bash -c "grep -A12 -F -- \"- name: Ensure setuptools Python library is compatible with OVOS runtime\" \"$file\" | grep -F -q -- 'not (ovos_virtualenv_is_cleaning | bool)'"
     assert_success
 }
 
@@ -765,7 +765,8 @@ function setup() {
 
 @test "virtualenv_installs_padatious_cache_for_all_virtualenv_installs" {
     local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
-    local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    local venv_tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    local cache_tasks_file="ansible/roles/ovos_virtualenv/tasks/intent_cache.yml"
 
     run grep -F -q "ovos_virtualenv_padatious_cache_repo_url: https://github.com/OpenVoiceOS/padatious_cache" "$defaults_file"
     assert_success
@@ -782,37 +783,40 @@ function setup() {
     run grep -F -q "ovos_virtualenv_padatious_cache_backup_dir:" "$defaults_file"
     assert_success
 
-    run grep -F -q "Checkout padatious cache repository" "$tasks_file"
+    run grep -F -q "Include intent cache sync tasks" "$venv_tasks_file"
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$tasks_file\" | grep -F -q -- \"repo: \\\"{{ ovos_virtualenv_padatious_cache_repo_url }}\\\"\""
+    run grep -F -q "Checkout padatious cache repository" "$cache_tasks_file"
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$tasks_file\" | grep -F -q -- \"version: \\\"{{ ovos_virtualenv_padatious_cache_repo_version }}\\\"\""
+    run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$cache_tasks_file\" | grep -F -q -- \"repo: \\\"{{ ovos_virtualenv_padatious_cache_repo_url }}\\\"\""
     assert_success
 
-    run grep -F -q "Check staged OVOS intent cache payload exists" "$tasks_file"
+    run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$cache_tasks_file\" | grep -F -q -- \"version: \\\"{{ ovos_virtualenv_padatious_cache_repo_version }}\\\"\""
     assert_success
 
-    run grep -F -q "Assert staged OVOS intent cache payload is valid" "$tasks_file"
+    run grep -F -q "Check staged OVOS intent cache payload exists" "$cache_tasks_file"
     assert_success
 
-    run grep -F -q "Stage OVOS intent cache payload from padatious_cache" "$tasks_file"
+    run grep -F -q "Assert staged OVOS intent cache payload is valid" "$cache_tasks_file"
     assert_success
 
-    run bash -c "grep -A8 -F -- \"- name: Stage OVOS intent cache payload from padatious_cache\" \"$tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_repo_path }}/intent_cache\""
+    run grep -F -q "Stage OVOS intent cache payload from padatious_cache" "$cache_tasks_file"
     assert_success
 
-    run bash -c "grep -A8 -F -- \"- name: Stage OVOS intent cache payload from padatious_cache\" \"$tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_staging_dir }}\""
+    run bash -c "grep -A8 -F -- \"- name: Stage OVOS intent cache payload from padatious_cache\" \"$cache_tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_repo_path }}/intent_cache\""
     assert_success
 
-    run grep -F -q "Backup existing OVOS intent cache directory" "$tasks_file"
+    run bash -c "grep -A8 -F -- \"- name: Stage OVOS intent cache payload from padatious_cache\" \"$cache_tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_staging_dir }}\""
     assert_success
 
-    run grep -F -q "Activate staged OVOS intent cache directory" "$tasks_file"
+    run grep -F -q "Backup existing OVOS intent cache directory" "$cache_tasks_file"
     assert_success
 
-    run grep -F -q "Remove existing OVOS intent cache directory" "$tasks_file"
+    run grep -F -q "Activate staged OVOS intent cache directory" "$cache_tasks_file"
+    assert_success
+
+    run grep -F -q "Remove existing OVOS intent cache directory" "$cache_tasks_file"
     assert_failure
 
     run grep -F -q -- "- \"{{ ovos_virtualenv_padatious_cache_dir }}\"" "$defaults_file"
@@ -898,7 +902,7 @@ function setup() {
 }
 
 @test "uninstall_enables_package_removal_by_default" {
-    run grep -q 'ovos_installer_uninstall_remove_packages: "{{ ovos_installer_cleaning | default(false) | bool }}"' ansible/roles/ovos_installer/defaults/main.yml
+    run grep -q 'ovos_installer_uninstall_remove_packages: "{{ ovos_installer_is_cleaning | bool }}"' ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 }
 
