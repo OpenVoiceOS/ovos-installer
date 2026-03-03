@@ -110,6 +110,15 @@ function setup() {
     assert_equal "$CHANNEL" "alpha"
 }
 
+@test "function_enforce_mark2_alpha_channel_is_silent" {
+    DETECTED_DEVICES=("tas5806")
+    CHANNEL="stable"
+
+    run enforce_mark2_alpha_channel
+    assert_success
+    assert_output ""
+}
+
 @test "function_enforce_mark2_alpha_channel_does_not_force_devkit" {
     DETECTED_DEVICES=("attiny1614" "tas5806")
     CHANNEL="stable"
@@ -180,6 +189,15 @@ function setup() {
 
     enforce_mark2_devkit_display_server
     assert_equal "$DISPLAY_SERVER" "eglfs"
+}
+
+@test "function_enforce_mark2_devkit_display_server_is_silent" {
+    DETECTED_DEVICES=("tas5806")
+    DISPLAY_SERVER="N/A"
+
+    run enforce_mark2_devkit_display_server
+    assert_success
+    assert_output ""
 }
 
 @test "function_enforce_mark2_devkit_display_server_keeps_detected_compositor" {

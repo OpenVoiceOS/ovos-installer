@@ -720,33 +720,21 @@ function setup() {
     assert_success
 }
 
-@test "virtualenv_mark2_pins_stable_skills_without_dependency_resolution" {
+@test "virtualenv_mark2_does_not_pin_datetime_or_weather_skills" {
     local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
     local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
     run grep -F -q "ovos_virtualenv_mark2_skill_pins:" "$defaults_file"
-    assert_success
+    assert_failure
 
     run grep -F -q "ovos-skill-date-time==1.1.5" "$defaults_file"
-    assert_success
+    assert_failure
 
     run grep -F -q "ovos-skill-weather==1.0.6" "$defaults_file"
-    assert_success
+    assert_failure
 
     run grep -F -q "Install stable skill pins for Mark II" "$tasks_file"
-    assert_success
-
-    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"loop: \\\"{{ ovos_virtualenv_mark2_skill_pins }}\\\"\""
-    assert_success
-
-    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"name: \\\"{{ item }}\\\"\""
-    assert_success
-
-    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"extra_args: \\\"--no-deps\\\"\""
-    assert_success
-
-    run bash -c "grep -A14 -F -- \"Install stable skill pins for Mark II\" \"$tasks_file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
-    assert_success
+    assert_failure
 
     run grep -F -q "Install known-good date-time skill for Mark II" "$tasks_file"
     assert_failure
@@ -761,27 +749,18 @@ function setup() {
     assert_failure
 }
 
-@test "virtualenv_mark2_pins_stable_padatious_parser" {
+@test "virtualenv_mark2_does_not_pin_padatious_parser" {
     local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
     local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
     run grep -F -q "ovos_virtualenv_mark2_padatious_package:" "$defaults_file"
-    assert_success
+    assert_failure
 
     run grep -F -q "ovos-padatious==1.4.3" "$defaults_file"
-    assert_success
+    assert_failure
 
     run grep -F -q "Install stable padatious parser for Mark II" "$tasks_file"
-    assert_success
-
-    run bash -c "grep -A12 -F -- \"Install stable padatious parser for Mark II\" \"$tasks_file\" | grep -F -q -- \"name: \\\"{{ ovos_virtualenv_mark2_padatious_package }}\\\"\""
-    assert_success
-
-    run bash -c "grep -A12 -F -- \"Install stable padatious parser for Mark II\" \"$tasks_file\" | grep -F -q -- \"extra_args: \\\"--no-deps\\\"\""
-    assert_success
-
-    run bash -c "grep -A12 -F -- \"Install stable padatious parser for Mark II\" \"$tasks_file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
-    assert_success
+    assert_failure
 }
 
 @test "virtualenv_installs_padatious_cache_for_all_virtualenv_installs" {
