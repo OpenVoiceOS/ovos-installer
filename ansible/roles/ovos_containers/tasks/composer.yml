@@ -1,7 +1,8 @@
 ---
-- name: Retrieve groups information
+- name: Retrieve groups information for docker-compose environment
   ansible.builtin.getent:
     database: group
+  changed_when: false
   tags:
     - always
 
@@ -37,10 +38,11 @@
     remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
   register: ovos_containers_docker_compose
   until: not ovos_containers_docker_compose.failed | bool
-  retries: 5
-  delay: 3
+  retries: "{{ ovos_containers_compose_retries | int }}"
+  delay: "{{ ovos_containers_compose_retry_delay | int }}"
   environment:
     DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
+  when: not ansible_check_mode
 
 - name: Generate _identity.json
   become: true
@@ -54,7 +56,9 @@
       --host {{ ovos_installer_listener_host }}
       --port {{ ovos_installer_listener_port | default(ovos_containers_listener_port_default) }}
       --siteid {{ ovos_installer_site_id | default(ovos_containers_site_id_default) }}
-  when: ovos_installer_profile == "satellite"
+  when:
+    - not ansible_check_mode
+    - ovos_installer_profile == "satellite"
 
 - name: Run ovos-config for auto-configuration of STT and TTS based on language
   become: true
@@ -62,7 +66,9 @@
   community.docker.docker_container_exec:
     container: "{{ ovos_containers_container_ovos_cli }}"
     command: ovos-config autoconfigure --lang {{ ovos_installer_locale }} --male --online
-  when: ovos_installer_profile != "server"
+  when:
+    - not ansible_check_mode
+    - ovos_installer_profile != "server"
 
 - name: Compute optional skills flags
   vars:
@@ -149,11 +155,12 @@
     services: "{{ _services_selected }}"
   register: ovos_containers_docker_compose_extra_skills
   until: not ovos_containers_docker_compose_extra_skills.failed | bool
-  retries: 5
-  delay: 3
+  retries: "{{ ovos_containers_compose_retries | int }}"
+  delay: "{{ ovos_containers_compose_retry_delay | int }}"
   environment:
     DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
   when:
+    - not ansible_check_mode
     - ovos_containers_extra_skills_enabled | default(false) | bool
     - _services_selected | length > 0
 
@@ -172,11 +179,12 @@
       - "{{ ovos_containers_service_skill_homeassistant }}"
   register: ovos_containers_docker_compose_homeassistant
   until: not ovos_containers_docker_compose_homeassistant.failed | bool
-  retries: 5
-  delay: 3
+  retries: "{{ ovos_containers_compose_retries | int }}"
+  delay: "{{ ovos_containers_compose_retry_delay | int }}"
   environment:
     DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
   when:
+    - not ansible_check_mode
     - ovos_containers_homeassistant_enabled | default(false) | bool
     - not (ovos_containers_extra_skills_enabled | default(false) | bool)
 
@@ -190,6 +198,7 @@
     state: absent
     force_kill: true
   when:
+    - not ansible_check_mode
     - ovos_containers_extra_skills_enabled | default(false) | bool
     - not (ovos_containers_homeassistant_enabled | default(false) | bool)
 
@@ -198,5 +207,6 @@
     path: "{{ item }}"
     state: absent
   loop: "{{ ovos_containers_repo_directories }}"
+  when: ovos_containers_cleanup_repo_directories | bool
   tags:
     - always

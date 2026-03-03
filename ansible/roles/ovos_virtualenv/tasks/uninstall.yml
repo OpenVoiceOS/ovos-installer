@@ -178,7 +178,7 @@
 
 - name: Remove OVOS constraints from venv activation
   vars:
-    _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
+    _ovos_release: "{{ ovos_virtualenv_constraints_url }}"
   ansible.builtin.lineinfile:
     path: "{{ ovos_virtualenv_path }}/bin/activate"
     line: "{{ item.line }}"

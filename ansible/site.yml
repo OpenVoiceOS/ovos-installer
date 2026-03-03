@@ -14,7 +14,6 @@
       ansible.builtin.setup:
         gather_subset:
           - "hardware"
-          - "interfaces"
       tags:
         - always
     - name: Lookup installer uid

@@ -29,10 +29,6 @@ ovos_containers_rhel_family_distros:
   - CentOS
   - Rocky
   - AlmaLinux
-ovos_containers_docker_package_check_debian: docker-ce
-ovos_containers_docker_package_check_redhat: docker-ce
-ovos_containers_docker_package_check_suse: docker-ce
-ovos_containers_docker_package_check_arch: docker
 ovos_containers_docker_pull_policies:
   - always
   - missing

@@ -1,54 +1,57 @@
 ---
-- name: Retrieve installed packages
-  ansible.builtin.package_facts:
-
 - name: Include assert.yml
   ansible.builtin.import_tasks: assert.yml
   tags:
     - always
-
-- name: Include setup-RedHat.yml
-  ansible.builtin.import_tasks: setup-RedHat.yml
-  when:
-    - not (ovos_containers_is_cleaning | bool)
-    - ansible_facts.os_family == "RedHat"
-    - ovos_containers_docker_package_check_redhat not in ansible_facts.packages
-
-- name: Include setup-Debian.yml
-  ansible.builtin.import_tasks: setup-Debian.yml
-  when:
-    - not (ovos_containers_is_cleaning | bool)
-    - ansible_facts.os_family == "Debian"
-    - ovos_containers_docker_package_check_debian not in ansible_facts.packages
-
-- name: Include setup-Suse.yml
-  ansible.builtin.import_tasks: setup-Suse.yml
-  when:
-    - not (ovos_containers_is_cleaning | bool)
-    - ansible_facts.os_family == "Suse"
-    - ovos_containers_docker_package_check_suse not in ansible_facts.packages
-
-- name: Include setup-Arch.yml
-  ansible.builtin.import_tasks: setup-Arch.yml
-  when:
-    - not (ovos_containers_is_cleaning | bool)
-    - ansible_facts.os_family == "Archlinux"
-    - ovos_containers_docker_package_check_arch not in ansible_facts.packages
-
-- name: Include cgroup.yml
-  ansible.builtin.import_tasks: cgroup.yml
-  when: not (ovos_containers_is_cleaning | bool)
-
-- name: Include common.yml
-  ansible.builtin.import_tasks: common.yml
-  when: not (ovos_containers_is_cleaning | bool)
-
-- name: Include composer.yml
-  ansible.builtin.import_tasks: composer.yml
-  when: not (ovos_containers_is_cleaning | bool)
 
 - name: Include uninstall tasks
   ansible.builtin.import_tasks: uninstall.yml
   when: ovos_containers_is_cleaning | bool
   tags:
     - uninstall
+
+- name: Stop containers install flow while cleaning
+  ansible.builtin.meta: end_role
+  when: ovos_containers_is_cleaning | bool
+
+- name: Detect Docker CLI
+  ansible.builtin.command:
+    argv:
+      - "{{ ovos_containers_docker_binary }}"
+      - --version
+  register: ovos_containers_docker_cli
+  changed_when: false
+  failed_when: false
+
+- name: Include setup-RedHat.yml
+  ansible.builtin.import_tasks: setup-RedHat.yml
+  when:
+    - ansible_facts.os_family == "RedHat"
+    - ovos_containers_docker_cli.rc != 0
+
+- name: Include setup-Debian.yml
+  ansible.builtin.import_tasks: setup-Debian.yml
+  when:
+    - ansible_facts.os_family == "Debian"
+    - ovos_containers_docker_cli.rc != 0
+
+- name: Include setup-Suse.yml
+  ansible.builtin.import_tasks: setup-Suse.yml
+  when:
+    - ansible_facts.os_family == "Suse"
+    - ovos_containers_docker_cli.rc != 0
+
+- name: Include setup-Arch.yml
+  ansible.builtin.import_tasks: setup-Arch.yml
+  when:
+    - ansible_facts.os_family == "Archlinux"
+    - ovos_containers_docker_cli.rc != 0
+
+- name: Include cgroup.yml
+  ansible.builtin.import_tasks: cgroup.yml
+
+- name: Include common.yml
+  ansible.builtin.import_tasks: common.yml
+
+- name: Include composer.yml
+  ansible.builtin.import_tasks: composer.yml

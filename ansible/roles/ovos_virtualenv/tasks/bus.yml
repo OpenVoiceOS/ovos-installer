@@ -60,3 +60,6 @@
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     state: file
+  when:
+    - not ansible_check_mode
+      or (ovos_virtualenv_rust_messagebus_binary_stat.stat.exists | default(false))

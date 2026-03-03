@@ -29,6 +29,8 @@ ovos_performance_tuning_rpi_eeprom_package: rpi-eeprom
 ovos_performance_tuning_rpi_eeprom_update_path: /usr/bin/rpi-eeprom-update
 ovos_performance_tuning_rpi_eeprom_update_cmd: "{{ ovos_performance_tuning_rpi_eeprom_update_path }} -a"
 ovos_performance_tuning_rpi_eeprom_reboot_regex: reboot
+ovos_performance_tuning_dpkg_query_path: /usr/bin/dpkg-query
+ovos_performance_tuning_dpkg_installed_status: installed
 
 ovos_performance_tuning_scheduler_rule_path: /etc/udev/rules.d/60-scheduler.rules
 ovos_performance_tuning_scheduler_devices: "mmcblk[0-9]*|sd[a-z]*"

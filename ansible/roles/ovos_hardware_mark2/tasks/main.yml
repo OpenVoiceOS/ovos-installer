@@ -4,6 +4,10 @@
   tags:
     - always
 
+- name: Stop Mark 2 install flow while cleaning
+  ansible.builtin.meta: end_role
+  when: ovos_hardware_mark2_is_cleaning | bool
+
 - name: Include prepare.yml
   ansible.builtin.import_tasks: prepare.yml
 

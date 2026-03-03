@@ -12,6 +12,7 @@
     name: "{{ ovos_hardware_mark2_kernel_headers_package }}"
     install_recommends: false
     update_cache: true
+    cache_valid_time: "{{ ovos_hardware_mark2_apt_cache_valid_time }}"
 
 - name: Set EEPROM release
   ansible.builtin.lineinfile:

@@ -61,3 +61,5 @@
     - not (ovos_services_is_cleaning | bool)
     - ovos_installer_method == 'virtualenv'
     - ovos_installer_profile != 'satellite'
+    - not ansible_check_mode
+      or (ovos_services_messagebus_binary.stat.exists | default(false))

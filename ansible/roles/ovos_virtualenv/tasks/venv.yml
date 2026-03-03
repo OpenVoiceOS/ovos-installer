@@ -75,6 +75,7 @@
   args:
     creates: "{{ ovos_virtualenv_path }}/bin/activate"
   environment: "{{ ovos_virtualenv_uv_environment }}"
+  register: ovos_virtualenv_venv_create
   when: not (ovos_virtualenv_is_cleaning | bool)
 
 - name: Resolve OVOS venv base interpreter with uv
@@ -84,6 +85,7 @@
     cmd: "uv python find {{ ovos_virtualenv_venv_python }}"
   register: ovos_virtualenv_base_python_executable
   changed_when: false
+  check_mode: false
   environment: "{{ ovos_virtualenv_uv_environment }}"
   when: not (ovos_virtualenv_is_cleaning | bool)
 
@@ -151,7 +153,9 @@
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     recurse: true
-  when: not (ovos_virtualenv_is_cleaning | bool)
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - ovos_virtualenv_repair_ownership | bool or (ovos_virtualenv_venv_create is changed)
 
 - name: Ensure pip is available in OVOS venv
   become: true
@@ -217,12 +221,44 @@
     - not (ovos_virtualenv_is_cleaning | bool)
     - ovos_installer_enable_ggwave | bool
 
+- name: Check cached OVOS constraints file
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_constraints_path }}"
+  register: ovos_virtualenv_constraints_file
+  changed_when: false
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
+- name: Decide whether OVOS constraints refresh is required
+  ansible.builtin.set_fact:
+    ovos_virtualenv_constraints_refresh_required: >-
+      {{
+        ovos_virtualenv_constraints_force_sync | bool
+        or not (ovos_virtualenv_constraints_file.stat.exists | default(false))
+        or (
+          (lookup('pipe', 'date +%s') | int)
+          - (ovos_virtualenv_constraints_file.stat.mtime | default(0) | int)
+          > (ovos_virtualenv_constraints_refresh_interval | int)
+        )
+      }}
+  changed_when: false
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
+- name: Cache OVOS constraints file
+  ansible.builtin.get_url:
+    url: "{{ ovos_virtualenv_constraints_url }}"
+    dest: "{{ ovos_virtualenv_constraints_path }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - ovos_virtualenv_constraints_refresh_required | bool
+
 - name: Install Open Voice OS in Python venv
   become: true
   become_user: "{{ ovos_installer_user }}"
   vars:
-    _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
-    _pip_constraints: "--constraint {{ _ovos_release }}"
+    _pip_constraints: "--constraint {{ ovos_virtualenv_constraints_path }}"
     _uv_extra_args: "{{ _pip_constraints }}{{ ' --prerelease=allow' if ovos_virtualenv_uv_allow_prerelease | bool else '' }}"
     _ovos_virtualenv_install_env: >-
       {{
@@ -243,8 +279,8 @@
   environment: "{{ _ovos_virtualenv_install_env }}"
   register: ovos_virtualenv_install
   until: ovos_virtualenv_install is success
-  retries: 5
-  delay: 5
+  retries: "{{ ovos_virtualenv_uv_install_retries | int }}"
+  delay: "{{ ovos_virtualenv_uv_install_delay | int }}"
   loop: "{{ ovos_virtualenv_requirements_files }}"
   loop_control:
     label: "{{ item.file }}"
@@ -254,21 +290,13 @@
   ansible.builtin.import_tasks: intent_cache.yml
   when: not (ovos_virtualenv_is_cleaning | bool)
 
-- name: Ensure numpy Python library is installed
+- name: Ensure runtime bootstrap Python libraries are installed
   become: true
   become_user: "{{ ovos_installer_user }}"
   moreati.uv.pip:
-    name: "{{ ovos_virtualenv_numpy_package }}"
-    virtualenv: "{{ ovos_virtualenv_path }}"
-    state: present
-  environment: "{{ ovos_virtualenv_uv_environment }}"
-  when: not (ovos_virtualenv_is_cleaning | bool)
-
-- name: Ensure setuptools Python library is compatible with OVOS runtime
-  become: true
-  become_user: "{{ ovos_installer_user }}"
-  moreati.uv.pip:
-    name: "{{ ovos_virtualenv_setuptools_package }}"
+    name:
+      - "{{ ovos_virtualenv_numpy_package }}"
+      - "{{ ovos_virtualenv_setuptools_package }}"
     virtualenv: "{{ ovos_virtualenv_path }}"
     state: present
   environment: "{{ ovos_virtualenv_uv_environment }}"
@@ -281,7 +309,7 @@
 
 - name: Add OVOS constraints to venv activation
   vars:
-    _ovos_release: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
+    _ovos_release: "{{ ovos_virtualenv_constraints_url }}"
   ansible.builtin.lineinfile:
     path: "{{ ovos_virtualenv_path }}/bin/activate"
     line: "{{ item.line }}"

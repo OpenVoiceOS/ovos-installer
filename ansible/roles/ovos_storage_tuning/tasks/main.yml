@@ -32,15 +32,27 @@
   failed_when: false
   when: ansible_facts.os_family == "Debian"
 
-- name: Gather package facts for log2ram
-  ansible.builtin.package_facts:
-    manager: auto
+- name: Query log2ram package install state (Debian)
+  ansible.builtin.command:
+    argv:
+      - "{{ ovos_storage_tuning_dpkg_query_path }}"
+      - -W
+      - "-f=${db:Status-Status}"
+      - "{{ ovos_storage_tuning_log2ram_package }}"
+  register: ovos_storage_tuning_log2ram_query
+  changed_when: false
   failed_when: false
   when: ansible_facts.os_family == "Debian"
 
 - name: Set log2ram installed fact
   ansible.builtin.set_fact:
-    ovos_storage_tuning_log2ram_installed: "{{ ansible_facts.packages is defined and 'log2ram' in ansible_facts.packages }}"
+    ovos_storage_tuning_log2ram_installed: >-
+      {{
+        ovos_storage_tuning_log2ram_query.rc | default(1) == 0
+        and
+        (ovos_storage_tuning_log2ram_query.stdout | default('') | trim)
+        == ovos_storage_tuning_dpkg_installed_status
+      }}
   when: ansible_facts.os_family == "Debian"
 
 - name: Configure log2ram size

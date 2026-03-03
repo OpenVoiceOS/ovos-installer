@@ -21,6 +21,8 @@ ovos_storage_tuning_log2ram_package: log2ram
 ovos_storage_tuning_log2ram_config_path: /etc/log2ram.conf
 ovos_storage_tuning_log2ram_size: 100M
 ovos_storage_tuning_log2ram_service: log2ram
+ovos_storage_tuning_dpkg_query_path: /usr/bin/dpkg-query
+ovos_storage_tuning_dpkg_installed_status: installed
 
 ovos_storage_tuning_tmpfs_path: /tmp
 ovos_storage_tuning_tmpfs_mode: "1777"
