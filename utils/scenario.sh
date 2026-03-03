@@ -10,11 +10,21 @@ if [ -f "$SCENARIO_PATH" ]; then
     declare -A options
     declare -A features
     declare -A hivemind
+    declare -a required_options=(
+        uninstall
+        method
+        channel
+        profile
+        features
+        raspberry_pi_tuning
+        share_telemetry
+        share_usage_telemetry
+    )
 
     # Read all the options
     while IFS="=" read -r key_option value_option; do
         case "$key_option" in
-        rapsberry_pi_tuning)
+        rapsberry_pi_tuning | raspeberry_pi_tuning)
             key_option="raspberry_pi_tuning"
             ;;
         esac
@@ -40,9 +50,14 @@ if [ -f "$SCENARIO_PATH" ]; then
     # Make sure the scenario file is not empty
     if [ -z "${!options[*]}" ]; then
         export SCENARIO_NOT_SUPPORTED="true"
-    elif [ "${#options[@]}" -lt 7 ]; then
-        export SCENARIO_NOT_SUPPORTED="true"
     fi
+
+    # Required options must always be present.
+    for required_option in "${required_options[@]}"; do
+        if [ -z "${options[$required_option]+x}" ]; then
+            export SCENARIO_NOT_SUPPORTED="true"
+        fi
+    done
 
     # Loop over each options and features
     for option in "${!options[@]}"; do

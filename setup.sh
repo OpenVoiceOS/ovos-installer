@@ -70,7 +70,7 @@ detect_existing_instance
 get_os_information
 wsl2_requirements
 detect_cpu_instructions
-is_raspeberrypi_soc
+is_raspberrypi_soc
 detect_hardware_model
 required_packages
 check_python_compatibility
@@ -78,7 +78,6 @@ detect_sound
 detect_display
 create_python_venv
 install_ansible
-download_yq
 detect_scenario
 
 if [ "${TUNING_OVERCLOCK:-no}" == "yes" ] && [ -z "${OVERCLOCK_ARM_FREQ:-}" ] && [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
@@ -193,14 +192,14 @@ if [ "$xtrace_was_on" == "true" ]; then
 fi
 ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_user=${RUN_AS}" \
-  -e "ovos_installer_group=$(id -ng "$RUN_AS")" \
+  -e "ovos_installer_group=${RUN_AS_GROUP}" \
   -e "ovos_installer_uid=${RUN_AS_UID}" \
   -e "ovos_installer_venv=${VENV_PATH}" \
   -e "ovos_installer_venv_python=${OVOS_VENV_PYTHON}" \
   -e "ovos_installer_user_home=${RUN_AS_HOME}" \
   -e "ovos_installer_method=${METHOD}" \
   -e "ovos_installer_profile=${PROFILE}" \
-  -e "ovos_installer_sound_server=$(echo "$SOUND_SERVER" | awk '{ print $1 }')" \
+  -e "ovos_installer_sound_server=${SOUND_SERVER%% *}" \
   -e "ovos_installer_raspberrypi='${RASPBERRYPI_MODEL}'" \
   -e "ovos_installer_hardware='${HARDWARE_MODEL}'" \
   -e "ovos_installer_channel=${CHANNEL}" \
