@@ -25,7 +25,7 @@
       - ovos_installer_method == 'virtualenv'
     fail_msg: "On Mark 2/DevKit hardware only virtualenv mode is currently supported."
   when:
-    - not (ovos_installer_cleaning | default(false) | bool)
+    - not (ovos_installer_is_cleaning | bool)
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
 
 - name: Assert GUI support constraints
@@ -38,7 +38,7 @@
       - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
     fail_msg: "GUI support is only available on Debian Trixie Mark II/DevKit virtualenv installs."
   when:
-    - not (ovos_installer_cleaning | default(false) | bool)
+    - not (ovos_installer_is_cleaning | bool)
     - ovos_installer_feature_gui | bool
 
 - name: Assert containers required variables

@@ -1,4 +1,5 @@
 ---
+ovos_storage_tuning_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
 ovos_storage_tuning_mycroft_state_tmpfs: "{{ ovos_installer_tuning_mycroft_state_tmpfs | default(true) }}"
 ovos_storage_tuning_mycroft_state_tmpfs_size: >-
   {{ ovos_installer_tuning_mycroft_state_tmpfs_size | default('100M') }}

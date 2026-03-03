@@ -1,4 +1,5 @@
 ---
+ovos_python_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
 ovos_python_mimalloc_package_redhat: mimalloc-devel
 ovos_python_mimalloc_package_default: libmimalloc-dev
 ovos_python_mimalloc_lib64_path: /usr/lib64

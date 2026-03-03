@@ -1,4 +1,5 @@
 ---
+ovos_config_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
 ovos_config_hotword_sensitivity: "{{ ovos_installer_hotword_sensitivity | default(0.95) }}"
 ovos_config_hotword_trigger_level: "{{ ovos_installer_hotword_trigger_level | default(1) }}"
 ovos_config_mark2_hotword_sensitivity: "{{ ovos_installer_mark2_hotword_sensitivity | default(0.55) }}"

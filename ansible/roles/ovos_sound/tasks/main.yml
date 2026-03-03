@@ -4,6 +4,16 @@
   tags:
     - always
 
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_sound_is_cleaning | bool
+  tags:
+    - uninstall
+
+- name: Stop sound install flow while cleaning
+  ansible.builtin.meta: end_role
+  when: ovos_sound_is_cleaning | bool
+
 - name: Install PipeWire with ALSA support
   vars:
     # Debian Unstable hack
@@ -178,9 +188,3 @@
   when:
     - ovos_installer_raspberrypi | default('N/A') != "N/A"
     - ovos_sound_asoundrc_server | length > 0
-
-- name: Include uninstall tasks
-  ansible.builtin.import_tasks: uninstall.yml
-  when: ovos_installer_cleaning | default(false) | bool
-  tags:
-    - uninstall

@@ -1,6 +1,5 @@
 ---
 - name: Block OVOS systemd services (install/update)
-  when: not (ovos_installer_cleaning | default(false) | bool)
   block:
     - name: Copy wrapper-ovos-phal-admin.sh file
       ansible.builtin.template:
@@ -9,7 +8,7 @@
         owner: root
         group: root
         mode: "{{ ovos_services_wrapper_mode }}"
-      when: ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server'
+      when: ovos_services_is_desktop_profile | bool
 
     - name: Remove user scope units when using system scope
       when: (ovos_installer_systemd_scope | default('user')) == 'system'
@@ -117,10 +116,3 @@
       loop_control:
         label: "{{ item.unit }} ({{ item.scope }})"
       when: item.state | bool and not ansible_check_mode
-
-
-- name: Include systemd uninstall tasks
-  ansible.builtin.import_tasks: uninstall.yml
-  when: ovos_installer_cleaning | default(false) | bool
-  tags:
-    - uninstall

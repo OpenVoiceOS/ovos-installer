@@ -1,4 +1,5 @@
 ---
+ovos_sound_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
 ovos_sound_pipewire_alsa_package: pipewire-alsa
 ovos_sound_pipewire_fallback_package: pipewire
 ovos_sound_alsa_utils_package: alsa-utils

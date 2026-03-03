@@ -1,5 +1,5 @@
 ---
-- name: Handle systemd-zram-generator
+- name: Handle systemd-zram-generator on Debian
   ansible.builtin.apt:
     name: "{{ ovos_performance_tuning_zram_packages_debian }}"
     install_recommends: false
@@ -16,7 +16,7 @@
   tags:
     - always
 
-- name: Handle systemd-zram-generator
+- name: Handle systemd-zram-generator on SUSE
   community.general.zypper:
     name: "{{ ovos_performance_tuning_zram_packages_suse }}"
     disable_recommends: true

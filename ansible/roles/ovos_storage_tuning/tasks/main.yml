@@ -5,6 +5,16 @@
   tags:
     - always
 
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_storage_tuning_is_cleaning | bool
+  tags:
+    - uninstall
+
+- name: Stop storage tuning install flow while cleaning
+  ansible.builtin.meta: end_role
+  when: ovos_storage_tuning_is_cleaning | bool
+
 # Thanks to https://www.xephixus.com/2019/12/11/testing/
 - name: Add noatime and commit options
   ansible.builtin.replace:
@@ -60,7 +70,6 @@
 - name: Configure persistent tmpfs for Mycroft state
   when:
     - ovos_storage_tuning_mycroft_state_tmpfs | bool
-    - not (ovos_installer_cleaning | default(false) | bool)
   block:
     - name: Ensure rsync is installed
       ansible.builtin.package:
@@ -196,9 +205,3 @@
     opts: >-
       {{ ovos_storage_tuning_tmpfs_mount_options | join(',') }}
     state: mounted
-
-- name: Include uninstall tasks
-  ansible.builtin.import_tasks: uninstall.yml
-  when: ovos_installer_cleaning | default(false) | bool
-  tags:
-    - uninstall

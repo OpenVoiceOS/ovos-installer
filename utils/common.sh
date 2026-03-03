@@ -1035,6 +1035,7 @@ function detect_scenario() {
 function in_array() {
     local haystack="${1}[@]"
     local needle="${2}"
+    local element
     for element in "${!haystack}"; do
         if [ "${element}" == "${needle}" ]; then
             return 0
@@ -1078,6 +1079,9 @@ function i2c_get() {
 # Scan the I2C bus to find any devices supported by the installer.
 # This function will only run if a Raspberry Pi board is detected.
 function i2c_scan() {
+    local device
+    local address
+
     if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
         printf '%s' "➤ Scan I2C bus for hardware auto-detection..."
 
@@ -1111,29 +1115,48 @@ function i2c_scan() {
     enforce_mark2_devkit_display_server
 }
 
+# Returns success when a device key is present in DETECTED_DEVICES.
+# Safe with set -u when DETECTED_DEVICES has not been initialized yet.
+function has_detected_device() {
+    local needle="$1"
+    local device
+
+    for device in "${DETECTED_DEVICES[@]:-}"; do
+        if [ "$device" == "$needle" ]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# Returns success for Mark II/DevKit family hardware (tas5806 present).
+function is_mark2_or_devkit_detected() {
+    has_detected_device "tas5806"
+}
+
+# Returns success for Mark II-only hardware (tas5806 present, attiny1614 absent).
+function is_mark2_detected() {
+    is_mark2_or_devkit_detected && ! has_detected_device "attiny1614"
+}
+
+# Returns success when the host is Debian Trixie.
+function is_debian_trixie() {
+    [ "${DISTRO_NAME:-unknown}" == "debian" ] && {
+        [[ "${DISTRO_VERSION_ID:-}" == 13* ]] || [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]
+    }
+}
+
 # Enforce alpha channel when Mark II hardware is detected.
 # Mark II detection requires tas5806 present and attiny1614 absent.
 function enforce_mark2_alpha_channel() {
-    local device
-    local mark2_detected="false"
-    local devkit_detected="false"
+    if ! is_mark2_detected; then
+        return 0
+    fi
 
-    for device in "${DETECTED_DEVICES[@]}"; do
-        case "$device" in
-        tas5806)
-            mark2_detected="true"
-            ;;
-        attiny1614)
-            devkit_detected="true"
-            ;;
-        esac
-    done
-
-    if [[ "$mark2_detected" == "true" && "$devkit_detected" != "true" ]]; then
-        if [ "${CHANNEL:-}" != "alpha" ]; then
-            export CHANNEL="alpha"
-            printf '%s\n' "Mark II requires alpha channel. Forcing CHANNEL=alpha." >>"$LOG_FILE"
-        fi
+    if [ "${CHANNEL:-}" != "alpha" ]; then
+        export CHANNEL="alpha"
+        printf '%s\n' "Mark II requires alpha channel. Forcing CHANNEL=alpha." >>"$LOG_FILE"
     fi
 }
 
@@ -1141,29 +1164,11 @@ function enforce_mark2_alpha_channel() {
 # GUI remains user-selectable on supported profiles, but is always disabled for
 # unsupported profiles.
 function enforce_mark2_devkit_gui_support() {
-    local device
-    local mark2_or_devkit_detected="false"
-    local version_is_trixie="false"
-
-    for device in "${DETECTED_DEVICES[@]}"; do
-        if [ "$device" == "tas5806" ]; then
-            mark2_or_devkit_detected="true"
-            break
-        fi
-    done
-
-    if [ "$mark2_or_devkit_detected" != "true" ]; then
+    if ! is_mark2_or_devkit_detected; then
         return 0
     fi
 
-    if [[ "${DISTRO_VERSION_ID:-}" == 13* ]]; then
-        version_is_trixie="true"
-    fi
-    if [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]; then
-        version_is_trixie="true"
-    fi
-
-    if [ "${DISTRO_NAME:-unknown}" != "debian" ] || [ "$version_is_trixie" != "true" ]; then
+    if ! is_debian_trixie; then
         if [ "${FEATURE_GUI:-false}" != "false" ]; then
             echo "Mark II/DevKit GUI is only supported on Debian Trixie. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
         fi
@@ -1182,17 +1187,7 @@ function enforce_mark2_devkit_gui_support() {
 # Normalize display server for Mark II/DevKit headless setups.
 # When no compositor is detected, report eglfs before running the playbook.
 function enforce_mark2_devkit_display_server() {
-    local device
-    local mark2_or_devkit_detected="false"
-
-    for device in "${DETECTED_DEVICES[@]}"; do
-        if [ "$device" == "tas5806" ]; then
-            mark2_or_devkit_detected="true"
-            break
-        fi
-    done
-
-    if [ "$mark2_or_devkit_detected" != "true" ]; then
+    if ! is_mark2_or_devkit_detected; then
         return 0
     fi
 
@@ -1205,29 +1200,11 @@ function enforce_mark2_devkit_display_server() {
 # Enforce Debian Trixie (13) when Mark II/DevKit hardware is detected.
 # Hardware detection is based on the tas5806 codec presence.
 function enforce_mark2_devkit_trixie_requirement() {
-    local device
-    local mark2_or_devkit_detected="false"
-
-    for device in "${DETECTED_DEVICES[@]}"; do
-        if [ "$device" == "tas5806" ]; then
-            mark2_or_devkit_detected="true"
-            break
-        fi
-    done
-
-    if [ "$mark2_or_devkit_detected" != "true" ]; then
+    if ! is_mark2_or_devkit_detected; then
         return 0
     fi
 
-    local version_is_trixie="false"
-    if [[ "${DISTRO_VERSION_ID:-}" == 13* ]]; then
-        version_is_trixie="true"
-    fi
-    if [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]; then
-        version_is_trixie="true"
-    fi
-
-    if [ "${DISTRO_NAME:-unknown}" != "debian" ] || [ "$version_is_trixie" != "true" ]; then
+    if ! is_debian_trixie; then
         echo -e "[$fail_format]"
         echo "Mark II/DevKit requires Debian Trixie (13). Detected ${DISTRO_NAME:-unknown} ${DISTRO_VERSION_ID:-unknown} (${DISTRO_VERSION:-unknown})." | tee -a "$LOG_FILE"
         exit "${EXIT_OS_NOT_SUPPORTED}"

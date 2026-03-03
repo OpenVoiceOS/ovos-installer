@@ -102,6 +102,13 @@ function setup() {
     assert_success
 }
 
+@test "function_has_detected_device_handles_unset_detected_devices" {
+    unset DETECTED_DEVICES
+
+    run has_detected_device "tas5806"
+    assert_failure
+}
+
 @test "function_enforce_mark2_alpha_channel_forces_alpha" {
     DETECTED_DEVICES=("tas5806")
     CHANNEL="stable"

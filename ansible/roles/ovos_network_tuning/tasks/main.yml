@@ -4,6 +4,16 @@
   tags:
     - always
 
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_network_tuning_is_cleaning | bool
+  tags:
+    - uninstall
+
+- name: Stop network tuning install flow while cleaning
+  ansible.builtin.meta: end_role
+  when: ovos_network_tuning_is_cleaning | bool
+
 - name: Include tuning/wireless.yml
   ansible.builtin.import_tasks: wireless.yml
   when:
@@ -12,9 +22,3 @@
 
 - name: Include tuning/dns.yml
   ansible.builtin.import_tasks: dns.yml
-
-- name: Include uninstall tasks
-  ansible.builtin.import_tasks: uninstall.yml
-  when: ovos_installer_cleaning | default(false) | bool
-  tags:
-    - uninstall

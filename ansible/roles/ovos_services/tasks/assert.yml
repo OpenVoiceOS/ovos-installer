@@ -45,7 +45,7 @@
   register: ovos_services_messagebus_binary
   changed_when: false
   when:
-    - not (ovos_installer_cleaning | default(false) | bool)
+    - not (ovos_services_is_cleaning | bool)
     - ovos_installer_method == 'virtualenv'
     - ovos_installer_profile != 'satellite'
 
@@ -58,6 +58,6 @@
       OVOS messagebus binary was not found at {{ ovos_services_messagebus_command }}.
       Ensure ovos_virtualenv role completed successfully before ovos_services.
   when:
-    - not (ovos_installer_cleaning | default(false) | bool)
+    - not (ovos_services_is_cleaning | bool)
     - ovos_installer_method == 'virtualenv'
     - ovos_installer_profile != 'satellite'

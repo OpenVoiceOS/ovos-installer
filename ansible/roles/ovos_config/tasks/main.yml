@@ -6,9 +6,13 @@
 
 - name: Include uninstall tasks
   ansible.builtin.import_tasks: uninstall.yml
-  when: ovos_installer_cleaning | default(false) | bool
+  when: ovos_config_is_cleaning | bool
   tags:
     - uninstall
+
+- name: Stop config install flow while cleaning
+  ansible.builtin.meta: end_role
+  when: ovos_config_is_cleaning | bool
 
 - name: Create container directories
   ansible.builtin.file:

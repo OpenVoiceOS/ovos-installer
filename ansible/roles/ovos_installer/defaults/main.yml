@@ -12,11 +12,13 @@ ovos_installer_tmp_dir: "{{ _ovos_installer_working_directory }}"
 ovos_installer_profile: "ovos"
 ovos_installer_method: "virtualenv"
 ovos_installer_cleaning: false
+ovos_installer_is_cleaning: "{{ ovos_installer_cleaning | default(false) | bool }}"
+ovos_installer_is_desktop_profile: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
 ovos_installer_channel: "stable"
 ovos_installer_requirements_files:
   - file: virtualenv/core-requirements.txt
     dest: "{{ ovos_installer_tmp_dir }}/core-requirements.txt"
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+    state: "{{ ovos_installer_is_desktop_profile | bool }}"
   - file: virtualenv/skills-requirements.txt
     dest: "{{ ovos_installer_tmp_dir }}/skills-requirements.txt"
     state: "{{ ovos_installer_feature_skills | bool and ovos_installer_profile != 'satellite' }}"
@@ -28,8 +30,7 @@ ovos_installer_requirements_files:
     state: >-
       {{ ovos_installer_feature_homeassistant | bool
          and ovos_installer_method == 'virtualenv'
-         and ovos_installer_profile != 'satellite'
-         and ovos_installer_profile != 'server'
+         and ovos_installer_is_desktop_profile | bool
          and ((ovos_installer_homeassistant_url
                | default(ovos_installer_homeassistant_host | default(''), true)) | length > 0)
          and (ovos_installer_homeassistant_api_key | default('') | length > 0) }}
@@ -67,9 +68,9 @@ ovos_installer_docker_pull_policy: always
 ovos_installer_docker_compose_remove_orphans: true
 ovos_installer_docker_compose_remove_images: all
 ovos_installer_docker_compose_remove_volumes: true
-ovos_installer_uninstall: "{{ 'present' if not (ovos_installer_cleaning | default(false) | bool) else 'absent' }}"
+ovos_installer_uninstall: "{{ 'present' if not (ovos_installer_is_cleaning | bool) else 'absent' }}"
 ovos_installer_uninstall_autoremove: true
-ovos_installer_uninstall_remove_packages: "{{ ovos_installer_cleaning | default(false) | bool }}"
+ovos_installer_uninstall_remove_packages: "{{ ovos_installer_is_cleaning | bool }}"
 # Keep this quoted (e.g., "3.11"). Unquoted YAML like 3.10 may parse as 3.1.
 ovos_installer_venv_python: "3.11"
 ovos_installer_supported_desktop_architectures:

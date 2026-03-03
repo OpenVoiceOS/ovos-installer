@@ -1,4 +1,5 @@
 ---
+ovos_network_tuning_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
 ovos_network_tuning_networkmanager_conf_dir: "{{ ovos_installer_networkmanager_path | default('/etc/NetworkManager') }}"
 ovos_network_tuning_dnsmasq_package: dnsmasq
 ovos_network_tuning_dnsmasq_service: dnsmasq

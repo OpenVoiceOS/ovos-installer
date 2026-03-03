@@ -1,6 +1,5 @@
 ---
 - name: Block OVOS launchd services (install/update)
-  when: not (ovos_installer_cleaning | default(false) | bool)
   block:
     - name: Copy wrapper-ovos-phal-admin.sh file
       become: true
@@ -10,7 +9,7 @@
         owner: root
         group: "{{ ovos_services_launchd_system_group }}"
         mode: "{{ ovos_services_wrapper_mode }}"
-      when: ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server'
+      when: ovos_services_is_desktop_profile | bool
 
     - name: Ensure launchd user agents directory exists
       ansible.builtin.file:
@@ -163,9 +162,3 @@
       when:
         - item.scope == 'system'
         - item.state | bool
-
-- name: Include launchd uninstall tasks
-  ansible.builtin.import_tasks: uninstall-launchd.yml
-  when: ovos_installer_cleaning | default(false) | bool
-  tags:
-    - uninstall
