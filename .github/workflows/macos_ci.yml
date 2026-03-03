@@ -7,19 +7,23 @@ on:
   pull_request:
     paths:
       - .github/workflows/macos_ci.yml
+      - .github/scripts/**
       - installer.sh
       - setup.sh
       - utils/**
       - ansible/**
       - tests/bats/**
+      - tui/**
   push:
     paths:
       - .github/workflows/macos_ci.yml
+      - .github/scripts/**
       - installer.sh
       - setup.sh
       - utils/**
       - ansible/**
       - tests/bats/**
+      - tui/**
   workflow_dispatch:
 
 jobs:
@@ -32,6 +36,7 @@ jobs:
           - macos-14
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -46,29 +51,10 @@ jobs:
           brew install bash bats-core jq expect newt
 
       - name: Install BATS helper libraries
-        run: |
-          mkdir -p "$HOME/shell-testing/test_helper"
-          git clone --depth 1 https://github.com/bats-core/bats-support.git "$HOME/shell-testing/test_helper/bats-support"
-          git clone --depth 1 https://github.com/bats-core/bats-assert.git "$HOME/shell-testing/test_helper/bats-assert"
+        run: ./.github/scripts/install_bats_helpers.sh
 
       - name: Install ansible-lint dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install ansible ansible-lint
-          galaxy_install_ok="false"
-          for galaxy_server in "https://galaxy.ansible.com/api/v2/" "https://galaxy.ansible.com"; do
-            for attempt in 1 2 3; do
-              if ansible-galaxy collection install -r ansible/requirements.yml --server "$galaxy_server"; then
-                galaxy_install_ok="true"
-                break 2
-              fi
-              sleep $((attempt * 5))
-            done
-          done
-          if [ "$galaxy_install_ok" != "true" ]; then
-            echo "ansible-galaxy collection install failed for all known Galaxy endpoints"
-            exit 1
-          fi
+        run: ./.github/scripts/install_ansible_requirements.sh
 
       - name: Run ansible-lint (production profile)
         run: ansible-lint --profile production
@@ -76,15 +62,44 @@ jobs:
       - name: Run BATS test suite
         run: bats tests/bats --verbose-run --print-output-on-failure
 
-  macos-scenario-smoke:
+  macos-scenario-matrix:
     strategy:
       fail-fast: false
+      max-parallel: 4
       matrix:
-        runner:
-          - macos-15-intel
-          - macos-14
+        include:
+          - runner: macos-15-intel
+            channel: stable
+            profile: ovos
+            feature_set: minimal
+          - runner: macos-15-intel
+            channel: testing
+            profile: ovos
+            feature_set: all
+          - runner: macos-15-intel
+            channel: alpha
+            profile: server
+            feature_set: minimal
+          - runner: macos-14
+            channel: stable
+            profile: ovos
+            feature_set: minimal
+          - runner: macos-14
+            channel: testing
+            profile: ovos
+            feature_set: all
+          - runner: macos-14
+            channel: alpha
+            profile: server
+            feature_set: minimal
+
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 75
+    timeout-minutes: 90
+
+    env:
+      CI_HOMEASSISTANT_URL: http://homeassistant.local:8123
+      CI_HOMEASSISTANT_API_KEY: ci-token
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -104,30 +119,33 @@ jobs:
           fi
 
       - name: Create non-interactive scenario
+        shell: bash
         run: |
-          python - <<'PY'
-          from pathlib import Path
-          from textwrap import dedent
+          if [ "${{ matrix.feature_set }}" = "all" ] && [ "${{ matrix.profile }}" = "ovos" ]; then
+            skills=true
+            extra_skills=true
+            homeassistant=true
+          else
+            skills=false
+            extra_skills=false
+            homeassistant=false
+          fi
 
-          scenario = dedent("""\
+          mkdir -p "$HOME/.config/ovos-installer"
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
           ---
           uninstall: false
           method: virtualenv
-          channel: stable
-          profile: server
+          channel: ${{ matrix.channel }}
+          profile: ${{ matrix.profile }}
           features:
-            skills: false
-            extra_skills: false
-            homeassistant: false
+            skills: ${skills}
+            extra_skills: ${extra_skills}
+            homeassistant: ${homeassistant}
           raspberry_pi_tuning: false
           share_telemetry: false
           share_usage_telemetry: false
-          """)
-
-          scenario_path = Path.home() / ".config/ovos-installer/scenario.yaml"
-          scenario_path.parent.mkdir(parents=True, exist_ok=True)
-          scenario_path.write_text(scenario, encoding="utf-8")
-          PY
+          EOF
 
       - name: Seed root-owned uv cache paths (permission regression canary)
         run: |
@@ -137,7 +155,17 @@ jobs:
           sudo chmod 0700 "$HOME/.cache/uv" "$HOME/.ovos-installer/uv-cache"
 
       - name: Run installer scenario smoke test
-        run: sudo "$BASH_BIN" setup.sh
+        shell: bash
+        run: |
+          if [ "${{ matrix.feature_set }}" = "all" ] && [ "${{ matrix.profile }}" = "ovos" ]; then
+            sudo -E env \
+              HOMEASSISTANT_URL="${CI_HOMEASSISTANT_URL}" \
+              HOMEASSISTANT_API_KEY="${CI_HOMEASSISTANT_API_KEY}" \
+              REUSE_CACHED_ARTIFACTS=true \
+              "$BASH_BIN" setup.sh
+          else
+            sudo -E env REUSE_CACHED_ARTIFACTS=true "$BASH_BIN" setup.sh
+          fi
 
       - name: Validate uv ownership for installer user
         run: |
@@ -179,6 +207,28 @@ jobs:
             echo "Legacy launchd label com.openvoiceos.ovos-core should not be loaded."
             exit 1
           fi
+
+      - name: Create uninstall scenario
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
+          ---
+          uninstall: true
+          method: virtualenv
+          channel: ${{ matrix.channel }}
+          profile: ${{ matrix.profile }}
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+
+      - name: Run uninstall smoke test
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true "$BASH_BIN" setup.sh
 
       - name: Dump launchd diagnostics on failure
         if: failure()
