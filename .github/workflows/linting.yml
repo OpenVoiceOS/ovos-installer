@@ -13,6 +13,7 @@ on:
       - .github/workflows/linting.yml
       - .github/workflows/*.yml
       - .github/scripts/**
+      - ansible.cfg
       - ansible/**
       - utils/**
       - setup.sh
@@ -24,6 +25,7 @@ on:
       - .github/workflows/linting.yml
       - .github/workflows/*.yml
       - .github/scripts/**
+      - ansible.cfg
       - ansible/**
       - utils/**
       - setup.sh

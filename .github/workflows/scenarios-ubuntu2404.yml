@@ -12,6 +12,7 @@ on:
     paths:
       - .github/workflows/scenarios-ubuntu2404.yml
       - .github/scripts/**
+      - ansible.cfg
       - setup.sh
       - installer.sh
       - utils/**
@@ -23,6 +24,7 @@ on:
     paths:
       - .github/workflows/scenarios-ubuntu2404.yml
       - .github/scripts/**
+      - ansible.cfg
       - setup.sh
       - installer.sh
       - utils/**
@@ -641,9 +643,8 @@ jobs:
           ---
           uninstall: false
           method: virtualenv
-          channel: stable
+          channel: invalid
           profile: ovos
-          invalid_option: true
           features:
             skills: false
             extra_skills: false
@@ -677,8 +678,7 @@ jobs:
           channel: stable
           profile: ovos
           features:
-            skills: false
-            gui: true
+            skills: maybe
           raspberry_pi_tuning: false
           share_telemetry: false
           share_usage_telemetry: false

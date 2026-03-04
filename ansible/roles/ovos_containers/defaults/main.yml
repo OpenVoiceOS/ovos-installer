@@ -134,6 +134,7 @@ ovos_containers_uninstall_compose_files_ovos:
   - "{{ ovos_containers_compose_file_skills }}"
   - "{{ ovos_containers_compose_file_skills_extra }}"
   - "{{ ovos_containers_compose_file_hivemind }}"
+  - "{{ ovos_containers_compose_file_server }}"
   - "{{ ovos_containers_compose_file_windows }}"
 ovos_containers_uninstall_compose_files_hivemind:
   - "{{ ovos_containers_compose_file_satellite }}"
