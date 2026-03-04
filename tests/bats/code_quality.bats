@@ -1233,6 +1233,29 @@ function setup() {
     assert_success
 }
 
+@test "containers_config_files_use_container_runtime_ownership" {
+    local defaults_file="ansible/roles/ovos_config/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_config/tasks/install.yml"
+
+    run grep -F -q "ovos_config_container_runtime_uid: \"{{ ovos_installer_container_runtime_uid | default(1000) }}\"" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos_config_container_runtime_gid: \"{{ ovos_installer_container_runtime_gid | default(1000) }}\"" "$defaults_file"
+    assert_success
+
+    run bash -c "grep -A6 -F -- \"ovos_config_mycroft_conf_owner:\" \"$defaults_file\" | grep -F -q -- \"else ovos_config_container_runtime_uid\""
+    assert_success
+
+    run bash -c "grep -A6 -F -- \"ovos_config_mycroft_conf_group:\" \"$defaults_file\" | grep -F -q -- \"else ovos_config_container_runtime_gid\""
+    assert_success
+
+    run grep -F -q "owner: \"{{ ovos_config_mycroft_conf_owner }}\"" "$tasks_file"
+    assert_success
+
+    run grep -F -q "group: \"{{ ovos_config_mycroft_conf_group }}\"" "$tasks_file"
+    assert_success
+}
+
 @test "macos_does_not_require_systemd_user_config_paths" {
     run grep -q "ovos_config_backup_paths_common" ansible/roles/ovos_config/defaults/main.yml
     assert_success
