@@ -899,13 +899,33 @@ function required_packages() {
     echo -e "[$done_format]"
 }
 
+# Normalize Python version input to "major.minor".
+function python_version_major_minor() {
+    local version_input="$1"
+    local normalized_version=""
+    normalized_version="$(printf '%s\n' "$version_input" | sed -nE 's/.*([0-9]+)\.([0-9]+).*/\1.\2/p' | head -n 1)"
+    printf '%s\n' "$normalized_version"
+}
+
 # Validate whether an existing installer venv can be safely reused.
 function installer_venv_is_reusable() {
     local venv_path="$1"
+    local required_python="${2:-}"
+    local required_python_major_minor=""
+    local existing_python_major_minor=""
+
     [ -d "$venv_path" ] || return 1
     [ -f "$venv_path/pyvenv.cfg" ] || return 1
     [ -x "$venv_path/bin/python3" ] || return 1
     [ -f "$venv_path/bin/activate" ] || return 1
+
+    if [ -n "$required_python" ]; then
+        required_python_major_minor="$(python_version_major_minor "$required_python")"
+        [ -n "$required_python_major_minor" ] || return 1
+        existing_python_major_minor="$("$venv_path/bin/python3" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")' 2>>"$LOG_FILE" || true)"
+        [ "$existing_python_major_minor" == "$required_python_major_minor" ] || return 1
+    fi
+
     return 0
 }
 
@@ -943,7 +963,7 @@ function create_python_venv() {
     fi
 
     if [ -d "$VENV_PATH" ]; then
-        if [ "$reuse_cached_artifacts" == "true" ] && installer_venv_is_reusable "$VENV_PATH"; then
+        if [ "$reuse_cached_artifacts" == "true" ] && installer_venv_is_reusable "$VENV_PATH" "$PYTHON"; then
             venv_reused="true"
             printf '%s\n' "[info] Reusing installer virtualenv at ${VENV_PATH}" &>>"$LOG_FILE"
         else
