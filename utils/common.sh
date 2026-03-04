@@ -22,14 +22,23 @@ function log_error() {
 # Acquire a process-wide installer lock to prevent concurrent runs from
 # mutating installer state simultaneously.
 function acquire_installer_lock() {
-    local lock_file="${OVOS_INSTALLER_LOCK_FILE:-/tmp/ovos-installer.lock}"
+    local lock_file="${OVOS_INSTALLER_LOCK_FILE:-}"
     local lock_dir="${lock_file}.d"
+
+    if [ -z "$lock_file" ]; then
+        if [ -d /run/lock ] && [ -w /run/lock ]; then
+            lock_file="/run/lock/ovos-installer.lock"
+        else
+            lock_file="/tmp/ovos-installer.lock"
+        fi
+        lock_dir="${lock_file}.d"
+    fi
 
     export OVOS_INSTALLER_LOCK_FILE="$lock_file"
     unset OVOS_INSTALLER_LOCK_FD OVOS_INSTALLER_LOCK_DIR || true
 
     if command -v flock &>>"$LOG_FILE"; then
-        eval "exec {OVOS_INSTALLER_LOCK_FD}>\"$lock_file\""
+        exec {OVOS_INSTALLER_LOCK_FD}>"$lock_file"
         if ! flock -n "$OVOS_INSTALLER_LOCK_FD"; then
             log_error "Another OVOS installer process is already running (lock: ${lock_file})."
             return "${EXIT_ALREADY_RUNNING}"
@@ -49,7 +58,7 @@ function acquire_installer_lock() {
 function release_installer_lock() {
     if [ -n "${OVOS_INSTALLER_LOCK_FD:-}" ]; then
         flock -u "$OVOS_INSTALLER_LOCK_FD" 2>/dev/null || true
-        eval "exec ${OVOS_INSTALLER_LOCK_FD}>&-"
+        exec {OVOS_INSTALLER_LOCK_FD}>&-
         unset OVOS_INSTALLER_LOCK_FD
     fi
 

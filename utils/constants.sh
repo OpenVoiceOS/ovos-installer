@@ -46,7 +46,11 @@ export NEWT_COLORS="
     roottext=lightgrey,black
 "
 export OS_RELEASE=/etc/os-release
-export OVOS_INSTALLER_LOCK_FILE=/tmp/ovos-installer.lock
+if [ -d /run/lock ] && [ -w /run/lock ]; then
+    export OVOS_INSTALLER_LOCK_FILE=/run/lock/ovos-installer.lock
+else
+    export OVOS_INSTALLER_LOCK_FILE=/tmp/ovos-installer.lock
+fi
 export PASTE_URL="https://paste.uoi.io"
 export PULSE_SOCKET_WSL2=/mnt/wslg/PulseServer
 export REBOOT_FILE_PATH=/tmp/ovos.reboot

@@ -31,7 +31,16 @@ function setup() {
 
     bash -c 'exec 9>"$1"; flock -n 9; sleep 5' _ "$OVOS_INSTALLER_LOCK_FILE" &
     local locker_pid=$!
-    sleep 0.3
+    local lock_ready="false"
+    local _attempt
+    for _attempt in {1..30}; do
+        if ! bash -c 'exec 9>"$1"; flock -n 9' _ "$OVOS_INSTALLER_LOCK_FILE" >/dev/null 2>&1; then
+            lock_ready="true"
+            break
+        fi
+        sleep 0.1
+    done
+    [ "$lock_ready" = "true" ]
 
     run acquire_installer_lock
     assert_failure
