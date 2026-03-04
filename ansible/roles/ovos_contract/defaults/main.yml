@@ -1,0 +1,13 @@
+---
+ovos_contract_allowed_methods:
+  - virtualenv
+  - containers
+ovos_contract_allowed_profiles:
+  - ovos
+  - listener
+  - server
+  - satellite
+ovos_contract_allowed_channels:
+  - stable
+  - testing
+  - alpha

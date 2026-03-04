@@ -46,6 +46,11 @@
         - always
 
   roles:
+    - role: ovos_contract
+      tags:
+        - ovos_contract
+        - always
+
     - role: ovos_hardware_mark1
       tags:
         - ovos_hardware_mark1
