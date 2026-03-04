@@ -13,3 +13,5 @@
 - name: Include install tasks
   ansible.builtin.import_tasks: install.yml
   when: not (ovos_python_is_cleaning | bool)
+  tags:
+    - install

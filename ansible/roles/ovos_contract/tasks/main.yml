@@ -26,10 +26,3 @@
       - ovos_installer_venv_python | default('') | length > 0
     fail_msg: "Virtualenv mode requires ovos_installer_venv and ovos_installer_venv_python."
   when: ovos_installer_method == 'virtualenv'
-
-- name: Assert containers variables when containers mode is selected
-  ansible.builtin.assert:
-    that:
-      - ovos_installer_display_server | default('') | length > 0
-    fail_msg: "Containers mode requires ovos_installer_display_server (use N/A for headless)."
-  when: ovos_installer_method == 'containers'

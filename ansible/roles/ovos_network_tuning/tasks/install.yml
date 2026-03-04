@@ -6,11 +6,36 @@
       - "!min"
       - "network"
 
+- name: Resolve active wireless interface
+  ansible.builtin.set_fact:
+    ovos_network_tuning_wireless_interface: >-
+      {{
+        (ovos_network_tuning_wireless_interface | default('', true))
+        if (ovos_network_tuning_wireless_interface | default('', true) | length > 0)
+        else (
+          ansible_facts
+          | dict2items
+          | selectattr('key', 'match', '^wl')
+          | selectattr('value.active', 'defined')
+          | selectattr('value.active')
+          | map(attribute='key')
+          | list
+          | first
+          | default('')
+        )
+      }}
+  changed_when: false
+
+- name: Resolve wireless tuning unit names
+  ansible.builtin.set_fact:
+    ovos_network_tuning_wireless_unit_name: "{{ ovos_network_tuning_wireless_interface }}-power.service"
+    ovos_network_tuning_wireless_unit_path: "{{ (ovos_installer_systemd_system_path | default('/etc/systemd/system')) }}/{{ ovos_network_tuning_wireless_interface }}-power.service"
+  when: ovos_network_tuning_wireless_interface | length > 0
+  changed_when: false
+
 - name: Include tuning/wireless.yml
   ansible.builtin.import_tasks: wireless.yml
-  when:
-    - ansible_facts['wlan0'] is defined
-    - ansible_facts['wlan0'].active | bool
+  when: ovos_network_tuning_wireless_interface | length > 0
 
 - name: Include tuning/dns.yml
   ansible.builtin.import_tasks: dns.yml

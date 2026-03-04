@@ -32,6 +32,11 @@
   ansible.builtin.getent:
     database: group
 
+- name: Resolve service manager for sound role
+  ansible.builtin.set_fact:
+    ovos_sound_service_manager: "{{ ovos_services_manager | default('launchd' if ansible_facts.system == 'Darwin' else 'systemd') }}"
+  changed_when: false
+
 - name: Add installer user to audio group
   ansible.builtin.user:
     name: "{{ ovos_installer_user }}"
@@ -60,6 +65,7 @@
            ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
     - ansible_facts.os_family not in ovos_sound_pipewire_group_excluded_os_families
     - ansible_facts.distribution not in ovos_sound_pipewire_group_excluded_distributions
+    - ovos_sound_pipewire_group in ansible_facts.getent_group
 
 - name: Enable lingering for {{ ovos_installer_user }}
   ansible.builtin.file:
@@ -71,13 +77,14 @@
     access_time: preserve
     state: touch
   notify: Start Sound Server
+  when: ovos_sound_service_manager == 'systemd'
 
 - name: Flush handlers sound
   ansible.builtin.meta: flush_handlers
 
 - name: Ensure PipeWire user sound services are running before detection
   when:
-    - ovos_services_manager == 'systemd'
+    - ovos_sound_service_manager == 'systemd'
     - ovos_sound_pipewire_install is defined
     - "'skipped' not in ovos_sound_pipewire_install.keys()"
   block:
@@ -106,7 +113,7 @@
     scope: user
     state: started
   when:
-    - ovos_services_manager == 'systemd'
+    - ovos_sound_service_manager == 'systemd'
     - ovos_sound_pulseaudio_install is defined
     - "'skipped' not in ovos_sound_pulseaudio_install.keys()"
 
