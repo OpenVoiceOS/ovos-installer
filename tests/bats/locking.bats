@@ -16,8 +16,13 @@ function setup() {
     acquire_installer_lock
     assert_equal "$?" "0"
 
-    run test -f "$OVOS_INSTALLER_LOCK_FILE"
-    assert_success
+    if command -v flock >/dev/null 2>&1; then
+        run test -f "$OVOS_INSTALLER_LOCK_FILE"
+        assert_success
+    else
+        run test -d "${OVOS_INSTALLER_LOCK_FILE}.d"
+        assert_success
+    fi
 
     release_installer_lock
     run test -z "${OVOS_INSTALLER_LOCK_FD:-}"
