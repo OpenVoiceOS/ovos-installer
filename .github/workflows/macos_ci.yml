@@ -12,6 +12,7 @@ on:
     paths:
       - .github/workflows/macos_ci.yml
       - .github/scripts/**
+      - ansible.cfg
       - installer.sh
       - setup.sh
       - utils/**
@@ -22,6 +23,7 @@ on:
     paths:
       - .github/workflows/macos_ci.yml
       - .github/scripts/**
+      - ansible.cfg
       - installer.sh
       - setup.sh
       - utils/**

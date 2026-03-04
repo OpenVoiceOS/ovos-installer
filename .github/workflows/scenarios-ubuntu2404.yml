@@ -420,6 +420,7 @@ jobs:
       - name: Run install pass 2 and assert low drift
         shell: bash
         run: |
+          set -o pipefail
           sudo -E env ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" REUSE_CACHED_ARTIFACTS=true bash setup.sh | tee /tmp/ovos-idempotency-pass2.log
 
           changed_count="$(awk '/127\.0\.0\.1[[:space:]].*changed=/{for(i=1;i<=NF;i++){if($i ~ /^changed=/){split($i,a,"=");print a[2]}}}' /tmp/ovos-idempotency-pass2.log | tail -1)"
@@ -521,6 +522,7 @@ jobs:
       - name: Assert key role idempotency
         shell: bash
         run: |
+          set -o pipefail
           ansible_playbook_bin="$HOME/.venvs/ovos-installer/bin/ansible-playbook"
           if [ ! -x "$ansible_playbook_bin" ]; then
             echo "ansible-playbook not found at $ansible_playbook_bin"

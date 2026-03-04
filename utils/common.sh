@@ -24,14 +24,25 @@ function log_error() {
 function acquire_installer_lock() {
     local lock_file="${OVOS_INSTALLER_LOCK_FILE:-}"
     local lock_dir="${lock_file}.d"
+    local lock_parent=""
 
     if [ -z "$lock_file" ]; then
         if [ -d /run/lock ] && [ -w /run/lock ]; then
             lock_file="/run/lock/ovos-installer.lock"
+        elif [ -n "${HOME:-}" ]; then
+            lock_file="${HOME}/.cache/ovos-installer/ovos-installer.lock"
         else
-            lock_file="/tmp/ovos-installer.lock"
+            lock_file="/run/ovos-installer.lock"
         fi
         lock_dir="${lock_file}.d"
+    fi
+    lock_parent="$(dirname "$lock_file")"
+    if [ ! -d "$lock_parent" ] && ! mkdir -p "$lock_parent" 2>>"$LOG_FILE"; then
+        log_error "Unable to initialize installer lock directory: ${lock_parent}"
+        return "${EXIT_MISSING_DEPENDENCY}"
+    fi
+    if [[ "$lock_parent" == *"/.cache/ovos-installer"* ]]; then
+        chmod 0700 "$lock_parent" 2>>"$LOG_FILE" || true
     fi
 
     export OVOS_INSTALLER_LOCK_FILE="$lock_file"
@@ -642,13 +653,23 @@ function check_python_compatibility() {
     local python_version=""
     local python_cmd="python3"
     local requested_python=""
+    local requested_python_cmd=""
 
     if [ -n "${OVOS_VENV_PYTHON:-}" ]; then
         requested_python="${OVOS_VENV_PYTHON}"
         if [[ "${requested_python}" =~ ^[0-9]+\.[0-9]+$ ]]; then
             python_version="${requested_python}"
+            requested_python_cmd="python${requested_python}"
+            if command -v "${requested_python_cmd}" &>>"$LOG_FILE"; then
+                python_cmd="${requested_python_cmd}"
+            fi
         elif [[ "${requested_python}" =~ ^python([0-9]+\.[0-9]+)$ ]]; then
-            python_version="${requested_python#python}"
+            python_cmd="${requested_python}"
+            if [ -x "${python_cmd}" ] || command -v "${python_cmd}" &>>"$LOG_FILE"; then
+                python_version="$("${python_cmd}" -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE")"
+            else
+                python_version="${requested_python#python}"
+            fi
         elif [ -x "${requested_python}" ]; then
             python_cmd="${requested_python}"
             python_version="$("$python_cmd" -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE")"
@@ -674,6 +695,7 @@ function check_python_compatibility() {
     fi
 
     export PYTHON="$python_version"
+    export PYTHON_CMD="$python_cmd"
     echo -e "[$done_format]"
 }
 
@@ -912,7 +934,7 @@ function required_packages() {
 function python_version_major_minor() {
     local version_input="$1"
     local normalized_version=""
-    normalized_version="$(printf '%s\n' "$version_input" | sed -nE 's/.*([0-9]+)\.([0-9]+).*/\1.\2/p' | head -n 1)"
+    normalized_version="$(printf '%s\n' "$version_input" | sed -nE 's/[^0-9]*([0-9]+)\.([0-9]+).*/\1.\2/p' | head -n 1)"
     printf '%s\n' "$normalized_version"
 }
 
@@ -945,6 +967,7 @@ function create_python_venv() {
     printf '%s' "➤ Creating installer Python virtualenv... "
     local reuse_cached_artifacts="${REUSE_CACHED_ARTIFACTS:-false}"
     local venv_reused="false"
+    local venv_python_cmd="${PYTHON_CMD:-python3}"
 
     ensure_installer_tmpdir
 
@@ -983,7 +1006,7 @@ function create_python_venv() {
     fi
 
     if [ "$venv_reused" != "true" ]; then
-        python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
+        "$venv_python_cmd" -m venv "$VENV_PATH" &>>"$LOG_FILE"
     fi
 
     # shellcheck source=/dev/null

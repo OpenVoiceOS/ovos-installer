@@ -34,7 +34,7 @@
 
 - name: Resolve service manager for sound role
   ansible.builtin.set_fact:
-    ovos_sound_service_manager: "{{ ovos_services_manager | default('launchd' if ansible_facts.system == 'Darwin' else 'systemd') }}"
+    ovos_sound_service_manager: "{{ ovos_services_manager | default('launchd' if ansible_facts.system == 'Darwin' else (ansible_facts.service_mgr | default('systemd'))) }}"
   changed_when: false
 
 - name: Add installer user to audio group
