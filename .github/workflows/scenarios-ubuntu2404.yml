@@ -208,13 +208,17 @@ jobs:
         shell: bash
         run: |
           if [ "${{ matrix.feature_set }}" = "all" ]; then
-            echo "skills=true" >> "$GITHUB_OUTPUT"
-            echo "extra_skills=true" >> "$GITHUB_OUTPUT"
-            echo "homeassistant=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "skills=true"
+              echo "extra_skills=true"
+              echo "homeassistant=true"
+            } >> "$GITHUB_OUTPUT"
           else
-            echo "skills=false" >> "$GITHUB_OUTPUT"
-            echo "extra_skills=false" >> "$GITHUB_OUTPUT"
-            echo "homeassistant=false" >> "$GITHUB_OUTPUT"
+            {
+              echo "skills=false"
+              echo "extra_skills=false"
+              echo "homeassistant=false"
+            } >> "$GITHUB_OUTPUT"
           fi
 
       - name: Ensure Docker is available for container scenarios

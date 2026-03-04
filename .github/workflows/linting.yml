@@ -56,7 +56,7 @@ jobs:
             ${{ runner.os }}-${{ runner.arch }}-ansible-lint-
 
       - name: Install Ansible requirements
-        run: ./.github/scripts/install_ansible_requirements.sh --with-grapher --force-collections
+        run: ./.github/scripts/install_ansible_requirements.sh --force-collections
 
       - name: Run ansible-lint
         working-directory: ./ansible
