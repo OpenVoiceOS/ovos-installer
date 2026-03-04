@@ -1836,6 +1836,37 @@ function setup() {
     assert_success
 }
 
+@test "services_uninstall_removes_requested_runtime_artifacts" {
+    local defaults_file="ansible/roles/ovos_services/defaults/main.yml"
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.config/wireplumber/wireplumber.conf.d/90-sj201-profile.conf" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.local/state/mycroft-persistent" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.local/share/vosk" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.local/share/precise-onnx" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.local/share/wallpapers" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.cache/huggingface" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.cache/OpenVoiceOS" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.cache/ovos-installer" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.ovos-installer" "$defaults_file"
+    assert_success
+}
+
 @test "launchd_system_scope_uses_root_cache_home" {
     run grep -q "'/var/root' if item.scope == 'system'" ansible/roles/ovos_services/templates/launchd/service.plist.j2
     assert_success
