@@ -3,7 +3,6 @@
   ansible.builtin.file:
     path: "{{ ovos_virtualenv_tmp_dir }}"
     state: directory
-    mode: "0755"
 
 - name: Assert Rust messagebus checksum is available for selected target/version
   ansible.builtin.assert:

@@ -397,6 +397,9 @@ function setup() {
     run grep -q -- "- -xzf" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_success
 
+    run bash -c "grep -A4 -F -- \"- name: Ensure Rust messagebus archive directory exists\" ansible/roles/ovos_virtualenv/tasks/bus.yml | grep -q -- \"mode:\""
+    assert_failure
+
     run grep -q "Remove Rust messagebus archive after extraction" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_failure
 }
