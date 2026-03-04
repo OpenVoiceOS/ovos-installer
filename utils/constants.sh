@@ -10,6 +10,7 @@ export AVRDUDE_CONFIG_URL="https://artifacts.smartgic.io/avrdude/avrdude.conf"
 declare -a DETECTED_DEVICES
 export DETECTED_DEVICES
 export DT_FILE=/sys/firmware/devicetree/base/model
+export EXIT_ALREADY_RUNNING=6
 export EXIT_FAILURE=1
 export EXIT_INVALID_ARGUMENT=4
 export EXIT_MISSING_DEPENDENCY=5
@@ -45,6 +46,7 @@ export NEWT_COLORS="
     roottext=lightgrey,black
 "
 export OS_RELEASE=/etc/os-release
+export OVOS_INSTALLER_LOCK_FILE=/tmp/ovos-installer.lock
 export PASTE_URL="https://paste.uoi.io"
 export PULSE_SOCKET_WSL2=/mnt/wslg/PulseServer
 export REBOOT_FILE_PATH=/tmp/ovos.reboot

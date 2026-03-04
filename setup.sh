@@ -51,6 +51,15 @@ source utils/argparse.sh
 # Parse command line arguments
 handle_options "$@"
 
+if ! acquire_installer_lock; then
+  exit "${EXIT_ALREADY_RUNNING}"
+fi
+
+# Runtime cleanup is shared between normal exit and signal handling.
+trap cleanup_installer_runtime EXIT
+trap 'exit_with_signal_code 130' INT
+trap 'exit_with_signal_code 143' TERM
+
 # Default Ansible flags to avoid unbound variable errors when set -u is enabled
 ansible_cleaning="false"
 ansible_tags=()
@@ -126,7 +135,7 @@ if [ "$EXISTING_INSTANCE" == "true" ]; then
   export SHARE_USAGE_TELEMETRY="false"
 fi
 
-echo "➤ Starting Ansible playbook... ☕🍵🧋"
+log_info "➤ Starting Ansible playbook... ☕🍵🧋"
 
 # Execute the Ansible playbook on localhost
 export ANSIBLE_CONFIG=ansible.cfg
@@ -156,9 +165,6 @@ fi
 # Pass Home Assistant token via an extra-vars file (avoids exposing secrets in the process list).
 ha_extra_vars=()
 ha_extra_vars_file=""
-trap cleanup_ha_extra_vars_file EXIT
-trap 'cleanup_ha_extra_vars_file; exit 130' INT
-trap 'cleanup_ha_extra_vars_file; exit 143' TERM
 # If `set -x` is enabled, avoid echoing secrets to the terminal/logs.
 xtrace_was_on="false"
 case "$-" in
@@ -245,7 +251,8 @@ if [ "$ansible_rc" -eq 0 ]; then
       fi
       if [ -f "$REBOOT_FILE_PATH" ]; then
         rm -f "$REBOOT_FILE_PATH"
-        printf '\n%s\n' "➤ Rebooting Raspberry Pi now..."
+        log_info ""
+        log_info "➤ Rebooting Raspberry Pi now..."
         shutdown -r now
       fi
     fi
@@ -260,23 +267,26 @@ if [ "$ansible_rc" -eq 0 ]; then
         rm -rf "$venv_root"
       fi
     fi
-    printf '\n%s\n' "➤ Open Voice OS has been successfully uninstalled."
+    log_info ""
+    log_info "➤ Open Voice OS has been successfully uninstalled."
     if [ -f "$LOG_FILE" ]; then
       rm -f "$LOG_FILE"
     fi
     if [ -f "$REBOOT_FILE_PATH" ]; then
       rm -f "$REBOOT_FILE_PATH"
-      printf '\n%s\n' "➤ Rebooting Raspberry Pi now..."
+      log_info ""
+      log_info "➤ Rebooting Raspberry Pi now..."
       shutdown -r now
     fi
   fi
 else
   debug_url="$(upload_logs)"
-  printf '\n%s\n' "➤ Unable to finalize the process, please check $LOG_FILE for more details."
+  log_info ""
+  log_info "➤ Unable to finalize the process, please check $LOG_FILE for more details."
   if [ -n "${debug_url:-}" ]; then
-    printf '%s\n' "➤ Please share this URL with us $debug_url"
+    log_info "➤ Please share this URL with us $debug_url"
   else
-    printf '%s\n' "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
+    log_info "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
   fi
   exit "${EXIT_FAILURE}"
 fi

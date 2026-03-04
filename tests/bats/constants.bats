@@ -24,6 +24,7 @@ function setup() {
     assert_equal "${EXIT_OS_NOT_SUPPORTED}" "3"
     assert_equal "${EXIT_INVALID_ARGUMENT}" "4"
     assert_equal "${EXIT_MISSING_DEPENDENCY}" "5"
+    assert_equal "${EXIT_ALREADY_RUNNING}" "6"
 }
 
 @test "constants_tui_dimensions" {

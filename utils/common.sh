@@ -7,12 +7,76 @@ set -euo pipefail
 done_format="\e[32mdone\e[0m"
 fail_format="\e[31mfail\e[0m"
 
+function log_info() {
+    printf '%s\n' "$*"
+}
+
+function log_warn() {
+    printf '%s\n' "$*" >&2
+}
+
+function log_error() {
+    printf '%s\n' "$*" >&2
+}
+
+# Acquire a process-wide installer lock to prevent concurrent runs from
+# mutating installer state simultaneously.
+function acquire_installer_lock() {
+    local lock_file="${OVOS_INSTALLER_LOCK_FILE:-/tmp/ovos-installer.lock}"
+    local lock_dir="${lock_file}.d"
+
+    export OVOS_INSTALLER_LOCK_FILE="$lock_file"
+    unset OVOS_INSTALLER_LOCK_FD OVOS_INSTALLER_LOCK_DIR || true
+
+    if command -v flock &>>"$LOG_FILE"; then
+        eval "exec {OVOS_INSTALLER_LOCK_FD}>\"$lock_file\""
+        if ! flock -n "$OVOS_INSTALLER_LOCK_FD"; then
+            log_error "Another OVOS installer process is already running (lock: ${lock_file})."
+            return "${EXIT_ALREADY_RUNNING}"
+        fi
+        export OVOS_INSTALLER_LOCK_FD
+    else
+        if ! mkdir "$lock_dir" 2>/dev/null; then
+            log_error "Another OVOS installer process is already running (lock: ${lock_file})."
+            return "${EXIT_ALREADY_RUNNING}"
+        fi
+        export OVOS_INSTALLER_LOCK_DIR="$lock_dir"
+    fi
+
+    return 0
+}
+
+function release_installer_lock() {
+    if [ -n "${OVOS_INSTALLER_LOCK_FD:-}" ]; then
+        flock -u "$OVOS_INSTALLER_LOCK_FD" 2>/dev/null || true
+        eval "exec ${OVOS_INSTALLER_LOCK_FD}>&-"
+        unset OVOS_INSTALLER_LOCK_FD
+    fi
+
+    if [ -n "${OVOS_INSTALLER_LOCK_DIR:-}" ]; then
+        rmdir "${OVOS_INSTALLER_LOCK_DIR}" 2>/dev/null || true
+        unset OVOS_INSTALLER_LOCK_DIR
+    fi
+}
+
 # Remove Home Assistant extra-vars temp file if created (used by setup.sh traps).
 function cleanup_ha_extra_vars_file() {
     if [ -n "${ha_extra_vars_file:-}" ]; then
         rm -f "$ha_extra_vars_file" 2>/dev/null || true
         ha_extra_vars_file=""
     fi
+}
+
+# Consolidated runtime cleanup hook used by setup.sh EXIT/INT/TERM handling.
+function cleanup_installer_runtime() {
+    cleanup_ha_extra_vars_file
+    release_installer_lock
+}
+
+function exit_with_signal_code() {
+    local signal_code="$1"
+    cleanup_installer_runtime
+    exit "$signal_code"
 }
 
 # Run a command while preserving the caller's errexit state.
@@ -188,7 +252,7 @@ PY
 # This is mainly used in setup.sh to handle errors during the functions
 # execution.
 function on_error() {
-    echo -e "[$fail_format]"
+    log_error "[$fail_format]"
     local upload_optin="false"
     if ask_optin; then
         upload_optin="true"
@@ -233,7 +297,7 @@ function delete_log() {
 # "root" or "sudo" can run this script, we need to know whom.
 function detect_user() {
     if [ "${USER_ID:-$(id -u)}" -ne 0 ]; then
-        echo -e "[$fail_format] This script must be run as root (not recommended) or with sudo"
+        log_error "[$fail_format] This script must be run as root (not recommended) or with sudo"
         exit "${EXIT_PERMISSION_DENIED}"
     fi
 
@@ -279,8 +343,9 @@ function detect_user() {
         RUN_AS_HOME="$(awk -F: -v u="$RUN_AS" '$1 == u { print $6; exit }' /etc/passwd 2>>"$LOG_FILE" || true)"
     fi
     if [ -z "${RUN_AS_HOME:-}" ]; then
-        echo -e "[$fail_format]"
-        echo "Unable to determine home directory for user '$RUN_AS'." | tee -a "$LOG_FILE"
+        log_error "[$fail_format]"
+        log_error "Unable to determine home directory for user '$RUN_AS'."
+        printf '%s\n' "Unable to determine home directory for user '$RUN_AS'." >>"$LOG_FILE"
         exit "${EXIT_MISSING_DEPENDENCY}"
     fi
 
