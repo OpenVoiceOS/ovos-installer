@@ -5,16 +5,22 @@
   register: ovos_containers_docker_socket_stat
   changed_when: false
 
-- name: Check for docker-compose project directory
+- name: Check for OVOS docker-compose project directory
   ansible.builtin.stat:
-    path: "{{ ovos_containers_composition_directory }}"
-  register: ovos_containers_compose_project_stat
+    path: "{{ ovos_containers_composition_directory_ovos }}"
+  register: ovos_containers_compose_project_stat_ovos
+  changed_when: false
+
+- name: Check for HiveMind docker-compose project directory
+  ansible.builtin.stat:
+    path: "{{ ovos_containers_composition_directory_hivemind }}"
+  register: ovos_containers_compose_project_stat_hivemind
   changed_when: false
 
 - name: Remove docker-compose OVOS stack(s)
   become: true
   community.docker.docker_compose_v2:
-    project_src: "{{ ovos_containers_composition_directory }}"
+    project_src: "{{ ovos_containers_composition_directory_ovos }}"
     project_name: "{{ ovos_containers_uninstall_project_name_ovos }}"
     files: "{{ item }}"
     remove_orphans: "{{ ovos_containers_docker_compose_remove_orphans }}"
@@ -30,12 +36,12 @@
   register: ovos_containers_composer_deletion
   when:
     - ovos_containers_docker_socket_stat.stat.exists | default(false) | bool
-    - ovos_containers_compose_project_stat.stat.isdir | default(false) | bool
+    - ovos_containers_compose_project_stat_ovos.stat.isdir | default(false) | bool
 
 - name: Remove docker-compose HiveMind stack(s)
   become: true
   community.docker.docker_compose_v2:
-    project_src: "{{ ovos_containers_composition_directory }}"
+    project_src: "{{ ovos_containers_composition_directory_hivemind }}"
     project_name: "{{ ovos_containers_uninstall_project_name_hivemind }}"
     files: "{{ item }}"
     remove_orphans: "{{ ovos_containers_docker_compose_remove_orphans }}"
@@ -51,7 +57,7 @@
   register: ovos_containers_composer_deletion_hivemind
   when:
     - ovos_containers_docker_socket_stat.stat.exists | default(false) | bool
-    - ovos_containers_compose_project_stat.stat.isdir | default(false) | bool
+    - ovos_containers_compose_project_stat_hivemind.stat.isdir | default(false) | bool
 
 - name: List all containers
   become: true

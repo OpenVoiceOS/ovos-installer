@@ -10,48 +10,6 @@
   tags:
     - uninstall
 
-- name: Stop containers install flow while cleaning
-  ansible.builtin.meta: end_role
-  when: ovos_containers_is_cleaning | bool
-
-- name: Detect Docker CLI
-  ansible.builtin.command:
-    argv:
-      - "{{ ovos_containers_docker_binary }}"
-      - --version
-  register: ovos_containers_docker_cli
-  changed_when: false
-  failed_when: false
-
-- name: Include setup-RedHat.yml
-  ansible.builtin.import_tasks: setup-RedHat.yml
-  when:
-    - ansible_facts.os_family == "RedHat"
-    - ovos_containers_docker_cli.rc != 0
-
-- name: Include setup-Debian.yml
-  ansible.builtin.import_tasks: setup-Debian.yml
-  when:
-    - ansible_facts.os_family == "Debian"
-    - ovos_containers_docker_cli.rc != 0
-
-- name: Include setup-Suse.yml
-  ansible.builtin.import_tasks: setup-Suse.yml
-  when:
-    - ansible_facts.os_family == "Suse"
-    - ovos_containers_docker_cli.rc != 0
-
-- name: Include setup-Arch.yml
-  ansible.builtin.import_tasks: setup-Arch.yml
-  when:
-    - ansible_facts.os_family == "Archlinux"
-    - ovos_containers_docker_cli.rc != 0
-
-- name: Include cgroup.yml
-  ansible.builtin.import_tasks: cgroup.yml
-
-- name: Include common.yml
-  ansible.builtin.import_tasks: common.yml
-
-- name: Include composer.yml
-  ansible.builtin.import_tasks: composer.yml
+- name: Include install tasks
+  ansible.builtin.import_tasks: install.yml
+  when: not (ovos_containers_is_cleaning | bool)

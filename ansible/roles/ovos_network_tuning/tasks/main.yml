@@ -10,22 +10,6 @@
   tags:
     - uninstall
 
-- name: Stop network tuning install flow while cleaning
-  ansible.builtin.meta: end_role
-  when: ovos_network_tuning_is_cleaning | bool
-
-- name: Gather network interface facts
-  ansible.builtin.setup:
-    gather_subset:
-      - "!all"
-      - "!min"
-      - "network"
-
-- name: Include tuning/wireless.yml
-  ansible.builtin.import_tasks: wireless.yml
-  when:
-    - ansible_facts['wlan0'] is defined
-    - ansible_facts['wlan0'].active | bool
-
-- name: Include tuning/dns.yml
-  ansible.builtin.import_tasks: dns.yml
+- name: Include install tasks
+  ansible.builtin.import_tasks: install.yml
+  when: not (ovos_network_tuning_is_cleaning | bool)

@@ -27,7 +27,14 @@ ovos_containers_repo_definitions:
     branch: "{{ ovos_containers_hivemind_docker_repo_branch }}"
     dest: "{{ ovos_containers_repo_dest_hivemind }}"
     state: "{{ ovos_installer_profile == 'satellite' or ovos_containers_is_cleaning | bool }}"
-ovos_containers_composition_directory: "{{ ovos_containers_working_directory }}/{{ ovos_containers_project_name }}/compose"
+ovos_containers_composition_directory_ovos: "{{ ovos_containers_working_directory }}/{{ ovos_containers_repo_dest_ovos }}/compose"
+ovos_containers_composition_directory_hivemind: "{{ ovos_containers_working_directory }}/{{ ovos_containers_repo_dest_hivemind }}/compose"
+ovos_containers_composition_directory: >-
+  {{
+    ovos_containers_composition_directory_hivemind
+    if ovos_installer_profile == 'satellite'
+    else ovos_containers_composition_directory_ovos
+  }}
 
 ovos_containers_gpg_binary: gpg
 ovos_containers_docker_repo_channel: stable

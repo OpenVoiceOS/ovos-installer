@@ -22,49 +22,6 @@
   tags:
     - uninstall
 
-- name: Stop service install flow while cleaning
-  ansible.builtin.meta: end_role
-  when: ovos_services_is_cleaning | bool
-
-- name: Ensure user cache root directory exists with correct ownership
-  ansible.builtin.file:
-    path: "{{ ovos_installer_user_home }}/.cache"
-    state: directory
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    mode: "0755"
-  when: ovos_installer_method == "virtualenv"
-
-- name: Ensure OVOS runtime user directories exist
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    mode: "0755"
-  loop: "{{ ovos_services_user_runtime_dirs }}"
-  when: ovos_installer_method == "virtualenv"
-
-- name: Ensure OVOS runtime user directory ownership is corrected recursively
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: directory
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    recurse: true
-  loop: "{{ ovos_services_user_runtime_dirs }}"
-  when: ovos_installer_method == "virtualenv"
-
-- name: Include systemd backend tasks
-  ansible.builtin.import_tasks: systemd.yml
-  when:
-    - ansible_facts.system == 'Linux'
-    - ovos_services_manager == 'systemd'
-    - ovos_installer_method == "virtualenv"
-
-- name: Include launchd backend tasks
-  ansible.builtin.import_tasks: launchd.yml
-  when:
-    - ansible_facts.system == 'Darwin'
-    - ovos_services_manager == 'launchd'
-    - ovos_installer_method == "virtualenv"
+- name: Include install tasks
+  ansible.builtin.import_tasks: install.yml
+  when: not (ovos_services_is_cleaning | bool)
