@@ -73,10 +73,13 @@ function setup() {
     function lsmod() {
         return 0
     }
+    function modprobe() {
+        return 0
+    }
     function i2c_get() {
         return 1  # No devices detected
     }
-    export -f dtparam lsmod i2c_get
+    export -f dtparam lsmod modprobe i2c_get
 
     run i2c_scan
     assert_success
@@ -104,10 +107,13 @@ EOF
     function lsmod() {
         return 0
     }
+    function modprobe() {
+        return 0
+    }
     function i2c_get() {
         return 1  # Live scan misses; should recover from state.
     }
-    export -f dtparam lsmod i2c_get
+    export -f dtparam lsmod modprobe i2c_get
 
     i2c_scan
     assert_equal "$?" "0"
