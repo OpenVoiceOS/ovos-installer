@@ -14,9 +14,18 @@
   notify: Restart NetworkManager
 
 - name: Find wireless power systemd units
+  vars:
+    _ovos_network_tuning_wireless_unit_patterns: >-
+      {{
+        ['wl*-power.service'] + (
+          [((ovos_network_tuning_wireless_interface | default('', true)) ~ '-power.service')]
+          if (ovos_network_tuning_wireless_interface | default('', true) | length > 0)
+          else []
+        )
+      }}
   ansible.builtin.find:
     paths: "{{ ovos_installer_systemd_system_path | default('/etc/systemd/system') }}"
-    patterns: "wl*-power.service"
+    patterns: "{{ _ovos_network_tuning_wireless_unit_patterns }}"
     file_type: file
   register: ovos_network_tuning_wireless_units
   changed_when: false

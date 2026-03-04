@@ -13,15 +13,28 @@
         (ovos_network_tuning_wireless_interface | default('', true))
         if (ovos_network_tuning_wireless_interface | default('', true) | length > 0)
         else (
-          ansible_facts
-          | dict2items
-          | selectattr('key', 'match', '^wl')
-          | selectattr('value.active', 'defined')
-          | selectattr('value.active')
-          | map(attribute='key')
-          | list
-          | first
-          | default('')
+          (
+            ansible_facts
+            | dict2items
+            | selectattr('value', 'mapping')
+            | selectattr('key', 'match', '^wl')
+            | selectattr('value.active', 'defined')
+            | selectattr('value.active')
+            | map(attribute='key')
+            | list
+            | first
+          )
+          | default(
+            (
+              ansible_facts
+              | dict2items
+              | selectattr('value', 'mapping')
+              | selectattr('key', 'match', '^wl')
+              | map(attribute='key')
+              | list
+              | first
+            ) | default('')
+          )
         )
       }}
   changed_when: false

@@ -87,14 +87,14 @@
     ovos_containers_homeassistant_enabled: >-
       {{
         _skills_supported
-        and (ovos_installer_feature_homeassistant | default(false) | bool)
+        and (ovos_containers_feature_homeassistant | bool)
         and (_ovos_homeassistant_url | length > 0)
         and ((ovos_installer_homeassistant_api_key | default('')) | length > 0)
       }}
     ovos_containers_extra_skills_enabled: >-
       {{
         _skills_supported
-        and (ovos_installer_feature_extra_skills | default(false) | bool)
+        and (ovos_containers_feature_extra_skills | bool)
       }}
 
 - name: Read services from skills-extra docker-compose file (when needed)

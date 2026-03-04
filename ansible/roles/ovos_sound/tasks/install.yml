@@ -43,6 +43,7 @@
     groups:
       - "{{ ovos_sound_audio_group }}"
     append: true
+  when: ovos_sound_audio_group in ansible_facts.getent_group
 
 - name: Add installer user to rtkit group
   ansible.builtin.user:
