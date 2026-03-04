@@ -149,7 +149,7 @@
         'pipewire' if ovos_sound_pipewire_pulse_pgrep.rc == 0 else
         'pulseaudio' if ovos_sound_pulseaudio_pgrep.rc == 0 else
         'pipewire' if ovos_sound_pipewire_pgrep.rc == 0 else
-        (ovos_sound_wsl_default_server if ((ansible_facts.kernel | default('')) is search('microsoft')) else ovos_sound_detect_default_server)
+        (ovos_sound_wsl_default_server if ((ansible_facts.kernel | default('') | lower) is search('microsoft')) else ovos_sound_detect_default_server)
       ) } }}
   changed_when: false
 

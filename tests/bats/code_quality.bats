@@ -1646,7 +1646,7 @@ function setup() {
     run grep -F -q "detect_scenario" setup.sh
     assert_success
 
-    run grep -q "^download_yq$" setup.sh
+    run grep -Eq "^[[:space:]]*download_yq([[:space:]]|$)" setup.sh
     assert_failure
 }
 
