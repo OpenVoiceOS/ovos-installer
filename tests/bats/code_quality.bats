@@ -1061,7 +1061,7 @@ function setup() {
 }
 
 @test "roles_use_ansible_core_2_17_compatible_cleaning_flow" {
-    run grep -R -n "ansible\\.builtin\\.meta: end_role" ansible/roles
+    run grep -R -nE "(^|[[:space:]-])(ansible\\.builtin\\.)?meta:[[:space:]]*end_role([[:space:]]|$)" ansible/roles
     assert_failure
 }
 

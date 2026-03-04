@@ -1,7 +1,8 @@
 ---
 ovos_services_manager: "{{ 'launchd' if (ansible_facts.system | default('')) == 'Darwin' else 'systemd' }}"
 ovos_services_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
-ovos_services_is_desktop_profile: "{{ ovos_installer_is_desktop_profile | default(ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server') | bool }}"
+ovos_services_desktop_profiles: "{{ ovos_installer_desktop_profiles | default(['ovos', 'listener']) }}"
+ovos_services_is_desktop_profile: "{{ ovos_installer_is_desktop_profile | default((ovos_installer_profile | default('ovos')) in ovos_services_desktop_profiles) | bool }}"
 ovos_services_enable_non_satellite: "{{ ovos_installer_profile != 'satellite' }}"
 ovos_services_enable_desktop: "{{ ovos_services_is_desktop_profile | bool }}"
 ovos_services_enable_gui: "{{ ovos_installer_feature_gui | bool and ovos_services_enable_desktop | bool }}"

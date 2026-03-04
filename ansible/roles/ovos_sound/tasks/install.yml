@@ -119,18 +119,24 @@
     - "'skipped' not in ovos_sound_pulseaudio_install.keys()"
 
 - name: Check for pipewire-pulse
+  become: true
+  become_user: "{{ ovos_installer_user }}"
   ansible.builtin.command: "{{ ovos_sound_pgrep_cmd }} -x {{ ovos_sound_pipewire_pulse_process }}"
   register: ovos_sound_pipewire_pulse_pgrep
   changed_when: false
   failed_when: false
 
 - name: Check for pulseaudio
+  become: true
+  become_user: "{{ ovos_installer_user }}"
   ansible.builtin.command: "{{ ovos_sound_pgrep_cmd }} -x {{ ovos_sound_pulseaudio_process }}"
   register: ovos_sound_pulseaudio_pgrep
   changed_when: false
   failed_when: false
 
 - name: Check for pipewire
+  become: true
+  become_user: "{{ ovos_installer_user }}"
   ansible.builtin.command: "{{ ovos_sound_pgrep_cmd }} -x {{ ovos_sound_pipewire_process }}"
   register: ovos_sound_pipewire_pgrep
   changed_when: false

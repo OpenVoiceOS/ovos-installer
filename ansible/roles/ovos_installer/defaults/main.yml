@@ -13,7 +13,10 @@ ovos_installer_profile: "ovos"
 ovos_installer_method: "virtualenv"
 ovos_installer_cleaning: false
 ovos_installer_is_cleaning: "{{ ovos_installer_cleaning | default(false) | bool }}"
-ovos_installer_is_desktop_profile: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
+ovos_installer_desktop_profiles:
+  - ovos
+  - listener
+ovos_installer_is_desktop_profile: "{{ (ovos_installer_profile | default('ovos')) in ovos_installer_desktop_profiles }}"
 ovos_installer_channel: "testing"
 ovos_installer_requirements_files:
   - file: virtualenv/core-requirements.txt
