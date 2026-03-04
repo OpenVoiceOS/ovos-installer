@@ -75,7 +75,7 @@ jobs:
       - name: Install installer requirements
         run: |
           sudo apt-get update
-          sudo apt-get --no-install-recommends install -y bash jq expect newt git curl
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Ensure Docker is available for container scenarios
         if: matrix.method == 'containers'
@@ -201,7 +201,7 @@ jobs:
       - name: Install installer requirements
         run: |
           sudo apt-get update
-          sudo apt-get --no-install-recommends install -y bash jq expect newt git curl
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Resolve feature set
         id: feature_set
@@ -337,7 +337,7 @@ jobs:
       - name: Install installer requirements
         run: |
           sudo apt-get update
-          sudo apt-get --no-install-recommends install -y bash jq expect newt git curl
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Ensure Docker is available for container idempotency
         if: matrix.method == 'containers'
@@ -447,7 +447,7 @@ jobs:
       - name: Install installer requirements
         run: |
           sudo apt-get update
-          sudo apt-get --no-install-recommends install -y bash jq expect newt git curl
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Create install scenario file
         run: |
@@ -582,7 +582,7 @@ jobs:
       - name: Install installer requirements
         run: |
           sudo apt-get update
-          sudo apt-get --no-install-recommends install -y bash jq expect newt git curl
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Create invalid scenario file
         shell: bash
