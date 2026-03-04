@@ -3,6 +3,10 @@ name: macOS installer CI
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     paths:
@@ -45,6 +49,17 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.14"
+
+      - name: Restore Python/uv/Ansible caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/pip
+            ~/.cache/uv
+            ~/.ansible/collections
+          key: ${{ runner.os }}-${{ runner.arch }}-ansible-lint-${{ hashFiles('ansible/requirements.yml', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-ansible-lint-
 
       - name: Install macOS requirements
         run: |
@@ -108,6 +123,18 @@ jobs:
         run: |
           brew install bash jq expect newt
 
+      - name: Restore installer caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/Library/Caches/pip
+            ~/.cache/uv
+            ~/.ansible/collections
+            ~/.ovos-installer/uv-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-installer-${{ hashFiles('setup.sh', 'utils/**', 'ansible/**', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-installer-
+
       - name: Resolve bash runtime
         run: |
           if [ -x /opt/homebrew/bin/bash ]; then
@@ -156,15 +183,29 @@ jobs:
 
       - name: Run installer scenario smoke test
         shell: bash
+        env:
+          OVOS_CI_MAX_INSTALL_SECONDS: "3000"
         run: |
+          start_ts="$(date +%s)"
           if [ "${{ matrix.feature_set }}" = "all" ] && [ "${{ matrix.profile }}" = "ovos" ]; then
             sudo -E env \
               HOMEASSISTANT_URL="${CI_HOMEASSISTANT_URL}" \
               HOMEASSISTANT_API_KEY="${CI_HOMEASSISTANT_API_KEY}" \
+              ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" \
               REUSE_CACHED_ARTIFACTS=true \
               "$BASH_BIN" setup.sh
           else
-            sudo -E env REUSE_CACHED_ARTIFACTS=true "$BASH_BIN" setup.sh
+            sudo -E env \
+              ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" \
+              REUSE_CACHED_ARTIFACTS=true \
+              "$BASH_BIN" setup.sh
+          fi
+
+          elapsed="$(( $(date +%s) - start_ts ))"
+          echo "Installer elapsed seconds: ${elapsed}"
+          if [ "$elapsed" -gt "${OVOS_CI_MAX_INSTALL_SECONDS}" ]; then
+            echo "Installer runtime ${elapsed}s exceeded threshold ${OVOS_CI_MAX_INSTALL_SECONDS}s"
+            exit 1
           fi
 
       - name: Validate uv ownership for installer user

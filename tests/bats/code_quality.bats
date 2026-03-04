@@ -720,6 +720,14 @@ function setup() {
     assert_failure
 }
 
+@test "site_includes_shared_input_contract_role" {
+    run grep -q "role: ovos_contract" ansible/site.yml
+    assert_success
+
+    run grep -q "Assert shared installer input contract" ansible/roles/ovos_contract/tasks/main.yml
+    assert_success
+}
+
 @test "virtualenv_gui_core_requirements_use_installable_package_name" {
     local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
 
@@ -1568,6 +1576,34 @@ function setup() {
     assert_failure
 }
 
+@test "setup_uses_runtime_lock_and_signal_cleanup_hooks" {
+    run grep -F -q "acquire_installer_lock" setup.sh
+    assert_success
+
+    run grep -F -q "trap cleanup_installer_runtime EXIT" setup.sh
+    assert_success
+
+    run grep -F -q "trap 'exit_with_signal_code 130' INT" setup.sh
+    assert_success
+
+    run grep -F -q "trap 'exit_with_signal_code 143' TERM" setup.sh
+    assert_success
+}
+
+@test "common_defines_installer_lock_and_cleanup_helpers" {
+    run grep -F -q "function acquire_installer_lock()" utils/common.sh
+    assert_success
+
+    run grep -F -q "function release_installer_lock()" utils/common.sh
+    assert_success
+
+    run grep -F -q "function cleanup_installer_runtime()" utils/common.sh
+    assert_success
+
+    run grep -F -q "function exit_with_signal_code()" utils/common.sh
+    assert_success
+}
+
 @test "scenario_validation_checks_required_keys_explicitly" {
     local file="utils/scenario.sh"
 
@@ -1828,6 +1864,48 @@ function setup() {
     assert_success
 
     run grep -F -q -- "- macos-14" .github/workflows/macos_ci.yml
+    assert_success
+}
+
+@test "workflows_enable_concurrency_cancel_in_progress" {
+    run grep -F -q "cancel-in-progress: true" .github/workflows/linting.yml
+    assert_success
+
+    run grep -F -q "cancel-in-progress: true" .github/workflows/macos_ci.yml
+    assert_success
+
+    run grep -F -q "cancel-in-progress: true" .github/workflows/shell_testing.yml
+    assert_success
+
+    run grep -F -q "cancel-in-progress: true" .github/workflows/scenarios-ubuntu2404.yml
+    assert_success
+}
+
+@test "ci_uses_profile_tasks_callback_and_runtime_thresholds" {
+    run grep -F -q "ANSIBLE_CALLBACKS_ENABLED=\"profile_tasks,timer\"" .github/workflows/macos_ci.yml
+    assert_success
+
+    run grep -F -q "OVOS_CI_MAX_INSTALL_SECONDS" .github/workflows/macos_ci.yml
+    assert_success
+
+    run grep -F -q "ANSIBLE_CALLBACKS_ENABLED=\"profile_tasks,timer\"" .github/workflows/scenarios-ubuntu2404.yml
+    assert_success
+
+    run grep -F -q "OVOS_CI_MAX_INSTALL_SECONDS" .github/workflows/scenarios-ubuntu2404.yml
+    assert_success
+}
+
+@test "ci_restores_python_uv_and_collection_caches" {
+    run grep -F -q "uses: actions/cache@v4" .github/workflows/linting.yml
+    assert_success
+
+    run grep -F -q "~/.cache/uv" .github/workflows/linting.yml
+    assert_success
+
+    run grep -F -q "~/.ansible/collections" .github/workflows/macos_ci.yml
+    assert_success
+
+    run grep -F -q "~/.ovos-installer/uv-cache" .github/workflows/scenarios-ubuntu2404.yml
     assert_success
 }
 

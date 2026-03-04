@@ -3,6 +3,10 @@ name: Check code style and quality
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     paths:
@@ -34,6 +38,22 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Restore Python/uv/Ansible caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+            ~/.ansible/collections
+          key: ${{ runner.os }}-${{ runner.arch }}-ansible-lint-${{ hashFiles('ansible/requirements.yml', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-ansible-lint-
 
       - name: Install Ansible requirements
         run: ./.github/scripts/install_ansible_requirements.sh --with-grapher --force-collections
@@ -158,6 +178,17 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "3.14"
+
+      - name: Restore Python/uv/Ansible caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+            ~/.ansible/collections
+          key: ${{ runner.os }}-${{ runner.arch }}-ansible-syntax-${{ hashFiles('ansible/requirements.yml', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-ansible-syntax-
 
       - name: Install ansible and collections for syntax checks
         run: ./.github/scripts/install_ansible_requirements.sh
