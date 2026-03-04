@@ -1352,6 +1352,15 @@ function i2c_scan() {
                 fi
             fi
         done
+
+        # If the live scan does not detect any supported devices (which can
+        # happen transiently on re-runs), recover the last known I2C device
+        # list from installer state to keep Mark II/DevKit gating deterministic.
+        if ! has_detected_device "atmega328p" && \
+            ! has_detected_device "attiny1614" && \
+            ! has_detected_device "tas5806"; then
+            restore_detected_devices_from_state || true
+        fi
         echo -e "[$done_format]"
     fi
 
@@ -1372,6 +1381,44 @@ function has_detected_device() {
             return 0
         fi
     done
+
+    return 1
+}
+
+# Restore known I2C devices from installer state when live probing did not
+# detect anything (for example, re-runs after partial installs).
+function restore_detected_devices_from_state() {
+    local run_as_home="${RUN_AS_HOME:-}"
+    local state_file="${INSTALLER_STATE_FILE:-}"
+    local cached_device=""
+    local restored_device="false"
+
+    if [ -z "$state_file" ]; then
+        if [ -z "$run_as_home" ]; then
+            return 1
+        fi
+        state_file="${run_as_home}/.local/state/ovos/installer.json"
+    fi
+
+    if [ ! -f "$state_file" ] || ! command -v jq &>>"$LOG_FILE"; then
+        return 1
+    fi
+
+    while IFS= read -r cached_device; do
+        case "$cached_device" in
+        atmega328p | attiny1614 | tas5806)
+            if ! has_detected_device "$cached_device"; then
+                DETECTED_DEVICES+=("$cached_device")
+                restored_device="true"
+            fi
+            ;;
+        esac
+    done < <(jq -r '.i2c_devices[]? // empty' "$state_file" 2>>"$LOG_FILE")
+
+    if [ "$restored_device" == "true" ]; then
+        printf '%s\n' "[info] Restored detected I2C devices from installer state: ${DETECTED_DEVICES[*]}" &>>"$LOG_FILE"
+        return 0
+    fi
 
     return 1
 }
@@ -1606,5 +1653,40 @@ function state_directory() {
     fi
     if [ -f "$INSTALLER_STATE_FILE" ]; then
         [ -s "$INSTALLER_STATE_FILE" ] || rm "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"
+    fi
+
+    # Persist the latest detected I2C devices to make re-runs resilient even
+    # when live probing is transiently unavailable.
+    if command -v jq &>>"$LOG_FILE"; then
+        local state_tmp=""
+        local i2c_devices_json="[]"
+        local detected_device=""
+        local -a detected_devices_to_store=()
+
+        for detected_device in atmega328p attiny1614 tas5806; do
+            if has_detected_device "$detected_device"; then
+                detected_devices_to_store+=("$detected_device")
+            fi
+        done
+
+        if [ "${#detected_devices_to_store[@]}" -gt 0 ]; then
+            i2c_devices_json="$(jq -c -n '$ARGS.positional' --args "${detected_devices_to_store[@]}" 2>>"$LOG_FILE" || echo "[]")"
+        fi
+
+        if [ "$i2c_devices_json" != "[]" ]; then
+            if state_tmp="$(mktemp "${TMPDIR:-/tmp}/ovos-installer-state.XXXXXX" 2>>"$LOG_FILE")"; then
+                if [ -f "$INSTALLER_STATE_FILE" ] && \
+                    jq --argjson i2c_devices "$i2c_devices_json" \
+                        'if type=="object" then . else {} end | .i2c_devices = $i2c_devices' \
+                        "$INSTALLER_STATE_FILE" >"$state_tmp" 2>>"$LOG_FILE"; then
+                    mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+                elif jq -n --argjson i2c_devices "$i2c_devices_json" \
+                    '{i2c_devices: $i2c_devices}' >"$state_tmp" 2>>"$LOG_FILE"; then
+                    mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+                else
+                    rm -f "$state_tmp"
+                fi
+            fi
+        fi
     fi
 }
