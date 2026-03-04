@@ -722,6 +722,16 @@ function setup() {
     assert_success
 }
 
+@test "installer_includes_containers_role_only_for_containers_method" {
+    local file="ansible/roles/ovos_installer/tasks/main.yml"
+
+    run bash -c "grep -A6 -F -- \"- name: Include ovos_containers role\" \"$file\" | grep -F -q -- \"ovos_installer_method == \\\"containers\\\"\""
+    assert_success
+
+    run bash -c "grep -A6 -F -- \"- name: Include ovos_containers role\" \"$file\" | grep -F -q -- \"ovos_installer_is_cleaning\""
+    assert_failure
+}
+
 @test "virtualenv_gui_core_requirements_use_installable_package_name" {
     local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
 
@@ -936,7 +946,7 @@ function setup() {
     run grep -q "Retrieve installed packages" "$tasks_file"
     assert_failure
 
-    run grep -q "ansible.builtin.package_facts" "$tasks_file"
+    run grep -Eq '(^|[[:space:]-])(ansible\.builtin\.)?package_facts:' "$tasks_file"
     assert_failure
 
     run grep -q "Detect Docker CLI" "$tasks_file"
@@ -1092,7 +1102,7 @@ function setup() {
     run grep -q "Query EEPROM package install state (Debian)" "$tasks_file"
     assert_success
 
-    run grep -q "ansible.builtin.package_facts" "$tasks_file"
+    run grep -Eq '(^|[[:space:]-])(ansible\.builtin\.)?package_facts:' "$tasks_file"
     assert_failure
 }
 
@@ -1109,7 +1119,7 @@ function setup() {
     run grep -q "Gather package facts for log2ram" "$tasks_file"
     assert_failure
 
-    run grep -q "ansible.builtin.package_facts" "$tasks_file"
+    run grep -Eq '(^|[[:space:]-])(ansible\.builtin\.)?package_facts:' "$tasks_file"
     assert_failure
 }
 
@@ -1443,7 +1453,7 @@ function setup() {
     run grep -q "Query EEPROM package install state (Debian)" "$eeprom_file"
     assert_success
 
-    run grep -q "ansible.builtin.package_facts" "$eeprom_file"
+    run grep -Eq '(^|[[:space:]-])(ansible\.builtin\.)?package_facts:' "$eeprom_file"
     assert_failure
 
     run grep -q "ovos_performance_tuning_rpi_eeprom_installed" "$eeprom_file"
@@ -1609,6 +1619,12 @@ function setup() {
     assert_success
 
     run grep -F -q "function python_version_major_minor()" utils/common.sh
+    assert_success
+
+    run grep -F -q 'local venv_python_cmd="${PYTHON_CMD:-python3}"' utils/common.sh
+    assert_success
+
+    run grep -F -q '"$venv_python_cmd" -m venv "$VENV_PATH"' utils/common.sh
     assert_success
 
     run grep -F -q 'if [ "$venv_reused" != "true" ]; then' utils/common.sh
@@ -1917,11 +1933,10 @@ function setup() {
     run grep -F -q "runs-on: \${{ matrix.runner }}" .github/workflows/macos_ci.yml
     assert_success
 
-    # When GitHub retires macos-15-intel, update this assertion.
-    run grep -F -q -- "- macos-15-intel" .github/workflows/macos_ci.yml
+    run grep -E -q -- "- macos-[0-9]+-intel" .github/workflows/macos_ci.yml
     assert_success
 
-    run grep -F -q -- "- macos-14" .github/workflows/macos_ci.yml
+    run grep -E -q -- "- macos-[0-9]+$" .github/workflows/macos_ci.yml
     assert_success
 }
 

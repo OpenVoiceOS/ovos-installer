@@ -61,7 +61,7 @@
     name: ovos_containers
   when:
     - ansible_facts.system == 'Linux'
-    - ovos_installer_method == "containers" or ovos_installer_is_cleaning | bool
+    - ovos_installer_method == "containers"
   tags:
     - ovos_containers
 
