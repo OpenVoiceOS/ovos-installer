@@ -66,6 +66,7 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.cache/uv
+            .ansible/collections
             ~/.ansible/collections
             ~/.ovos-installer/uv-cache
           key: ${{ runner.os }}-${{ runner.arch }}-installer-smoke-${{ hashFiles('setup.sh', 'utils/**', 'ansible/**', '.github/scripts/install_ansible_requirements.sh') }}
@@ -192,6 +193,7 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.cache/uv
+            .ansible/collections
             ~/.ansible/collections
             ~/.ovos-installer/uv-cache
           key: ${{ runner.os }}-${{ runner.arch }}-installer-nightly-${{ hashFiles('setup.sh', 'utils/**', 'ansible/**', '.github/scripts/install_ansible_requirements.sh') }}
@@ -332,6 +334,7 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.cache/uv
+            .ansible/collections
             ~/.ansible/collections
             ~/.ovos-installer/uv-cache
           key: ${{ runner.os }}-${{ runner.arch }}-installer-idempotency-${{ hashFiles('setup.sh', 'utils/**', 'ansible/**', '.github/scripts/install_ansible_requirements.sh') }}
@@ -442,6 +445,7 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.cache/uv
+            .ansible/collections
             ~/.ansible/collections
             ~/.ovos-installer/uv-cache
           key: ${{ runner.os }}-${{ runner.arch }}-installer-role-idempotency-${{ hashFiles('setup.sh', 'utils/**', 'ansible/**', '.github/scripts/install_ansible_requirements.sh') }}

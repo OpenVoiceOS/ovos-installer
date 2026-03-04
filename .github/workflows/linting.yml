@@ -50,6 +50,7 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.cache/uv
+            .ansible/collections
             ~/.ansible/collections
           key: ${{ runner.os }}-${{ runner.arch }}-ansible-lint-${{ hashFiles('ansible/requirements.yml', '.github/scripts/install_ansible_requirements.sh') }}
           restore-keys: |
@@ -185,6 +186,7 @@ jobs:
           path: |
             ~/.cache/pip
             ~/.cache/uv
+            .ansible/collections
             ~/.ansible/collections
           key: ${{ runner.os }}-${{ runner.arch }}-ansible-syntax-${{ hashFiles('ansible/requirements.yml', '.github/scripts/install_ansible_requirements.sh') }}
           restore-keys: |
