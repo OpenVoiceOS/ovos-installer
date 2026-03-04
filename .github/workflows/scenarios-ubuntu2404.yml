@@ -111,7 +111,7 @@ jobs:
           ---
           uninstall: false
           method: ${{ matrix.method }}
-          channel: stable
+          channel: testing
           profile: ovos
           features:
             skills: false
@@ -145,7 +145,7 @@ jobs:
           ---
           uninstall: true
           method: ${{ matrix.method }}
-          channel: stable
+          channel: testing
           profile: ovos
           features:
             skills: false
@@ -183,7 +183,6 @@ jobs:
           - virtualenv
           - containers
         channel:
-          - stable
           - testing
           - alpha
         feature_set:
@@ -404,7 +403,7 @@ jobs:
           ---
           uninstall: false
           method: ${{ matrix.method }}
-          channel: stable
+          channel: testing
           profile: ovos
           features:
             skills: false
@@ -440,7 +439,7 @@ jobs:
           ---
           uninstall: true
           method: ${{ matrix.method }}
-          channel: stable
+          channel: testing
           profile: ovos
           features:
             skills: false
@@ -505,7 +504,7 @@ jobs:
           ---
           uninstall: false
           method: virtualenv
-          channel: stable
+          channel: testing
           profile: ovos
           features:
             skills: false
@@ -543,7 +542,7 @@ jobs:
                 -e "ovos_installer_user_home=${HOME}" \
                 -e "ovos_installer_method=virtualenv" \
                 -e "ovos_installer_profile=ovos" \
-                -e "ovos_installer_channel=stable" \
+                -e "ovos_installer_channel=testing" \
                 -e "ovos_installer_feature_gui=false" \
                 -e "ovos_installer_feature_skills=false" \
                 -e "ovos_installer_feature_extra_skills=false" \
@@ -586,7 +585,7 @@ jobs:
           ---
           uninstall: true
           method: virtualenv
-          channel: stable
+          channel: testing
           profile: ovos
           features:
             skills: false
@@ -659,7 +658,7 @@ jobs:
           ---
           uninstall: false
           method: podman
-          channel: stable
+          channel: testing
           profile: ovos
           features:
             skills: false
@@ -675,7 +674,7 @@ jobs:
           ---
           uninstall: false
           method: virtualenv
-          channel: stable
+          channel: testing
           profile: ovos
           features:
             skills: maybe
@@ -689,7 +688,7 @@ jobs:
           ---
           uninstall: false
           method: virtualenv
-          channel: stable
+          channel: testing
           profile: satellite
           features:
             skills: false

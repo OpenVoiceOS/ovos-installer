@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "OpenVoice OS Installation - Kanaler",
-    "content": "Open Voice OS har tre primære udgivelseskanaler:\n\n- stable (stabil men gammel)\n- testing (anbefalet)\n- alpha (nyeste version)\n\nStable-kanalen ændrer sig mindst og er den mest konservative mulighed, men kan halte efter med nye funktioner og rettelser.\n\nTesting-kanalen anbefales til de fleste brugere. Den indeholder nyere funktioner og forbedringer og er generelt stabil, men kan af og til indeholde regressioner.\n\nAlpha-kanalen er den mest eksperimentelle og indeholder de nyeste funktioner og ændringer, der stadig er under udvikling. Den kan være ustabil og anbefales ikke til daglig brug.\n\nVælg venligst en kanal:"
+    "content": "Open Voice OS har to primære udgivelseskanaler:\n\n- testing (anbefalet)\n- alpha (nyeste version)\n\nTesting-kanalen anbefales til de fleste brugere. Den indeholder nyere funktioner og forbedringer og er generelt stabil, men kan af og til indeholde regressioner.\n\nAlpha-kanalen er den mest eksperimentelle og indeholder de nyeste funktioner og ændringer, der stadig er under udvikling. Den kan være ustabil og anbefales ikke til daglig brug.\n\nVælg venligst en kanal:"
   },
   "detection.sh": {
     "title": "Open Voice OS-installation - fundet",

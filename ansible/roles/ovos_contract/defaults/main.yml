@@ -8,6 +8,5 @@ ovos_contract_allowed_profiles:
   - server
   - satellite
 ovos_contract_allowed_channels:
-  - stable
   - testing
   - alpha

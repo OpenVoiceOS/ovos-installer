@@ -87,9 +87,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 export METHOD
                 ;;
             channel)
-                if [[ "${options[$option]}" == "stable" ]]; then
-                    CHANNEL="stable"
-                elif [[ "${options[$option]}" == "testing" ]]; then
+                if [[ "${options[$option]}" == "testing" ]]; then
                     CHANNEL="testing"
                 elif [[ "${options[$option]}" == "alpha" ]]; then
                     CHANNEL="alpha"

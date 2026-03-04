@@ -14,7 +14,7 @@ ovos_installer_method: "virtualenv"
 ovos_installer_cleaning: false
 ovos_installer_is_cleaning: "{{ ovos_installer_cleaning | default(false) | bool }}"
 ovos_installer_is_desktop_profile: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' }}"
-ovos_installer_channel: "stable"
+ovos_installer_channel: "testing"
 ovos_installer_requirements_files:
   - file: virtualenv/core-requirements.txt
     dest: "{{ ovos_installer_tmp_dir }}/core-requirements.txt"
@@ -82,7 +82,7 @@ ovos_installer_supported_desktop_architectures:
 # disabled there by default until dedicated Darwin packaging is available.
 ovos_installer_enable_ggwave: >-
   {{ ansible_facts.system != 'Darwin'
-     and (ovos_installer_channel | default('')) in ['stable', 'testing']
+     and (ovos_installer_channel | default('')) == 'testing'
      and ansible_facts.architecture in ovos_installer_supported_desktop_architectures }}
 ovos_installer_uv_allow_prerelease: "{{ (ovos_installer_venv_python_major | int) == 3 and (ovos_installer_venv_python_minor | int) >= 13 }}"
 ovos_installer_tuning: false

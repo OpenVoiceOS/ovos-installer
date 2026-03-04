@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 CONTENT="
-Open Voice OS tiene tres canales de lanzamiento principales:
+Open Voice OS tiene dos canales de lanzamiento principales:
 
-- stable (estable pero antiguo)
 - testing (recomendado)
 - alpha (de vanguardia)
-
-El canal stable cambia menos y es la opción más conservadora, pero puede quedarse atrás en nuevas funciones y correcciones.
 
 El canal testing se recomienda para la mayoría de los usuarios. Incluye funciones y mejoras más recientes y, en general, es estable, pero ocasionalmente puede incluir regresiones.
 

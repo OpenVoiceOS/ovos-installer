@@ -91,7 +91,7 @@ function setup() {
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
     DISPLAY_SERVER="N/A"
-    CHANNEL="stable"
+    CHANNEL="testing"
     PROFILE="ovos"
     FEATURE_GUI="false"
     RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
@@ -153,7 +153,7 @@ EOF
 
 @test "function_enforce_mark2_alpha_channel_forces_alpha" {
     DETECTED_DEVICES=("tas5806")
-    CHANNEL="stable"
+    CHANNEL="testing"
 
     enforce_mark2_alpha_channel
     assert_equal "$CHANNEL" "alpha"
@@ -161,7 +161,7 @@ EOF
 
 @test "function_enforce_mark2_alpha_channel_is_silent" {
     DETECTED_DEVICES=("tas5806")
-    CHANNEL="stable"
+    CHANNEL="testing"
 
     run enforce_mark2_alpha_channel
     assert_success
@@ -170,10 +170,10 @@ EOF
 
 @test "function_enforce_mark2_alpha_channel_does_not_force_devkit" {
     DETECTED_DEVICES=("attiny1614" "tas5806")
-    CHANNEL="stable"
+    CHANNEL="testing"
 
     enforce_mark2_alpha_channel
-    assert_equal "$CHANNEL" "stable"
+    assert_equal "$CHANNEL" "testing"
 }
 
 @test "function_enforce_mark2_devkit_gui_support_does_not_force_feature_gui_on_trixie" {

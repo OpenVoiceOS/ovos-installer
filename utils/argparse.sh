@@ -51,7 +51,7 @@ function handle_options() {
     export DEBUG="${DEBUG:-false}"
     export METHOD="${METHOD:-virtualenv}"
     export PROFILE="${PROFILE:-ovos}"
-    export CHANNEL="${CHANNEL:-stable}"
+    export CHANNEL="${CHANNEL:-testing}"
     export TUNING="${TUNING:-yes}"
     export TUNING_OVERCLOCK="${TUNING_OVERCLOCK:-no}"
     export OVERCLOCK_ARM_BOOST="${OVERCLOCK_ARM_BOOST:-1}"

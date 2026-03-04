@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 CONTENT="
-Open Voice OS ma trzy główne kanały wydań:
+Open Voice OS ma dwa główne kanały wydań:
 
-- stable (stabilny, ale starszy)
 - testing (zalecany)
 - alpha (najbardziej eksperymentalny)
-
-Kanał stable zmienia się najrzadziej i jest najbardziej zachowawczą opcją, ale może pozostawać w tyle za nowymi funkcjami i poprawkami.
 
 Kanał testing jest zalecany dla większości użytkowników. Zawiera nowsze funkcje i ulepszenia i jest zazwyczaj stabilny, ale od czasu do czasu mogą pojawić się regresje.
 

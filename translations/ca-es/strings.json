@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Instal·lació de l'Open Voice OS - Canals",
-    "content": "Open Voice OS té tres canals principals de publicació:\n\n- stable (estable però antic)\n- testing (recomanat)\n- alpha (d’avantguarda)\n\nEl canal stable canvia menys sovint i és l'opció més conservadora, però pot quedar endarrerit respecte a les noves funcions i correccions.\n\nEl canal testing és recomanat per a la majoria d'usuaris. Inclou funcions i millores més recents i, en general, és estable, però de tant en tant pot contenir regressions.\n\nEl canal alpha és el més experimental i conté les funcions i canvis més recents que encara es troben en desenvolupament. Pot ser inestable i no es recomana per a l'ús diari.\n\nSelecciona un canal, si us plau:"
+    "content": "Open Voice OS té dos canals principals de publicació:\n\n- testing (recomanat)\n- alpha (d’avantguarda)\n\nEl canal testing és recomanat per a la majoria d'usuaris. Inclou funcions i millores més recents i, en general, és estable, però de tant en tant pot contenir regressions.\n\nEl canal alpha és el més experimental i conté les funcions i canvis més recents que encara es troben en desenvolupament. Pot ser inestable i no es recomana per a l'ús diari.\n\nSelecciona un canal, si us plau:"
   },
   "detection.sh": {
     "title": "Instal·lació de l'Open Voice OS - Informació detectada",

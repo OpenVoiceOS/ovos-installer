@@ -85,7 +85,7 @@ jobs:
       matrix:
         include:
           - runner: macos-15-intel
-            channel: stable
+            channel: testing
             profile: ovos
             feature_set: minimal
           - runner: macos-15-intel
@@ -97,7 +97,7 @@ jobs:
             profile: server
             feature_set: minimal
           - runner: macos-14
-            channel: stable
+            channel: testing
             profile: ovos
             feature_set: minimal
           - runner: macos-14

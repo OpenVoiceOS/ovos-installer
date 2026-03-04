@@ -774,13 +774,13 @@ function setup() {
     run grep -F -q "ovos-skill-weather==1.0.6" "$defaults_file"
     assert_failure
 
-    run grep -F -q "Install stable skill pins for Mark II" "$tasks_file"
+    run grep -F -q "Install known-good skill pins for Mark II" "$tasks_file"
     assert_failure
 
     run grep -F -q "Install known-good date-time skill for Mark II" "$tasks_file"
     assert_failure
 
-    run grep -F -q "Install stable weather skill for Mark II" "$tasks_file"
+    run grep -F -q "Install known-good weather skill for Mark II" "$tasks_file"
     assert_failure
 
     run grep -F -q "ovos_virtualenv_mark2_datetime_package:" "$defaults_file"
@@ -800,7 +800,7 @@ function setup() {
     run grep -F -q "ovos-padatious==1.4.3" "$defaults_file"
     assert_failure
 
-    run grep -F -q "Install stable padatious parser for Mark II" "$tasks_file"
+    run grep -F -q "Install known-good padatious parser for Mark II" "$tasks_file"
     assert_failure
 }
 

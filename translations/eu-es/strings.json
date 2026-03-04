@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Ireki Voice OS instalazioa - Kanalak",
-    "content": "Open Voice OS-k hiru kaleratze kanal nagusi ditu:\n\n  - stable (egonkorra baina zaharra)\n  - testing (gomendatua)\n  - alpha (azken-azkena)\n\nstable kanala gutxien aldatzen den aukera kontserbadoreena da, baina funtzio eta konponketa berrietan atzean geratu daiteke.\n\ntesting kanala erabiltzaile gehienentzat gomendatua da. Funtzio eta hobekuntza berriagoak ditu eta, oro har, egonkorra da, baina noizean behin regresioak izan ditzake.\n\nalpha kanala esperimentalena da, eta garapenean dauden azken funtzio eta aldaketak biltzen ditu. Ezegonkorra izan daiteke eta ez da eguneroko erabilerarako gomendatzen.\n\nAukeratu kanal bat:"
+    "content": "Open Voice OS-k bi kaleratze kanal nagusi ditu:\n\n  - testing (gomendatua)\n  - alpha (azken-azkena)\n\ntesting kanala erabiltzaile gehienentzat gomendatua da. Funtzio eta hobekuntza berriagoak ditu eta, oro har, egonkorra da, baina noizean behin regresioak izan ditzake.\n\nalpha kanala esperimentalena da, eta garapenean dauden azken funtzio eta aldaketak biltzen ditu. Ezegonkorra izan daiteke eta ez da eguneroko erabilerarako gomendatzen.\n\nAukeratu kanal bat:"
   },
   "detection.sh": {
     "title": "Ireki Voice OS instalazioa - Detektatua",

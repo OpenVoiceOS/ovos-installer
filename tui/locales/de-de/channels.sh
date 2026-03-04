@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 CONTENT="
-Open Voice OS bietet drei Release-Kanäle:
+Open Voice OS bietet zwei Release-Kanäle:
 
-- stable (stabil, aber alt)
 - testing (empfohlen)
 - alpha (Bleeding Edge)
-
-Der stable-Kanal ändert sich am wenigsten und ist die konservativste Option, kann aber bei neuen Funktionen und Fehlerbehebungen hinterherhinken.
 
 Der testing-Kanal ist für die meisten Nutzer empfohlen. Er enthält neuere Funktionen und Verbesserungen und ist in der Regel stabil, kann aber gelegentlich Regressionen enthalten.
 

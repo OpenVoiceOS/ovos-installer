@@ -118,7 +118,7 @@ jobs:
       matrix:
         include:
           - method: virtualenv
-            channel: stable
+            channel: testing
             profile: ovos
             feature_skills: true
             feature_extra_skills: true
@@ -150,7 +150,7 @@ jobs:
             needs_homeassistant: false
             needs_satellite: true
           - method: containers
-            channel: stable
+            channel: testing
             profile: ovos
             feature_skills: true
             feature_extra_skills: false

@@ -206,7 +206,7 @@ EOF
 
 - `uninstall`: Set to `true` to uninstall instead of install.
 - `method`: Installation method (`containers` for Docker, `virtualenv` for Python virtual environment). On macOS and Mark 2 hardware, use `virtualenv` only.
-- `channel`: Release channel (`stable`, `testing`, `development`, `alpha`). On macOS, use `alpha` only.
+- `channel`: Release channel (`testing`, `alpha`). On macOS, use `alpha` only.
 - `profile`: Installation profile (`ovos` for standard setup).
 - `features.skills`: Install default voice skills.
 - `features.extra_skills`: Install additional community skills.
