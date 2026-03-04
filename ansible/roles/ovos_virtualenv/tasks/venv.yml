@@ -185,19 +185,6 @@
     - ovos_virtualenv_pip_bootstrap is defined
     - ovos_virtualenv_pip_bootstrap is changed
 
-- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)
-  become: true
-  become_user: "{{ ovos_installer_user }}"
-  moreati.uv.pip:
-    name: tflite_runtime
-    virtualenv: "{{ ovos_virtualenv_path }}"
-    extra_args: "--trusted-host whl.smartgic.io -f 'https://whl.smartgic.io'"
-  environment: "{{ ovos_virtualenv_uv_environment }}"
-  when:
-    - not (ovos_virtualenv_is_cleaning | bool)
-    - ovos_installer_cpu_is_capable | bool
-    - ansible_facts.system != 'Darwin'
-
 - name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)
   become: true
   become_user: "{{ ovos_installer_user }}"

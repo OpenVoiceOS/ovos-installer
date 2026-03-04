@@ -592,9 +592,6 @@ function setup() {
 @test "virtualenv_uv_pip_tasks_run_as_installer_user" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
-    run bash -c "grep -A4 -F -- \"- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
-    assert_success
-
     run bash -c "grep -A4 -F -- \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
     assert_success
 
@@ -610,9 +607,6 @@ function setup() {
 
 @test "virtualenv_uv_bootstrap_and_runtime_installs_skip_cleaning" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
-
-    run bash -c "grep -A12 -F -- \"- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_virtualenv_is_cleaning | bool)'"
-    assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_virtualenv_is_cleaning | bool)'"
     assert_success
