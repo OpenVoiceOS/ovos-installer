@@ -1282,9 +1282,43 @@ function ver() {
 # Takes an argument like "2f" which is converted to "0x2f".
 # Only used when a Raspberry Pi board is detected.
 function i2c_get() {
-    if i2cdetect -y -a "$I2C_BUS" "0x$1" "0x$1" 2>>"$LOG_FILE" | grep -Eq "$1|UU"; then
-        return 0
+    local address="$1"
+    local bus=""
+    local bus_dev=""
+    local -a i2c_buses=()
+    local override_buses="${OVOS_I2C_SCAN_BUSES:-}"
+
+    if ! command -v i2cdetect &>>"$LOG_FILE"; then
+        return 1
     fi
+
+    if [ -n "$override_buses" ]; then
+        # Allow deterministic bus selection for tests and advanced overrides.
+        # Accept either comma- or space-separated values.
+        read -r -a i2c_buses <<<"${override_buses//,/ }"
+    else
+        if [ -n "${I2C_BUS:-}" ]; then
+            i2c_buses+=("$I2C_BUS")
+        fi
+
+        for bus_dev in /dev/i2c-*; do
+            [ -e "$bus_dev" ] || continue
+            bus="${bus_dev##*-}"
+            [[ "$bus" =~ ^[0-9]+$ ]] || continue
+
+            if [ "$bus" != "${I2C_BUS:-}" ]; then
+                i2c_buses+=("$bus")
+            fi
+        done
+    fi
+
+    for bus in "${i2c_buses[@]}"; do
+        if i2cdetect -y -a "$bus" "0x$address" "0x$address" 2>>"$LOG_FILE" | grep -Eiq "$address|UU"; then
+            printf '%s\n' "[info] I2C device 0x${address} detected on bus ${bus}" &>>"$LOG_FILE"
+            return 0
+        fi
+    done
+
     return 1
 }
 
