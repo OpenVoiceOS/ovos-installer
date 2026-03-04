@@ -88,6 +88,14 @@ jobs:
             echo "Docker is not preinstalled; installer will bootstrap it."
           fi
 
+      - name: Ensure ALSA device path exists for container scenarios
+        if: matrix.method == 'containers'
+        run: |
+          if [ ! -e /dev/snd ]; then
+            sudo mkdir -p /dev/snd
+            sudo chmod 0755 /dev/snd
+          fi
+
       - name: Create install scenario file
         shell: bash
         run: |
@@ -233,6 +241,14 @@ jobs:
             echo "Docker is not preinstalled; installer will bootstrap it."
           fi
 
+      - name: Ensure ALSA device path exists for container scenarios
+        if: matrix.method == 'containers'
+        run: |
+          if [ ! -e /dev/snd ]; then
+            sudo mkdir -p /dev/snd
+            sudo chmod 0755 /dev/snd
+          fi
+
       - name: Create install scenario file
         shell: bash
         run: |
@@ -354,6 +370,14 @@ jobs:
             sudo docker info || true
           else
             echo "Docker is not preinstalled; installer will bootstrap it."
+          fi
+
+      - name: Ensure ALSA device path exists for container scenarios
+        if: matrix.method == 'containers'
+        run: |
+          if [ ! -e /dev/snd ]; then
+            sudo mkdir -p /dev/snd
+            sudo chmod 0755 /dev/snd
           fi
 
       - name: Create install scenario file
@@ -534,7 +558,7 @@ jobs:
 
       - name: Upload key-role idempotency logs
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: role-idempotency-logs
           path: artifacts
