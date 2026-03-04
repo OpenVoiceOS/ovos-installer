@@ -14,7 +14,8 @@ function setup() {
 
 @test "function_acquire_installer_lock_and_release" {
     acquire_installer_lock
-    assert_equal "$?" "0"
+    local lock_rc=$?
+    assert_equal "$lock_rc" "0"
 
     if command -v flock >/dev/null 2>&1; then
         run test -f "$OVOS_INSTALLER_LOCK_FILE"
@@ -34,13 +35,19 @@ function setup() {
         skip "flock is required for lock contention test"
     fi
 
-    bash -c 'exec 9>"$1"; flock -n 9; sleep 5' _ "$OVOS_INSTALLER_LOCK_FILE" &
+    local lock_ready_file="${OVOS_INSTALLER_LOCK_FILE}.ready"
+    rm -f "$lock_ready_file"
+
+    bash -c 'exec 9>"$1"; flock -n 9 || exit 1; : >"$2"; sleep 5' _ "$OVOS_INSTALLER_LOCK_FILE" "$lock_ready_file" &
     local locker_pid=$!
     local lock_ready="false"
     local _attempt
     for _attempt in {1..30}; do
-        if ! bash -c 'exec 9>"$1"; flock -n 9' _ "$OVOS_INSTALLER_LOCK_FILE" >/dev/null 2>&1; then
+        if [ -f "$lock_ready_file" ]; then
             lock_ready="true"
+            break
+        fi
+        if ! kill -0 "$locker_pid" 2>/dev/null; then
             break
         fi
         sleep 0.1
@@ -53,6 +60,7 @@ function setup() {
 
     kill "$locker_pid" >/dev/null 2>&1 || true
     wait "$locker_pid" >/dev/null 2>&1 || true
+    rm -f "$lock_ready_file"
 }
 
 @test "function_cleanup_installer_runtime_removes_temp_file_and_unlocks" {
@@ -61,7 +69,8 @@ function setup() {
     fi
 
     acquire_installer_lock
-    assert_equal "$?" "0"
+    local lock_rc=$?
+    assert_equal "$lock_rc" "0"
 
     ha_extra_vars_file="$(mktemp /tmp/ovos-ha-extra-vars.XXXXXX)"
     export ha_extra_vars_file
