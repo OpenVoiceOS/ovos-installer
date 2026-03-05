@@ -1379,8 +1379,11 @@ function setup() {
     run grep -q '"ovos-solver-openai-plugin": {' ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
-    run grep -q '"persona": ovos_installer_llm_persona' ansible/roles/ovos_config/tasks/install.yml
+    run grep -q '"system_prompt": ovos_installer_llm_persona' ansible/roles/ovos_config/tasks/install.yml
     assert_success
+
+    run grep -q '"persona": ovos_installer_llm_persona' ansible/roles/ovos_config/tasks/install.yml
+    assert_failure
 }
 
 @test "macos_precise_onnx_is_cpu_guarded_in_requirements" {
