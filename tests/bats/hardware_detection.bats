@@ -168,12 +168,12 @@ EOF
     assert_output ""
 }
 
-@test "function_enforce_mark2_alpha_channel_does_not_force_devkit" {
+@test "function_enforce_mark2_alpha_channel_forces_alpha_on_devkit" {
     DETECTED_DEVICES=("attiny1614" "tas5806")
     CHANNEL="testing"
 
     enforce_mark2_alpha_channel
-    assert_equal "$CHANNEL" "testing"
+    assert_equal "$CHANNEL" "alpha"
 }
 
 @test "function_enforce_mark2_devkit_gui_support_does_not_force_feature_gui_on_trixie" {
