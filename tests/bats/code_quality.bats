@@ -770,6 +770,16 @@ function setup() {
     assert_failure
 }
 
+@test "installer_stops_services_early_on_uninstall" {
+    local file="ansible/roles/ovos_installer/tasks/main.yml"
+
+    run bash -c "grep -A8 -F -- \"- name: Include ovos_services role for uninstall pre-stop\" \"$file\" | grep -F -q -- \"ovos_installer_is_cleaning\""
+    assert_success
+
+    run bash -c "grep -A6 -F -- \"- name: Include ovos_services role\" \"$file\" | grep -F -q -- \"not (ovos_installer_is_cleaning | bool)\""
+    assert_success
+}
+
 @test "virtualenv_gui_core_requirements_use_installable_package_name" {
     local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
 
@@ -2076,7 +2086,7 @@ function setup() {
 }
 
 @test "ci_restores_python_uv_and_collection_caches" {
-    run grep -F -q "uses: actions/cache@v4" .github/workflows/linting.yml
+    run grep -F -q "uses: actions/cache@v5.0.3" .github/workflows/linting.yml
     assert_success
 
     run grep -F -q "~/.cache/uv" .github/workflows/linting.yml
