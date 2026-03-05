@@ -13,6 +13,8 @@
 {% set _ovos_listener_has_wake_word = (_ovos_is_macos and ((ovos_installer_cpu_is_capable | default(false)) | bool)) or (ovos_installer_tuning | bool) %}
 {% set _ovos_hotword_sensitivity = ovos_config_mark2_hotword_sensitivity if _ovos_is_mark2 else ovos_config_hotword_sensitivity %}
 {% set _ovos_hotword_trigger_level = ovos_config_mark2_hotword_trigger_level if _ovos_is_mark2 else ovos_config_hotword_trigger_level %}
+{% set _ovos_mark2_ocp_legacy = 'tas5806' in (ovos_installer_i2c_devices | default([])) %}
+{% set _ovos_persona_llm_enabled = ovos_installer_feature_llm | default(false) | bool %}
   "play_wav_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
   "play_mp3_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
   "lang": "{{ ovos_installer_locale }}",
@@ -90,7 +92,7 @@
     "idle_display_skill": "skill-ovos-homescreen.openvoiceos"
   },
 {% endif %}
-{% if 'tas5806' in ovos_installer_i2c_devices %}
+{% if _ovos_mark2_ocp_legacy %}
   "Audio": {
     "backends": {
       "OCP": {
@@ -98,10 +100,20 @@
       }
     }
   },
+{% endif %}
+{% if _ovos_mark2_ocp_legacy or _ovos_persona_llm_enabled %}
   "intents": {
+{% if _ovos_mark2_ocp_legacy %}
     "OCP": {
       "legacy": true
+    }{{ ',' if _ovos_persona_llm_enabled else '' }}
+{% endif %}
+{% if _ovos_persona_llm_enabled %}
+    "persona": {
+      "handle_fallback": true,
+      "default_persona": "{{ ovos_installer_llm_persona_name }}"
     }
+{% endif %}
   },
 {% endif %}
 {% endif %}

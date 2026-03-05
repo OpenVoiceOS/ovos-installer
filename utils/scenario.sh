@@ -161,6 +161,17 @@ if [ -f "$SCENARIO_PATH" ]; then
                             fi
                             export FEATURE_HOMEASSISTANT
                             ;;
+                        llm)
+                            if [[ "${features[$feature]}" == "true" ]]; then
+                                FEATURE_LLM="true"
+                            elif [[ "${features[$feature]}" == "false" ]]; then
+                                FEATURE_LLM="false"
+                            else
+                                export SCENARIO_NOT_SUPPORTED="true"
+                                break
+                            fi
+                            export FEATURE_LLM
+                            ;;
                         *)
                             export SCENARIO_NOT_SUPPORTED="true"
                             ;;

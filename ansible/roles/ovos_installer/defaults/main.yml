@@ -132,12 +132,17 @@ ovos_installer_feature_skills: true
 ovos_installer_feature_extra_skills: false
 ovos_installer_feature_homeassistant: false
 ovos_installer_feature_gui: false
+ovos_installer_feature_llm: false
 # Home Assistant skill directory name under `~/.config/mycroft/skills/`.
 ovos_installer_homeassistant_skill_id: "skill-homeassistant.oscillatelabsllc"
 ovos_installer_homeassistant_url: ""
 # Backward compatible alias; prefer ovos_installer_homeassistant_url.
 ovos_installer_homeassistant_host: ""
 ovos_installer_homeassistant_api_key: ""
+ovos_installer_llm_api_url: ""
+ovos_installer_llm_api_key: ""
+ovos_installer_llm_persona: "helpful, creative, clever, and very friendly."
+ovos_installer_llm_persona_name: "OVOS Installer LLM"
 ovos_installer_usage_telemetry: false
 ovos_installer_telemetry: "{{ ovos_installer_usage_telemetry | bool }}"
 ovos_installer_run_ovos_config: false

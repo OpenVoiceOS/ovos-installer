@@ -54,7 +54,7 @@ fi
 export PASTE_URL="https://paste.uoi.io"
 export PULSE_SOCKET_WSL2=/mnt/wslg/PulseServer
 export REBOOT_FILE_PATH=/tmp/ovos.reboot
-declare -ra SCENARIO_ALLOWED_FEATURES=(skills extra_skills homeassistant)
+declare -ra SCENARIO_ALLOWED_FEATURES=(skills extra_skills homeassistant llm)
 export SCENARIO_ALLOWED_FEATURES
 declare -ra SCENARIO_ALLOWED_HIVEMIND_OPTIONS=(host port key password)
 export SCENARIO_ALLOWED_HIVEMIND_OPTIONS

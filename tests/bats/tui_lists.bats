@@ -248,7 +248,7 @@ function spy_value() {
     # shellcheck source=tui/features.sh
     source tui/features.sh
 
-    assert_equal "$(spy_value option_count)" "3"
+    assert_equal "$(spy_value option_count)" "4"
     assert_equal "$(spy_value list_height)" "4"
 }
 
@@ -263,7 +263,7 @@ function spy_value() {
     # shellcheck source=tui/features.sh
     source tui/features.sh
 
-    assert_equal "$(spy_value option_count)" "4"
+    assert_equal "$(spy_value option_count)" "5"
     tags="$(spy_value tags)"
     if [[ "$tags" != *gui* ]]; then
         echo "expected gui in tag list: $tags" >&2
@@ -299,7 +299,7 @@ function spy_value() {
     # shellcheck source=tui/features.sh
     source tui/features.sh
 
-    assert_equal "$(spy_value statuses)" "ON OFF ON OFF"
+    assert_equal "$(spy_value statuses)" "ON OFF ON OFF OFF"
     assert_equal "$FEATURE_GUI" "true"
 }
 
@@ -315,7 +315,7 @@ function spy_value() {
     # shellcheck source=tui/features.sh
     source tui/features.sh
 
-    assert_equal "$(spy_value statuses)" "ON OFF ON OFF"
+    assert_equal "$(spy_value statuses)" "ON OFF ON OFF OFF"
     assert_equal "$FEATURE_GUI" "true"
 }
 
@@ -328,7 +328,7 @@ function spy_value() {
     # shellcheck source=tui/features.sh
     source tui/features.sh
 
-    assert_equal "$(spy_value option_count)" "3"
+    assert_equal "$(spy_value option_count)" "4"
     assert_equal "$(spy_value list_height)" "4"
 
     tags="$(spy_value tags)"
@@ -336,6 +336,25 @@ function spy_value() {
         echo "expected homeassistant in tag list: $tags" >&2
         return 1
     fi
+    if [[ "$tags" != *llm* ]]; then
+        echo "expected llm in tag list: $tags" >&2
+        return 1
+    fi
+}
+
+@test "features: selecting llm enables feature with preseeded configuration" {
+    printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"]}' >"$INSTALLER_STATE_FILE"
+    PROFILE="ovos"
+    METHOD="virtualenv"
+    LLM_API_URL="https://llama.smartgic.io/v1"
+    LLM_API_KEY="sk-test"
+    LLM_PERSONA="helpful, creative, clever, and very friendly."
+    WHIPTAIL_FORCE_SELECTION=$'skills\nllm'
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    assert_equal "$FEATURE_LLM" "true"
 }
 
 @test "tuning: radiolist is well-formed (list-height >= 1, options present)" {

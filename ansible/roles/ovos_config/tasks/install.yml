@@ -118,3 +118,51 @@
             } | to_nice_json
           }}
       no_log: true
+
+- name: Configure ovos-persona LLM settings (when enabled)
+  vars:
+    _ovos_persona_relpath: >-
+      {{ '.config/ovos_persona'
+         if ovos_installer_method == 'virtualenv'
+         else 'ovos/config/persona' }}
+    _ovos_persona_path: "{{ ovos_installer_user_home }}/{{ _ovos_persona_relpath }}"
+    _ovos_persona_file: "{{ _ovos_persona_path }}/ovos-installer-llm.json"
+    _ovos_llm_persona_name: "{{ ovos_installer_llm_persona_name | default('OVOS Installer LLM') | trim }}"
+  when:
+    - ovos_installer_feature_llm | default(false) | bool
+    - ovos_installer_method in ["virtualenv", "containers"]
+    - ovos_installer_profile not in ['satellite', 'server']
+    - (ovos_installer_llm_api_url | default('') | trim | length) > 0
+    - (ovos_installer_llm_api_key | default('') | trim | length) > 0
+    - (ovos_installer_llm_persona | default('') | trim | length) > 0
+    - (_ovos_llm_persona_name | length) > 0
+  block:
+    - name: Ensure ovos-persona directory exists
+      ansible.builtin.file:
+        path: "{{ _ovos_persona_path }}"
+        state: directory
+        owner: "{{ ovos_config_mycroft_conf_owner }}"
+        group: "{{ ovos_config_mycroft_conf_group }}"
+        mode: "0755"
+
+    - name: Write ovos-persona LLM profile
+      ansible.builtin.copy:
+        dest: "{{ _ovos_persona_file }}"
+        owner: "{{ ovos_config_mycroft_conf_owner }}"
+        group: "{{ ovos_config_mycroft_conf_group }}"
+        mode: "0600"
+        content: >-
+          {{
+            {
+              "name": _ovos_llm_persona_name,
+              "solvers": [
+                "ovos-solver-openai-plugin"
+              ],
+              "ovos-solver-openai-plugin": {
+                "api_url": ovos_installer_llm_api_url,
+                "key": ovos_installer_llm_api_key,
+                "persona": ovos_installer_llm_persona
+              }
+            } | to_nice_json
+          }}
+      no_log: true
