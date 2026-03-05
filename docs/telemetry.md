@@ -22,6 +22,7 @@ Below is a list of the collected data _(see the [Ansible task](https://github.co
 | `gui_feature`          | GUI enabled during the installation                      |
 | `hardware`             | Is the device a Mark 1, Mark II or DevKit                |
 | `homeassistant_feature` | Home Assistant feature enabled during the installation    |
+| `llm_feature`           | LLM feature enabled during the installation               |
 | `installed_at`         | Date when OVOS has been installed                        |
 | `os_kernel`            | Kernel version of the host where OVOS is running         |
 | `os_name`              | OS name of the host where OVOS is running                |
