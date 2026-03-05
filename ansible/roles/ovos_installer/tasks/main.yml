@@ -27,6 +27,14 @@
   tags:
     - always
 
+- name: Include ovos_services role for uninstall pre-stop
+  ansible.builtin.import_role:
+    name: ovos_services
+  when: ovos_installer_is_cleaning | bool
+  tags:
+    - ovos_services
+    - uninstall
+
 - name: Include tuning.yml
   ansible.builtin.import_tasks: tuning.yml
   when:
@@ -75,6 +83,7 @@
 - name: Include ovos_services role
   ansible.builtin.import_role:
     name: ovos_services
+  when: not (ovos_installer_is_cleaning | bool)
   tags:
     - ovos_services
 
