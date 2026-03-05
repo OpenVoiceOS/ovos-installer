@@ -1351,6 +1351,12 @@ function setup() {
     run grep -q "HOMEASSISTANT_API_KEY=\"\${HOMEASSISTANT_API_KEY:-}\" LLM_API_KEY=\"\${LLM_API_KEY:-}\" jq -c -n" setup.sh
     assert_success
 
+    run grep -q '\[ "\${FEATURE_LLM:-false}" == "true" \]' setup.sh
+    assert_success
+
+    run grep -q '\[ -n "\${LLM_PERSONA:-}" \]' setup.sh
+    assert_failure
+
     run grep -q "ovos_installer_llm_api_key: (env.LLM_API_KEY // \"\")" setup.sh
     assert_success
 

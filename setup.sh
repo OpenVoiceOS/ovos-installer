@@ -176,7 +176,7 @@ if [ "$xtrace_was_on" == "true" ]; then
 fi
 
 if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
-  [ -n "${LLM_API_URL:-}" ] || [ -n "${LLM_API_KEY:-}" ] || [ -n "${LLM_PERSONA:-}" ]; then
+  [ "${FEATURE_LLM:-false}" == "true" ] || [ -n "${LLM_API_URL:-}" ] || [ -n "${LLM_API_KEY:-}" ]; then
 
   old_umask="$(umask)"
   umask 077
