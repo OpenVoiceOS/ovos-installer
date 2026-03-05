@@ -1,12 +1,4 @@
 ---
-- name: Assert uninstall mode
-  ansible.builtin.assert:
-    that:
-      - ovos_installer_cleaning | default(false) | bool
-    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
-  tags:
-    - uninstall
-
 - name: Disable and unload OVOS launchd user services
   vars:
     ovos_services_launchd_plist_name: "{{ item.label }}.plist"

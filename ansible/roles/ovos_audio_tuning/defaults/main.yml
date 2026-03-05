@@ -1,4 +1,5 @@
 ---
+ovos_audio_tuning_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
 ovos_audio_tuning_low_latency: >-
   {{ ovos_installer_tuning_audio_low_latency
      | default((ovos_installer_tuning_performance | default(false)) | bool) }}

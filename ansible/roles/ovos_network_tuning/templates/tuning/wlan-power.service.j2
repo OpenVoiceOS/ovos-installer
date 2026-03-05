@@ -1,0 +1,11 @@
+[Unit]
+Description=Disable {{ ovos_network_tuning_wireless_interface }} powersave
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/iw {{ ovos_network_tuning_wireless_interface }} set power_save off
+ExecStop=/sbin/iw {{ ovos_network_tuning_wireless_interface }} set power_save on
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -81,6 +81,40 @@ function setup() {
     unset -f python3 source pip3 uv chown ver
 }
 
+@test "function_installer_venv_is_reusable_when_python_version_matches" {
+    local venv_path
+    venv_path="$(mktemp -d /tmp/ovos-installer-venv-match.XXXXXX)"
+    mkdir -p "$venv_path/bin"
+    touch "$venv_path/pyvenv.cfg" "$venv_path/bin/activate"
+    cat > "$venv_path/bin/python3" <<'EOF'
+#!/usr/bin/env bash
+echo "3.11"
+EOF
+    chmod +x "$venv_path/bin/python3"
+
+    run installer_venv_is_reusable "$venv_path" "3.11"
+    assert_success
+
+    rm -rf "$venv_path"
+}
+
+@test "function_installer_venv_is_not_reusable_when_python_version_mismatches" {
+    local venv_path
+    venv_path="$(mktemp -d /tmp/ovos-installer-venv-mismatch.XXXXXX)"
+    mkdir -p "$venv_path/bin"
+    touch "$venv_path/pyvenv.cfg" "$venv_path/bin/activate"
+    cat > "$venv_path/bin/python3" <<'EOF'
+#!/usr/bin/env bash
+echo "3.11"
+EOF
+    chmod +x "$venv_path/bin/python3"
+
+    run installer_venv_is_reusable "$venv_path" "3.12"
+    assert_failure
+
+    rm -rf "$venv_path"
+}
+
 # Test install_ansible function (mocked)
 @test "function_install_ansible_success" {
     PYTHON="3.9"

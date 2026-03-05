@@ -1,21 +1,31 @@
 ---
-- name: Gather package facts for EEPROM gating
-  ansible.builtin.package_facts:
-    manager: auto
+- name: Query EEPROM package install state (Debian)
+  ansible.builtin.command:
+    argv:
+      - "{{ ovos_performance_tuning_dpkg_query_path }}"
+      - -W
+      - "-f=${db:Status-Status}"
+      - "{{ ovos_performance_tuning_rpi_eeprom_package }}"
+  register: ovos_performance_tuning_rpi_eeprom_query
+  changed_when: false
+  failed_when: false
+  when: ansible_facts.os_family == "Debian"
 
 - name: Set EEPROM package-installed fact
   ansible.builtin.set_fact:
     ovos_performance_tuning_rpi_eeprom_installed: >-
       {{
-        (
-          (
-            ansible_facts.packages
-            | default({})
-          )[ovos_performance_tuning_rpi_eeprom_package]
-          | default([])
-          | length
-        ) > 0
+        ovos_performance_tuning_rpi_eeprom_query.rc | default(1) == 0
+        and
+        (ovos_performance_tuning_rpi_eeprom_query.stdout | default('') | trim)
+        == ovos_performance_tuning_dpkg_installed_status
       }}
+  when: ansible_facts.os_family == "Debian"
+
+- name: Set EEPROM package-installed fact (non-Debian)
+  ansible.builtin.set_fact:
+    ovos_performance_tuning_rpi_eeprom_installed: false
+  when: ansible_facts.os_family != "Debian"
 
 - name: Check rpi-eeprom-update binary
   ansible.builtin.stat:

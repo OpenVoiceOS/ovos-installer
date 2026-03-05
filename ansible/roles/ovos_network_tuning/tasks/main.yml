@@ -4,17 +4,12 @@
   tags:
     - always
 
-- name: Include tuning/wireless.yml
-  ansible.builtin.import_tasks: wireless.yml
-  when:
-    - ansible_facts['wlan0'] is defined
-    - ansible_facts['wlan0'].active | bool
-
-- name: Include tuning/dns.yml
-  ansible.builtin.import_tasks: dns.yml
-
 - name: Include uninstall tasks
   ansible.builtin.import_tasks: uninstall.yml
-  when: ovos_installer_cleaning | default(false) | bool
+  when: ovos_network_tuning_is_cleaning | bool
   tags:
     - uninstall
+
+- name: Include install tasks
+  ansible.builtin.import_tasks: install.yml
+  when: not (ovos_network_tuning_is_cleaning | bool)

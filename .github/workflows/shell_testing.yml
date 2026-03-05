@@ -1,28 +1,53 @@
 name: Testing shell components with BATS
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 on:
+  pull_request:
+    paths:
+      - .github/workflows/shell_testing.yml
+      - .github/scripts/**
+      - setup.sh
+      - utils/**
+      - tui/**
+      - tests/bats/**
   push:
     paths:
+      - .github/workflows/shell_testing.yml
+      - .github/scripts/**
+      - setup.sh
       - utils/**
+      - tui/**
+      - tests/bats/**
+  workflow_dispatch:
 
 jobs:
   shell-testing:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
       - name: Install BATS requirements
         run: |
-          mkdir ~/shell-testing
-          cd ~/shell-testing
-          git init
-          git submodule add https://github.com/bats-core/bats-core.git bats
-          git submodule add https://github.com/bats-core/bats-support.git test_helper/bats-support
-          git submodule add https://github.com/bats-core/bats-assert.git test_helper/bats-assert
-          git submodule add https://github.com/bats-core/bats-file.git test_helper/bats-file
-          cd bats
-          ./install.sh ~/.local/
+          sudo apt-get update
+          sudo apt-get --no-install-recommends install -y bats git ca-certificates
+
+      - name: Install BATS helper libraries
+        run: ./.github/scripts/install_bats_helpers.sh
 
       - name: Run bats
-        run: ~/.local/bin/bats tests/bats/* --verbose-run --print-output-on-failure
+        run: bats tests/bats --verbose-run --print-output-on-failure

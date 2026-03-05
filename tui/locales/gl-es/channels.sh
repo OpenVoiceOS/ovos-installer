@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 CONTENT="
-Open Voice OS ten tres canles principais de publicación:
+Open Voice OS ten dúas canles principais de publicación:
 
-  - stable (estable pero antiga)
   - testing (recomendada)
   - alpha (máis experimental)
-
-A canle stable cambia menos e é a opción máis conservadora, pero pode quedar atrás en novas funcións e correccións.
 
 A canle testing recoméndase para a maioría de usuarios. Inclúe funcións e melloras máis recentes e, en xeral, é estable, pero ocasionalmente pode conter regresións.
 

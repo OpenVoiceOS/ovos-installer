@@ -1,12 +1,4 @@
 ---
-- name: Assert uninstall mode
-  ansible.builtin.assert:
-    that:
-      - ovos_installer_cleaning | default(false) | bool
-    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
-  tags:
-    - uninstall
-
 - name: Remove NetworkManager dnsmasq config
   ansible.builtin.file:
     path: "{{ ovos_network_tuning_dnsmasq_conf_path }}"
@@ -21,17 +13,38 @@
   when: ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
   notify: Restart NetworkManager
 
-- name: Stop and disable wlan0-power systemd unit
+- name: Find wireless power systemd units
+  vars:
+    _ovos_network_tuning_wireless_unit_patterns: >-
+      {{
+        ['wl*-power.service'] + (
+          [((ovos_network_tuning_wireless_interface | default('', true)) ~ '-power.service')]
+          if (ovos_network_tuning_wireless_interface | default('', true) | length > 0)
+          else []
+        )
+      }}
+  ansible.builtin.find:
+    paths: "{{ ovos_installer_systemd_system_path | default('/etc/systemd/system') }}"
+    patterns: "{{ _ovos_network_tuning_wireless_unit_patterns }}"
+    file_type: file
+  register: ovos_network_tuning_wireless_units
+  changed_when: false
+
+- name: Stop and disable wireless power systemd units
   ansible.builtin.systemd_service:
-    name: "{{ ovos_network_tuning_wireless_unit_name }}"
+    name: "{{ item.path | basename }}"
     enabled: false
     state: stopped
   failed_when: false
+  loop: "{{ ovos_network_tuning_wireless_units.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
 
-- name: Remove wlan0-power systemd unit file
+- name: Remove wireless power systemd unit files
   ansible.builtin.file:
-    path: "{{ ovos_network_tuning_wireless_unit_path }}"
+    path: "{{ item.path }}"
     state: absent
+  loop: "{{ ovos_network_tuning_wireless_units.files | default([]) }}"
   notify: Reload Systemd
 
 - name: Flush handlers wireless (uninstall)

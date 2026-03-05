@@ -1,5 +1,8 @@
 ---
 ovos_virtualenv_tmp_dir: "{{ ovos_installer_tmp_dir | default('/tmp') }}"
+ovos_virtualenv_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
+ovos_virtualenv_desktop_profiles: "{{ ovos_installer_desktop_profiles | default(['ovos', 'listener']) }}"
+ovos_virtualenv_is_desktop_profile: "{{ ovos_installer_is_desktop_profile | default((ovos_installer_profile | default('ovos')) in ovos_virtualenv_desktop_profiles) | bool }}"
 ovos_virtualenv_path: >-
   {{ ovos_installer_ovos_venv_path
      | default(ovos_installer_user_home + '/.venvs/ovos') }}
@@ -24,20 +27,39 @@ ovos_virtualenv_uv_version: "{{ ovos_installer_uv_version | default('') }}"
 ovos_virtualenv_installer_venv_path: "{{ ovos_installer_venv | default(ovos_installer_user_home + '/.venvs/ovos-installer', true) }}"
 ovos_virtualenv_uv_cache_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-cache"
 ovos_virtualenv_uv_exec_path: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_virtualenv_installer_venv_path }}/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+ovos_virtualenv_uv_install_retries: "{{ ovos_installer_uv_install_retries | default(3) }}"
+ovos_virtualenv_uv_install_delay: "{{ ovos_installer_uv_install_delay | default(2) }}"
 ovos_virtualenv_uv_environment:
   HOME: "{{ ovos_installer_user_home }}"
   PATH: "{{ ovos_virtualenv_uv_exec_path }}"
   UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
+ovos_virtualenv_constraints_url: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
+ovos_virtualenv_constraints_path: "{{ ovos_virtualenv_tmp_dir }}/constraints-{{ ovos_installer_channel }}.txt"
+ovos_virtualenv_constraints_refresh_interval: "{{ ovos_installer_constraints_refresh_interval | default(21600) }}"
+ovos_virtualenv_constraints_force_sync: "{{ ovos_installer_constraints_force_sync | default(false) }}"
 ovos_virtualenv_shell_init_file: "{{ ovos_installer_user_home }}/{{ '.zshrc' if (ansible_facts.system | default('')) == 'Darwin' else '.bashrc' }}"
 ovos_virtualenv_run_ovos_config: "{{ ovos_installer_run_ovos_config | default(false) }}"
-ovos_virtualenv_numpy_package: "{{ ovos_installer_numpy_package | default('numpy==1.26.4') }}"
+ovos_virtualenv_numpy_package: >-
+  {{
+    ovos_installer_numpy_package
+    | default(
+        'numpy>=2.1,<3'
+        if ((ovos_virtualenv_venv_python_major | int) == 3 and (ovos_virtualenv_venv_python_minor | int) >= 13)
+        else 'numpy==1.26.4'
+      )
+  }}
 ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | default('setuptools<82') }}"
+ovos_virtualenv_repair_ownership: "{{ ovos_installer_repair_venv_ownership | default(false) }}"
 ovos_virtualenv_padatious_cache_repo_url: https://github.com/OpenVoiceOS/padatious_cache
 ovos_virtualenv_padatious_cache_repo_version: dev
 ovos_virtualenv_padatious_cache_repo_path: "{{ ovos_virtualenv_tmp_dir }}/padatious_cache"
+ovos_virtualenv_padatious_cache_repo_refresh_interval: 21600
+ovos_virtualenv_gui_repo_refresh_interval: "{{ ovos_installer_gui_repo_refresh_interval | default(21600) }}"
+ovos_virtualenv_gui_repo_force_sync: "{{ ovos_installer_gui_repo_force_sync | default(false) }}"
 ovos_virtualenv_padatious_cache_dir: "{{ ovos_installer_user_home }}/.local/share/mycroft/intent_cache"
 ovos_virtualenv_padatious_cache_staging_dir: "{{ ovos_virtualenv_padatious_cache_dir }}.staged"
 ovos_virtualenv_padatious_cache_backup_dir: "{{ ovos_virtualenv_padatious_cache_dir }}.bak"
+ovos_virtualenv_padatious_cache_force_sync: "{{ ovos_installer_padatious_cache_force_sync | default(false) }}"
 ovos_virtualenv_messagebus_path: "{{ ovos_installer_user_home }}/.local/bin/ovos-messagebus"
 ovos_virtualenv_rust_messagebus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
 ovos_virtualenv_rust_messagebus_version: v1.1.2

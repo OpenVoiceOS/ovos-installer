@@ -51,6 +51,15 @@ source utils/argparse.sh
 # Parse command line arguments
 handle_options "$@"
 
+if ! acquire_installer_lock; then
+  exit "${EXIT_ALREADY_RUNNING}"
+fi
+
+# Runtime cleanup is shared between normal exit and signal handling.
+trap cleanup_installer_runtime EXIT
+trap 'exit_with_signal_code 130' INT
+trap 'exit_with_signal_code 143' TERM
+
 # Default Ansible flags to avoid unbound variable errors when set -u is enabled
 ansible_cleaning="false"
 ansible_tags=()
@@ -70,7 +79,7 @@ detect_existing_instance
 get_os_information
 wsl2_requirements
 detect_cpu_instructions
-is_raspeberrypi_soc
+is_raspberrypi_soc
 detect_hardware_model
 required_packages
 check_python_compatibility
@@ -78,7 +87,6 @@ detect_sound
 detect_display
 create_python_venv
 install_ansible
-download_yq
 detect_scenario
 
 if [ "${TUNING_OVERCLOCK:-no}" == "yes" ] && [ -z "${OVERCLOCK_ARM_FREQ:-}" ] && [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
@@ -127,7 +135,7 @@ if [ "$EXISTING_INSTANCE" == "true" ]; then
   export SHARE_USAGE_TELEMETRY="false"
 fi
 
-echo "➤ Starting Ansible playbook... ☕🍵🧋"
+log_info "➤ Starting Ansible playbook... ☕🍵🧋"
 
 # Execute the Ansible playbook on localhost
 export ANSIBLE_CONFIG=ansible.cfg
@@ -157,9 +165,6 @@ fi
 # Pass Home Assistant token via an extra-vars file (avoids exposing secrets in the process list).
 ha_extra_vars=()
 ha_extra_vars_file=""
-trap cleanup_ha_extra_vars_file EXIT
-trap 'cleanup_ha_extra_vars_file; exit 130' INT
-trap 'cleanup_ha_extra_vars_file; exit 143' TERM
 # If `set -x` is enabled, avoid echoing secrets to the terminal/logs.
 xtrace_was_on="false"
 case "$-" in
@@ -193,14 +198,14 @@ if [ "$xtrace_was_on" == "true" ]; then
 fi
 ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_user=${RUN_AS}" \
-  -e "ovos_installer_group=$(id -ng "$RUN_AS")" \
+  -e "ovos_installer_group=${RUN_AS_GROUP}" \
   -e "ovos_installer_uid=${RUN_AS_UID}" \
   -e "ovos_installer_venv=${VENV_PATH}" \
   -e "ovos_installer_venv_python=${OVOS_VENV_PYTHON}" \
   -e "ovos_installer_user_home=${RUN_AS_HOME}" \
   -e "ovos_installer_method=${METHOD}" \
   -e "ovos_installer_profile=${PROFILE}" \
-  -e "ovos_installer_sound_server=$(echo "$SOUND_SERVER" | awk '{ print $1 }')" \
+  -e "ovos_installer_sound_server=${SOUND_SERVER%% *}" \
   -e "ovos_installer_raspberrypi='${RASPBERRYPI_MODEL}'" \
   -e "ovos_installer_hardware='${HARDWARE_MODEL}'" \
   -e "ovos_installer_channel=${CHANNEL}" \
@@ -246,7 +251,8 @@ if [ "$ansible_rc" -eq 0 ]; then
       fi
       if [ -f "$REBOOT_FILE_PATH" ]; then
         rm -f "$REBOOT_FILE_PATH"
-        printf '\n%s\n' "➤ Rebooting Raspberry Pi now..."
+        log_info ""
+        log_info "➤ Rebooting Raspberry Pi now..."
         shutdown -r now
       fi
     fi
@@ -261,23 +267,26 @@ if [ "$ansible_rc" -eq 0 ]; then
         rm -rf "$venv_root"
       fi
     fi
-    printf '\n%s\n' "➤ Open Voice OS has been successfully uninstalled."
+    log_info ""
+    log_info "➤ Open Voice OS has been successfully uninstalled."
     if [ -f "$LOG_FILE" ]; then
       rm -f "$LOG_FILE"
     fi
     if [ -f "$REBOOT_FILE_PATH" ]; then
       rm -f "$REBOOT_FILE_PATH"
-      printf '\n%s\n' "➤ Rebooting Raspberry Pi now..."
+      log_info ""
+      log_info "➤ Rebooting Raspberry Pi now..."
       shutdown -r now
     fi
   fi
 else
   debug_url="$(upload_logs)"
-  printf '\n%s\n' "➤ Unable to finalize the process, please check $LOG_FILE for more details."
+  log_info ""
+  log_info "➤ Unable to finalize the process, please check $LOG_FILE for more details."
   if [ -n "${debug_url:-}" ]; then
-    printf '%s\n' "➤ Please share this URL with us $debug_url"
+    log_info "➤ Please share this URL with us $debug_url"
   else
-    printf '%s\n' "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
+    log_info "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
   fi
   exit "${EXIT_FAILURE}"
 fi

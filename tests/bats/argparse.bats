@@ -105,7 +105,7 @@ teardown() {
     # Test default values when env vars not set
     handle_options
     assert_equal "${USE_UV}" "true"
-    assert_equal "${REUSE_CACHED_ARTIFACTS}" "false"
+    assert_equal "${REUSE_CACHED_ARTIFACTS}" "true"
     assert_equal "${TUNING}" "yes"
 }
 
@@ -139,8 +139,4 @@ teardown() {
 @test "function_handle_options_no_args" {
     run handle_options
     assert_success
-}
-
-function teardown() {
-    unset DEBUG CONFIRM_UNINSTALL_CLI USE_UV REUSE_CACHED_ARTIFACTS
 }

@@ -13,7 +13,7 @@ Below is a list of the collected data _(see the [Ansible task](https://github.co
 | Data                   | Description                                              |
 | ---------------------- | -------------------------------------------------------- |
 | `architecture`         | CPU architecture where OVOS was installed                |
-| `channel`              | `stable`, `testing` or `alpha` version of OVOS           |
+| `channel`              | `testing` or `alpha` version of OVOS                     |
 | `container`            | OVOS installed into containers                           |
 | `country`              | Country where OVOS has been installed                    |
 | `cpu_capable`          | Is the CPU supports AVX2 or SIMD instructions            |

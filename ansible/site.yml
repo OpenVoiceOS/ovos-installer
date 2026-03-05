@@ -14,7 +14,6 @@
       ansible.builtin.setup:
         gather_subset:
           - "hardware"
-          - "interfaces"
       tags:
         - always
     - name: Lookup installer uid
@@ -47,6 +46,11 @@
         - always
 
   roles:
+    - role: ovos_contract
+      tags:
+        - ovos_contract
+        - always
+
     - role: ovos_hardware_mark1
       tags:
         - ovos_hardware_mark1

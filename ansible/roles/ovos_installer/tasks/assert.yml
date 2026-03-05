@@ -1,16 +1,4 @@
 ---
-- name: Assert installer configuration values
-  ansible.builtin.assert:
-    that:
-      - ansible_facts.system in ['Linux', 'Darwin']
-      - ovos_installer_user | length > 0
-      - ovos_installer_user_home | length > 0
-      - ovos_installer_group | length > 0
-      - ovos_installer_profile | length > 0
-      - ovos_installer_profile in ['ovos', 'listener', 'server', 'satellite']
-      - ovos_installer_method in ['virtualenv', 'containers']
-    fail_msg: "Invalid installer configuration: check required user/profile variables."
-
 - name: Assert macOS-supported installer modes
   ansible.builtin.assert:
     that:
@@ -25,7 +13,7 @@
       - ovos_installer_method == 'virtualenv'
     fail_msg: "On Mark 2/DevKit hardware only virtualenv mode is currently supported."
   when:
-    - not (ovos_installer_cleaning | default(false) | bool)
+    - not (ovos_installer_is_cleaning | bool)
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
 
 - name: Assert GUI support constraints
@@ -38,7 +26,7 @@
       - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
     fail_msg: "GUI support is only available on Debian Trixie Mark II/DevKit virtualenv installs."
   when:
-    - not (ovos_installer_cleaning | default(false) | bool)
+    - not (ovos_installer_is_cleaning | bool)
     - ovos_installer_feature_gui | bool
 
 - name: Assert containers required variables
@@ -56,24 +44,3 @@
       - ovos_installer_satellite_password | default('') | length > 0
     fail_msg: "Satellite profile requires listener host, satellite key, and satellite password."
   when: ovos_installer_profile == 'satellite'
-
-- name: Assert virtualenv required variables
-  ansible.builtin.assert:
-    that:
-      - ovos_installer_venv | default('') | length > 0
-      - ovos_installer_venv_python | default('') | length > 0
-    fail_msg: "Virtualenv install requires ovos_installer_venv and ovos_installer_venv_python."
-  when: ovos_installer_method == 'virtualenv'
-
-- name: Assert installer path formats
-  ansible.builtin.assert:
-    that:
-      - item is match('^/')
-    fail_msg: "Installer path must be absolute: {{ item }}"
-  loop:
-    - "{{ ovos_installer_user_home }}"
-    - "{{ ovos_installer_systemd_system_path }}"
-    - "{{ ovos_installer_systemd_user_path }}"
-    - "{{ ovos_installer_pip_conf_path }}"
-    - "{{ ovos_installer_boot_default_path }}"
-    - "{{ ovos_installer_boot_firmware_path }}"

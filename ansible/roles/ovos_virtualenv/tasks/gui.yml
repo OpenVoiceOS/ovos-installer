@@ -60,11 +60,45 @@
         build_dir: /opt/lottie/build-testing
         marker: "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-lottie.built"
 
+- name: Record current epoch for GUI repository refresh decisions
+  ansible.builtin.set_fact:
+    ovos_virtualenv_gui_repo_now_epoch: "{{ lookup('pipe', 'date +%s') | int }}"
+  changed_when: false
+
+- name: Check GUI repository refresh markers
+  ansible.builtin.stat:
+    path: "{{ item.dest }}/.git/FETCH_HEAD"
+  register: ovos_virtualenv_gui_repo_fetch_head_stats
+  changed_when: false
+  loop: "{{ ovos_virtualenv_gui_components }}"
+  loop_control:
+    label: "{{ item.name }}"
+
 - name: Clone GUI repositories
+  vars:
+    _gui_repo_fetch_head: >-
+      {{
+        ovos_virtualenv_gui_repo_fetch_head_stats.results
+        | default([])
+        | selectattr('item.name', 'equalto', item.name)
+        | first
+        | default({'stat': {}})
+      }}
+    _gui_repo_update_required: >-
+      {{
+        ovos_virtualenv_gui_repo_force_sync | bool
+        or not (_gui_repo_fetch_head.stat.exists | default(false))
+        or (
+          (ovos_virtualenv_gui_repo_now_epoch | int)
+          - (_gui_repo_fetch_head.stat.mtime | default(0) | int)
+          > (ovos_virtualenv_gui_repo_refresh_interval | int)
+        )
+      }}
   ansible.builtin.git:
     repo: "{{ item.url }}"
     dest: "{{ item.dest }}"
     version: "{{ item.branch }}"
+    update: "{{ _gui_repo_update_required | bool }}"
   loop: "{{ ovos_virtualenv_gui_components }}"
   register: ovos_virtualenv_gui_checkout
 

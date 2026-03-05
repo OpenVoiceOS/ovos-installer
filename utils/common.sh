@@ -7,12 +7,148 @@ set -euo pipefail
 done_format="\e[32mdone\e[0m"
 fail_format="\e[31mfail\e[0m"
 
+function log_info() {
+    printf '%s\n' "$*"
+}
+
+function log_warn() {
+    printf '%s\n' "$*" >&2
+}
+
+function log_error() {
+    printf '%s\n' "$*" >&2
+}
+
+# Acquire a process-wide installer lock to prevent concurrent runs from
+# mutating installer state simultaneously.
+function acquire_installer_lock() {
+    local lock_file="${OVOS_INSTALLER_LOCK_FILE:-}"
+    local lock_dir="${lock_file}.d"
+    local lock_parent=""
+
+    if [ -z "$lock_file" ]; then
+        if [ -d /run/lock ] && [ -w /run/lock ]; then
+            lock_file="/run/lock/ovos-installer.lock"
+        elif [ -n "${HOME:-}" ]; then
+            lock_file="${HOME}/.cache/ovos-installer/ovos-installer.lock"
+        else
+            lock_file="/run/ovos-installer.lock"
+        fi
+        lock_dir="${lock_file}.d"
+    fi
+    lock_parent="$(dirname "$lock_file")"
+    if [ ! -d "$lock_parent" ] && ! mkdir -p "$lock_parent" 2>>"$LOG_FILE"; then
+        log_error "Unable to initialize installer lock directory: ${lock_parent}"
+        return "${EXIT_MISSING_DEPENDENCY}"
+    fi
+    if [[ "$lock_parent" == *"/.cache/ovos-installer"* ]]; then
+        chmod 0700 "$lock_parent" 2>>"$LOG_FILE" || true
+    fi
+
+    export OVOS_INSTALLER_LOCK_FILE="$lock_file"
+    unset OVOS_INSTALLER_LOCK_FD OVOS_INSTALLER_LOCK_DIR || true
+
+    if command -v flock &>>"$LOG_FILE"; then
+        exec {OVOS_INSTALLER_LOCK_FD}>"$lock_file"
+        if ! flock -n "$OVOS_INSTALLER_LOCK_FD"; then
+            log_error "Another OVOS installer process is already running (lock: ${lock_file})."
+            return "${EXIT_ALREADY_RUNNING}"
+        fi
+        export OVOS_INSTALLER_LOCK_FD
+    else
+        if ! mkdir "$lock_dir" 2>/dev/null; then
+            log_error "Another OVOS installer process is already running (lock: ${lock_file})."
+            return "${EXIT_ALREADY_RUNNING}"
+        fi
+        export OVOS_INSTALLER_LOCK_DIR="$lock_dir"
+    fi
+
+    return 0
+}
+
+function release_installer_lock() {
+    if [ -n "${OVOS_INSTALLER_LOCK_FD:-}" ]; then
+        flock -u "$OVOS_INSTALLER_LOCK_FD" 2>/dev/null || true
+        exec {OVOS_INSTALLER_LOCK_FD}>&-
+        unset OVOS_INSTALLER_LOCK_FD
+    fi
+
+    if [ -n "${OVOS_INSTALLER_LOCK_DIR:-}" ]; then
+        rmdir "${OVOS_INSTALLER_LOCK_DIR}" 2>/dev/null || true
+        unset OVOS_INSTALLER_LOCK_DIR
+    fi
+}
+
 # Remove Home Assistant extra-vars temp file if created (used by setup.sh traps).
 function cleanup_ha_extra_vars_file() {
     if [ -n "${ha_extra_vars_file:-}" ]; then
         rm -f "$ha_extra_vars_file" 2>/dev/null || true
         ha_extra_vars_file=""
     fi
+}
+
+# Consolidated runtime cleanup hook used by setup.sh EXIT/INT/TERM handling.
+function cleanup_installer_runtime() {
+    cleanup_ha_extra_vars_file
+    release_installer_lock
+}
+
+function exit_with_signal_code() {
+    local signal_code="$1"
+    cleanup_installer_runtime
+    exit "$signal_code"
+}
+
+# Run a command while preserving the caller's errexit state.
+function run_with_errexit_guard() {
+    local errexit_set=0
+    [[ $- == *e* ]] && errexit_set=1
+    set +e
+    "$@"
+    local status=$?
+    if [ "$errexit_set" -eq 1 ]; then
+        set -e
+    else
+        set +e
+    fi
+    return "$status"
+}
+
+# Return success when an OCI runtime contains OVOS/HiveMind related containers.
+function container_runtime_has_ovos_instance() {
+    local runtime_cmd="$1"
+    local runtime_label="$2"
+    local name_regex="$3"
+    local runtime_names=""
+    local runtime_status=0
+
+    if ! command -v "$runtime_cmd" &>>"$LOG_FILE"; then
+        return 1
+    fi
+
+    local errexit_set=0
+    [[ $- == *e* ]] && errexit_set=1
+    set +e
+    runtime_names="$("$runtime_cmd" ps -a --format '{{.Names}}' 2>>"$LOG_FILE")"
+    runtime_status=$?
+    if [ "$errexit_set" -eq 1 ]; then
+        set -e
+    else
+        set +e
+    fi
+
+    if [ "$runtime_status" -eq 0 ] && printf '%s\n' "$runtime_names" | grep -Eq "$name_regex"; then
+        export EXISTING_INSTANCE="true"
+        export INSTANCE_TYPE="containers"
+        printf '%s\n' "[info] Existing OVOS instance detected via ${runtime_label} containers" &>>"$LOG_FILE"
+        return 0
+    fi
+
+    if [ "$runtime_status" -ne 0 ]; then
+        printf '%s\n' "[info] ${runtime_label} detected but daemon unavailable (${runtime_cmd} ps exit ${runtime_status})" &>>"$LOG_FILE"
+    fi
+
+    return 1
 }
 
 # This function asks for user agreement on uploading the content of
@@ -136,7 +272,7 @@ PY
 # This is mainly used in setup.sh to handle errors during the functions
 # execution.
 function on_error() {
-    echo -e "[$fail_format]"
+    log_error "[$fail_format]"
     local upload_optin="false"
     if ask_optin; then
         upload_optin="true"
@@ -181,7 +317,7 @@ function delete_log() {
 # "root" or "sudo" can run this script, we need to know whom.
 function detect_user() {
     if [ "${USER_ID:-$(id -u)}" -ne 0 ]; then
-        echo -e "[$fail_format] This script must be run as root (not recommended) or with sudo"
+        log_error "[$fail_format] This script must be run as root (not recommended) or with sudo"
         exit "${EXIT_PERMISSION_DENIED}"
     fi
 
@@ -212,6 +348,9 @@ function detect_user() {
         export RUN_AS_UID="${EUID}"
     fi
 
+    export RUN_AS_GROUP
+    RUN_AS_GROUP="$(id -ng "$RUN_AS" 2>>"$LOG_FILE" || echo "$RUN_AS")"
+
     if command -v getent &>>"$LOG_FILE"; then
         RUN_AS_HOME="$(getent passwd "$RUN_AS" 2>>"$LOG_FILE" | awk -F: '{print $6}' | head -n 1 || true)"
     fi
@@ -224,8 +363,9 @@ function detect_user() {
         RUN_AS_HOME="$(awk -F: -v u="$RUN_AS" '$1 == u { print $6; exit }' /etc/passwd 2>>"$LOG_FILE" || true)"
     fi
     if [ -z "${RUN_AS_HOME:-}" ]; then
-        echo -e "[$fail_format]"
-        echo "Unable to determine home directory for user '$RUN_AS'." | tee -a "$LOG_FILE"
+        log_error "[$fail_format]"
+        log_error "Unable to determine home directory for user '$RUN_AS'."
+        printf '%s\n' "Unable to determine home directory for user '$RUN_AS'." >>"$LOG_FILE"
         exit "${EXIT_MISSING_DEPENDENCY}"
     fi
 
@@ -336,45 +476,17 @@ function detect_existing_instance() {
     # version). Keep legacy exact names too.
     local name_regex='^(ovos[_-].*|hivemind[_-].*|ovos_cli|hivemind_cli|ovos_core|ovos_messagebus)$'
 
-    if [ "$skip_container_runtime_checks" != "true" ] && command -v docker &>>"$LOG_FILE"; then
-        local docker_names=""
-        local docker_status=0
-        local errexit_set=0
-        [[ $- == *e* ]] && errexit_set=1
-        set +e
-        docker_names="$(docker ps -a --format '{{.Names}}' 2>>"$LOG_FILE")"
-        docker_status=$?
-        if [ "$errexit_set" -eq 1 ]; then
-            set -e
-        fi
-
-        if [ "$docker_status" -eq 0 ] && printf '%s\n' "$docker_names" | grep -Eq "$name_regex"; then
-            export EXISTING_INSTANCE="true"
-            export INSTANCE_TYPE="containers"
-            printf '%s\n' "[info] Existing OVOS instance detected via Docker containers" &>>"$LOG_FILE"
-        elif [ "$docker_status" -ne 0 ]; then
-            printf '%s\n' "[info] Docker detected but daemon unavailable (docker ps exit ${docker_status})" &>>"$LOG_FILE"
+    if [ "$skip_container_runtime_checks" != "true" ]; then
+        if container_runtime_has_ovos_instance docker "Docker" "$name_regex"; then
+            echo -e "[$done_format]"
+            return 0
         fi
     fi
 
-    if [ "${EXISTING_INSTANCE}" != "true" ] && [ "$skip_container_runtime_checks" != "true" ] && command -v podman &>>"$LOG_FILE"; then
-        local podman_names=""
-        local podman_status=0
-        local errexit_set=0
-        [[ $- == *e* ]] && errexit_set=1
-        set +e
-        podman_names="$(podman ps -a --format '{{.Names}}' 2>>"$LOG_FILE")"
-        podman_status=$?
-        if [ "$errexit_set" -eq 1 ]; then
-            set -e
-        fi
-
-        if [ "$podman_status" -eq 0 ] && printf '%s\n' "$podman_names" | grep -Eq "$name_regex"; then
-            export EXISTING_INSTANCE="true"
-            export INSTANCE_TYPE="containers"
-            printf '%s\n' "[info] Existing OVOS instance detected via Podman containers" &>>"$LOG_FILE"
-        elif [ "$podman_status" -ne 0 ]; then
-            printf '%s\n' "[info] Podman detected but daemon unavailable (podman ps exit ${podman_status})" &>>"$LOG_FILE"
+    if [ "${EXISTING_INSTANCE}" != "true" ] && [ "$skip_container_runtime_checks" != "true" ]; then
+        if container_runtime_has_ovos_instance podman "Podman" "$name_regex"; then
+            echo -e "[$done_format]"
+            return 0
         fi
     fi
 
@@ -423,7 +535,7 @@ function detect_display() {
 
 # Parse /sys/firmware/devicetree/base/model file if it exists and check
 # for "raspberrypi" string.
-function is_raspeberrypi_soc() {
+function is_raspberrypi_soc() {
     printf '%s' "➤ Checking for Raspberry Pi board... "
     RASPBERRYPI_MODEL="N/A"
     if [ -f "$DT_FILE" ]; then
@@ -440,6 +552,11 @@ function is_raspeberrypi_soc() {
     fi
     export RASPBERRYPI_MODEL
     echo -e "[$done_format]"
+}
+
+# Backward-compatible alias kept for existing tests/callers using the typo.
+function is_raspeberrypi_soc() {
+    is_raspberrypi_soc "$@"
 }
 
 # Detect host hardware model.
@@ -536,13 +653,23 @@ function check_python_compatibility() {
     local python_version=""
     local python_cmd="python3"
     local requested_python=""
+    local requested_python_cmd=""
 
     if [ -n "${OVOS_VENV_PYTHON:-}" ]; then
         requested_python="${OVOS_VENV_PYTHON}"
         if [[ "${requested_python}" =~ ^[0-9]+\.[0-9]+$ ]]; then
             python_version="${requested_python}"
+            requested_python_cmd="python${requested_python}"
+            if command -v "${requested_python_cmd}" &>>"$LOG_FILE"; then
+                python_cmd="${requested_python_cmd}"
+            fi
         elif [[ "${requested_python}" =~ ^python([0-9]+\.[0-9]+)$ ]]; then
-            python_version="${requested_python#python}"
+            python_cmd="${requested_python}"
+            if [ -x "${python_cmd}" ] || command -v "${python_cmd}" &>>"$LOG_FILE"; then
+                python_version="$("${python_cmd}" -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE")"
+            else
+                python_version="${requested_python#python}"
+            fi
         elif [ -x "${requested_python}" ]; then
             python_cmd="${requested_python}"
             python_version="$("$python_cmd" -c 'import sys; print(".".join(map(str, sys.version_info[0:2])))' 2>>"$LOG_FILE")"
@@ -568,87 +695,43 @@ function check_python_compatibility() {
     fi
 
     export PYTHON="$python_version"
+    export PYTHON_CMD="$python_cmd"
     echo -e "[$done_format]"
 }
 
 # Install packages for Debian-based distributions
 function install_debian_packages() {
     local extra_packages=("$@")
-    local errexit_set=0
-    [[ $- == *e* ]] && errexit_set=1
-    set +e
-    UPDATE=1 apt_ensure python3 python3-dev python3-pip python3-venv libffi-dev whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
-    local status=$?
-    if [ "$errexit_set" -eq 1 ]; then
-        set -e
-    else
-        set +e
-    fi
-    return "$status"
+    UPDATE=1 run_with_errexit_guard apt_ensure python3 python3-dev python3-pip python3-venv libffi-dev whiptail expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    return $?
 }
 
 # Install packages for Fedora-based distributions
 function install_fedora_packages() {
     local extra_packages=("$@")
-    local errexit_set=0
-    [[ $- == *e* ]] && errexit_set=1
-    set +e
-    dnf install -y python3 python3-devel python3-pip python3-virtualenv python3-libdnf5 libffi-devel newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
-    local status=$?
-    if [ "$errexit_set" -eq 1 ]; then
-        set -e
-    else
-        set +e
-    fi
-    return "$status"
+    run_with_errexit_guard dnf install -y python3 python3-devel python3-pip python3-virtualenv python3-libdnf5 libffi-devel newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    return $?
 }
 
 # Install packages for Red Hat-based distributions
 function install_rhel_packages() {
     local extra_packages=("$@")
-    local errexit_set=0
-    [[ $- == *e* ]] && errexit_set=1
-    set +e
-    dnf install -y python3 python3-devel python3-pip libffi-devel newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
-    local status=$?
-    if [ "$errexit_set" -eq 1 ]; then
-        set -e
-    else
-        set +e
-    fi
-    return "$status"
+    run_with_errexit_guard dnf install -y python3 python3-devel python3-pip libffi-devel newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    return $?
 }
 
 # Install packages for openSUSE distributions
 function install_opensuse_packages() {
     local extra_packages=("$@")
-    local errexit_set=0
-    [[ $- == *e* ]] && errexit_set=1
-    set +e
-    zypper install --no-recommends -y python3 python3-devel python3-pip python3-rpm libffi-devel newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
-    local status=$?
-    if [ "$errexit_set" -eq 1 ]; then
-        set -e
-    else
-        set +e
-    fi
-    return "$status"
+    run_with_errexit_guard zypper install --no-recommends -y python3 python3-devel python3-pip python3-rpm libffi-devel newt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    return $?
 }
 
 # Install packages for Arch-based distributions
 function install_arch_packages() {
     local extra_packages=("$@")
-    local errexit_set=0
-    [[ $- == *e* ]] && errexit_set=1
-    set +e
-    pacman -Sy --noconfirm python python-pip python-virtualenv libffi libnewt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
-    local status=$?
-    if [ "$errexit_set" -eq 1 ]; then
-        set -e
-    else
-        set +e
-    fi
-    return "$status"
+    run_with_errexit_guard pacman -Sy --noconfirm python python-pip python-virtualenv libffi libnewt expect jq "${extra_packages[@]}" &>>"$LOG_FILE"
+    return $?
 }
 
 # Run a command as the installer target user.
@@ -785,7 +868,7 @@ function install_macos_packages() {
 #
 # Dependencies:
 #   - DISTRO_NAME: Must be set by get_os_information()
-#   - RASPBERRYPI_MODEL: Optional, set by is_raspeberrypi_soc()
+#   - RASPBERRYPI_MODEL: Optional, set by is_raspberrypi_soc()
 #
 # Returns:
 #   0 on success, exits with EXIT_OS_NOT_SUPPORTED for unsupported distros
@@ -806,32 +889,29 @@ function required_packages() {
     fi
     local install_status=0
 
-    local errexit_set=0
-    [[ $- == *e* ]] && errexit_set=1
-    set +e
     case "${DISTRO_NAME}" in
     macos)
-        install_macos_packages
+        run_with_errexit_guard install_macos_packages
         install_status=$?
         ;;
     debian | ubuntu | raspbian | linuxmint | zorin | neon | pop)
-        install_debian_packages "${extra_packages[@]}"
+        run_with_errexit_guard install_debian_packages "${extra_packages[@]}"
         install_status=$?
         ;;
     fedora)
-        install_fedora_packages "${extra_packages[@]}"
+        run_with_errexit_guard install_fedora_packages "${extra_packages[@]}"
         install_status=$?
         ;;
     almalinux | rocky | centos)
-        install_rhel_packages "${extra_packages[@]}"
+        run_with_errexit_guard install_rhel_packages "${extra_packages[@]}"
         install_status=$?
         ;;
     opensuse-tumbleweed | opensuse-leap | opensuse-slowroll)
-        install_opensuse_packages "${extra_packages[@]}"
+        run_with_errexit_guard install_opensuse_packages "${extra_packages[@]}"
         install_status=$?
         ;;
     arch | manjaro | endeavouros | cachyos)
-        install_arch_packages "${extra_packages[@]}"
+        run_with_errexit_guard install_arch_packages "${extra_packages[@]}"
         install_status=$?
         ;;
     *)
@@ -840,11 +920,6 @@ function required_packages() {
         exit "${EXIT_OS_NOT_SUPPORTED}"
         ;;
     esac
-    if [ "$errexit_set" -eq 1 ]; then
-        set -e
-    else
-        set +e
-    fi
 
     if [ "$install_status" -ne 0 ]; then
         echo -e "[$fail_format]"
@@ -855,11 +930,44 @@ function required_packages() {
     echo -e "[$done_format]"
 }
 
+# Normalize Python version input to "major.minor".
+function python_version_major_minor() {
+    local version_input="$1"
+    local normalized_version=""
+    normalized_version="$(printf '%s\n' "$version_input" | sed -nE 's/[^0-9]*([0-9]+)\.([0-9]+).*/\1.\2/p' | head -n 1)"
+    printf '%s\n' "$normalized_version"
+}
+
+# Validate whether an existing installer venv can be safely reused.
+function installer_venv_is_reusable() {
+    local venv_path="$1"
+    local required_python="${2:-}"
+    local required_python_major_minor=""
+    local existing_python_major_minor=""
+
+    [ -d "$venv_path" ] || return 1
+    [ -f "$venv_path/pyvenv.cfg" ] || return 1
+    [ -x "$venv_path/bin/python3" ] || return 1
+    [ -f "$venv_path/bin/activate" ] || return 1
+
+    if [ -n "$required_python" ]; then
+        required_python_major_minor="$(python_version_major_minor "$required_python")"
+        [ -n "$required_python_major_minor" ] || return 1
+        existing_python_major_minor="$("$venv_path/bin/python3" -c 'import sys; print(f"{sys.version_info[0]}.{sys.version_info[1]}")' 2>>"$LOG_FILE" || true)"
+        [ "$existing_python_major_minor" == "$required_python_major_minor" ] || return 1
+    fi
+
+    return 0
+}
+
 # Create the installer Python virtual environment and update pip and
 # setuptools package.Permissions on the virtual environment are set
 # to match the target user.
 function create_python_venv() {
     printf '%s' "➤ Creating installer Python virtualenv... "
+    local reuse_cached_artifacts="${REUSE_CACHED_ARTIFACTS:-false}"
+    local venv_reused="false"
+    local venv_python_cmd="${PYTHON_CMD:-python3}"
 
     ensure_installer_tmpdir
 
@@ -887,20 +995,34 @@ function create_python_venv() {
     fi
 
     if [ -d "$VENV_PATH" ]; then
-        if [ "$REUSE_CACHED_ARTIFACTS" != "true" ]; then
-            # Make sure everything is clean before starting.
+        if [ "$reuse_cached_artifacts" == "true" ] && installer_venv_is_reusable "$VENV_PATH" "$PYTHON"; then
+            venv_reused="true"
+            printf '%s\n' "[info] Reusing installer virtualenv at ${VENV_PATH}" &>>"$LOG_FILE"
+        else
+            # Make sure everything is clean before starting when cache reuse
+            # is disabled or a stale/broken venv is detected.
             rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
         fi
     fi
 
-    python3 -m venv "$VENV_PATH" &>>"$LOG_FILE"
+    if [ "$venv_reused" != "true" ]; then
+        "$venv_python_cmd" -m venv "$VENV_PATH" &>>"$LOG_FILE"
+    fi
 
     # shellcheck source=/dev/null
     source "$VENV_PATH/bin/activate"
 
     export PIP_COMMAND="uv pip"
     if ! command -v uv &>>"$LOG_FILE"; then
-        if ! pip3 install --no-cache-dir "uv>=0.4.10" &>>"$LOG_FILE"; then
+        local uv_install_status=0
+        if [ "$reuse_cached_artifacts" == "true" ]; then
+            run_with_errexit_guard pip3 install "uv>=0.4.10" &>>"$LOG_FILE"
+            uv_install_status=$?
+        else
+            run_with_errexit_guard pip3 install --no-cache-dir "uv>=0.4.10" &>>"$LOG_FILE"
+            uv_install_status=$?
+        fi
+        if [ "$uv_install_status" -ne 0 ]; then
             echo -e "[$fail_format]"
             echo "Failed to install uv. Check your network connection and pip configuration, then retry." | tee -a "$LOG_FILE"
             exit "${EXIT_MISSING_DEPENDENCY}"
@@ -914,8 +1036,16 @@ function create_python_venv() {
     OVOS_INSTALLER_UV_VERSION="$(uv --version 2>>"$LOG_FILE" | awk '{print $2}')"
     export OVOS_INSTALLER_UV_VERSION
 
-    $PIP_COMMAND install --no-cache-dir --upgrade pip setuptools &>>"$LOG_FILE"
-    chown "$RUN_AS":"$(id -ng "$RUN_AS" 2>>"$LOG_FILE" || echo "$RUN_AS")" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
+    if [ "$venv_reused" == "true" ] && [ "${OVOS_INSTALLER_REFRESH_BOOTSTRAP_TOOLS:-false}" != "true" ]; then
+        printf '%s\n' "[info] Skipping pip/setuptools bootstrap upgrade for reused installer virtualenv" &>>"$LOG_FILE"
+    else
+        if [ "$reuse_cached_artifacts" == "true" ]; then
+            $PIP_COMMAND install --upgrade pip setuptools &>>"$LOG_FILE"
+        else
+            $PIP_COMMAND install --no-cache-dir --upgrade pip setuptools &>>"$LOG_FILE"
+        fi
+    fi
+    chown "$RUN_AS":"${RUN_AS_GROUP:-$RUN_AS}" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
     unset -f ansible-galaxy pip3
     echo -e "[$done_format]"
 }
@@ -947,6 +1077,67 @@ function ensure_installer_tmpdir() {
     fi
 }
 
+# Compute a portable checksum for a file.
+function file_checksum() {
+    local file_path="$1"
+    if command -v sha256sum &>>"$LOG_FILE"; then
+        sha256sum "$file_path" 2>>"$LOG_FILE" | awk '{print $1}'
+        return 0
+    fi
+    if command -v shasum &>>"$LOG_FILE"; then
+        shasum -a 256 "$file_path" 2>>"$LOG_FILE" | awk '{print $1}'
+        return 0
+    fi
+    cksum "$file_path" 2>>"$LOG_FILE" | awk '{print $1 ":" $2}'
+}
+
+# Verify that each provided package requirement is already installed in a
+# Python environment (format: "name==version").
+function python_packages_match_versions() {
+    local python_bin="$1"
+    shift
+    [ -x "$python_bin" ] || return 1
+
+    "$python_bin" - "$@" <<'PY' 2>>"$LOG_FILE"
+import sys
+from importlib import metadata
+
+for requirement in sys.argv[1:]:
+    if "==" not in requirement:
+        sys.exit(1)
+    package_name, expected_version = requirement.split("==", 1)
+    try:
+        installed_version = metadata.version(package_name)
+    except metadata.PackageNotFoundError:
+        sys.exit(1)
+    if installed_version != expected_version:
+        sys.exit(1)
+sys.exit(0)
+PY
+}
+
+# Verify that each required ansible collection directory exists locally.
+function required_collections_present() {
+    local collections_root="$1"
+    local requirements_file="$2"
+    local collection=""
+    local namespace=""
+    local name=""
+    local found_any="false"
+
+    while IFS= read -r collection; do
+        [ -n "$collection" ] || continue
+        found_any="true"
+        namespace="${collection%%.*}"
+        name="${collection#*.}"
+        if [ ! -d "${collections_root}/ansible_collections/${namespace}/${name}" ]; then
+            return 1
+        fi
+    done < <(awk '/^[[:space:]]*-[[:space:]]+name:[[:space:]]/ {print $3}' "$requirements_file")
+
+    [ "$found_any" == "true" ]
+}
+
 # Install Ansible into the new Python virtual environment and install the
 # collections required by the playbook. Collections are installed into a
 # repository-local path to avoid sudo/HOME collection discovery mismatches.
@@ -954,11 +1145,55 @@ function install_ansible() {
     printf '%s' "➤ Installing Ansible requirements in Python virtualenv... "
     ANSIBLE_VERSION="10.7.0"
     local collections_path
+    local requirements_file
+    local collections_stamp
+    local requirements_checksum=""
+    local cached_checksum=""
+    local collections_cache_valid="false"
+    local ansible_packages_installed="false"
+    local -a ansible_packages=()
     collections_path="${PWD}/.ansible/collections"
+    requirements_file="${PWD}/ansible/requirements.yml"
+    collections_stamp="${collections_path}/.requirements.checksum"
     mkdir -p "$collections_path" &>>"$LOG_FILE"
     [ "$(ver "$PYTHON")" -lt "$(ver 3.10)" ] && ANSIBLE_VERSION="8.7.0"
-    $PIP_COMMAND install --no-cache-dir ansible=="$ANSIBLE_VERSION" docker==7.1.0 requests==2.32.5 &>>"$LOG_FILE"
-    ansible-galaxy collection install -r ansible/requirements.yml --collections-path "$collections_path" &>>"$LOG_FILE"
+    ansible_packages=(
+        "ansible==${ANSIBLE_VERSION}"
+        "docker==7.1.0"
+        "requests==2.32.5"
+    )
+
+    if [ "${REUSE_CACHED_ARTIFACTS:-false}" == "true" ] \
+        && python_packages_match_versions "$VENV_PATH/bin/python3" "${ansible_packages[@]}"; then
+        ansible_packages_installed="true"
+        printf '%s\n' "[info] Reusing cached ansible python packages from ${VENV_PATH}" &>>"$LOG_FILE"
+    fi
+
+    if [ "$ansible_packages_installed" != "true" ]; then
+        if [ "${REUSE_CACHED_ARTIFACTS:-false}" == "true" ]; then
+            $PIP_COMMAND install "${ansible_packages[@]}" &>>"$LOG_FILE"
+        else
+            $PIP_COMMAND install --no-cache-dir "${ansible_packages[@]}" &>>"$LOG_FILE"
+        fi
+    fi
+
+    if [ "${REUSE_CACHED_ARTIFACTS:-false}" == "true" ] && [ -f "$collections_stamp" ]; then
+        requirements_checksum="$(file_checksum "$requirements_file" || true)"
+        cached_checksum="$(cat "$collections_stamp" 2>>"$LOG_FILE" || true)"
+        if [ -n "$requirements_checksum" ] && [ "$requirements_checksum" == "$cached_checksum" ] \
+            && required_collections_present "$collections_path" "$requirements_file"; then
+            collections_cache_valid="true"
+            printf '%s\n' "[info] Reusing cached ansible collections from ${collections_path}" &>>"$LOG_FILE"
+        fi
+    fi
+
+    if [ "$collections_cache_valid" != "true" ]; then
+        ansible-galaxy collection install -r "$requirements_file" --collections-path "$collections_path" &>>"$LOG_FILE"
+        requirements_checksum="${requirements_checksum:-$(file_checksum "$requirements_file" || true)}"
+        if [ -n "$requirements_checksum" ]; then
+            printf '%s\n' "$requirements_checksum" >"$collections_stamp"
+        fi
+    fi
     echo -e "[$done_format]"
 }
 
@@ -1035,6 +1270,7 @@ function detect_scenario() {
 function in_array() {
     local haystack="${1}[@]"
     local needle="${2}"
+    local element
     for element in "${!haystack}"; do
         if [ "${element}" == "${needle}" ]; then
             return 0
@@ -1069,15 +1305,52 @@ function ver() {
 # Takes an argument like "2f" which is converted to "0x2f".
 # Only used when a Raspberry Pi board is detected.
 function i2c_get() {
-    if i2cdetect -y -a "$I2C_BUS" "0x$1" "0x$1" 2>>"$LOG_FILE" | grep -Eq "$1|UU"; then
-        return 0
+    local address="$1"
+    local bus=""
+    local bus_dev=""
+    local -a i2c_buses=()
+    local override_buses="${OVOS_I2C_SCAN_BUSES:-}"
+
+    if ! command -v i2cdetect &>>"$LOG_FILE"; then
+        return 1
     fi
+
+    if [ -n "$override_buses" ]; then
+        # Allow deterministic bus selection for tests and advanced overrides.
+        # Accept either comma- or space-separated values.
+        read -r -a i2c_buses <<<"${override_buses//,/ }"
+    else
+        if [ -n "${I2C_BUS:-}" ]; then
+            i2c_buses+=("$I2C_BUS")
+        fi
+
+        for bus_dev in /dev/i2c-*; do
+            [ -e "$bus_dev" ] || continue
+            bus="${bus_dev##*-}"
+            [[ "$bus" =~ ^[0-9]+$ ]] || continue
+
+            if [ "$bus" != "${I2C_BUS:-}" ]; then
+                i2c_buses+=("$bus")
+            fi
+        done
+    fi
+
+    for bus in "${i2c_buses[@]}"; do
+        if i2cdetect -y -a "$bus" "0x$address" "0x$address" 2>>"$LOG_FILE" | grep -Eiq "$address|UU"; then
+            printf '%s\n' "[info] I2C device 0x${address} detected on bus ${bus}" &>>"$LOG_FILE"
+            return 0
+        fi
+    done
+
     return 1
 }
 
 # Scan the I2C bus to find any devices supported by the installer.
 # This function will only run if a Raspberry Pi board is detected.
 function i2c_scan() {
+    local device
+    local address
+
     if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
         printf '%s' "➤ Scan I2C bus for hardware auto-detection..."
 
@@ -1102,6 +1375,15 @@ function i2c_scan() {
                 fi
             fi
         done
+
+        # If the live scan does not detect any supported devices (which can
+        # happen transiently on re-runs), recover the last known I2C device
+        # list from installer state to keep Mark II/DevKit gating deterministic.
+        if ! has_detected_device "atmega328p" && \
+            ! has_detected_device "attiny1614" && \
+            ! has_detected_device "tas5806"; then
+            restore_detected_devices_from_state || true
+        fi
         echo -e "[$done_format]"
     fi
 
@@ -1111,29 +1393,86 @@ function i2c_scan() {
     enforce_mark2_devkit_display_server
 }
 
+# Returns success when a device key is present in DETECTED_DEVICES.
+# Safe with set -u when DETECTED_DEVICES has not been initialized yet.
+function has_detected_device() {
+    local needle="$1"
+    local device
+
+    for device in "${DETECTED_DEVICES[@]:-}"; do
+        if [ "$device" == "$needle" ]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# Restore known I2C devices from installer state when live probing did not
+# detect anything (for example, re-runs after partial installs).
+function restore_detected_devices_from_state() {
+    local run_as_home="${RUN_AS_HOME:-}"
+    local state_file="${INSTALLER_STATE_FILE:-}"
+    local cached_device=""
+    local restored_device="false"
+
+    if [ -z "$state_file" ]; then
+        if [ -z "$run_as_home" ]; then
+            return 1
+        fi
+        state_file="${run_as_home}/.local/state/ovos/installer.json"
+    fi
+
+    if [ ! -f "$state_file" ] || ! command -v jq &>>"$LOG_FILE"; then
+        return 1
+    fi
+
+    while IFS= read -r cached_device; do
+        case "$cached_device" in
+        atmega328p | attiny1614 | tas5806)
+            if ! has_detected_device "$cached_device"; then
+                DETECTED_DEVICES+=("$cached_device")
+                restored_device="true"
+            fi
+            ;;
+        esac
+    done < <(jq -r '.i2c_devices[]? // empty' "$state_file" 2>>"$LOG_FILE")
+
+    if [ "$restored_device" == "true" ]; then
+        printf '%s\n' "[info] Restored detected I2C devices from installer state: ${DETECTED_DEVICES[*]}" &>>"$LOG_FILE"
+        return 0
+    fi
+
+    return 1
+}
+
+# Returns success for Mark II/DevKit family hardware (tas5806 present).
+function is_mark2_or_devkit_detected() {
+    has_detected_device "tas5806"
+}
+
+# Returns success for Mark II-only hardware (tas5806 present, attiny1614 absent).
+function is_mark2_detected() {
+    is_mark2_or_devkit_detected && ! has_detected_device "attiny1614"
+}
+
+# Returns success when the host is Debian Trixie.
+function is_debian_trixie() {
+    [ "${DISTRO_NAME:-unknown}" == "debian" ] && {
+        [[ "${DISTRO_VERSION_ID:-}" == 13* ]] || [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]
+    }
+}
+
 # Enforce alpha channel when Mark II hardware is detected.
 # Mark II detection requires tas5806 present and attiny1614 absent.
 function enforce_mark2_alpha_channel() {
-    local device
-    local mark2_detected="false"
-    local devkit_detected="false"
+    if ! is_mark2_detected; then
+        return 0
+    fi
 
-    for device in "${DETECTED_DEVICES[@]}"; do
-        case "$device" in
-        tas5806)
-            mark2_detected="true"
-            ;;
-        attiny1614)
-            devkit_detected="true"
-            ;;
-        esac
-    done
-
-    if [[ "$mark2_detected" == "true" && "$devkit_detected" != "true" ]]; then
-        if [ "${CHANNEL:-}" != "alpha" ]; then
-            export CHANNEL="alpha"
-            printf '%s\n' "Mark II requires alpha channel. Forcing CHANNEL=alpha." >>"$LOG_FILE"
-        fi
+    if [ "${CHANNEL:-}" != "alpha" ]; then
+        export CHANNEL="alpha"
+        printf '%s\n' "Mark II requires alpha channel. Forcing CHANNEL=alpha." >>"$LOG_FILE"
     fi
 }
 
@@ -1141,29 +1480,11 @@ function enforce_mark2_alpha_channel() {
 # GUI remains user-selectable on supported profiles, but is always disabled for
 # unsupported profiles.
 function enforce_mark2_devkit_gui_support() {
-    local device
-    local mark2_or_devkit_detected="false"
-    local version_is_trixie="false"
-
-    for device in "${DETECTED_DEVICES[@]}"; do
-        if [ "$device" == "tas5806" ]; then
-            mark2_or_devkit_detected="true"
-            break
-        fi
-    done
-
-    if [ "$mark2_or_devkit_detected" != "true" ]; then
+    if ! is_mark2_or_devkit_detected; then
         return 0
     fi
 
-    if [[ "${DISTRO_VERSION_ID:-}" == 13* ]]; then
-        version_is_trixie="true"
-    fi
-    if [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]; then
-        version_is_trixie="true"
-    fi
-
-    if [ "${DISTRO_NAME:-unknown}" != "debian" ] || [ "$version_is_trixie" != "true" ]; then
+    if ! is_debian_trixie; then
         if [ "${FEATURE_GUI:-false}" != "false" ]; then
             echo "Mark II/DevKit GUI is only supported on Debian Trixie. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
         fi
@@ -1182,17 +1503,7 @@ function enforce_mark2_devkit_gui_support() {
 # Normalize display server for Mark II/DevKit headless setups.
 # When no compositor is detected, report eglfs before running the playbook.
 function enforce_mark2_devkit_display_server() {
-    local device
-    local mark2_or_devkit_detected="false"
-
-    for device in "${DETECTED_DEVICES[@]}"; do
-        if [ "$device" == "tas5806" ]; then
-            mark2_or_devkit_detected="true"
-            break
-        fi
-    done
-
-    if [ "$mark2_or_devkit_detected" != "true" ]; then
+    if ! is_mark2_or_devkit_detected; then
         return 0
     fi
 
@@ -1205,29 +1516,11 @@ function enforce_mark2_devkit_display_server() {
 # Enforce Debian Trixie (13) when Mark II/DevKit hardware is detected.
 # Hardware detection is based on the tas5806 codec presence.
 function enforce_mark2_devkit_trixie_requirement() {
-    local device
-    local mark2_or_devkit_detected="false"
-
-    for device in "${DETECTED_DEVICES[@]}"; do
-        if [ "$device" == "tas5806" ]; then
-            mark2_or_devkit_detected="true"
-            break
-        fi
-    done
-
-    if [ "$mark2_or_devkit_detected" != "true" ]; then
+    if ! is_mark2_or_devkit_detected; then
         return 0
     fi
 
-    local version_is_trixie="false"
-    if [[ "${DISTRO_VERSION_ID:-}" == 13* ]]; then
-        version_is_trixie="true"
-    fi
-    if [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]; then
-        version_is_trixie="true"
-    fi
-
-    if [ "${DISTRO_NAME:-unknown}" != "debian" ] || [ "$version_is_trixie" != "true" ]; then
+    if ! is_debian_trixie; then
         echo -e "[$fail_format]"
         echo "Mark II/DevKit requires Debian Trixie (13). Detected ${DISTRO_NAME:-unknown} ${DISTRO_VERSION_ID:-unknown} (${DISTRO_VERSION:-unknown})." | tee -a "$LOG_FILE"
         exit "${EXIT_OS_NOT_SUPPORTED}"
@@ -1262,7 +1555,7 @@ programmer
   sdi   = 17;   # MISO
 ;
 EOF
-    chown "$RUN_AS:$(id -ng "$RUN_AS")" "$RUN_AS_HOME/.avrduderc" &>>"$LOG_FILE"
+    chown "$RUN_AS:${RUN_AS_GROUP:-$RUN_AS}" "$RUN_AS_HOME/.avrduderc" &>>"$LOG_FILE"
     curl -s -f -L --insecure "$AVRDUDE_CONFIG_URL" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"
 }
 
@@ -1299,33 +1592,72 @@ function detect_devkit_device() {
 #     UPDATE : if this is populated also runs and apt update
 # Example:
 #     apt_ensure git curl htop
+function apt_update_cache_is_fresh() {
+    local update_valid_seconds="${OVOS_INSTALLER_APT_UPDATE_VALID_SECONDS:-21600}"
+    local update_stamp="${OVOS_INSTALLER_APT_UPDATE_STAMP:-/var/tmp/ovos-installer-apt-update.stamp}"
+    local now_epoch=""
+    local stamp_epoch=""
+
+    if [ "$update_valid_seconds" -le 0 ] || [ ! -f "$update_stamp" ]; then
+        return 1
+    fi
+
+    now_epoch="$(date +%s 2>>"$LOG_FILE" || echo 0)"
+    if command -v stat &>>"$LOG_FILE"; then
+        stamp_epoch="$(stat -c %Y "$update_stamp" 2>>"$LOG_FILE" || stat -f %m "$update_stamp" 2>>"$LOG_FILE" || echo 0)"
+    else
+        stamp_epoch=0
+    fi
+
+    [[ "$now_epoch" =~ ^[0-9]+$ ]] || return 1
+    [[ "$stamp_epoch" =~ ^[0-9]+$ ]] || return 1
+
+    [ $((now_epoch - stamp_epoch)) -lt "$update_valid_seconds" ]
+}
+
 function apt_ensure() {
     # Note the $@ is not actually an array, but we can convert it to one
     # https://linuxize.com/post/bash-functions/#passing-arguments-to-bash-functions
-    ARGS=("$@")
-    MISS_PKGS=()
-    HIT_PKGS=()
-    _SUDO=""
+    local args=("$@")
+    local miss_pkgs=()
+    local hit_pkgs=()
+    local sudo_cmd=()
+    local pkg_name
+    local apt_update_stamp="${OVOS_INSTALLER_APT_UPDATE_STAMP:-/var/tmp/ovos-installer-apt-update.stamp}"
     if [ "$(whoami)" != "root" ]; then
         # Only use the sudo command if we need it (i.e. we are not root)
-        _SUDO="sudo "
+        sudo_cmd=("sudo")
     fi
-    for PKG_NAME in "${ARGS[@]}"; do
+    for pkg_name in "${args[@]}"; do
         # Check if the package is already installed or not
-        if dpkg-query -W -f='${Status}' "$PKG_NAME" 2>/dev/null | grep -q "install ok installed"; then
-            echo "Already have PKG_NAME='$PKG_NAME'"
-            HIT_PKGS+=("$PKG_NAME")
+        if dpkg-query -W -f='${Status}' "$pkg_name" 2>/dev/null | grep -q "install ok installed"; then
+            echo "Already have PKG_NAME='$pkg_name'"
+            hit_pkgs+=("$pkg_name")
         else
-            echo "Do not have PKG_NAME='$PKG_NAME'"
-            MISS_PKGS+=("$PKG_NAME")
+            echo "Do not have PKG_NAME='$pkg_name'"
+            miss_pkgs+=("$pkg_name")
         fi
     done
     # Install the packages if any are missing
-    if [ "${#MISS_PKGS[@]}" -gt 0 ]; then
+    if [ "${#miss_pkgs[@]}" -gt 0 ]; then
         if [ -n "${UPDATE:-}" ]; then
-            $_SUDO apt update -y
+            if apt_update_cache_is_fresh; then
+                echo "Skipping apt update; package cache is still fresh"
+            else
+                if [ "${#sudo_cmd[@]}" -gt 0 ]; then
+                    "${sudo_cmd[@]}" apt update -y
+                    "${sudo_cmd[@]}" touch "$apt_update_stamp"
+                else
+                    apt update -y
+                    touch "$apt_update_stamp"
+                fi
+            fi
         fi
-        DEBIAN_FRONTEND=noninteractive $_SUDO apt install --no-install-recommends -y "${MISS_PKGS[@]}"
+        if [ "${#sudo_cmd[@]}" -gt 0 ]; then
+            DEBIAN_FRONTEND=noninteractive "${sudo_cmd[@]}" apt install --no-install-recommends -y "${miss_pkgs[@]}"
+        else
+            DEBIAN_FRONTEND=noninteractive apt install --no-install-recommends -y "${miss_pkgs[@]}"
+        fi
     else
         echo "No missing packages"
     fi
@@ -1339,10 +1671,45 @@ function state_directory() {
     export INSTALLER_STATE_FILE="$OVOS_LOCAL_STATE_DIRECTORY/installer.json"
     if [ ! -d "$OVOS_LOCAL_STATE_DIRECTORY" ]; then
         mkdir -p "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
-        chown -R "$RUN_AS":"$(id -ng "$RUN_AS")" "$RUN_AS_HOME/.local/state" &>>"$LOG_FILE"
+        chown -R "$RUN_AS":"${RUN_AS_GROUP:-$RUN_AS}" "$RUN_AS_HOME/.local/state" &>>"$LOG_FILE"
 
     fi
     if [ -f "$INSTALLER_STATE_FILE" ]; then
         [ -s "$INSTALLER_STATE_FILE" ] || rm "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"
+    fi
+
+    # Persist the latest detected I2C devices to make re-runs resilient even
+    # when live probing is transiently unavailable.
+    if command -v jq &>>"$LOG_FILE"; then
+        local state_tmp=""
+        local i2c_devices_json="[]"
+        local detected_device=""
+        local -a detected_devices_to_store=()
+
+        for detected_device in atmega328p attiny1614 tas5806; do
+            if has_detected_device "$detected_device"; then
+                detected_devices_to_store+=("$detected_device")
+            fi
+        done
+
+        if [ "${#detected_devices_to_store[@]}" -gt 0 ]; then
+            i2c_devices_json="$(jq -c -n '$ARGS.positional' --args "${detected_devices_to_store[@]}" 2>>"$LOG_FILE" || echo "[]")"
+        fi
+
+        if [ "$i2c_devices_json" != "[]" ]; then
+            if state_tmp="$(mktemp "${TMPDIR:-/tmp}/ovos-installer-state.XXXXXX" 2>>"$LOG_FILE")"; then
+                if [ -f "$INSTALLER_STATE_FILE" ] && \
+                    jq --argjson i2c_devices "$i2c_devices_json" \
+                        'if type=="object" then . else {} end | .i2c_devices = $i2c_devices' \
+                        "$INSTALLER_STATE_FILE" >"$state_tmp" 2>>"$LOG_FILE"; then
+                    mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+                elif jq -n --argjson i2c_devices "$i2c_devices_json" \
+                    '{i2c_devices: $i2c_devices}' >"$state_tmp" 2>>"$LOG_FILE"; then
+                    mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+                else
+                    rm -f "$state_tmp"
+                fi
+            fi
+        fi
     fi
 }

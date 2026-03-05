@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Instalación de Open Voice OS - Canles",
-    "content": "Open Voice OS ten tres canles principais de publicación:\n\n  - stable (estable pero antiga)\n  - testing (recomendada)\n  - alpha (máis experimental)\n\nA canle stable cambia menos e é a opción máis conservadora, pero pode quedar atrás en novas funcións e correccións.\n\nA canle testing recoméndase para a maioría de usuarios. Inclúe funcións e melloras máis recentes e, en xeral, é estable, pero ocasionalmente pode conter regresións.\n\nA canle alpha é a máis experimental e contén as últimas funcións e cambios que aínda están en desenvolvemento. Pode ser inestable e non se recomenda para o uso diario.\n\nSelecciona unha canle:"
+    "content": "Open Voice OS ten dúas canles principais de publicación:\n\n  - testing (recomendada)\n  - alpha (máis experimental)\n\nA canle testing recoméndase para a maioría de usuarios. Inclúe funcións e melloras máis recentes e, en xeral, é estable, pero ocasionalmente pode conter regresións.\n\nA canle alpha é a máis experimental e contén as últimas funcións e cambios que aínda están en desenvolvemento. Pode ser inestable e non se recomenda para o uso diario.\n\nSelecciona unha canle:"
   },
   "detection.sh": {
     "title": "Instalación de Open Voice OS - Detección",

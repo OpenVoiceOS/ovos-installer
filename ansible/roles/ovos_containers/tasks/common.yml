@@ -11,12 +11,49 @@
     enabled: true
     state: started
 
+- name: Record current epoch for containers repository refresh decisions
+  ansible.builtin.set_fact:
+    ovos_containers_repo_now_epoch: "{{ lookup('pipe', 'date +%s') | int }}"
+  changed_when: false
+
+- name: Check containers repository refresh markers
+  ansible.builtin.stat:
+    path: "{{ ovos_containers_working_directory }}/{{ item.dest }}/.git/FETCH_HEAD"
+  register: ovos_containers_repo_fetch_head_stats
+  changed_when: false
+  loop: "{{ ovos_containers_repo_definitions }}"
+  loop_control:
+    label: "{{ item.dest }}"
+  when: item.state | bool
+  tags:
+    - always
+
 - name: Clone ovos-docker and/or hivemind-docker repository
+  vars:
+    _repo_fetch_head: >-
+      {{
+        ovos_containers_repo_fetch_head_stats.results
+        | default([])
+        | selectattr('item.dest', 'equalto', item.dest)
+        | first
+        | default({'stat': {}})
+      }}
+    _repo_update_required: >-
+      {{
+        ovos_containers_repo_force_sync | bool
+        or not (_repo_fetch_head.stat.exists | default(false))
+        or (
+          (ovos_containers_repo_now_epoch | int)
+          - (_repo_fetch_head.stat.mtime | default(0) | int)
+          > (ovos_containers_repo_refresh_interval | int)
+        )
+      }}
   ansible.builtin.git:
     repo: "{{ item.url }}"
     dest: "{{ ovos_containers_working_directory }}/{{ item.dest }}"
     version: "{{ item.branch }}"
-    force: true
+    update: "{{ _repo_update_required | bool }}"
+    force: "{{ ovos_containers_repo_force_checkout | bool }}"
   loop: "{{ ovos_containers_repo_definitions }}"
   loop_control:
     label: "{{ item.dest }}"

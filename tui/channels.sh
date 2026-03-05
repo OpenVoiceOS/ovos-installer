@@ -3,14 +3,14 @@
 source "tui/locales/$LOCALE/channels.sh"
 
 active_channel="testing"
-available_channels=(stable testing alpha)
+available_channels=(testing alpha)
 
 # If a previous selection exists, use it as the default. Only lock the choice
 # to that value when upgrading an existing installation.
 if [ -f "$INSTALLER_STATE_FILE" ]; then
   current_channel="$(jq -r '.channel // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE")"
   case "$current_channel" in
-    stable|testing|alpha)
+    testing|alpha)
       active_channel="$current_channel"
       if [ "${EXISTING_INSTANCE:-false}" == "true" ]; then
         available_channels=("$current_channel")
@@ -48,7 +48,7 @@ if [ "$list_height" -lt 1 ]; then
   if [[ "${DISTRO_NAME:-}" == "macos" ]] || [[ "$mark2_detected" == "true" && "$devkit_detected" != "true" ]]; then
     available_channels=(alpha)
   else
-    available_channels=(stable testing alpha)
+    available_channels=(testing alpha)
   fi
   list_height="${#available_channels[@]}"
 fi

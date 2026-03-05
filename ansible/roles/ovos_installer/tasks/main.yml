@@ -33,7 +33,7 @@
     - ansible_facts.system == 'Linux'
     - >-
       (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_tuning | bool) or
-      (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_cleaning | default(false) | bool)
+      (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_is_cleaning | bool)
 
 - name: Include ovos_sound role
   ansible.builtin.import_role:
@@ -61,14 +61,14 @@
     name: ovos_containers
   when:
     - ansible_facts.system == 'Linux'
-    - ovos_installer_method == "containers" or ovos_installer_cleaning | default(false) | bool
+    - ovos_installer_method == "containers"
   tags:
     - ovos_containers
 
 - name: Include ovos_virtualenv role
   ansible.builtin.import_role:
     name: ovos_virtualenv
-  when: ovos_installer_method == "virtualenv" or ovos_installer_cleaning | default(false) | bool
+  when: ovos_installer_method == "virtualenv" or ovos_installer_is_cleaning | bool
   tags:
     - ovos_virtualenv
 
@@ -93,6 +93,6 @@
 
 - name: Include uninstall tasks
   ansible.builtin.import_tasks: uninstall.yml
-  when: ovos_installer_cleaning | default(false) | bool
+  when: ovos_installer_is_cleaning | bool
   tags:
     - uninstall

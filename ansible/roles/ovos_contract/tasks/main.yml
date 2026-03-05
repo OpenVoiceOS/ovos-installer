@@ -1,0 +1,28 @@
+---
+- name: Assert shared installer input contract
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.system in ['Linux', 'Darwin']
+      - ovos_installer_user | default('') | length > 0
+      - ovos_installer_group | default('') | length > 0
+      - ovos_installer_user_home | default('') | length > 0
+      - ovos_installer_user_home is match('^/')
+      - ovos_installer_method in ovos_contract_allowed_methods
+      - ovos_installer_profile in ovos_contract_allowed_profiles
+      - ovos_installer_channel in ovos_contract_allowed_channels
+      - ovos_installer_i2c_devices is iterable
+      - ovos_installer_sound_server | default('') | length > 0
+      - ovos_installer_display_server | default('') | length > 0
+      - ovos_installer_locale | default('') | length > 0
+      - ovos_installer_reboot_file_path | default('') | length > 0
+      - ovos_installer_reboot_file_path is match('^/')
+    fail_msg: "Invalid installer input contract: required variables are missing or malformed."
+
+- name: Assert virtualenv variables when virtualenv mode is selected
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_venv | default('') | length > 0
+      - ovos_installer_venv | default('') is match('^/')
+      - ovos_installer_venv_python | default('') | length > 0
+    fail_msg: "Virtualenv mode requires ovos_installer_venv and ovos_installer_venv_python."
+  when: ovos_installer_method == 'virtualenv'

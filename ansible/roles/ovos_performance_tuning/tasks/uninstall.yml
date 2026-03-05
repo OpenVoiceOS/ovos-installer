@@ -1,12 +1,4 @@
 ---
-- name: Assert uninstall mode
-  ansible.builtin.assert:
-    that:
-      - ovos_installer_cleaning | default(false) | bool
-    fail_msg: "Uninstall tasks require ovos_installer_cleaning=true."
-  tags:
-    - uninstall
-
 - name: Remove cpupower package on Debian family
   ansible.builtin.apt:
     name: "{{ 'linux-tools-common' if ansible_facts.distribution != 'Debian' else 'linux-cpupower' }}"
@@ -82,12 +74,19 @@
     - arm_freq
     - gpu_freq
 
+- name: Check for cmdline.txt path
+  ansible.builtin.stat:
+    path: "{{ ovos_performance_tuning_cmdline_path }}"
+  register: ovos_performance_tuning_cmdline_stat
+  changed_when: false
+
 - name: Remove USB autosuspend override (cmdline.txt)
   ansible.builtin.replace:
     path: "{{ ovos_performance_tuning_cmdline_path }}"
     regexp: "{{ ovos_performance_tuning_usb_autosuspend_regex }}"
     replace: ""
   notify: Set Reboot
+  when: ovos_performance_tuning_cmdline_stat.stat.exists | default(false) | bool
 
 - name: Remove 99-ovos.conf limits file
   ansible.builtin.file:

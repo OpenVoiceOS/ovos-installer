@@ -1,14 +1,38 @@
 name: Check code style and quality
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     paths:
+      - .github/workflows/linting.yml
+      - .github/workflows/*.yml
+      - .github/scripts/**
+      - ansible.cfg
       - ansible/**
       - utils/**
+      - setup.sh
+      - installer.sh
+      - tui/**
+      - tests/bats/**
   push:
     paths:
+      - .github/workflows/linting.yml
+      - .github/workflows/*.yml
+      - .github/scripts/**
+      - ansible.cfg
       - ansible/**
       - utils/**
+      - setup.sh
+      - installer.sh
+      - tui/**
+      - tests/bats/**
+  workflow_dispatch:
 
 jobs:
   ansible-lint:
@@ -17,25 +41,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Restore Python/uv/Ansible caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+            .ansible/collections
+            ~/.ansible/collections
+          key: ${{ runner.os }}-${{ runner.arch }}-ansible-lint-${{ hashFiles('ansible/requirements.yml', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-ansible-lint-
+
       - name: Install Ansible requirements
-        run: |
-          rm -rf ~/.ansible
-          pip install ansible-playbook-grapher ansible ansible-lint
-          sudo apt-get --no-install-recommends -y install graphviz
-          galaxy_install_ok="false"
-          for galaxy_server in "https://galaxy.ansible.com/api/v2/" "https://galaxy.ansible.com"; do
-            for attempt in 1 2 3; do
-              if ansible-galaxy collection install -r ansible/requirements.yml --force --server "$galaxy_server"; then
-                galaxy_install_ok="true"
-                break 2
-              fi
-              sleep $((attempt * 5))
-            done
-          done
-          if [ "$galaxy_install_ok" != "true" ]; then
-            echo "ansible-galaxy collection install failed for all known Galaxy endpoints"
-            exit 1
-          fi
+        run: ./.github/scripts/install_ansible_requirements.sh --force-collections
 
       - name: Run ansible-lint
         working-directory: ./ansible
@@ -51,7 +75,7 @@ jobs:
           ansible-playbook --list-tasks ansible/site.yml > artifacts/list-tasks-site
 
       - name: Upload Ansible artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v4
         with:
           name: ansible-artifacts
           path: artifacts
@@ -74,6 +98,148 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Run ShellCheck
-        uses: ludeeus/action-shellcheck@master
+        uses: ludeeus/action-shellcheck@2.0.0
         env:
           SHELLCHECK_OPTS: -x -s bash -e SC1091
+
+  workflow-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Run actionlint
+        uses: rhysd/actionlint@v1.7.8
+
+  ansible-syntax-matrix:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - method: virtualenv
+            channel: testing
+            profile: ovos
+            feature_skills: true
+            feature_extra_skills: true
+            feature_homeassistant: true
+            needs_homeassistant: true
+            needs_satellite: false
+          - method: virtualenv
+            channel: alpha
+            profile: server
+            feature_skills: false
+            feature_extra_skills: false
+            feature_homeassistant: false
+            needs_homeassistant: false
+            needs_satellite: false
+          - method: virtualenv
+            channel: testing
+            profile: listener
+            feature_skills: false
+            feature_extra_skills: false
+            feature_homeassistant: false
+            needs_homeassistant: false
+            needs_satellite: false
+          - method: virtualenv
+            channel: testing
+            profile: satellite
+            feature_skills: false
+            feature_extra_skills: false
+            feature_homeassistant: false
+            needs_homeassistant: false
+            needs_satellite: true
+          - method: containers
+            channel: testing
+            profile: ovos
+            feature_skills: true
+            feature_extra_skills: false
+            feature_homeassistant: true
+            needs_homeassistant: true
+            needs_satellite: false
+          - method: containers
+            channel: testing
+            profile: ovos
+            feature_skills: false
+            feature_extra_skills: false
+            feature_homeassistant: false
+            needs_homeassistant: false
+            needs_satellite: false
+          - method: containers
+            channel: alpha
+            profile: server
+            feature_skills: false
+            feature_extra_skills: false
+            feature_homeassistant: false
+            needs_homeassistant: false
+            needs_satellite: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Restore Python/uv/Ansible caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+            .ansible/collections
+            ~/.ansible/collections
+          key: ${{ runner.os }}-${{ runner.arch }}-ansible-syntax-${{ hashFiles('ansible/requirements.yml', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-ansible-syntax-
+
+      - name: Install ansible and collections for syntax checks
+        run: ./.github/scripts/install_ansible_requirements.sh
+
+      - name: Syntax-check playbook for matrix entry
+        env:
+          ANSIBLE_CONFIG: ansible.cfg
+        shell: bash
+        run: |
+          extra_vars=(
+            "-e" "ovos_installer_user=${USER}"
+            "-e" "ovos_installer_group=$(id -gn)"
+            "-e" "ovos_installer_uid=$(id -u)"
+            "-e" "ovos_installer_user_home=${HOME}"
+            "-e" "ovos_installer_method=${{ matrix.method }}"
+            "-e" "ovos_installer_profile=${{ matrix.profile }}"
+            "-e" "ovos_installer_channel=${{ matrix.channel }}"
+            "-e" "ovos_installer_feature_gui=false"
+            "-e" "ovos_installer_feature_skills=${{ matrix.feature_skills }}"
+            "-e" "ovos_installer_feature_extra_skills=${{ matrix.feature_extra_skills }}"
+            "-e" "ovos_installer_feature_homeassistant=${{ matrix.feature_homeassistant }}"
+            "-e" "ovos_installer_tuning=false"
+            "-e" "ovos_installer_cleaning=false"
+            "-e" "ovos_installer_raspberrypi=N/A"
+            "-e" "ovos_installer_hardware=N/A"
+            "-e" "ovos_installer_sound_server=N/A"
+            "-e" "ovos_installer_display_server=N/A"
+            "-e" "ovos_installer_locale=en-us"
+            "-e" "ovos_installer_i2c_devices=[]"
+            "-e" "ovos_installer_reboot_file_path=/tmp/ovos.reboot"
+          )
+
+          if [ "${{ matrix.method }}" = "virtualenv" ]; then
+            extra_vars+=("-e" "ovos_installer_venv=${HOME}/.venvs/ovos")
+            extra_vars+=("-e" "ovos_installer_venv_python=3.11")
+          fi
+
+          if [ "${{ matrix.needs_homeassistant }}" = "true" ]; then
+            extra_vars+=("-e" "ovos_installer_homeassistant_url=http://homeassistant.local:8123")
+            extra_vars+=("-e" "ovos_installer_homeassistant_api_key=ci-token")
+          fi
+
+          if [ "${{ matrix.needs_satellite }}" = "true" ]; then
+            extra_vars+=("-e" "ovos_installer_listener_host=127.0.0.1")
+            extra_vars+=("-e" "ovos_installer_listener_port=5678")
+            extra_vars+=("-e" "ovos_installer_satellite_key=ci-key")
+            extra_vars+=("-e" "ovos_installer_satellite_password=ci-password")
+          fi
+
+          ansible-playbook --syntax-check -i localhost, ansible/site.yml "${extra_vars[@]}"

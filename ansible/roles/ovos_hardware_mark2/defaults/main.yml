@@ -1,9 +1,13 @@
 ---
 ovos_hardware_mark2_eeprom_release: latest
+ovos_hardware_mark2_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
 ovos_hardware_mark2_shell_executable: /bin/bash
 ovos_hardware_mark2_sudo_path: /usr/bin/sudo
 ovos_hardware_mark2_vocalfusion_repo_url: https://github.com/OpenVoiceOS/VocalFusionDriver
 ovos_hardware_mark2_vocalfusion_branch: main
+ovos_hardware_mark2_vocalfusion_repo_force_sync: "{{ ovos_installer_mark2_vocalfusion_repo_force_sync | default(false) }}"
+ovos_hardware_mark2_vocalfusion_repo_refresh_interval: "{{ ovos_installer_mark2_vocalfusion_repo_refresh_interval | default(21600) }}"
+ovos_hardware_mark2_vocalfusion_cleanup_source: "{{ ovos_installer_mark2_vocalfusion_cleanup_source | default(false) }}"
 ovos_hardware_mark2_kernel_headers_package: >-
   {{
     'linux-headers-rpi-v8'
@@ -11,6 +15,7 @@ ovos_hardware_mark2_kernel_headers_package: >-
     else
     'raspberrypi-kernel-headers'
   }}
+ovos_hardware_mark2_apt_cache_valid_time: 3600
 ovos_hardware_mark2_working_dir: /opt/sj201
 ovos_hardware_mark2_systemd_user_dir: "{{ ovos_installer_user_home }}/.config/systemd/user"
 ovos_hardware_mark2_wireplumber_conf_dir: "{{ ovos_installer_user_home }}/.config/wireplumber/wireplumber.conf.d"

@@ -13,8 +13,7 @@ function setup() {
 # Test avrdude setup function
 @test "function_setup_avrdude_file_creation" {
     AVRDUDE_BINARY_PATH=/tmp/test_avrdude
-    RUN_AS_HOME=/tmp/test_home
-    mkdir -p "$RUN_AS_HOME"
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
 
     function curl() {
         # Mock successful curl download
@@ -32,13 +31,12 @@ function setup() {
 
     # Clean up
     rm -f "$AVRDUDE_BINARY_PATH" "$RUN_AS_HOME/.avrduderc"
-    rmdir "$RUN_AS_HOME"
+    rm -rf "$RUN_AS_HOME"
 }
 
 @test "function_setup_avrdude_existing_file_removal" {
     AVRDUDE_BINARY_PATH=/tmp/test_avrdude
-    RUN_AS_HOME=/tmp/test_home
-    mkdir -p "$RUN_AS_HOME"
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
 
     # Create existing file
     touch "$AVRDUDE_BINARY_PATH"
@@ -59,7 +57,7 @@ function setup() {
 
     # Clean up
     rm -f "$AVRDUDE_BINARY_PATH" "$RUN_AS_HOME/.avrduderc"
-    rmdir "$RUN_AS_HOME"
+    rm -rf "$RUN_AS_HOME"
     unset -f curl
 }
 
@@ -75,13 +73,57 @@ function setup() {
     function lsmod() {
         return 0
     }
+    function modprobe() {
+        return 0
+    }
     function i2c_get() {
         return 1  # No devices detected
     }
-    export -f dtparam lsmod i2c_get
+    export -f dtparam lsmod modprobe i2c_get
 
     run i2c_scan
     assert_success
+}
+
+@test "function_i2c_scan_recovers_mark2_from_installer_state_when_live_scan_misses" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DISPLAY_SERVER="N/A"
+    CHANNEL="testing"
+    PROFILE="ovos"
+    FEATURE_GUI="false"
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    mkdir -p "$RUN_AS_HOME/.local/state/ovos"
+    cat >"$RUN_AS_HOME/.local/state/ovos/installer.json" <<'EOF'
+{"i2c_devices":["tas5806"]}
+EOF
+    DETECTED_DEVICES=()
+
+    function dtparam() {
+        return 0
+    }
+    function lsmod() {
+        return 0
+    }
+    function modprobe() {
+        return 0
+    }
+    function i2c_get() {
+        return 1  # Live scan misses; should recover from state.
+    }
+    export -f dtparam lsmod modprobe i2c_get
+
+    i2c_scan
+    assert_equal "$?" "0"
+
+    has_detected_device "tas5806"
+    assert_equal "$?" "0"
+    assert_equal "$DISPLAY_SERVER" "eglfs"
+    assert_equal "$CHANNEL" "alpha"
+
+    rm -rf "$RUN_AS_HOME"
 }
 
 @test "function_i2c_scan_not_raspberry_pi" {
@@ -102,9 +144,16 @@ function setup() {
     assert_success
 }
 
+@test "function_has_detected_device_handles_unset_detected_devices" {
+    unset DETECTED_DEVICES
+
+    run has_detected_device "tas5806"
+    assert_failure
+}
+
 @test "function_enforce_mark2_alpha_channel_forces_alpha" {
     DETECTED_DEVICES=("tas5806")
-    CHANNEL="stable"
+    CHANNEL="testing"
 
     enforce_mark2_alpha_channel
     assert_equal "$CHANNEL" "alpha"
@@ -112,7 +161,7 @@ function setup() {
 
 @test "function_enforce_mark2_alpha_channel_is_silent" {
     DETECTED_DEVICES=("tas5806")
-    CHANNEL="stable"
+    CHANNEL="testing"
 
     run enforce_mark2_alpha_channel
     assert_success
@@ -121,10 +170,10 @@ function setup() {
 
 @test "function_enforce_mark2_alpha_channel_does_not_force_devkit" {
     DETECTED_DEVICES=("attiny1614" "tas5806")
-    CHANNEL="stable"
+    CHANNEL="testing"
 
     enforce_mark2_alpha_channel
-    assert_equal "$CHANNEL" "stable"
+    assert_equal "$CHANNEL" "testing"
 }
 
 @test "function_enforce_mark2_devkit_gui_support_does_not_force_feature_gui_on_trixie" {
@@ -237,8 +286,7 @@ function setup() {
 
 # Test state directory function
 @test "function_state_directory_creation" {
-    RUN_AS_HOME=/tmp/test_home
-    mkdir -p "$RUN_AS_HOME"
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
 
     run state_directory
     assert_success
@@ -250,7 +298,7 @@ function setup() {
 }
 
 @test "function_state_directory_existing" {
-    RUN_AS_HOME=/tmp/test_home
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
     mkdir -p "$RUN_AS_HOME/.local/state/ovos"
 
     run state_directory
@@ -259,6 +307,21 @@ function setup() {
     [ -d "$RUN_AS_HOME/.local/state/ovos" ]
 
     # Clean up
+    rm -rf "$RUN_AS_HOME"
+}
+
+@test "function_state_directory_persists_detected_i2c_devices" {
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    RUN_AS="$(id -un)"
+    RUN_AS_GROUP="$(id -gn)"
+    DETECTED_DEVICES=("tas5806" "attiny1614")
+
+    state_directory
+    assert_equal "$?" "0"
+
+    run jq -e '(.i2c_devices | sort) == ["attiny1614","tas5806"]' "$RUN_AS_HOME/.local/state/ovos/installer.json"
+    assert_success
+
     rm -rf "$RUN_AS_HOME"
 }
 

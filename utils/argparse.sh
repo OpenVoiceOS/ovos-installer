@@ -43,16 +43,15 @@ function handle_options() {
     # Always install and use uv instead of pip, which is significantly faster.
     export USE_UV="true"
 
-    # If REUSE_CACHED_ARTIFACTS is true, keep any existing ansible venv which
-    # speeds up the installer, but could result in errors if it is in a dirty
-    # state. This is mainly useful when debugging the installer.
-    export REUSE_CACHED_ARTIFACTS="${REUSE_CACHED_ARTIFACTS:-false}"
+    # Keep cached installer artifacts by default to speed repeated runs.
+    # Set REUSE_CACHED_ARTIFACTS=false for clean-room troubleshooting.
+    export REUSE_CACHED_ARTIFACTS="${REUSE_CACHED_ARTIFACTS:-true}"
 
     # Set default values for variables that may not be set
     export DEBUG="${DEBUG:-false}"
     export METHOD="${METHOD:-virtualenv}"
     export PROFILE="${PROFILE:-ovos}"
-    export CHANNEL="${CHANNEL:-stable}"
+    export CHANNEL="${CHANNEL:-testing}"
     export TUNING="${TUNING:-yes}"
     export TUNING_OVERCLOCK="${TUNING_OVERCLOCK:-no}"
     export OVERCLOCK_ARM_BOOST="${OVERCLOCK_ARM_BOOST:-1}"

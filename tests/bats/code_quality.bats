@@ -186,6 +186,38 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_numpy_default_tracks_python_abi" {
+    local file="ansible/roles/ovos_virtualenv/defaults/main.yml"
+
+    run grep -F -q "(ovos_virtualenv_venv_python_minor | int) >= 13" "$file"
+    assert_success
+
+    run grep -F -q "'numpy>=2.1,<3'" "$file"
+    assert_success
+
+    run grep -F -q "'numpy==1.26.4'" "$file"
+    assert_success
+}
+
+@test "virtualenv_runtime_bootstrap_numpy_uses_venv_python_version" {
+    local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -q "Detect OVOS venv runtime Python version" "$file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Detect OVOS venv runtime Python version\" \"$file\" | grep -q -- '{{ ovos_virtualenv_path }}/bin/python'"
+    assert_success
+
+    run grep -q "Resolve runtime bootstrap numpy package from OVOS venv Python" "$file"
+    assert_success
+
+    run grep -q "ovos_virtualenv_runtime_numpy_package" "$file"
+    assert_success
+
+    run grep -q "'numpy>=2.1,<3'" "$file"
+    assert_success
+}
+
 @test "macos_includes_precise_onnx_in_virtualenv_requirements" {
     run grep -q "ovos-ww-plugin-precise-onnx" ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
     assert_success
@@ -397,6 +429,12 @@ function setup() {
     run grep -q -- "- -xzf" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_success
 
+    run bash -c "grep -A6 -F -- \"- name: Ensure custom Rust messagebus archive directory exists\" ansible/roles/ovos_virtualenv/tasks/bus.yml | grep -q -- \"mode: \\\"0755\\\"\""
+    assert_success
+
+    run grep -F -q "(ovos_virtualenv_rust_messagebus_archive_path | dirname) != '/tmp'" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_success
+
     run grep -q "Remove Rust messagebus archive after extraction" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_failure
 }
@@ -443,6 +481,44 @@ function setup() {
     assert_success
 
     run grep -q "environment: \"{{ ovos_virtualenv_uv_environment }}\"" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+}
+
+@test "virtualenv_caches_constraints_file_and_uses_local_constraints_for_uv" {
+    local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -q "ovos_virtualenv_constraints_url" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_virtualenv_constraints_path" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_virtualenv_constraints_refresh_interval" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_virtualenv_constraints_force_sync" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_virtualenv_uv_install_retries" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_virtualenv_uv_install_delay" "$defaults_file"
+    assert_success
+
+    run grep -q "Check cached OVOS constraints file" "$tasks_file"
+    assert_success
+
+    run grep -q "Cache OVOS constraints file" "$tasks_file"
+    assert_success
+
+    run bash -c "grep -A6 -F -- \"- name: Install Open Voice OS in Python venv\" \"$tasks_file\" | grep -F -q -- \"--constraint {{ ovos_virtualenv_constraints_path }}\""
+    assert_success
+
+    run grep -q "retries: \"{{ ovos_virtualenv_uv_install_retries | int }}\"" "$tasks_file"
+    assert_success
+
+    run grep -q "delay: \"{{ ovos_virtualenv_uv_install_delay | int }}\"" "$tasks_file"
     assert_success
 }
 
@@ -554,9 +630,6 @@ function setup() {
 @test "virtualenv_uv_pip_tasks_run_as_installer_user" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
-    run bash -c "grep -A4 -F -- \"- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
-    assert_success
-
     run bash -c "grep -A4 -F -- \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
     assert_success
 
@@ -566,34 +639,29 @@ function setup() {
     run bash -c "grep -A4 -F -- \"- name: Install Open Voice OS in Python venv\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
     assert_success
 
-    run bash -c "grep -A4 -F -- \"- name: Ensure numpy Python library is installed\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
-    assert_success
-
-    run bash -c "grep -A4 -F -- \"- name: Ensure setuptools Python library is compatible with OVOS runtime\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
+    run bash -c "grep -A6 -F -- \"- name: Ensure runtime bootstrap Python libraries are installed\" \"$file\" | grep -q -- 'become_user: \"{{ ovos_installer_user }}\"'"
     assert_success
 }
 
 @test "virtualenv_uv_bootstrap_and_runtime_installs_skip_cleaning" {
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
 
-    run bash -c "grep -A12 -F -- \"- name: Install tflite_runtime bootstrap package (non-macOS AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    run bash -c "grep -A12 -F -- \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_virtualenv_is_cleaning | bool)'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Install wheel bootstrap package (macOS or non-AVX/SIMD hosts)\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    run bash -c "grep -A12 -F -- \"- name: Install ggwave Python library\" \"$file\" | grep -F -q -- 'not (ovos_virtualenv_is_cleaning | bool)'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Install ggwave Python library\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
-    assert_success
-
-    run bash -c "grep -A12 -F -- \"- name: Ensure numpy Python library is installed\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
-    assert_success
-
-    run bash -c "grep -A12 -F -- \"- name: Ensure setuptools Python library is compatible with OVOS runtime\" \"$file\" | grep -F -q -- 'not (ovos_installer_cleaning | default(false) | bool)'"
+    run bash -c "grep -A12 -F -- \"- name: Ensure runtime bootstrap Python libraries are installed\" \"$file\" | grep -F -q -- 'not (ovos_virtualenv_is_cleaning | bool)'"
     assert_success
 }
 
 @test "virtualenv_repairs_ownership_before_python_package_installs" {
+    local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
     local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -q "ovos_virtualenv_repair_ownership" "$defaults_file"
+    assert_success
 
     run grep -q "Ensure OVOS virtualenv ownership is aligned before package installs" "$file"
     assert_success
@@ -607,7 +675,10 @@ function setup() {
     run bash -c "grep -A8 -F -- \"- name: Ensure OVOS virtualenv ownership is aligned before package installs\" \"$file\" | grep -q -- 'group: \"{{ ovos_installer_group }}\"'"
     assert_success
 
-    run bash -c "awk '/Ensure OVOS virtualenv ownership is aligned before package installs/{owner_line=NR} /Ensure numpy Python library is installed/{numpy_line=NR} END{exit !(owner_line>0 && numpy_line>0 && owner_line<numpy_line)}' \"$file\""
+    run bash -c "grep -A12 -F -- \"- name: Ensure OVOS virtualenv ownership is aligned before package installs\" \"$file\" | grep -F -q -- 'ovos_virtualenv_repair_ownership | bool or (ovos_virtualenv_venv_create is changed)'"
+    assert_success
+
+    run bash -c "awk '/Ensure OVOS virtualenv ownership is aligned before package installs/{owner_line=NR} /Ensure runtime bootstrap Python libraries are installed/{runtime_bootstrap_line=NR} END{exit !(owner_line>0 && runtime_bootstrap_line>0 && owner_line<runtime_bootstrap_line)}' \"$file\""
     assert_success
 }
 
@@ -681,6 +752,24 @@ function setup() {
     assert_failure
 }
 
+@test "site_includes_shared_input_contract_role" {
+    run grep -q "role: ovos_contract" ansible/site.yml
+    assert_success
+
+    run grep -q "Assert shared installer input contract" ansible/roles/ovos_contract/tasks/main.yml
+    assert_success
+}
+
+@test "installer_includes_containers_role_only_for_containers_method" {
+    local file="ansible/roles/ovos_installer/tasks/main.yml"
+
+    run bash -c "grep -A6 -F -- \"- name: Include ovos_containers role\" \"$file\" | grep -F -q -- \"ovos_installer_method == \\\"containers\\\"\""
+    assert_success
+
+    run bash -c "grep -A6 -F -- \"- name: Include ovos_containers role\" \"$file\" | grep -F -q -- \"ovos_installer_is_cleaning\""
+    assert_failure
+}
+
 @test "virtualenv_gui_core_requirements_use_installable_package_name" {
     local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
 
@@ -733,13 +822,13 @@ function setup() {
     run grep -F -q "ovos-skill-weather==1.0.6" "$defaults_file"
     assert_failure
 
-    run grep -F -q "Install stable skill pins for Mark II" "$tasks_file"
+    run grep -F -q "Install known-good skill pins for Mark II" "$tasks_file"
     assert_failure
 
     run grep -F -q "Install known-good date-time skill for Mark II" "$tasks_file"
     assert_failure
 
-    run grep -F -q "Install stable weather skill for Mark II" "$tasks_file"
+    run grep -F -q "Install known-good weather skill for Mark II" "$tasks_file"
     assert_failure
 
     run grep -F -q "ovos_virtualenv_mark2_datetime_package:" "$defaults_file"
@@ -759,13 +848,14 @@ function setup() {
     run grep -F -q "ovos-padatious==1.4.3" "$defaults_file"
     assert_failure
 
-    run grep -F -q "Install stable padatious parser for Mark II" "$tasks_file"
+    run grep -F -q "Install known-good padatious parser for Mark II" "$tasks_file"
     assert_failure
 }
 
 @test "virtualenv_installs_padatious_cache_for_all_virtualenv_installs" {
     local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
-    local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    local venv_tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    local cache_tasks_file="ansible/roles/ovos_virtualenv/tasks/intent_cache.yml"
 
     run grep -F -q "ovos_virtualenv_padatious_cache_repo_url: https://github.com/OpenVoiceOS/padatious_cache" "$defaults_file"
     assert_success
@@ -782,37 +872,49 @@ function setup() {
     run grep -F -q "ovos_virtualenv_padatious_cache_backup_dir:" "$defaults_file"
     assert_success
 
-    run grep -F -q "Checkout padatious cache repository" "$tasks_file"
+    run grep -F -q "ovos_virtualenv_padatious_cache_force_sync" "$defaults_file"
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$tasks_file\" | grep -F -q -- \"repo: \\\"{{ ovos_virtualenv_padatious_cache_repo_url }}\\\"\""
+    run grep -F -q "Include intent cache sync tasks" "$venv_tasks_file"
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$tasks_file\" | grep -F -q -- \"version: \\\"{{ ovos_virtualenv_padatious_cache_repo_version }}\\\"\""
+    run grep -F -q "Checkout padatious cache repository" "$cache_tasks_file"
     assert_success
 
-    run grep -F -q "Check staged OVOS intent cache payload exists" "$tasks_file"
+    run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$cache_tasks_file\" | grep -F -q -- \"repo: \\\"{{ ovos_virtualenv_padatious_cache_repo_url }}\\\"\""
     assert_success
 
-    run grep -F -q "Assert staged OVOS intent cache payload is valid" "$tasks_file"
+    run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$cache_tasks_file\" | grep -F -q -- \"version: \\\"{{ ovos_virtualenv_padatious_cache_repo_version }}\\\"\""
     assert_success
 
-    run grep -F -q "Stage OVOS intent cache payload from padatious_cache" "$tasks_file"
+    run grep -F -q "Check staged OVOS intent cache payload exists" "$cache_tasks_file"
     assert_success
 
-    run bash -c "grep -A8 -F -- \"- name: Stage OVOS intent cache payload from padatious_cache\" \"$tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_repo_path }}/intent_cache\""
+    run grep -F -q "Assert staged OVOS intent cache payload is valid" "$cache_tasks_file"
     assert_success
 
-    run bash -c "grep -A8 -F -- \"- name: Stage OVOS intent cache payload from padatious_cache\" \"$tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_staging_dir }}\""
+    run grep -F -q "Decide whether OVOS intent cache sync is required" "$cache_tasks_file"
     assert_success
 
-    run grep -F -q "Backup existing OVOS intent cache directory" "$tasks_file"
+    run bash -c "grep -A8 -F -- \"- name: Decide whether OVOS intent cache sync is required\" \"$cache_tasks_file\" | grep -F -q -- \"ovos_virtualenv_padatious_cache_checkout.changed\""
     assert_success
 
-    run grep -F -q "Activate staged OVOS intent cache directory" "$tasks_file"
+    run grep -F -q "Stage OVOS intent cache payload from padatious_cache" "$cache_tasks_file"
     assert_success
 
-    run grep -F -q "Remove existing OVOS intent cache directory" "$tasks_file"
+    run bash -c "grep -A8 -F -- \"- name: Stage OVOS intent cache payload from padatious_cache\" \"$cache_tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_repo_path }}/intent_cache\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Stage OVOS intent cache payload from padatious_cache\" \"$cache_tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_staging_dir }}\""
+    assert_success
+
+    run grep -F -q "Backup existing OVOS intent cache directory" "$cache_tasks_file"
+    assert_success
+
+    run grep -F -q "Activate staged OVOS intent cache directory" "$cache_tasks_file"
+    assert_success
+
+    run grep -F -q "Remove existing OVOS intent cache directory" "$cache_tasks_file"
     assert_failure
 
     run grep -F -q -- "- \"{{ ovos_virtualenv_padatious_cache_dir }}\"" "$defaults_file"
@@ -849,6 +951,7 @@ function setup() {
 }
 
 @test "mark2_firmware_repairs_tmp_permissions_before_apt_update" {
+    local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
     local file="ansible/roles/ovos_hardware_mark2/tasks/firmware.yml"
 
     run grep -q "Ensure /tmp permissions are apt-compatible" "$file"
@@ -862,6 +965,200 @@ function setup() {
 
     run grep -q "Install kernel headers" "$file"
     assert_success
+
+    run grep -q "ovos_hardware_mark2_apt_cache_valid_time" "$defaults_file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Install kernel headers\" \"$file\" | grep -q -- \"cache_valid_time: \\\"{{ ovos_hardware_mark2_apt_cache_valid_time }}\\\"\""
+    assert_success
+}
+
+@test "containers_setup_checks_docker_cli_without_package_facts" {
+    local defaults_file="ansible/roles/ovos_containers/defaults/main.yml"
+    local vars_file="ansible/roles/ovos_containers/vars/main.yml"
+    local tasks_file="ansible/roles/ovos_containers/tasks/install.yml"
+
+    run grep -q "ovos_containers_docker_binary: docker" "$defaults_file"
+    assert_success
+
+    run grep -q "Retrieve installed packages" "$tasks_file"
+    assert_failure
+
+    run grep -Eq '(^|[[:space:]-])(ansible\.builtin\.)?package_facts:' "$tasks_file"
+    assert_failure
+
+    run grep -q "Detect Docker CLI" "$tasks_file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Detect Docker CLI\" \"$tasks_file\" | grep -F -q -- \"{{ ovos_containers_docker_binary }}\""
+    assert_success
+
+    run grep -q "ovos_containers_docker_package_check_debian" "$vars_file"
+    assert_failure
+}
+
+@test "containers_git_refresh_and_compose_retry_budget_are_configurable" {
+    local defaults_file="ansible/roles/ovos_containers/defaults/main.yml"
+    local common_file="ansible/roles/ovos_containers/tasks/common.yml"
+    local composer_file="ansible/roles/ovos_containers/tasks/composer.yml"
+
+    run grep -q "ovos_containers_repo_force_sync" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_containers_repo_refresh_interval" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_containers_compose_retries" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_containers_compose_retry_delay" "$defaults_file"
+    assert_success
+
+    run grep -q "Check containers repository refresh markers" "$common_file"
+    assert_success
+
+    run grep -q "_repo_update_required" "$common_file"
+    assert_success
+
+    run grep -q "update: \"{{ _repo_update_required | bool }}\"" "$common_file"
+    assert_success
+
+    run grep -q "retries: \"{{ ovos_containers_compose_retries | int }}\"" "$composer_file"
+    assert_success
+
+    run grep -q "delay: \"{{ ovos_containers_compose_retry_delay | int }}\"" "$composer_file"
+    assert_success
+}
+
+@test "containers_uninstall_uses_repo_specific_compose_directories" {
+    local defaults_file="ansible/roles/ovos_containers/defaults/main.yml"
+    local uninstall_file="ansible/roles/ovos_containers/tasks/uninstall.yml"
+
+    run grep -q "ovos_containers_composition_directory_ovos" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_containers_composition_directory_hivemind" "$defaults_file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Remove docker-compose OVOS stack(s)\" \"$uninstall_file\" | grep -q -- \"project_src: \\\"{{ ovos_containers_composition_directory_ovos }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Remove docker-compose HiveMind stack(s)\" \"$uninstall_file\" | grep -q -- \"project_src: \\\"{{ ovos_containers_composition_directory_hivemind }}\\\"\""
+    assert_success
+}
+
+@test "gui_and_mark2_git_refresh_are_throttled" {
+    local venv_defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local gui_tasks_file="ansible/roles/ovos_virtualenv/tasks/gui.yml"
+    local mark2_defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
+    local mark2_vocalfusion_file="ansible/roles/ovos_hardware_mark2/tasks/vocalfusion.yml"
+
+    run grep -q "ovos_virtualenv_gui_repo_refresh_interval" "$venv_defaults_file"
+    assert_success
+
+    run grep -q "ovos_virtualenv_gui_repo_force_sync" "$venv_defaults_file"
+    assert_success
+
+    run grep -q "Check GUI repository refresh markers" "$gui_tasks_file"
+    assert_success
+
+    run grep -q "_gui_repo_update_required" "$gui_tasks_file"
+    assert_success
+
+    run grep -q "update: \"{{ _gui_repo_update_required | bool }}\"" "$gui_tasks_file"
+    assert_success
+
+    run grep -q "ovos_hardware_mark2_vocalfusion_repo_force_sync" "$mark2_defaults_file"
+    assert_success
+
+    run grep -q "ovos_hardware_mark2_vocalfusion_repo_refresh_interval" "$mark2_defaults_file"
+    assert_success
+
+    run grep -q "Check VocalFusion repository refresh marker" "$mark2_vocalfusion_file"
+    assert_success
+
+    run grep -q "update: \"{{ ovos_hardware_mark2_vocalfusion_repo_update | bool }}\"" "$mark2_vocalfusion_file"
+    assert_success
+}
+
+@test "mark2_role_stops_install_flow_while_cleaning" {
+    local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_hardware_mark2/tasks/main.yml"
+
+    run grep -q "ovos_hardware_mark2_is_cleaning" "$defaults_file"
+    assert_success
+
+    run grep -q "Stop Mark 2 install flow while cleaning" "$tasks_file"
+    assert_failure
+
+    run grep -F -q "ansible.builtin.import_tasks: install.yml" "$tasks_file"
+    assert_success
+
+    run grep -F -q "when: not (ovos_hardware_mark2_is_cleaning | bool)" "$tasks_file"
+    assert_success
+}
+
+@test "roles_use_ansible_core_2_17_compatible_cleaning_flow" {
+    run grep -R -nE "(^|[[:space:]-])(ansible\\.builtin\\.)?meta:[[:space:]]*end_role([[:space:]]|$)" ansible/roles
+    assert_failure
+}
+
+@test "install_bats_helpers_pins_helper_refs" {
+    local script_file=".github/scripts/install_bats_helpers.sh"
+
+    run grep -F -q 'BATS_SUPPORT_REF' "$script_file"
+    assert_success
+
+    run grep -F -q 'BATS_ASSERT_REF' "$script_file"
+    assert_success
+
+    run grep -F -q -- '--branch "$bats_support_ref"' "$script_file"
+    assert_success
+
+    run grep -F -q -- '--branch "$bats_assert_ref"' "$script_file"
+    assert_success
+}
+
+@test "virtualenv_uninstall_uses_shared_constraints_url_variable" {
+    local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local uninstall_file="ansible/roles/ovos_virtualenv/tasks/uninstall.yml"
+
+    run grep -q "ovos_virtualenv_constraints_url" "$defaults_file"
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"- name: Remove OVOS constraints from venv activation\" \"$uninstall_file\" | grep -F -q -- \"_ovos_release: \\\"{{ ovos_virtualenv_constraints_url }}\\\"\""
+    assert_success
+}
+
+@test "performance_tuning_eeprom_gates_on_dpkg_query" {
+    local defaults_file="ansible/roles/ovos_performance_tuning/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_performance_tuning/tasks/eeprom.yml"
+
+    run grep -q "ovos_performance_tuning_dpkg_query_path: /usr/bin/dpkg-query" "$defaults_file"
+    assert_success
+
+    run grep -q "Query EEPROM package install state (Debian)" "$tasks_file"
+    assert_success
+
+    run grep -Eq '(^|[[:space:]-])(ansible\.builtin\.)?package_facts:' "$tasks_file"
+    assert_failure
+}
+
+@test "storage_tuning_log2ram_gates_on_dpkg_query" {
+    local defaults_file="ansible/roles/ovos_storage_tuning/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_storage_tuning/tasks/install.yml"
+
+    run grep -q "ovos_storage_tuning_dpkg_query_path: /usr/bin/dpkg-query" "$defaults_file"
+    assert_success
+
+    run grep -q "Query log2ram package install state (Debian)" "$tasks_file"
+    assert_success
+
+    run grep -q "Gather package facts for log2ram" "$tasks_file"
+    assert_failure
+
+    run grep -Eq '(^|[[:space:]-])(ansible\.builtin\.)?package_facts:' "$tasks_file"
+    assert_failure
 }
 
 @test "mark2_touchscreen_applies_overlay_management_to_tas5806_devices" {
@@ -898,7 +1195,7 @@ function setup() {
 }
 
 @test "uninstall_enables_package_removal_by_default" {
-    run grep -q 'ovos_installer_uninstall_remove_packages: "{{ ovos_installer_cleaning | default(false) | bool }}"' ansible/roles/ovos_installer/defaults/main.yml
+    run grep -q 'ovos_installer_uninstall_remove_packages: "{{ ovos_installer_is_cleaning | bool }}"' ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 }
 
@@ -918,7 +1215,7 @@ function setup() {
 
 @test "sound_role_never_writes_invalid_n_a_asound_defaults" {
     local defaults_file="ansible/roles/ovos_sound/defaults/main.yml"
-    local tasks_file="ansible/roles/ovos_sound/tasks/main.yml"
+    local tasks_file="ansible/roles/ovos_sound/tasks/install.yml"
 
     run grep -q "ovos_sound_supported_alsa_defaults" "$defaults_file"
     assert_success
@@ -949,7 +1246,7 @@ function setup() {
 }
 
 @test "sound_role_starts_sound_server_before_redetection" {
-    local tasks_file="ansible/roles/ovos_sound/tasks/main.yml"
+    local tasks_file="ansible/roles/ovos_sound/tasks/install.yml"
 
     run grep -q "Ensure PipeWire user sound services are running before detection" "$tasks_file"
     assert_success
@@ -971,10 +1268,33 @@ function setup() {
     run grep -q "ovos_installer_homeassistant_legacy_skill_ids" ansible/roles/ovos_installer/defaults/main.yml
     assert_failure
 
-    run grep -q "_ovos_homeassistant_skill_id" ansible/roles/ovos_config/tasks/main.yml
+    run grep -q "_ovos_homeassistant_skill_id" ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
-    run grep -q "Write Home Assistant skill settings.json" ansible/roles/ovos_config/tasks/main.yml
+    run grep -q "Write Home Assistant skill settings.json" ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+}
+
+@test "containers_config_files_use_container_runtime_ownership" {
+    local defaults_file="ansible/roles/ovos_config/defaults/main.yml"
+    local tasks_file="ansible/roles/ovos_config/tasks/install.yml"
+
+    run grep -F -q "ovos_config_container_runtime_uid: \"{{ ovos_installer_container_runtime_uid | default(1000) }}\"" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos_config_container_runtime_gid: \"{{ ovos_installer_container_runtime_gid | default(1000) }}\"" "$defaults_file"
+    assert_success
+
+    run bash -c "grep -A6 -F -- \"ovos_config_mycroft_conf_owner:\" \"$defaults_file\" | grep -F -q -- \"else ovos_config_container_runtime_uid\""
+    assert_success
+
+    run bash -c "grep -A6 -F -- \"ovos_config_mycroft_conf_group:\" \"$defaults_file\" | grep -F -q -- \"else ovos_config_container_runtime_gid\""
+    assert_success
+
+    run grep -F -q "owner: \"{{ ovos_config_mycroft_conf_owner }}\"" "$tasks_file"
+    assert_success
+
+    run grep -F -q "group: \"{{ ovos_config_mycroft_conf_group }}\"" "$tasks_file"
     assert_success
 }
 
@@ -1152,7 +1472,7 @@ function setup() {
 }
 
 @test "performance_tuning_applies_rpi_eeprom_updates_and_flags_reboot" {
-    local main_file="ansible/roles/ovos_performance_tuning/tasks/main.yml"
+    local main_file="ansible/roles/ovos_performance_tuning/tasks/install.yml"
     local eeprom_file="ansible/roles/ovos_performance_tuning/tasks/eeprom.yml"
     local defaults_file="ansible/roles/ovos_performance_tuning/defaults/main.yml"
 
@@ -1168,8 +1488,11 @@ function setup() {
     run grep -q "Apply Raspberry Pi EEPROM updates" "$eeprom_file"
     assert_success
 
-    run grep -q "Gather package facts for EEPROM gating" "$eeprom_file"
+    run grep -q "Query EEPROM package install state (Debian)" "$eeprom_file"
     assert_success
+
+    run grep -Eq '(^|[[:space:]-])(ansible\.builtin\.)?package_facts:' "$eeprom_file"
+    assert_failure
 
     run grep -q "ovos_performance_tuning_rpi_eeprom_installed" "$eeprom_file"
     assert_success
@@ -1307,6 +1630,122 @@ function setup() {
     assert_success
 }
 
+@test "install_ansible_reuses_collections_cache_when_enabled" {
+    run grep -F -q 'collections_stamp="${collections_path}/.requirements.checksum"' utils/common.sh
+    assert_success
+
+    run grep -F -q 'if [ "${REUSE_CACHED_ARTIFACTS:-false}" == "true" ] && [ -f "$collections_stamp" ]; then' utils/common.sh
+    assert_success
+
+    run grep -F -q 'required_collections_present "$collections_path" "$requirements_file"' utils/common.sh
+    assert_success
+}
+
+@test "install_ansible_reuses_python_packages_when_enabled" {
+    run grep -F -q 'python_packages_match_versions "$VENV_PATH/bin/python3" "${ansible_packages[@]}"' utils/common.sh
+    assert_success
+
+    run grep -F -q '[info] Reusing cached ansible python packages from ${VENV_PATH}' utils/common.sh
+    assert_success
+}
+
+@test "create_python_venv_reuses_cached_virtualenv_when_valid" {
+    run grep -F -q "function installer_venv_is_reusable()" utils/common.sh
+    assert_success
+
+    run grep -F -q 'if [ "$reuse_cached_artifacts" == "true" ] && installer_venv_is_reusable "$VENV_PATH" "$PYTHON"; then' utils/common.sh
+    assert_success
+
+    run grep -F -q "function python_version_major_minor()" utils/common.sh
+    assert_success
+
+    run grep -F -q 'local venv_python_cmd="${PYTHON_CMD:-python3}"' utils/common.sh
+    assert_success
+
+    run grep -F -q '"$venv_python_cmd" -m venv "$VENV_PATH"' utils/common.sh
+    assert_success
+
+    run grep -F -q 'if [ "$venv_reused" != "true" ]; then' utils/common.sh
+    assert_success
+}
+
+@test "create_python_venv_bootstrap_installs_are_cache_aware" {
+    run grep -F -q 'run_with_errexit_guard pip3 install "uv>=0.4.10"' utils/common.sh
+    assert_success
+
+    run grep -F -q 'run_with_errexit_guard pip3 install --no-cache-dir "uv>=0.4.10"' utils/common.sh
+    assert_success
+
+    run grep -F -q '$PIP_COMMAND install --upgrade pip setuptools' utils/common.sh
+    assert_success
+}
+
+@test "setup_downloads_yq_only_when_scenario_file_exists" {
+    run grep -F -q "detect_scenario" setup.sh
+    assert_success
+
+    run grep -Eq "^[[:space:]]*download_yq([[:space:]]|$)" setup.sh
+    assert_failure
+}
+
+@test "setup_uses_runtime_lock_and_signal_cleanup_hooks" {
+    run grep -F -q "acquire_installer_lock" setup.sh
+    assert_success
+
+    run grep -F -q "trap cleanup_installer_runtime EXIT" setup.sh
+    assert_success
+
+    run grep -F -q "trap 'exit_with_signal_code 130' INT" setup.sh
+    assert_success
+
+    run grep -F -q "trap 'exit_with_signal_code 143' TERM" setup.sh
+    assert_success
+}
+
+@test "common_defines_installer_lock_and_cleanup_helpers" {
+    run grep -F -q "function acquire_installer_lock()" utils/common.sh
+    assert_success
+
+    run grep -F -q "function release_installer_lock()" utils/common.sh
+    assert_success
+
+    run grep -F -q "function cleanup_installer_runtime()" utils/common.sh
+    assert_success
+
+    run grep -F -q "function exit_with_signal_code()" utils/common.sh
+    assert_success
+}
+
+@test "scenario_validation_checks_required_keys_explicitly" {
+    local file="utils/scenario.sh"
+
+    run grep -q "declare -a required_options=(" "$file"
+    assert_success
+
+    run grep -q "share_usage_telemetry" "$file"
+    assert_success
+
+    run grep -q 'for required_option in "\${required_options\[@\]}"; do' "$file"
+    assert_success
+
+    run grep -q '\${options\[\$required_option\]+x}' "$file"
+    assert_success
+
+    run grep -q '\-lt 7' "$file"
+    assert_failure
+}
+
+@test "detect_existing_instance_uses_runtime_helper" {
+    run grep -F -q "function container_runtime_has_ovos_instance()" utils/common.sh
+    assert_success
+
+    run grep -F -q 'container_runtime_has_ovos_instance docker "Docker" "$name_regex"' utils/common.sh
+    assert_success
+
+    run grep -F -q 'container_runtime_has_ovos_instance podman "Podman" "$name_regex"' utils/common.sh
+    assert_success
+}
+
 @test "launchd_module_uses_plist_basename_not_absolute_path" {
     run grep -q "ovos_services_launchd_plist_name: \"{{ item.label }}.plist\"" ansible/roles/ovos_services/tasks/launchd.yml
     assert_success
@@ -1413,10 +1852,10 @@ function setup() {
     run grep -q "ovos_services_launchd_log_dir" ansible/roles/ovos_services/defaults/main.yml
     assert_success
 
-    run grep -q "Ensure user cache root directory exists with correct ownership" ansible/roles/ovos_services/tasks/main.yml
+    run grep -q "Ensure user cache root directory exists with correct ownership" ansible/roles/ovos_services/tasks/install.yml
     assert_success
 
-    run grep -q "/.cache" ansible/roles/ovos_services/tasks/main.yml
+    run grep -q "/.cache" ansible/roles/ovos_services/tasks/install.yml
     assert_success
 
     run grep -q "/.cache/huggingface" ansible/roles/ovos_services/defaults/main.yml
@@ -1425,13 +1864,44 @@ function setup() {
     run grep -q "/.cache/OCP" ansible/roles/ovos_services/defaults/main.yml
     assert_success
 
-    run grep -q "Ensure OVOS runtime user directories exist" ansible/roles/ovos_services/tasks/main.yml
+    run grep -q "Ensure OVOS runtime user directories exist" ansible/roles/ovos_services/tasks/install.yml
     assert_success
 
-    run grep -q "Ensure OVOS runtime user directory ownership is corrected recursively" ansible/roles/ovos_services/tasks/main.yml
+    run grep -q "Ensure OVOS runtime user directory ownership is corrected recursively" ansible/roles/ovos_services/tasks/install.yml
     assert_success
 
-    run grep -q "recurse: true" ansible/roles/ovos_services/tasks/main.yml
+    run grep -q "recurse: true" ansible/roles/ovos_services/tasks/install.yml
+    assert_success
+}
+
+@test "services_uninstall_removes_requested_runtime_artifacts" {
+    local defaults_file="ansible/roles/ovos_services/defaults/main.yml"
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.config/wireplumber/wireplumber.conf.d/90-sj201-profile.conf" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.local/state/mycroft-persistent" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.local/share/vosk" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.local/share/precise-onnx" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.local/share/wallpapers" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.cache/huggingface" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.cache/OpenVoiceOS" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.cache/ovos-installer" "$defaults_file"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_user_home }}/.ovos-installer" "$defaults_file"
     assert_success
 }
 
@@ -1526,15 +1996,58 @@ function setup() {
 }
 
 @test "macos_scenario_smoke_runs_on_intel_and_arm" {
-    # Keep a generous context window because this job block may grow over time.
-    # When GitHub retires macos-15-intel, update the Intel runner assertion below.
-    run bash -c 'grep -A50 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q "runs-on: \${{ matrix.runner }}"'
+    run grep -F -q "macos-scenario-matrix:" .github/workflows/macos_ci.yml
     assert_success
 
-    run bash -c 'grep -A50 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q -- "- macos-15-intel"'
+    run grep -F -q "runs-on: \${{ matrix.runner }}" .github/workflows/macos_ci.yml
     assert_success
 
-    run bash -c 'grep -A50 -F "macos-scenario-smoke:" .github/workflows/macos_ci.yml | grep -F -q -- "- macos-14"'
+    run grep -E -q -- "- macos-[0-9]+-intel" .github/workflows/macos_ci.yml
+    assert_success
+
+    run grep -E -q -- "- macos-[0-9]+$" .github/workflows/macos_ci.yml
+    assert_success
+}
+
+@test "workflows_enable_concurrency_cancel_in_progress" {
+    run grep -F -q "cancel-in-progress: true" .github/workflows/linting.yml
+    assert_success
+
+    run grep -F -q "cancel-in-progress: true" .github/workflows/macos_ci.yml
+    assert_success
+
+    run grep -F -q "cancel-in-progress: true" .github/workflows/shell_testing.yml
+    assert_success
+
+    run grep -F -q "cancel-in-progress: true" .github/workflows/scenarios-ubuntu2404.yml
+    assert_success
+}
+
+@test "ci_uses_profile_tasks_callback_and_runtime_thresholds" {
+    run grep -F -q "ANSIBLE_CALLBACKS_ENABLED=\"profile_tasks,timer\"" .github/workflows/macos_ci.yml
+    assert_success
+
+    run grep -F -q "OVOS_CI_MAX_INSTALL_SECONDS" .github/workflows/macos_ci.yml
+    assert_success
+
+    run grep -F -q "ANSIBLE_CALLBACKS_ENABLED=\"profile_tasks,timer\"" .github/workflows/scenarios-ubuntu2404.yml
+    assert_success
+
+    run grep -F -q "OVOS_CI_MAX_INSTALL_SECONDS" .github/workflows/scenarios-ubuntu2404.yml
+    assert_success
+}
+
+@test "ci_restores_python_uv_and_collection_caches" {
+    run grep -F -q "uses: actions/cache@v4" .github/workflows/linting.yml
+    assert_success
+
+    run grep -F -q "~/.cache/uv" .github/workflows/linting.yml
+    assert_success
+
+    run grep -F -q "~/.ansible/collections" .github/workflows/macos_ci.yml
+    assert_success
+
+    run grep -F -q "~/.ovos-installer/uv-cache" .github/workflows/scenarios-ubuntu2404.yml
     assert_success
 }
 

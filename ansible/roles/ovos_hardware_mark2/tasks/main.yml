@@ -4,20 +4,6 @@
   tags:
     - always
 
-- name: Include prepare.yml
-  ansible.builtin.import_tasks: prepare.yml
-
-- name: Include sanity.yml
-  ansible.builtin.import_tasks: sanity.yml
-
-- name: Include firmware.yml
-  ansible.builtin.import_tasks: firmware.yml
-
-- name: Include vocalfusion.yml
-  ansible.builtin.import_tasks: vocalfusion.yml
-
-- name: Include touchscreen.yml
-  ansible.builtin.import_tasks: touchscreen.yml
-
-- name: Include wireplumber.yml
-  ansible.builtin.import_tasks: wireplumber.yml
+- name: Include install tasks
+  ansible.builtin.import_tasks: install.yml
+  when: not (ovos_hardware_mark2_is_cleaning | bool)

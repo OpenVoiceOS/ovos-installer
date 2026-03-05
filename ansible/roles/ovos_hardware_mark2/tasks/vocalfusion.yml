@@ -1,9 +1,30 @@
 ---
+- name: Check VocalFusion repository refresh marker
+  ansible.builtin.stat:
+    path: "{{ ovos_hardware_mark2_vocalfusion_src_path }}/.git/FETCH_HEAD"
+  register: ovos_hardware_mark2_vocalfusion_fetch_head
+  changed_when: false
+
+- name: Decide whether VocalFusion repository refresh is required
+  ansible.builtin.set_fact:
+    ovos_hardware_mark2_vocalfusion_repo_update: >-
+      {{
+        ovos_hardware_mark2_vocalfusion_repo_force_sync | bool
+        or not (ovos_hardware_mark2_vocalfusion_fetch_head.stat.exists | default(false))
+        or (
+          (lookup('pipe', 'date +%s') | int)
+          - (ovos_hardware_mark2_vocalfusion_fetch_head.stat.mtime | default(0) | int)
+          > (ovos_hardware_mark2_vocalfusion_repo_refresh_interval | int)
+        )
+      }}
+  changed_when: false
+
 - name: Clone VocalFusionDriver Git repository
   ansible.builtin.git:
     repo: "{{ ovos_hardware_mark2_vocalfusion_repo_url }}"
     dest: "{{ ovos_hardware_mark2_vocalfusion_src_path }}"
     version: "{{ ovos_hardware_mark2_vocalfusion_branch }}"
+    update: "{{ ovos_hardware_mark2_vocalfusion_repo_update | bool }}"
 
 - name: Copy DTBO files to boot overlays directory
   vars:
@@ -99,3 +120,4 @@
   ansible.builtin.file:
     path: "{{ ovos_hardware_mark2_vocalfusion_src_path }}"
     state: absent
+  when: ovos_hardware_mark2_vocalfusion_cleanup_source | bool

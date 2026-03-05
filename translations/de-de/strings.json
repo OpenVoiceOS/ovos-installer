@@ -7,7 +7,7 @@
   },
   "channels.sh": {
     "title": "Open Voice OS-Installationskanäle",
-    "content": "Open Voice OS bietet drei Release-Kanäle:\n\n- stable (stabil, aber alt)\n- testing (empfohlen)\n- alpha (Bleeding Edge)\n\nDer stable-Kanal ändert sich am wenigsten und ist die konservativste Option, kann aber bei neuen Funktionen und Fehlerbehebungen hinterherhinken.\n\nDer testing-Kanal ist für die meisten Nutzer empfohlen. Er enthält neuere Funktionen und Verbesserungen und ist in der Regel stabil, kann aber gelegentlich Regressionen enthalten.\n\nDer alpha-Kanal ist die experimentellste Version und enthält die neuesten Funktionen und Änderungen, die sich noch in der Entwicklung befinden. Er kann instabil sein und wird nicht für den alltäglichen Gebrauch empfohlen.\n\nBitte wählen Sie einen Kanal:"
+    "content": "Open Voice OS bietet zwei Release-Kanäle:\n\n- testing (empfohlen)\n- alpha (Bleeding Edge)\n\nDer testing-Kanal ist für die meisten Nutzer empfohlen. Er enthält neuere Funktionen und Verbesserungen und ist in der Regel stabil, kann aber gelegentlich Regressionen enthalten.\n\nDer alpha-Kanal ist die experimentellste Version und enthält die neuesten Funktionen und Änderungen, die sich noch in der Entwicklung befinden. Er kann instabil sein und wird nicht für den alltäglichen Gebrauch empfohlen.\n\nBitte wählen Sie einen Kanal:"
   },
   "detection.sh": {
     "title": "Eine vorhandene Open Voice OS Installation entdeckt",

@@ -6,29 +6,28 @@
 
 - name: Include packages.yml
   ansible.builtin.import_tasks: packages.yml
-  when: not (ovos_installer_cleaning | default(false) | bool)
+  when: not (ovos_virtualenv_is_cleaning | bool)
 
 - name: Include gui.yml
   ansible.builtin.import_tasks: gui.yml
   when:
-    - not (ovos_installer_cleaning | default(false) | bool)
+    - not (ovos_virtualenv_is_cleaning | bool)
     - ovos_installer_feature_gui | bool
-    - ovos_installer_profile != 'satellite'
-    - ovos_installer_profile != 'server'
+    - ovos_virtualenv_is_desktop_profile | bool
 
 - name: Include venv.yml
   ansible.builtin.import_tasks: venv.yml
-  when: not (ovos_installer_cleaning | default(false) | bool)
+  when: not (ovos_virtualenv_is_cleaning | bool)
 
 - name: Include bus.yml
   ansible.builtin.import_tasks: bus.yml
   when:
     - ansible_facts.system in ['Linux', 'Darwin']
     - ovos_installer_profile != 'satellite'
-    - not (ovos_installer_cleaning | default(false) | bool)
+    - not (ovos_virtualenv_is_cleaning | bool)
 
 - name: Include uninstall tasks
   ansible.builtin.import_tasks: uninstall.yml
-  when: ovos_installer_cleaning | default(false) | bool
+  when: ovos_virtualenv_is_cleaning | bool
   tags:
     - uninstall

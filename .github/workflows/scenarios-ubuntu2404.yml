@@ -1,47 +1,727 @@
-name: Scenarios on Ubuntu 24.04 x86_64
+name: Linux installer matrix CI
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 on:
-  workflow_run:
-    workflows:
-      - "Check code style and quality"
-      - "Testing shell components with BATS"
-    types:
-      - completed
+  pull_request:
+    paths:
+      - .github/workflows/scenarios-ubuntu2404.yml
+      - .github/scripts/**
+      - ansible.cfg
+      - setup.sh
+      - installer.sh
+      - utils/**
+      - ansible/**
+      - scenarios/**
+      - tui/**
+      - tests/bats/**
+  push:
+    paths:
+      - .github/workflows/scenarios-ubuntu2404.yml
+      - .github/scripts/**
+      - ansible.cfg
+      - setup.sh
+      - installer.sh
+      - utils/**
+      - ansible/**
+      - scenarios/**
+      - tui/**
+      - tests/bats/**
+  schedule:
+    - cron: "25 3 * * *"
   workflow_dispatch:
 
 jobs:
-  scenario-u2404-amd64-containers-dev-ovos-skills-gui:
-    runs-on:
-      - self-hosted
+  linux-installer-scenarios-pr-smoke:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        runner:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+        method:
+          - virtualenv
+          - containers
+
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+
+    env:
+      CI_HOMEASSISTANT_URL: http://homeassistant.local:8123
+      CI_HOMEASSISTANT_API_KEY: ci-token
+      OVOS_CI_MAX_INSTALL_SECONDS: "2400"
+
     steps:
-      - name: Installer requirements
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Restore installer caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+            .ansible/collections
+            ~/.ansible/collections
+            ~/.ovos-installer/uv-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-installer-smoke-${{ hashFiles('setup.sh', 'utils/**', 'ansible/**', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-installer-smoke-
+
+      - name: Install installer requirements
         run: |
           sudo apt-get update
-          sudo apt-get --no-install-recommends install curl git -y
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
-      - name: Scenario virtualenv, alpha, ovos, skills
+      - name: Ensure Docker is available for container scenarios
+        if: matrix.method == 'containers'
         run: |
-          mkdir -p ~/.config/ovos-installer
-          cat <<EOF >~/.config/ovos-installer/scenario.yaml
+          if command -v docker >/dev/null 2>&1; then
+            sudo systemctl start docker || true
+            sudo docker info || true
+          else
+            echo "Docker is not preinstalled; installer will bootstrap it."
+          fi
+
+      - name: Ensure ALSA device path is Docker-compatible for container scenarios
+        if: matrix.method == 'containers'
+        run: |
+          if [ ! -e /dev/snd ]; then
+            sudo mkdir -p /dev/snd
+            sudo chmod 0755 /dev/snd
+          fi
+
+          if [ -d /dev/snd ] && ! find /dev/snd -maxdepth 1 \( -type c -o -type b \) | grep -q .; then
+            sudo mknod /dev/snd/controlC0 c 1 3
+            sudo chmod 0666 /dev/snd/controlC0
+          fi
+
+      - name: Create install scenario file
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
           ---
           uninstall: false
-          method: virtualenv
-          channel: alpha
+          method: ${{ matrix.method }}
+          channel: testing
           profile: ovos
           features:
-            skills: true
-            extra_skills: true
-            gui: true
-          rapsberry_pi_tuning: false
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
           share_telemetry: false
           share_usage_telemetry: false
           EOF
-          curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh
-          chmod +x installer.sh
-          sudo ./installer.sh
 
-      - name: Uninstall existing instance
+      - name: Run installer scenario smoke
+        shell: bash
         run: |
-          curl -s https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh
-          chmod +x installer.sh
-          sudo ./installer.sh -u
+          start_ts="$(date +%s)"
+          sudo -E env \
+            ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" \
+            REUSE_CACHED_ARTIFACTS=true \
+            bash setup.sh
+
+          elapsed="$(( $(date +%s) - start_ts ))"
+          echo "Installer elapsed seconds: ${elapsed}"
+          if [ "$elapsed" -gt "${OVOS_CI_MAX_INSTALL_SECONDS}" ]; then
+            echo "Installer runtime ${elapsed}s exceeded threshold ${OVOS_CI_MAX_INSTALL_SECONDS}s"
+            exit 1
+          fi
+
+      - name: Create uninstall scenario file
+        shell: bash
+        run: |
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
+          ---
+          uninstall: true
+          method: ${{ matrix.method }}
+          channel: testing
+          profile: ovos
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+
+      - name: Run uninstall scenario smoke
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          sudo journalctl -u docker --no-pager -n 200 || true
+          sudo ls -la /var/log || true
+          sudo ls -la /var/log/ovos* || true
+          sudo tail -n 400 /var/log/ovos-installer.log || true
+          sudo tail -n 400 /var/log/ovos-ansible.log || true
+          ls -la "$HOME/.local/state/mycroft" || true
+          ls -la "$HOME/.config/ovos-installer" || true
+
+  linux-installer-scenarios-nightly-exhaustive:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        runner:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+        method:
+          - virtualenv
+          - containers
+        channel:
+          - testing
+          - alpha
+        feature_set:
+          - minimal
+          - all
+
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+
+    env:
+      CI_HOMEASSISTANT_URL: http://homeassistant.local:8123
+      CI_HOMEASSISTANT_API_KEY: ci-token
+      OVOS_CI_MAX_INSTALL_SECONDS: "3600"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Restore installer caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+            .ansible/collections
+            ~/.ansible/collections
+            ~/.ovos-installer/uv-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-installer-nightly-${{ hashFiles('setup.sh', 'utils/**', 'ansible/**', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-installer-nightly-
+
+      - name: Install installer requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
+
+      - name: Resolve feature set
+        id: feature_set
+        shell: bash
+        run: |
+          if [ "${{ matrix.feature_set }}" = "all" ]; then
+            {
+              echo "skills=true"
+              echo "extra_skills=true"
+              echo "homeassistant=true"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "skills=false"
+              echo "extra_skills=false"
+              echo "homeassistant=false"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure Docker is available for container scenarios
+        if: matrix.method == 'containers'
+        run: |
+          if command -v docker >/dev/null 2>&1; then
+            sudo systemctl start docker || true
+            sudo docker info || true
+          else
+            echo "Docker is not preinstalled; installer will bootstrap it."
+          fi
+
+      - name: Ensure ALSA device path is Docker-compatible for container scenarios
+        if: matrix.method == 'containers'
+        run: |
+          if [ ! -e /dev/snd ]; then
+            sudo mkdir -p /dev/snd
+            sudo chmod 0755 /dev/snd
+          fi
+
+          if [ -d /dev/snd ] && ! find /dev/snd -maxdepth 1 \( -type c -o -type b \) | grep -q .; then
+            sudo mknod /dev/snd/controlC0 c 1 3
+            sudo chmod 0666 /dev/snd/controlC0
+          fi
+
+      - name: Create install scenario file
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
+          ---
+          uninstall: false
+          method: ${{ matrix.method }}
+          channel: ${{ matrix.channel }}
+          profile: ovos
+          features:
+            skills: ${{ steps.feature_set.outputs.skills }}
+            extra_skills: ${{ steps.feature_set.outputs.extra_skills }}
+            homeassistant: ${{ steps.feature_set.outputs.homeassistant }}
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+
+      - name: Run installer scenario exhaustive
+        shell: bash
+        run: |
+          start_ts="$(date +%s)"
+          if [ "${{ steps.feature_set.outputs.homeassistant }}" = "true" ]; then
+            sudo -E env \
+              HOMEASSISTANT_URL="${CI_HOMEASSISTANT_URL}" \
+              HOMEASSISTANT_API_KEY="${CI_HOMEASSISTANT_API_KEY}" \
+              ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" \
+              REUSE_CACHED_ARTIFACTS=true \
+              bash setup.sh
+          else
+            sudo -E env \
+              ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" \
+              REUSE_CACHED_ARTIFACTS=true \
+              bash setup.sh
+          fi
+
+          elapsed="$(( $(date +%s) - start_ts ))"
+          echo "Installer elapsed seconds: ${elapsed}"
+          if [ "$elapsed" -gt "${OVOS_CI_MAX_INSTALL_SECONDS}" ]; then
+            echo "Installer runtime ${elapsed}s exceeded threshold ${OVOS_CI_MAX_INSTALL_SECONDS}s"
+            exit 1
+          fi
+
+      - name: Create uninstall scenario file
+        shell: bash
+        run: |
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
+          ---
+          uninstall: true
+          method: ${{ matrix.method }}
+          channel: ${{ matrix.channel }}
+          profile: ovos
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+
+      - name: Run uninstall scenario exhaustive
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          sudo journalctl -u docker --no-pager -n 200 || true
+          sudo ls -la /var/log || true
+          sudo ls -la /var/log/ovos* || true
+          sudo tail -n 400 /var/log/ovos-installer.log || true
+          sudo tail -n 400 /var/log/ovos-ansible.log || true
+          ls -la "$HOME/.local/state/mycroft" || true
+          ls -la "$HOME/.config/ovos-installer" || true
+
+  linux-idempotency:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        runner:
+          - ubuntu-24.04
+          - ubuntu-24.04-arm
+        method:
+          - virtualenv
+          - containers
+
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Restore installer caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+            .ansible/collections
+            ~/.ansible/collections
+            ~/.ovos-installer/uv-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-installer-idempotency-${{ hashFiles('setup.sh', 'utils/**', 'ansible/**', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-installer-idempotency-
+
+      - name: Install installer requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
+
+      - name: Ensure Docker is available for container idempotency
+        if: matrix.method == 'containers'
+        run: |
+          if command -v docker >/dev/null 2>&1; then
+            sudo systemctl start docker || true
+            sudo docker info || true
+          else
+            echo "Docker is not preinstalled; installer will bootstrap it."
+          fi
+
+      - name: Ensure ALSA device path is Docker-compatible for container scenarios
+        if: matrix.method == 'containers'
+        run: |
+          if [ ! -e /dev/snd ]; then
+            sudo mkdir -p /dev/snd
+            sudo chmod 0755 /dev/snd
+          fi
+
+          if [ -d /dev/snd ] && ! find /dev/snd -maxdepth 1 \( -type c -o -type b \) | grep -q .; then
+            sudo mknod /dev/snd/controlC0 c 1 3
+            sudo chmod 0666 /dev/snd/controlC0
+          fi
+
+      - name: Create install scenario file
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
+          ---
+          uninstall: false
+          method: ${{ matrix.method }}
+          channel: testing
+          profile: ovos
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+
+      - name: Run install pass 1
+        run: sudo -E env ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Run install pass 2 and assert low drift
+        shell: bash
+        run: |
+          set -o pipefail
+          sudo -E env ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" REUSE_CACHED_ARTIFACTS=true bash setup.sh | tee /tmp/ovos-idempotency-pass2.log
+
+          changed_count="$(awk '/127\.0\.0\.1[[:space:]].*changed=/{for(i=1;i<=NF;i++){if($i ~ /^changed=/){split($i,a,"=");print a[2]}}}' /tmp/ovos-idempotency-pass2.log | tail -1)"
+          if [ -z "${changed_count}" ]; then
+            echo "Unable to parse changed count from second idempotency pass"
+            exit 1
+          fi
+
+          if [ "${changed_count}" -gt 8 ]; then
+            echo "Second idempotency pass changed=${changed_count}, expected <=8"
+            exit 1
+          fi
+
+      - name: Create uninstall scenario file
+        run: |
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
+          ---
+          uninstall: true
+          method: ${{ matrix.method }}
+          channel: testing
+          profile: ovos
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+
+      - name: Run uninstall pass 1
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Run uninstall pass 2
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          sudo journalctl -u docker --no-pager -n 200 || true
+          sudo ls -la /var/log || true
+          sudo ls -la /var/log/ovos* || true
+          sudo tail -n 400 /var/log/ovos-installer.log || true
+          sudo tail -n 400 /var/log/ovos-ansible.log || true
+          ls -la "$HOME/.local/state/mycroft" || true
+          ls -la "$HOME/.config/ovos-installer" || true
+
+  linux-key-role-idempotency:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+
+    env:
+      OVOS_CI_MAX_ROLE_CHANGED: "2"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Restore installer caches
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+            .ansible/collections
+            ~/.ansible/collections
+            ~/.ovos-installer/uv-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-installer-role-idempotency-${{ hashFiles('setup.sh', 'utils/**', 'ansible/**', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-installer-role-idempotency-
+
+      - name: Install installer requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
+
+      - name: Create install scenario file
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
+          ---
+          uninstall: false
+          method: virtualenv
+          channel: testing
+          profile: ovos
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+
+      - name: Install baseline OVOS instance
+        run: sudo -E env ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Assert key role idempotency
+        shell: bash
+        run: |
+          set -o pipefail
+          ansible_playbook_bin="$HOME/.venvs/ovos-installer/bin/ansible-playbook"
+          if [ ! -x "$ansible_playbook_bin" ]; then
+            echo "ansible-playbook not found at $ansible_playbook_bin"
+            exit 1
+          fi
+
+          key_roles=(ovos_facts ovos_config ovos_virtualenv ovos_services ovos_finalize)
+          mkdir -p artifacts
+
+          for role_tag in "${key_roles[@]}"; do
+            role_log="artifacts/idempotency-${role_tag}.log"
+            sudo -E env \
+              ANSIBLE_CONFIG=ansible.cfg \
+              ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" \
+              "$ansible_playbook_bin" -i 127.0.0.1, ansible/site.yml \
+                -e "ovos_installer_user=${USER}" \
+                -e "ovos_installer_group=$(id -gn)" \
+                -e "ovos_installer_uid=$(id -u)" \
+                -e "ovos_installer_user_home=${HOME}" \
+                -e "ovos_installer_method=virtualenv" \
+                -e "ovos_installer_profile=ovos" \
+                -e "ovos_installer_channel=testing" \
+                -e "ovos_installer_feature_gui=false" \
+                -e "ovos_installer_feature_skills=false" \
+                -e "ovos_installer_feature_extra_skills=false" \
+                -e "ovos_installer_feature_homeassistant=false" \
+                -e "ovos_installer_tuning=false" \
+                -e "ovos_installer_cleaning=false" \
+                -e "ovos_installer_raspberrypi=N/A" \
+                -e "ovos_installer_hardware=N/A" \
+                -e "ovos_installer_sound_server=N/A" \
+                -e "ovos_installer_display_server=N/A" \
+                -e "ovos_installer_locale=en-us" \
+                -e "ovos_installer_reboot_file_path=/tmp/ovos.reboot" \
+                -e "ovos_installer_venv=${HOME}/.venvs/ovos" \
+                -e "ovos_installer_venv_python=3.11" \
+                -e '{"ovos_installer_i2c_devices":[]}' \
+                --tags "$role_tag" 2>&1 | tee "$role_log"
+
+            changed_count="$(awk '/127\.0\.0\.1[[:space:]].*changed=/{for(i=1;i<=NF;i++){if($i ~ /^changed=/){split($i,a,"=");print a[2]}}}' "$role_log" | tail -1)"
+            if [ -z "${changed_count}" ]; then
+              echo "Unable to parse changed count for role ${role_tag}"
+              exit 1
+            fi
+
+            if [ "${changed_count}" -gt "${OVOS_CI_MAX_ROLE_CHANGED}" ]; then
+              echo "Role ${role_tag} changed=${changed_count}, expected <=${OVOS_CI_MAX_ROLE_CHANGED}"
+              exit 1
+            fi
+          done
+
+      - name: Upload key-role idempotency logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: role-idempotency-logs
+          path: artifacts
+
+      - name: Create uninstall scenario file
+        run: |
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
+          ---
+          uninstall: true
+          method: virtualenv
+          channel: testing
+          profile: ovos
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+
+      - name: Run uninstall cleanup
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          sudo ls -la /var/log || true
+          sudo ls -la /var/log/ovos* || true
+          sudo tail -n 400 /var/log/ovos-installer.log || true
+          sudo tail -n 400 /var/log/ovos-ansible.log || true
+          ls -la "$HOME/.local/state/mycroft" || true
+          ls -la "$HOME/.config/ovos-installer" || true
+
+  linux-negative-scenarios:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    strategy:
+      fail-fast: false
+      matrix:
+        case_name:
+          - invalid-option
+          - invalid-method
+          - invalid-feature
+          - satellite-missing-credentials
+
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Install installer requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
+
+      - name: Create invalid scenario file
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          case "${{ matrix.case_name }}" in
+            invalid-option)
+              cat > "$HOME/.config/ovos-installer/scenario.yaml" <<'EOF'
+          ---
+          uninstall: false
+          method: virtualenv
+          channel: invalid
+          profile: ovos
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+              ;;
+            invalid-method)
+              cat > "$HOME/.config/ovos-installer/scenario.yaml" <<'EOF'
+          ---
+          uninstall: false
+          method: podman
+          channel: testing
+          profile: ovos
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+              ;;
+            invalid-feature)
+              cat > "$HOME/.config/ovos-installer/scenario.yaml" <<'EOF'
+          ---
+          uninstall: false
+          method: virtualenv
+          channel: testing
+          profile: ovos
+          features:
+            skills: maybe
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+              ;;
+            satellite-missing-credentials)
+              cat > "$HOME/.config/ovos-installer/scenario.yaml" <<'EOF'
+          ---
+          uninstall: false
+          method: virtualenv
+          channel: testing
+          profile: satellite
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+              ;;
+            *)
+              echo "Unsupported negative test case: ${{ matrix.case_name }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Run installer and assert failure
+        shell: bash
+        run: |
+          set +e
+          sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+          rc=$?
+          set -e
+          if [ "$rc" -eq 0 ]; then
+            echo "Negative test '${{ matrix.case_name }}' unexpectedly succeeded."
+            exit 1
+          fi
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          sudo tail -n 400 /var/log/ovos-installer.log || true
+          sudo tail -n 400 /var/log/ovos-ansible.log || true
+          ls -la "$HOME/.config/ovos-installer" || true

@@ -1,13 +1,25 @@
 ---
 ovos_containers_working_directory: "{{ ovos_installer_tmp_dir | default('/tmp') }}"
+ovos_containers_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
+ovos_containers_profile: "{{ ovos_installer_profile | default('ovos') }}"
+ovos_containers_desktop_profiles: "{{ ovos_installer_desktop_profiles | default(['ovos', 'listener']) }}"
+ovos_containers_is_desktop_profile: "{{ ovos_installer_is_desktop_profile | default((ovos_containers_profile | default('ovos')) in ovos_containers_desktop_profiles) | bool }}"
+ovos_containers_feature_skills: "{{ ovos_installer_feature_skills | default(true) | bool }}"
+ovos_containers_feature_extra_skills: "{{ ovos_installer_feature_extra_skills | default(false) | bool }}"
+ovos_containers_feature_homeassistant: "{{ ovos_installer_feature_homeassistant | default(false) | bool }}"
+ovos_containers_cleanup_repo_directories: "{{ ovos_installer_cleanup_repo_directories | default(false) }}"
+ovos_containers_repo_force_checkout: "{{ ovos_installer_containers_repo_force_checkout | default(false) }}"
+ovos_containers_repo_force_sync: "{{ ovos_installer_containers_repo_force_sync | default(false) }}"
+ovos_containers_repo_refresh_interval: "{{ ovos_installer_containers_repo_refresh_interval | default(21600) }}"
 ovos_containers_project_name: >-
   {{ ovos_installer_project_name
      | default('hivemind-docker'
-     if (ovos_installer_profile | default('ovos')) == 'satellite'
+     if ovos_containers_profile == 'satellite'
      else 'ovos-docker') }}
 ovos_containers_debian_docker_gpg: >-
   {{ ovos_installer_debian_docker_gpg | default('/usr/share/keyrings/docker') }}
 ovos_containers_docker_group: docker
+ovos_containers_docker_binary: docker
 ovos_containers_docker_service_name: docker
 ovos_containers_repo_dest_ovos: ovos-docker
 ovos_containers_repo_dest_hivemind: hivemind-docker
@@ -15,12 +27,19 @@ ovos_containers_repo_definitions:
   - url: "{{ ovos_containers_ovos_docker_repo_url }}"
     branch: "{{ ovos_containers_ovos_docker_repo_branch }}"
     dest: "{{ ovos_containers_repo_dest_ovos }}"
-    state: "{{ ovos_installer_profile != 'satellite' or ovos_installer_cleaning | default(false) | bool }}"
+    state: "{{ ovos_containers_profile != 'satellite' or ovos_containers_is_cleaning | bool }}"
   - url: "{{ ovos_containers_hivemind_docker_repo_url }}"
     branch: "{{ ovos_containers_hivemind_docker_repo_branch }}"
     dest: "{{ ovos_containers_repo_dest_hivemind }}"
-    state: "{{ ovos_installer_profile == 'satellite' or ovos_installer_cleaning | default(false) | bool }}"
-ovos_containers_composition_directory: "{{ ovos_containers_working_directory }}/{{ ovos_containers_project_name }}/compose"
+    state: "{{ ovos_containers_profile == 'satellite' or ovos_containers_is_cleaning | bool }}"
+ovos_containers_composition_directory_ovos: "{{ ovos_containers_working_directory }}/{{ ovos_containers_repo_dest_ovos }}/compose"
+ovos_containers_composition_directory_hivemind: "{{ ovos_containers_working_directory }}/{{ ovos_containers_repo_dest_hivemind }}/compose"
+ovos_containers_composition_directory: >-
+  {{
+    ovos_containers_composition_directory_hivemind
+    if ovos_containers_profile == 'satellite'
+    else ovos_containers_composition_directory_ovos
+  }}
 
 ovos_containers_gpg_binary: gpg
 ovos_containers_docker_repo_channel: stable
@@ -41,6 +60,7 @@ ovos_containers_docker_packages_suse:
 ovos_containers_debian_prereq_packages:
   - ca-certificates
   - gnupg
+ovos_containers_apt_cache_valid_time: 3600
 ovos_containers_xhost_package_fedora: "{{ ovos_installer_xhost_package_fedora | default('xhost') }}"
 ovos_containers_xhost_package_default: "{{ ovos_installer_xhost_package_default | default('xorg-x11-server-utils') }}"
 ovos_containers_xhost_package_arch: xorg-xhost
@@ -74,7 +94,9 @@ ovos_containers_docker_compose_remove_images: "{{ ovos_installer_docker_compose_
 ovos_containers_docker_compose_remove_volumes: "{{ ovos_installer_docker_compose_remove_volumes | default(true) }}"
 ovos_containers_docker_timeout: "900"
 ovos_containers_compose_timeout: 1
-ovos_containers_compose_project_name: "{{ 'hivemind' if ovos_installer_profile == 'satellite' else 'ovos' }}"
+ovos_containers_compose_retries: "{{ ovos_installer_docker_compose_retries | default(3) }}"
+ovos_containers_compose_retry_delay: "{{ ovos_installer_docker_compose_retry_delay | default(2) }}"
+ovos_containers_compose_project_name: "{{ 'hivemind' if ovos_containers_profile == 'satellite' else 'ovos' }}"
 ovos_containers_min_mem_mb_for_skills: 1650
 ovos_containers_compose_file_default: docker-compose.yml
 ovos_containers_compose_file_windows: docker-compose.windows.yml
@@ -86,46 +108,43 @@ ovos_containers_compose_file_satellite: docker-compose.satellite.yml
 ovos_containers_compose_file_server: docker-compose.server.yml
 ovos_containers_compose_definitions:
   - file: "{{ ovos_containers_compose_file_default }}"
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and ovos_containers_os_type == 'linux' }}"
+    state: "{{ ovos_containers_is_desktop_profile | bool and ovos_containers_os_type == 'linux' }}"
   - file: "{{ ovos_containers_compose_file_windows }}"
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and ovos_containers_os_type == 'wsl2' }}"
+    state: "{{ ovos_containers_is_desktop_profile | bool and ovos_containers_os_type == 'wsl2' }}"
   - file: "{{ ovos_containers_compose_file_raspberrypi }}"
-    state: "{{ ovos_installer_profile != 'satellite' and ovos_installer_profile != 'server' and (ovos_installer_raspberrypi | default('N/A')) != 'N/A' }}"
+    state: "{{ ovos_containers_is_desktop_profile | bool and (ovos_installer_raspberrypi | default('N/A')) != 'N/A' }}"
   - file: "{{ ovos_containers_compose_file_skills }}"
     state: >-
-      {{ not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
-         and ovos_installer_feature_skills | bool }}
+      {{ not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_containers_profile != 'satellite')
+         and ovos_containers_feature_skills | bool }}
   - file: "{{ ovos_containers_compose_file_skills_extra }}"
     state: >-
-      {{ not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_installer_profile != 'satellite')
-         and ovos_installer_feature_extra_skills | bool }}
+      {{ not (ansible_facts.memtotal_mb < ovos_containers_min_mem_mb_for_skills and ovos_containers_profile != 'satellite')
+         and ovos_containers_feature_extra_skills | bool }}
   - file: "{{ ovos_containers_compose_file_hivemind }}"
-    state: "{{ ovos_installer_profile == 'listener' }}"
+    state: "{{ ovos_containers_profile == 'listener' }}"
   - file: "{{ ovos_containers_compose_file_satellite }}"
-    state: "{{ ovos_installer_profile == 'satellite' }}"
+    state: "{{ ovos_containers_profile == 'satellite' }}"
   - file: "{{ ovos_containers_compose_file_server }}"
-    state: "{{ ovos_installer_profile == 'server' }}"
-ovos_containers_uninstall_compose_mapping:
-  - name: ovos
-    file: "{{ ovos_containers_compose_file_default }}"
-  - name: ovos
-    file: "{{ ovos_containers_compose_file_raspberrypi }}"
-  - name: ovos
-    file: "{{ ovos_containers_compose_file_skills }}"
-  - name: ovos
-    file: "{{ ovos_containers_compose_file_skills_extra }}"
-  - name: ovos
-    file: "{{ ovos_containers_compose_file_hivemind }}"
-  - name: ovos
-    file: "{{ ovos_containers_compose_file_windows }}"
-  - name: hivemind
-    file: "{{ ovos_containers_compose_file_satellite }}"
+    state: "{{ ovos_containers_profile == 'server' }}"
+ovos_containers_uninstall_project_name_ovos: ovos
+ovos_containers_uninstall_project_name_hivemind: hivemind
+ovos_containers_uninstall_compose_files_ovos:
+  - "{{ ovos_containers_compose_file_default }}"
+  - "{{ ovos_containers_compose_file_raspberrypi }}"
+  - "{{ ovos_containers_compose_file_skills }}"
+  - "{{ ovos_containers_compose_file_skills_extra }}"
+  - "{{ ovos_containers_compose_file_hivemind }}"
+  - "{{ ovos_containers_compose_file_server }}"
+  - "{{ ovos_containers_compose_file_windows }}"
+ovos_containers_uninstall_compose_files_hivemind:
+  - "{{ ovos_containers_compose_file_satellite }}"
 ovos_containers_uninstall_project_names:
-  - ovos
-  - hivemind
+  - "{{ ovos_containers_uninstall_project_name_ovos }}"
+  - "{{ ovos_containers_uninstall_project_name_hivemind }}"
 ovos_containers_uninstall_name_prefixes:
-  - ovos_
-  - hivemind_
+  - "{{ ovos_containers_uninstall_project_name_ovos }}_"
+  - "{{ ovos_containers_uninstall_project_name_hivemind }}_"
 ovos_containers_remove_directories:
   - "{{ ovos_containers_ovos_base_dir }}"
   - "{{ ovos_containers_hivemind_base_dir }}"
