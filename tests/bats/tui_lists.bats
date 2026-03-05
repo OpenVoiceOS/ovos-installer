@@ -121,7 +121,7 @@ function spy_value() {
     assert_equal "$(spy_value list_height)" "4"
 }
 
-@test "channels: hides non-alpha channels on Mark 2 hardware" {
+@test "channels: hides non-alpha channels on Mark 2/DevKit hardware" {
     EXISTING_INSTANCE="false"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION="alpha"
@@ -227,17 +227,18 @@ function spy_value() {
     assert_equal "$(spy_value tags)" "virtualenv"
 }
 
-@test "methods: does not apply Mark 2 restriction to DevKit detection" {
+@test "methods: applies Mark 2 restriction to DevKit detection" {
     EXISTING_INSTANCE="false"
     INSTANCE_TYPE=""
     DETECTED_DEVICES=("attiny1614" "tas5806")
-    WHIPTAIL_FORCE_SELECTION="containers"
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
 
     # shellcheck source=tui/methods.sh
     source tui/methods.sh
 
-    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value option_count)" "1"
     assert_equal "$(spy_value list_height)" "4"
+    assert_equal "$(spy_value tags)" "virtualenv"
 }
 
 @test "features: checklist always has non-zero list-height and options" {

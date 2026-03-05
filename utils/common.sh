@@ -1501,16 +1501,15 @@ function is_debian_trixie() {
     }
 }
 
-# Enforce alpha channel when Mark II hardware is detected.
-# Mark II detection requires tas5806 present and attiny1614 absent.
+# Enforce alpha channel when Mark II/DevKit hardware is detected.
 function enforce_mark2_alpha_channel() {
-    if ! is_mark2_detected; then
+    if ! is_mark2_or_devkit_detected; then
         return 0
     fi
 
     if [ "${CHANNEL:-}" != "alpha" ]; then
         export CHANNEL="alpha"
-        printf '%s\n' "Mark II requires alpha channel. Forcing CHANNEL=alpha." >>"$LOG_FILE"
+        printf '%s\n' "Mark II/DevKit requires alpha channel. Forcing CHANNEL=alpha." >>"$LOG_FILE"
     fi
 }
 
