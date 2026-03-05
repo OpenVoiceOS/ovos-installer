@@ -1379,7 +1379,13 @@ function setup() {
     run grep -q '"ovos-solver-openai-plugin": {' ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
+    run grep -q '"system_prompt": ovos_installer_llm_persona' ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
     run grep -q '"persona": ovos_installer_llm_persona' ansible/roles/ovos_config/tasks/install.yml
+    assert_failure
+
+    run grep -q '.solvers\["ovos-solver-openai-plugin"\]\.system_prompt' tui/llm.sh
     assert_success
 }
 

@@ -161,7 +161,7 @@
               "ovos-solver-openai-plugin": {
                 "api_url": ovos_installer_llm_api_url,
                 "key": ovos_installer_llm_api_key,
-                "persona": ovos_installer_llm_persona
+                "system_prompt": ovos_installer_llm_persona
               }
             } | to_nice_json
           }}
