@@ -31,3 +31,33 @@ function setup() {
         assert_output --partial "macOS 15.7.2"
     done
 }
+
+@test "locales_llm_scripts_are_sourceable" {
+    for f in tui/locales/*/llm.sh; do
+        run bash -euc "
+            source '$f'
+            test -n \"\$LLM_TITLE_SETUP\"
+            test -n \"\$LLM_TITLE_EXISTING\"
+            test -n \"\$LLM_CONTENT_HAVE_DETAILS\"
+            test -n \"\$LLM_CONTENT_EXISTING\"
+            test -n \"\$LLM_TITLE_URL\"
+            test -n \"\$LLM_CONTENT_URL\"
+            test -n \"\$LLM_TITLE_KEY\"
+            test -n \"\$LLM_CONTENT_KEY\"
+            test -n \"\$LLM_CONTENT_KEY_KEEP_EXISTING\"
+            test -n \"\$LLM_TITLE_PERSONA\"
+            test -n \"\$LLM_CONTENT_PERSONA\"
+            test -n \"\$LLM_TITLE_INVALID\"
+            test -n \"\$LLM_CONTENT_MISSING_INFO\"
+            test -n \"\$LLM_CONTENT_INVALID_URL\"
+            printf '%s\n' \"\$LLM_TITLE_SETUP\"
+        "
+
+        if [ "$status" -ne 0 ]; then
+            echo \"Failed to source $f\" >&2
+            echo \"$output\" >&2
+            return 1
+        fi
+        assert_output --partial "LLM"
+    done
+}

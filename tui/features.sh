@@ -6,7 +6,10 @@ export FEATURE_SKILLS="false"
 export FEATURE_EXTRA_SKILLS="false"
 export FEATURE_GUI="false"
 export FEATURE_HOMEASSISTANT="false"
+export FEATURE_LLM="false"
 export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
+export LLM_API_URL="${LLM_API_URL:-}"
+export LLM_PERSONA="${LLM_PERSONA:-helpful, creative, clever, and very friendly.}"
 
 _mark2_or_devkit_detected="false"
 _gui_supported="false"
@@ -40,6 +43,13 @@ if [[ "${METHOD:-virtualenv}" == "virtualenv" || "${METHOD:-virtualenv}" == "con
   _ha_supported="true"
 fi
 
+_llm_supported="false"
+if [[ "${METHOD:-virtualenv}" == "virtualenv" || "${METHOD:-virtualenv}" == "containers" ]] && \
+  [[ "${PROFILE:-}" != "server" ]] && \
+  [[ "${PROFILE:-}" != "satellite" ]]; then
+  _llm_supported="true"
+fi
+
 declare -a features
 features=("skills" "$SKILL_DESCRIPTION" "ON")
 features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
@@ -48,6 +58,9 @@ if [ "${_gui_supported}" == "true" ]; then
 fi
 if [ "${_ha_supported}" == "true" ]; then
   features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+fi
+if [ "${_llm_supported}" == "true" ]; then
+  features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + persona)}" "OFF")
 fi
 
 if [ -f "$INSTALLER_STATE_FILE" ] && \
@@ -91,6 +104,13 @@ if [ -f "$INSTALLER_STATE_FILE" ] && \
       features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
     fi
   fi
+  if [ "${_llm_supported}" == "true" ]; then
+    if jq -e '.features|any(. == "llm")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
+      features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + persona)}" "ON")
+    else
+      features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + persona)}" "OFF")
+    fi
+  fi
 fi
 
 # Whiptail requires (tag item status)*. If anything corrupts the list, fall back
@@ -105,6 +125,9 @@ if [ "${#features[@]}" -lt 3 ] || [ $(( ${#features[@]} % 3 )) -ne 0 ]; then
   fi
   if [ "${_ha_supported}" == "true" ]; then
     features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+  fi
+  if [ "${_llm_supported}" == "true" ]; then
+    features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + persona)}" "OFF")
   fi
 fi
 
@@ -133,10 +156,10 @@ if [ "$exit_status" -ne 0 ]; then
   source tui/profiles.sh
   if [[ "$PROFILE" == "satellite" ]]; then
     # Satellite doesn't have selectable features; collect satellite settings next.
-    export FEATURE_GUI="false" FEATURE_SKILLS="false" FEATURE_EXTRA_SKILLS="false"
+    export FEATURE_GUI="false" FEATURE_SKILLS="false" FEATURE_EXTRA_SKILLS="false" FEATURE_LLM="false"
     source tui/satellite/main.sh
     return
-  fi
+fi
   source tui/features.sh
   return
 fi
@@ -144,6 +167,9 @@ fi
 FEATURES_STATE=()
 if [ "${_gui_supported}" == "true" ]; then
   export FEATURE_GUI="false"
+fi
+if [ "${_llm_supported}" == "true" ]; then
+  export FEATURE_LLM="false"
 fi
 for FEATURE in $OVOS_FEATURES; do
   case "$FEATURE" in
@@ -170,6 +196,19 @@ for FEATURE in $OVOS_FEATURES; do
     fi
     if [ "${FEATURE_HOMEASSISTANT}" == "true" ]; then
       FEATURES_STATE+=("homeassistant")
+    fi
+    ;;
+  "llm")
+    # Collect LLM details; only enable if fully configured.
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+    if [ "${LLM_BACK:-false}" == "true" ]; then
+      unset LLM_BACK
+      source tui/features.sh
+      return
+    fi
+    if [ "${FEATURE_LLM}" == "true" ]; then
+      FEATURES_STATE+=("llm")
     fi
     ;;
   esac

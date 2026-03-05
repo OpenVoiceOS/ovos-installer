@@ -1211,6 +1211,12 @@ function setup() {
 
     run grep -q "display_server: \"{{ ovos_installer_display_server | default('unknown') | lower }}\"" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success
+
+    run grep -q "ovos_telemetry_feature_llm" ansible/roles/ovos_telemetry/defaults/main.yml
+    assert_success
+
+    run grep -q "llm_feature: \"{{ ovos_telemetry_feature_llm | default(false) | bool }}\"" ansible/roles/ovos_telemetry/tasks/main.yml
+    assert_success
 }
 
 @test "sound_role_never_writes_invalid_n_a_asound_defaults" {
@@ -1332,6 +1338,38 @@ function setup() {
     assert_success
 
     run grep -q 'HOMEASSISTANT_URL="\$(normalize_homeassistant_url "\$ha_existing_url")"' tui/homeassistant.sh
+    assert_success
+}
+
+@test "llm_feature_writes_openvoiceos_persona_profile_and_secret_extra_vars" {
+    run grep -q "SCENARIO_ALLOWED_FEATURES=(skills extra_skills homeassistant llm)" utils/constants.sh
+    assert_success
+
+    run grep -q 'ovos_installer_feature_llm=${FEATURE_LLM}' setup.sh
+    assert_success
+
+    run grep -q "HOMEASSISTANT_API_KEY=\"\${HOMEASSISTANT_API_KEY:-}\" LLM_API_KEY=\"\${LLM_API_KEY:-}\" jq -c -n" setup.sh
+    assert_success
+
+    run grep -q '\[ "\${FEATURE_LLM:-false}" == "true" \]' setup.sh
+    assert_success
+
+    run grep -q '\[ -n "\${LLM_PERSONA:-}" \]' setup.sh
+    assert_failure
+
+    run grep -q "ovos_installer_llm_api_key: (env.LLM_API_KEY // \"\")" setup.sh
+    assert_success
+
+    run grep -q '"persona": {' ansible/roles/ovos_config/templates/mycroft.conf.j2
+    assert_success
+
+    run grep -q '"solvers": \[' ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
+    run grep -q '"ovos-solver-openai-plugin": {' ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
+    run grep -q '"persona": ovos_installer_llm_persona' ansible/roles/ovos_config/tasks/install.yml
     assert_success
 }
 

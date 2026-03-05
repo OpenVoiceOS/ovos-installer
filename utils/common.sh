@@ -1151,6 +1151,8 @@ function install_ansible() {
     local cached_checksum=""
     local collections_cache_valid="false"
     local ansible_packages_installed="false"
+    local install_attempt=0
+    local install_max_attempts="${OVOS_INSTALLER_ANSIBLE_INSTALL_RETRIES:-3}"
     local -a ansible_packages=()
     collections_path="${PWD}/.ansible/collections"
     requirements_file="${PWD}/ansible/requirements.yml"
@@ -1170,11 +1172,30 @@ function install_ansible() {
     fi
 
     if [ "$ansible_packages_installed" != "true" ]; then
-        if [ "${REUSE_CACHED_ARTIFACTS:-false}" == "true" ]; then
-            $PIP_COMMAND install "${ansible_packages[@]}" &>>"$LOG_FILE"
-        else
-            $PIP_COMMAND install --no-cache-dir "${ansible_packages[@]}" &>>"$LOG_FILE"
-        fi
+        for ((install_attempt = 1; install_attempt <= install_max_attempts; install_attempt++)); do
+            if [ "${REUSE_CACHED_ARTIFACTS:-false}" == "true" ]; then
+                if $PIP_COMMAND install "${ansible_packages[@]}" &>>"$LOG_FILE"; then
+                    ansible_packages_installed="true"
+                    break
+                fi
+            else
+                if $PIP_COMMAND install --no-cache-dir "${ansible_packages[@]}" &>>"$LOG_FILE"; then
+                    ansible_packages_installed="true"
+                    break
+                fi
+            fi
+
+            if [ "$install_attempt" -lt "$install_max_attempts" ]; then
+                printf '%s\n' "[warn] Failed to install Ansible Python packages (attempt ${install_attempt}/${install_max_attempts}), retrying in 3s..." &>>"$LOG_FILE"
+                sleep 3
+            fi
+        done
+    fi
+
+    if [ "$ansible_packages_installed" != "true" ]; then
+        echo -e "[$fail_format]"
+        echo "Unable to install Ansible Python packages. Check $LOG_FILE for details." | tee -a "$LOG_FILE"
+        exit "${EXIT_MISSING_DEPENDENCY}"
     fi
 
     if [ "${REUSE_CACHED_ARTIFACTS:-false}" == "true" ] && [ -f "$collections_stamp" ]; then
@@ -1188,11 +1209,28 @@ function install_ansible() {
     fi
 
     if [ "$collections_cache_valid" != "true" ]; then
-        ansible-galaxy collection install -r "$requirements_file" --collections-path "$collections_path" &>>"$LOG_FILE"
-        requirements_checksum="${requirements_checksum:-$(file_checksum "$requirements_file" || true)}"
-        if [ -n "$requirements_checksum" ]; then
-            printf '%s\n' "$requirements_checksum" >"$collections_stamp"
-        fi
+        for ((install_attempt = 1; install_attempt <= install_max_attempts; install_attempt++)); do
+            if ansible-galaxy collection install -r "$requirements_file" --collections-path "$collections_path" &>>"$LOG_FILE"; then
+                collections_cache_valid="true"
+                break
+            fi
+
+            if [ "$install_attempt" -lt "$install_max_attempts" ]; then
+                printf '%s\n' "[warn] Failed to install Ansible collections (attempt ${install_attempt}/${install_max_attempts}), retrying in 3s..." &>>"$LOG_FILE"
+                sleep 3
+            fi
+        done
+    fi
+
+    if [ "$collections_cache_valid" != "true" ]; then
+        echo -e "[$fail_format]"
+        echo "Unable to install Ansible collections. Check $LOG_FILE for details." | tee -a "$LOG_FILE"
+        exit "${EXIT_MISSING_DEPENDENCY}"
+    fi
+
+    requirements_checksum="${requirements_checksum:-$(file_checksum "$requirements_file" || true)}"
+    if [ -n "$requirements_checksum" ]; then
+        printf '%s\n' "$requirements_checksum" >"$collections_stamp"
     fi
     echo -e "[$done_format]"
 }

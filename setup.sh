@@ -162,7 +162,8 @@ if [ -t 1 ]; then
   export PY_COLORS=1
 fi
 
-# Pass Home Assistant token via an extra-vars file (avoids exposing secrets in the process list).
+# Pass Home Assistant/LLM credentials via an extra-vars file
+# (avoids exposing secrets in the process list).
 ha_extra_vars=()
 ha_extra_vars_file=""
 # If `set -x` is enabled, avoid echoing secrets to the terminal/logs.
@@ -174,14 +175,24 @@ if [ "$xtrace_was_on" == "true" ]; then
   set +x
 fi
 
-if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ]; then
+if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
+  [ "${FEATURE_LLM:-false}" == "true" ] || [ -n "${LLM_API_URL:-}" ] || [ -n "${LLM_API_KEY:-}" ]; then
 
   old_umask="$(umask)"
   umask 077
   if ha_extra_vars_file="$(mktemp "${TMPDIR:-/tmp}/ovos-ansible-extra-vars.XXXXXX.json" 2>>"$LOG_FILE")"; then
-    # Use env.HOMEASSISTANT_API_KEY so the token does not appear in the process args.
-    if HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}" jq -c -n --arg url "${HOMEASSISTANT_URL:-}" \
-      '{ovos_installer_homeassistant_url: $url, ovos_installer_homeassistant_host: $url, ovos_installer_homeassistant_api_key: (env.HOMEASSISTANT_API_KEY // "")}' \
+    if HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}" LLM_API_KEY="${LLM_API_KEY:-}" jq -c -n \
+      --arg ha_url "${HOMEASSISTANT_URL:-}" \
+      --arg llm_api_url "${LLM_API_URL:-}" \
+      --arg llm_persona "${LLM_PERSONA:-}" \
+      '{
+        ovos_installer_homeassistant_url: $ha_url,
+        ovos_installer_homeassistant_host: $ha_url,
+        ovos_installer_homeassistant_api_key: (env.HOMEASSISTANT_API_KEY // ""),
+        ovos_installer_llm_api_url: $llm_api_url,
+        ovos_installer_llm_api_key: (env.LLM_API_KEY // ""),
+        ovos_installer_llm_persona: $llm_persona
+      }' \
       >"$ha_extra_vars_file" 2>>"$LOG_FILE"; then
       ha_extra_vars=(-e "@${ha_extra_vars_file}")
     else
@@ -190,8 +201,9 @@ if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ]; then
   fi
   umask "$old_umask"
 
-  # The token is now on disk with restrictive permissions; don't keep it exported.
+  # Secrets are now on disk with restrictive permissions; don't keep them exported.
   unset HOMEASSISTANT_API_KEY || true
+  unset LLM_API_KEY || true
 fi
 if [ "$xtrace_was_on" == "true" ]; then
   set -x
@@ -213,6 +225,7 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   -e "ovos_installer_feature_skills=${FEATURE_SKILLS}" \
   -e "ovos_installer_feature_extra_skills=${FEATURE_EXTRA_SKILLS}" \
   -e "ovos_installer_feature_homeassistant=${FEATURE_HOMEASSISTANT}" \
+  -e "ovos_installer_feature_llm=${FEATURE_LLM}" \
   -e "ovos_installer_tuning=${TUNING}" \
   -e "ovos_installer_tuning_overclock=${TUNING_OVERCLOCK}" \
   -e "ovos_installer_overclock_arm_boost=${OVERCLOCK_ARM_BOOST}" \

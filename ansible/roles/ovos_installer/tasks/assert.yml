@@ -44,3 +44,16 @@
       - ovos_installer_satellite_password | default('') | length > 0
     fail_msg: "Satellite profile requires listener host, satellite key, and satellite password."
   when: ovos_installer_profile == 'satellite'
+
+- name: Assert LLM required variables when LLM feature is enabled
+  ansible.builtin.assert:
+    that:
+      - ovos_installer_profile not in ['satellite', 'server']
+      - ovos_installer_method in ['virtualenv', 'containers']
+      - ovos_installer_llm_api_url | default('') | length > 0
+      - ovos_installer_llm_api_key | default('') | length > 0
+      - ovos_installer_llm_persona | default('') | length > 0
+    fail_msg: "LLM feature requires profile ovos/listener and non-empty API URL, API key, and persona."
+  when:
+    - not (ovos_installer_is_cleaning | bool)
+    - ovos_installer_feature_llm | default(false) | bool

@@ -23,6 +23,7 @@ if [[ "$PROFILE" != "satellite" ]]; then
 else
     export FEATURE_GUI="false"
     export FEATURE_SKILLS="false"
+    export FEATURE_LLM="false"
 fi
 
 if [[ "$PROFILE" == "satellite" ]]; then
