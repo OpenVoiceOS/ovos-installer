@@ -1,8 +1,10 @@
 ---
-- name: Ensure Rust messagebus archive directory exists
+- name: Ensure custom Rust messagebus archive directory exists
   ansible.builtin.file:
-    path: "{{ ovos_virtualenv_tmp_dir }}"
+    path: "{{ ovos_virtualenv_rust_messagebus_archive_path | dirname }}"
     state: directory
+    mode: "0755"
+  when: (ovos_virtualenv_rust_messagebus_archive_path | dirname) != '/tmp'
 
 - name: Assert Rust messagebus checksum is available for selected target/version
   ansible.builtin.assert:

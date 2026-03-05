@@ -186,6 +186,19 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_numpy_default_tracks_python_abi" {
+    local file="ansible/roles/ovos_virtualenv/defaults/main.yml"
+
+    run grep -F -q "(ovos_virtualenv_venv_python_minor | int) >= 13" "$file"
+    assert_success
+
+    run grep -F -q "'numpy>=2.1,<3'" "$file"
+    assert_success
+
+    run grep -F -q "'numpy==1.26.4'" "$file"
+    assert_success
+}
+
 @test "macos_includes_precise_onnx_in_virtualenv_requirements" {
     run grep -q "ovos-ww-plugin-precise-onnx" ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
     assert_success
@@ -397,8 +410,11 @@ function setup() {
     run grep -q -- "- -xzf" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_success
 
-    run bash -c "grep -A4 -F -- \"- name: Ensure Rust messagebus archive directory exists\" ansible/roles/ovos_virtualenv/tasks/bus.yml | grep -q -- \"mode:\""
-    assert_failure
+    run bash -c "grep -A6 -F -- \"- name: Ensure custom Rust messagebus archive directory exists\" ansible/roles/ovos_virtualenv/tasks/bus.yml | grep -q -- \"mode: \\\"0755\\\"\""
+    assert_success
+
+    run grep -F -q "(ovos_virtualenv_rust_messagebus_archive_path | dirname) != '/tmp'" ansible/roles/ovos_virtualenv/tasks/bus.yml
+    assert_success
 
     run grep -q "Remove Rust messagebus archive after extraction" ansible/roles/ovos_virtualenv/tasks/bus.yml
     assert_failure

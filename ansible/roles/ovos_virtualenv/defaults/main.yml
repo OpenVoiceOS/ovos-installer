@@ -39,7 +39,15 @@ ovos_virtualenv_constraints_refresh_interval: "{{ ovos_installer_constraints_ref
 ovos_virtualenv_constraints_force_sync: "{{ ovos_installer_constraints_force_sync | default(false) }}"
 ovos_virtualenv_shell_init_file: "{{ ovos_installer_user_home }}/{{ '.zshrc' if (ansible_facts.system | default('')) == 'Darwin' else '.bashrc' }}"
 ovos_virtualenv_run_ovos_config: "{{ ovos_installer_run_ovos_config | default(false) }}"
-ovos_virtualenv_numpy_package: "{{ ovos_installer_numpy_package | default('numpy==1.26.4') }}"
+ovos_virtualenv_numpy_package: >-
+  {{
+    ovos_installer_numpy_package
+    | default(
+        'numpy>=2.1,<3'
+        if ((ovos_virtualenv_venv_python_major | int) == 3 and (ovos_virtualenv_venv_python_minor | int) >= 13)
+        else 'numpy==1.26.4'
+      )
+  }}
 ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | default('setuptools<82') }}"
 ovos_virtualenv_repair_ownership: "{{ ovos_installer_repair_venv_ownership | default(false) }}"
 ovos_virtualenv_padatious_cache_repo_url: https://github.com/OpenVoiceOS/padatious_cache
