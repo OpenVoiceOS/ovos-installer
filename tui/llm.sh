@@ -113,7 +113,7 @@ llm_existing_persona=""
 if [ -f "$llm_persona_file" ]; then
   llm_existing_url="$(jq -r '.["ovos-solver-openai-plugin"].api_url // .["ovos-openai-plugin"].api_url // .solvers["ovos-solver-openai-plugin"].api_url // .solvers["ovos-openai-plugin"].api_url // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
   llm_existing_key="$(jq -r '.["ovos-solver-openai-plugin"].key // .["ovos-openai-plugin"].key // .solvers["ovos-solver-openai-plugin"].key // .solvers["ovos-openai-plugin"].key // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
-  llm_existing_persona="$(jq -r '.["ovos-solver-openai-plugin"].system_prompt // .["ovos-openai-plugin"].system_prompt // .["ovos-solver-openai-plugin"].persona // .["ovos-openai-plugin"].persona // .prompt // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
+  llm_existing_persona="$(jq -r '.["ovos-solver-openai-plugin"].system_prompt // .["ovos-openai-plugin"].system_prompt // .solvers["ovos-solver-openai-plugin"].system_prompt // .solvers["ovos-openai-plugin"].system_prompt // .["ovos-solver-openai-plugin"].persona // .["ovos-openai-plugin"].persona // .prompt // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
 fi
 
 if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existing_persona" ]; then
