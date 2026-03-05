@@ -277,12 +277,43 @@
   ansible.builtin.import_tasks: intent_cache.yml
   when: not (ovos_virtualenv_is_cleaning | bool)
 
+- name: Detect OVOS venv runtime Python version
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv:
+      - "{{ ovos_virtualenv_path }}/bin/python"
+      - -c
+      - "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"
+  register: ovos_virtualenv_runtime_python_version
+  changed_when: false
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
+- name: Resolve runtime bootstrap numpy package from OVOS venv Python
+  ansible.builtin.set_fact:
+    ovos_virtualenv_runtime_numpy_package: >-
+      {{
+        ovos_installer_numpy_package
+        | default(
+            'numpy>=2.1,<3'
+            if (
+              (ovos_virtualenv_runtime_python_parts | first | default('0') | int) == 3
+              and (ovos_virtualenv_runtime_python_parts[1:] | first | default('0') | int) >= 13
+            )
+            else 'numpy==1.26.4'
+          )
+      }}
+  vars:
+    ovos_virtualenv_runtime_python_parts: "{{ (ovos_virtualenv_runtime_python_version.stdout | default('0.0')) | regex_findall('[0-9]+') }}"
+  changed_when: false
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
 - name: Ensure runtime bootstrap Python libraries are installed
   become: true
   become_user: "{{ ovos_installer_user }}"
   moreati.uv.pip:
     name:
-      - "{{ ovos_virtualenv_numpy_package }}"
+      - "{{ ovos_virtualenv_runtime_numpy_package | default(ovos_virtualenv_numpy_package) }}"
       - "{{ ovos_virtualenv_setuptools_package }}"
     virtualenv: "{{ ovos_virtualenv_path }}"
     state: present

@@ -199,6 +199,25 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_runtime_bootstrap_numpy_uses_venv_python_version" {
+    local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -q "Detect OVOS venv runtime Python version" "$file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Detect OVOS venv runtime Python version\" \"$file\" | grep -q -- '{{ ovos_virtualenv_path }}/bin/python'"
+    assert_success
+
+    run grep -q "Resolve runtime bootstrap numpy package from OVOS venv Python" "$file"
+    assert_success
+
+    run grep -q "ovos_virtualenv_runtime_numpy_package" "$file"
+    assert_success
+
+    run grep -q "'numpy>=2.1,<3'" "$file"
+    assert_success
+}
+
 @test "macos_includes_precise_onnx_in_virtualenv_requirements" {
     run grep -q "ovos-ww-plugin-precise-onnx" ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
     assert_success
