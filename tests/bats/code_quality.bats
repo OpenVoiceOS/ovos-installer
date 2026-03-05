@@ -2086,7 +2086,7 @@ function setup() {
 }
 
 @test "ci_restores_python_uv_and_collection_caches" {
-    run grep -F -q "uses: actions/cache@v4" .github/workflows/linting.yml
+    run grep -F -q "uses: actions/cache@v5.0.3" .github/workflows/linting.yml
     assert_success
 
     run grep -F -q "~/.cache/uv" .github/workflows/linting.yml
