@@ -339,38 +339,50 @@ function setup() {
     run grep -F -q "\"legacy\": true" "$conf_file"
     assert_success
 
-    run grep -F -q "\"ovos-stop-pipeline-plugin\"" "$conf_file"
+    run grep -F -q "\"ovos-stop-pipeline-plugin-high\"" "$conf_file"
     assert_success
 
     run grep -F -q "\"ovos-converse-pipeline-plugin\"" "$conf_file"
     assert_success
 
-    run grep -F -q "\"ovos-ocp-pipeline-plugin\"" "$conf_file"
+    run grep -F -q "\"ovos-ocp-pipeline-plugin-high\"" "$conf_file"
     assert_success
 
-    run grep -F -q "\"ovos-padatious-pipeline-plugin\"" "$conf_file"
+    run grep -F -q "\"ovos-persona-pipeline-plugin-high\"" "$conf_file"
     assert_success
 
-    run grep -F -q "\"ovos-adapt-pipeline-plugin\"" "$conf_file"
+    run grep -F -q "\"ovos-padatious-pipeline-plugin-high\"" "$conf_file"
     assert_success
 
-    run grep -F -q "\"ovos-m2v-pipeline\"" "$conf_file"
+    run grep -F -q "\"ovos-m2v-pipeline-high\"" "$conf_file"
     assert_success
 
-    run grep -F -q "\"ovos-persona-pipeline-plugin\"" "$conf_file"
+    run grep -F -q "\"ovos-fallback-pipeline-plugin-high\"" "$conf_file"
     assert_success
 
-    run bash -c "persona_line=\$(grep -n -F -- '\"ovos-persona-pipeline-plugin\"' \"$conf_file\" | head -n1 | cut -d: -f1); fallback_line=\$(grep -n -F -- '\"ovos-fallback-pipeline-plugin\"' \"$conf_file\" | head -n1 | cut -d: -f1); [ -n \"\$persona_line\" ] && [ -n \"\$fallback_line\" ] && [ \"\$fallback_line\" -lt \"\$persona_line\" ]"
+    run grep -F -q "\"ovos-adapt-pipeline-plugin-high\"" "$conf_file"
     assert_success
 
-    run grep -F -q "\"ovos-m2v-pipeline\"{% if _ovos_persona_llm_enabled %}" "$conf_file"
-    assert_failure
-
-    run grep -F -q "\"ovos-fallback-pipeline-plugin\"" "$conf_file"
+    run grep -F -q "\"ovos-stop-pipeline-plugin-medium\"" "$conf_file"
     assert_success
 
-    run grep -Eq "ovos-[a-z0-9-]+-pipeline-plugin-(high|medium|low)|ovos-m2v-pipeline-high" "$conf_file"
-    assert_failure
+    run grep -F -q "\"ovos-adapt-pipeline-plugin-medium\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-common-query-pipeline-plugin\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-fallback-pipeline-plugin-medium\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-persona-pipeline-plugin-low\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-fallback-pipeline-plugin-low\"" "$conf_file"
+    assert_success
+
+    run bash -c 'prev=0; for entry in "ovos-stop-pipeline-plugin-high" "ovos-converse-pipeline-plugin" "ovos-ocp-pipeline-plugin-high" "ovos-persona-pipeline-plugin-high" "ovos-padatious-pipeline-plugin-high" "ovos-m2v-pipeline-high" "ovos-fallback-pipeline-plugin-high" "ovos-adapt-pipeline-plugin-high" "ovos-stop-pipeline-plugin-medium" "ovos-adapt-pipeline-plugin-medium" "ovos-common-query-pipeline-plugin" "ovos-fallback-pipeline-plugin-medium" "ovos-persona-pipeline-plugin-low" "ovos-fallback-pipeline-plugin-low"; do line=$(grep -n -F -- "\"$entry\"" "$1" | head -n1 | cut -d: -f1); [ -n "$line" ] || exit 1; [ "$line" -gt "$prev" ] || exit 1; prev=$line; done' _ "$conf_file"
+    assert_success
 }
 
 @test "mycroft_conf_sets_gui_idle_display_skill_to_current_homescreen_id" {

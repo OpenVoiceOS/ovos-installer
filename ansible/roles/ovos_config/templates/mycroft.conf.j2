@@ -103,14 +103,20 @@
 {% endif %}
   "intents": {
     "pipeline": [
-      "ovos-stop-pipeline-plugin",
+      "ovos-stop-pipeline-plugin-high",
       "ovos-converse-pipeline-plugin",
-      "ovos-ocp-pipeline-plugin",
-      "ovos-padatious-pipeline-plugin",
-      "ovos-adapt-pipeline-plugin",
-      "ovos-m2v-pipeline",
-      "ovos-fallback-pipeline-plugin",
-      "ovos-persona-pipeline-plugin"
+      "ovos-ocp-pipeline-plugin-high",
+      "ovos-persona-pipeline-plugin-high",
+      "ovos-padatious-pipeline-plugin-high",
+      "ovos-m2v-pipeline-high",
+      "ovos-fallback-pipeline-plugin-high",
+      "ovos-adapt-pipeline-plugin-high",
+      "ovos-stop-pipeline-plugin-medium",
+      "ovos-adapt-pipeline-plugin-medium",
+      "ovos-common-query-pipeline-plugin",
+      "ovos-fallback-pipeline-plugin-medium",
+      "ovos-persona-pipeline-plugin-low",
+      "ovos-fallback-pipeline-plugin-low"
     ]{% if _ovos_mark2_ocp_legacy or _ovos_persona_llm_enabled %},{% endif %}
 {% if _ovos_mark2_ocp_legacy %}
     "OCP": {
