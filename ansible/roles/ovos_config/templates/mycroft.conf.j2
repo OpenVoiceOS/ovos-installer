@@ -104,6 +104,16 @@
 {% if _ovos_mark2_ocp_legacy or _ovos_persona_llm_enabled %}
   "intents": {
 {% if _ovos_mark2_ocp_legacy %}
+    "pipeline": [
+      "ovos-stop-pipeline-plugin",
+      "ovos-converse-pipeline-plugin",
+      "ovos-ocp-pipeline-plugin",
+      "ovos-padatious-pipeline-plugin",
+      "ovos-adapt-pipeline-plugin",
+      "ovos-m2v-pipeline"{% if _ovos_persona_llm_enabled %},
+      "ovos-persona-pipeline-plugin"{% endif %},
+      "ovos-fallback-pipeline-plugin"
+    ],
     "OCP": {
       "legacy": true
     }{{ ',' if _ovos_persona_llm_enabled else '' }}

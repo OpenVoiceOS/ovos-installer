@@ -321,13 +321,37 @@ function setup() {
     assert_success
 }
 
-@test "mycroft_conf_does_not_force_mark2_intent_pipeline" {
+@test "mycroft_conf_sets_mark2_compatible_intent_pipeline" {
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
-    run grep -F -q "{% if 'tas5806' in ovos_installer_i2c_devices %}" "$conf_file"
+    run grep -F -q "{% if _ovos_mark2_ocp_legacy %}" "$conf_file"
     assert_success
 
     run grep -F -q "\"pipeline\": [" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-stop-pipeline-plugin\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-converse-pipeline-plugin\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-ocp-pipeline-plugin\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-padatious-pipeline-plugin\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-adapt-pipeline-plugin\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-m2v-pipeline\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-fallback-pipeline-plugin\"" "$conf_file"
+    assert_success
+
+    run grep -Eq "ovos-[a-z0-9-]+-pipeline-plugin-(high|medium|low)|ovos-m2v-pipeline-high" "$conf_file"
     assert_failure
 }
 
@@ -800,6 +824,19 @@ function setup() {
     assert_success
 
     run bash -c "sed -n '1,20p' \"$file\" | grep -q -- \"{% if 'tas5806' in ovos_installer_i2c_devices %}\""
+    assert_failure
+}
+
+@test "virtualenv_core_requirements_do_not_pin_noninstallable_pipeline_plugins" {
+    local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+
+    run grep -q "ovos-adapt-pipeline-plugin" "$file"
+    assert_failure
+
+    run grep -q "ovos-padatious-pipeline-plugin" "$file"
+    assert_failure
+
+    run grep -q "ovos-fallback-pipeline-plugin" "$file"
     assert_failure
 }
 
