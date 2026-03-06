@@ -360,6 +360,9 @@ function setup() {
     run grep -F -q "\"ovos-persona-pipeline-plugin\"" "$conf_file"
     assert_success
 
+    run bash -c "persona_line=\$(grep -n -F -- '\"ovos-persona-pipeline-plugin\"' \"$conf_file\" | head -n1 | cut -d: -f1); fallback_line=\$(grep -n -F -- '\"ovos-fallback-pipeline-plugin\"' \"$conf_file\" | head -n1 | cut -d: -f1); [ -n \"\$persona_line\" ] && [ -n \"\$fallback_line\" ] && [ \"\$fallback_line\" -lt \"\$persona_line\" ]"
+    assert_success
+
     run grep -F -q "\"ovos-m2v-pipeline\"{% if _ovos_persona_llm_enabled %}" "$conf_file"
     assert_failure
 
