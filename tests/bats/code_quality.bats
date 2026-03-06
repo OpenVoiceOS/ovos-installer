@@ -324,10 +324,19 @@ function setup() {
 @test "mycroft_conf_sets_mark2_compatible_intent_pipeline" {
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
+    run grep -Eq "^\\{% if _ovos_mark2_ocp_legacy or _ovos_persona_llm_enabled %\\}$" "$conf_file"
+    assert_failure
+
+    run grep -F -q "\"pipeline\": [" "$conf_file"
+    assert_success
+
+    run bash -c "grep -B1 -F -- '\"pipeline\": [' \"$conf_file\" | grep -F -q '{% if _ovos_mark2_ocp_legacy %}'"
+    assert_failure
+
     run grep -F -q "{% if _ovos_mark2_ocp_legacy %}" "$conf_file"
     assert_success
 
-    run grep -F -q "\"pipeline\": [" "$conf_file"
+    run grep -F -q "\"legacy\": true" "$conf_file"
     assert_success
 
     run grep -F -q "\"ovos-stop-pipeline-plugin\"" "$conf_file"
@@ -347,6 +356,12 @@ function setup() {
 
     run grep -F -q "\"ovos-m2v-pipeline\"" "$conf_file"
     assert_success
+
+    run grep -F -q "\"ovos-persona-pipeline-plugin\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-m2v-pipeline\"{% if _ovos_persona_llm_enabled %}" "$conf_file"
+    assert_failure
 
     run grep -F -q "\"ovos-fallback-pipeline-plugin\"" "$conf_file"
     assert_success
