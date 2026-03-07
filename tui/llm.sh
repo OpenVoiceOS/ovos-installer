@@ -152,8 +152,12 @@ export LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-300}"
 export LLM_TEMPERATURE="${LLM_TEMPERATURE:-0.2}"
 export LLM_TOP_P="${LLM_TOP_P:-0.1}"
 LLM_API_KEY="${LLM_API_KEY:-}"
+LLM_MAX_TOKENS="$(normalize_llm_positive_int "$LLM_MAX_TOKENS")"
+LLM_TEMPERATURE="$(normalize_llm_decimal_in_range "$LLM_TEMPERATURE" "0" "2")"
+LLM_TOP_P="$(normalize_llm_decimal_in_range "$LLM_TOP_P" "0" "1")"
 
-if [ -n "${LLM_API_URL}" ] && [ -n "${LLM_API_KEY}" ] && [ -n "${LLM_MODEL}" ] && [ -n "${LLM_PERSONA}" ]; then
+if [ -n "${LLM_API_URL}" ] && [ -n "${LLM_API_KEY}" ] && [ -n "${LLM_MODEL}" ] && [ -n "${LLM_PERSONA}" ] && \
+  [ -n "${LLM_MAX_TOKENS}" ] && [ -n "${LLM_TEMPERATURE}" ] && [ -n "${LLM_TOP_P}" ]; then
   export FEATURE_LLM="true"
   restore_llm_xtrace
   return
@@ -184,9 +188,13 @@ if [ -f "$llm_persona_file" ]; then
   llm_existing_max_tokens="$(jq -r '.["ovos-solver-openai-plugin"].max_tokens // .["ovos-openai-plugin"].max_tokens // .solvers["ovos-solver-openai-plugin"].max_tokens // .solvers["ovos-openai-plugin"].max_tokens // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
   llm_existing_temperature="$(jq -r '.["ovos-solver-openai-plugin"].temperature // .["ovos-openai-plugin"].temperature // .solvers["ovos-solver-openai-plugin"].temperature // .solvers["ovos-openai-plugin"].temperature // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
   llm_existing_top_p="$(jq -r '.["ovos-solver-openai-plugin"].top_p // .["ovos-openai-plugin"].top_p // .solvers["ovos-solver-openai-plugin"].top_p // .solvers["ovos-openai-plugin"].top_p // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
+  llm_existing_max_tokens="$(normalize_llm_positive_int "$llm_existing_max_tokens")"
+  llm_existing_temperature="$(normalize_llm_decimal_in_range "$llm_existing_temperature" "0" "2")"
+  llm_existing_top_p="$(normalize_llm_decimal_in_range "$llm_existing_top_p" "0" "1")"
 fi
 
-if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existing_model" ] && [ -n "$llm_existing_persona" ]; then
+if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existing_model" ] && [ -n "$llm_existing_persona" ] && \
+  [ -n "$llm_existing_max_tokens" ] && [ -n "$llm_existing_temperature" ] && [ -n "$llm_existing_top_p" ]; then
   _llm_existing_prompt="${LLM_CONTENT_EXISTING//__URL__/$llm_existing_url}"
   _llm_existing_prompt="${_llm_existing_prompt//__MODEL__/$llm_existing_model}"
   whiptail --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
@@ -199,9 +207,9 @@ if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existi
     LLM_API_KEY="$llm_existing_key"
     export LLM_MODEL="$llm_existing_model"
     export LLM_PERSONA="$llm_existing_persona"
-    export LLM_MAX_TOKENS="${llm_existing_max_tokens:-${LLM_MAX_TOKENS:-300}}"
-    export LLM_TEMPERATURE="${llm_existing_temperature:-${LLM_TEMPERATURE:-0.2}}"
-    export LLM_TOP_P="${llm_existing_top_p:-${LLM_TOP_P:-0.1}}"
+    export LLM_MAX_TOKENS="$llm_existing_max_tokens"
+    export LLM_TEMPERATURE="$llm_existing_temperature"
+    export LLM_TOP_P="$llm_existing_top_p"
     persist_llm_state
     restore_llm_xtrace
     return

@@ -561,6 +561,78 @@ EOF
     assert_output "https://llama.smartgic.io/v1|qwen3-nothink:latest|320|0.2|0.1"
 }
 
+@test "llm: invalid preseeded tuning values fall back to validated prompt defaults" {
+    METHOD="virtualenv"
+    LLM_API_URL="https://llama.smartgic.io/v1"
+    LLM_API_KEY="sk-preseeded"
+    LLM_MODEL="qwen3-nothink:latest"
+    LLM_PERSONA="Respond briefly and clearly."
+    LLM_MAX_TOKENS="not-a-number"
+    LLM_TEMPERATURE="3"
+    LLM_TOP_P="2"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "sk-preseeded"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "true"
+    assert_equal "$LLM_MAX_TOKENS" "300"
+    assert_equal "$LLM_TEMPERATURE" "0.2"
+    assert_equal "$LLM_TOP_P" "0.1"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_URL" default)" "https://llama.smartgic.io/v1"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_MAX_TOKENS" default)" "300"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TEMPERATURE" default)" "0.2"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TOP_P" default)" "0.1"
+}
+
+@test "llm: invalid existing tuning values skip fast keep-existing flow" {
+    mkdir -p "$RUN_AS_HOME/.config/ovos_persona"
+    cat <<'EOF' >"$RUN_AS_HOME/.config/ovos_persona/ovos-installer-llm.json"
+{
+  "name": "OVOS Installer LLM",
+  "ovos-solver-openai-plugin": {
+    "api_url": "https://llama.smartgic.io/v1",
+    "key": "sk-existing",
+    "model": "qwen3-nothink:latest",
+    "system_prompt": "Respond in plain spoken English.",
+    "max_tokens": "bad",
+    "temperature": 3,
+    "top_p": 2
+  },
+  "solvers": [
+    "ovos-solver-openai-plugin"
+  ]
+}
+EOF
+    METHOD="virtualenv"
+    WHIPTAIL_FORCE_YESNO_STATUS="0"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "sk-existing"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "true"
+    assert_equal "$LLM_MAX_TOKENS" "300"
+    assert_equal "$LLM_TEMPERATURE" "0.2"
+    assert_equal "$LLM_TOP_P" "0.1"
+    assert_equal "$(dialog_value yesno "$LLM_TITLE_EXISTING" status)" ""
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_MAX_TOKENS" default)" "300"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TEMPERATURE" default)" "0.2"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TOP_P" default)" "0.1"
+}
+
 @test "tuning: radiolist is well-formed (list-height >= 1, options present)" {
     WHIPTAIL_FORCE_SELECTION="no"
 

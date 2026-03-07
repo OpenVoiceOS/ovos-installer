@@ -108,7 +108,7 @@ function setup() {
         run grep -F -q "Please enter the LLM model name to use." "$f"
         assert_failure
 
-        run grep -F -q "LLM_DEFAULT_PERSONA=\"Respond in the same language as the user in a plain spoken style for a voice assistant." "$f"
+        run grep -F -q "LLM_DEFAULT_PERSONA=\"Respond in the same language as the user in a plain spoken style for a voice assistant. No emojis. No markdown." "$f"
         assert_failure
     done
 }
@@ -153,4 +153,11 @@ function setup() {
 
     run grep -F -q "Recommended for voice use: 0.1" "$file"
     assert_success
+}
+
+@test "hindi_llm_locale_avoids leftover English UI terms" {
+    local file="tui/locales/hi-in/llm.sh"
+
+    run grep -Eq '\b(default|provider|summary|voice-friendly|tuning)\b' "$file"
+    assert_failure
 }

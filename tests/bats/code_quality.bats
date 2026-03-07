@@ -1512,22 +1512,22 @@ function setup() {
     run grep -q "ovos_installer_llm_max_tokens | default(300, true) | string | trim | int" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
-    run grep -F -q "(ovos_installer_llm_temperature | default(0.2, true) | string | trim) is match('^([0-9]+([.][0-9]+)?|[.][0-9]+)$')" ansible/roles/ovos_installer/tasks/assert.yml
+    run grep -F -q "(ovos_installer_llm_temperature | default(0.2) | string | trim) is match('^([0-9]+([.][0-9]+)?|[.][0-9]+)$')" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
-    run grep -F -q "(ovos_installer_llm_temperature | default(0.2, true) | float) >= 0" ansible/roles/ovos_installer/tasks/assert.yml
+    run grep -F -q "(ovos_installer_llm_temperature | default(0.2) | float) >= 0" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
-    run grep -F -q "(ovos_installer_llm_temperature | default(0.2, true) | float) <= 2" ansible/roles/ovos_installer/tasks/assert.yml
+    run grep -F -q "(ovos_installer_llm_temperature | default(0.2) | float) <= 2" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
-    run grep -F -q "(ovos_installer_llm_top_p | default(0.1, true) | string | trim) is match('^([0-9]+([.][0-9]+)?|[.][0-9]+)$')" ansible/roles/ovos_installer/tasks/assert.yml
+    run grep -F -q "(ovos_installer_llm_top_p | default(0.1) | string | trim) is match('^([0-9]+([.][0-9]+)?|[.][0-9]+)$')" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
-    run grep -F -q "(ovos_installer_llm_top_p | default(0.1, true) | float) >= 0" ansible/roles/ovos_installer/tasks/assert.yml
+    run grep -F -q "(ovos_installer_llm_top_p | default(0.1) | float) >= 0" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
-    run grep -F -q "(ovos_installer_llm_top_p | default(0.1, true) | float) <= 1" ansible/roles/ovos_installer/tasks/assert.yml
+    run grep -F -q "(ovos_installer_llm_top_p | default(0.1) | float) <= 1" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
     run grep -q '"persona": {' ansible/roles/ovos_config/templates/mycroft.conf.j2
@@ -1545,10 +1545,10 @@ function setup() {
     run grep -q "_ovos_llm_max_tokens: \"{{ ovos_installer_llm_max_tokens | default(300, true) | string | trim | int }}\"" ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
-    run grep -q "_ovos_llm_temperature: \"{{ ovos_installer_llm_temperature | default(0.2, true) | string | trim | float }}\"" ansible/roles/ovos_config/tasks/install.yml
+    run grep -q "_ovos_llm_temperature: \"{{ ovos_installer_llm_temperature | default(0.2) | string | trim | float }}\"" ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
-    run grep -q "_ovos_llm_top_p: \"{{ ovos_installer_llm_top_p | default(0.1, true) | string | trim | float }}\"" ansible/roles/ovos_config/tasks/install.yml
+    run grep -q "_ovos_llm_top_p: \"{{ ovos_installer_llm_top_p | default(0.1) | string | trim | float }}\"" ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
     run grep -q '"model": _ovos_llm_model' ansible/roles/ovos_config/tasks/install.yml
