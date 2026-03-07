@@ -2046,6 +2046,23 @@ function setup() {
     assert_success
 }
 
+@test "services_user_scope_operations_export_user_bus_environment" {
+    run grep -q "ovos_services_user_bus_environment" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "Ensure systemd user runtime is available" ansible/roles/ovos_services/tasks/systemd.yml
+    assert_success
+
+    run grep -q "systemd-user-runtime.yml" ansible/roles/ovos_services/tasks/uninstall.yml
+    assert_success
+
+    run grep -q 'environment: "{{ ovos_services_user_bus_environment }}"' ansible/roles/ovos_services/handlers/main.yml
+    assert_success
+
+    run grep -q 'environment: "{{ ovos_services_user_bus_environment }}"' ansible/roles/ovos_services/handlers/block-sound.yml
+    assert_success
+}
+
 @test "services_uninstall_removes_requested_runtime_artifacts" {
     local defaults_file="ansible/roles/ovos_services/defaults/main.yml"
 

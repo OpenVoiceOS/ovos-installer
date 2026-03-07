@@ -7,6 +7,7 @@
     - name: Start PipeWire systemd service
       become: true
       become_user: "{{ ovos_installer_user }}"
+      environment: "{{ ovos_services_user_bus_environment }}"
       ansible.builtin.systemd_service:
         name: pipewire
         scope: user
@@ -15,6 +16,7 @@
     - name: Start PulseAudio via PipeWire systemd service
       become: true
       become_user: "{{ ovos_installer_user }}"
+      environment: "{{ ovos_services_user_bus_environment }}"
       ansible.builtin.systemd_service:
         name: pipewire-pulse
         scope: user
@@ -29,6 +31,7 @@
     - name: Start PulseAudio systemd service
       become: true
       become_user: "{{ ovos_installer_user }}"
+      environment: "{{ ovos_services_user_bus_environment }}"
       ansible.builtin.systemd_service:
         name: pulseaudio
         scope: user

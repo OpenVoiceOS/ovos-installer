@@ -16,6 +16,7 @@
         - name: Stop and disable OVOS user units from previous installs
           become: true
           become_user: "{{ ovos_installer_user }}"
+          environment: "{{ ovos_services_user_bus_environment }}"
           ansible.builtin.systemd_service:
             name: "{{ item }}"
             enabled: false
@@ -50,26 +51,8 @@
           loop: "{{ ovos_services_managed_units }}"
           notify: Reload Systemd
 
-    - name: Ensure user runtime directory exists for system scope
-      when: (ovos_installer_systemd_scope | default('user')) == 'system'
-      block:
-        - name: Enable lingering for {{ ovos_installer_user }}
-          ansible.builtin.command: "{{ ovos_services_enable_linger_cmd }}"
-          changed_when: false
-          failed_when: false
-
-        - name: Ensure /run/user exists for {{ ovos_installer_uid }}
-          ansible.builtin.file:
-            path: "{{ ovos_services_user_runtime_dir }}"
-            state: directory
-            owner: "{{ ovos_installer_user }}"
-            group: "{{ ovos_installer_group }}"
-            mode: "{{ ovos_services_user_runtime_mode }}"
-
-        - name: Ensure user systemd instance is running
-          ansible.builtin.systemd_service:
-            name: "{{ ovos_services_user_systemd_unit }}"
-            state: started
+    - name: Ensure systemd user runtime is available
+      ansible.builtin.import_tasks: systemd-user-runtime.yml
 
     - name: Copy OVOS systemd unit files
       vars:
@@ -104,8 +87,10 @@
         ovos_installer_ovos_scope: "{{ ovos_installer_systemd_scope | default('user') }}"
         ovos_installer_ovos_unit_user: "{{ 'root' if ovos_installer_ovos_scope == 'system' else ovos_installer_user }}"
         ovos_services_unit_user: "{{ 'root' if item.scope == 'system' else ovos_installer_ovos_unit_user }}"
+        ovos_services_unit_environment: "{{ ovos_services_user_bus_environment if item.scope == 'user' else {} }}"
       become: true
       become_user: "{{ ovos_services_unit_user }}"
+      environment: "{{ ovos_services_unit_environment }}"
       ansible.builtin.systemd_service:
         name: "{{ item.unit }}"
         enabled: true
