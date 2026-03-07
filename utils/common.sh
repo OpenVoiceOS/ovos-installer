@@ -1471,10 +1471,11 @@ function i2c_scan() {
             fi
         done
 
-        # If the live scan does not detect any supported devices (which can
-        # happen transiently on re-runs), recover the last known I2C device
-        # list from installer state to keep Mark II/DevKit gating deterministic.
-        if ! has_detected_device "atmega328p" && \
+        # If the live scan does not detect any supported devices during an
+        # existing-install rerun, recover the last known I2C device list from
+        # installer state to keep Mark II/DevKit gating deterministic.
+        if [ "${EXISTING_INSTANCE:-false}" == "true" ] && \
+            ! has_detected_device "atmega328p" && \
             ! has_detected_device "attiny1614" && \
             ! has_detected_device "tas5806"; then
             restore_detected_devices_from_state || true
@@ -1790,19 +1791,17 @@ function state_directory() {
             i2c_devices_json="$(jq -c -n '$ARGS.positional' --args "${detected_devices_to_store[@]}" 2>>"$LOG_FILE" || echo "[]")"
         fi
 
-        if [ "$i2c_devices_json" != "[]" ]; then
-            if state_tmp="$(mktemp "${TMPDIR:-/tmp}/ovos-installer-state.XXXXXX" 2>>"$LOG_FILE")"; then
-                if [ -f "$INSTALLER_STATE_FILE" ] && \
-                    jq --argjson i2c_devices "$i2c_devices_json" \
-                        'if type=="object" then . else {} end | .i2c_devices = $i2c_devices' \
-                        "$INSTALLER_STATE_FILE" >"$state_tmp" 2>>"$LOG_FILE"; then
-                    mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
-                elif jq -n --argjson i2c_devices "$i2c_devices_json" \
-                    '{i2c_devices: $i2c_devices}' >"$state_tmp" 2>>"$LOG_FILE"; then
-                    mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
-                else
-                    rm -f "$state_tmp"
-                fi
+        if state_tmp="$(mktemp "${TMPDIR:-/tmp}/ovos-installer-state.XXXXXX" 2>>"$LOG_FILE")"; then
+            if [ -f "$INSTALLER_STATE_FILE" ] && \
+                jq --argjson i2c_devices "$i2c_devices_json" \
+                    'if type=="object" then . else {} end | .i2c_devices = $i2c_devices' \
+                    "$INSTALLER_STATE_FILE" >"$state_tmp" 2>>"$LOG_FILE"; then
+                mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+            elif jq -n --argjson i2c_devices "$i2c_devices_json" \
+                '{i2c_devices: $i2c_devices}' >"$state_tmp" 2>>"$LOG_FILE"; then
+                mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+            else
+                rm -f "$state_tmp"
             fi
         fi
     fi

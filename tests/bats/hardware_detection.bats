@@ -94,6 +94,7 @@ function setup() {
     CHANNEL="testing"
     PROFILE="ovos"
     FEATURE_GUI="false"
+    EXISTING_INSTANCE="true"
     RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
     mkdir -p "$RUN_AS_HOME/.local/state/ovos"
     cat >"$RUN_AS_HOME/.local/state/ovos/installer.json" <<'EOF'
@@ -122,6 +123,48 @@ EOF
     assert_equal "$?" "0"
     assert_equal "$DISPLAY_SERVER" "eglfs"
     assert_equal "$CHANNEL" "alpha"
+
+    rm -rf "$RUN_AS_HOME"
+}
+
+@test "function_i2c_scan_does_not_restore_cached_mark2_state_on_new_install" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DISPLAY_SERVER="N/A"
+    CHANNEL="testing"
+    PROFILE="ovos"
+    FEATURE_GUI="false"
+    EXISTING_INSTANCE="false"
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    mkdir -p "$RUN_AS_HOME/.local/state/ovos"
+    cat >"$RUN_AS_HOME/.local/state/ovos/installer.json" <<'EOF'
+{"i2c_devices":["tas5806"]}
+EOF
+    DETECTED_DEVICES=()
+
+    function dtparam() {
+        return 0
+    }
+    function lsmod() {
+        return 0
+    }
+    function modprobe() {
+        return 0
+    }
+    function i2c_get() {
+        return 1
+    }
+    export -f dtparam lsmod modprobe i2c_get
+
+    i2c_scan
+    assert_equal "$?" "0"
+
+    run has_detected_device "tas5806"
+    assert_failure
+    assert_equal "$DISPLAY_SERVER" "N/A"
+    assert_equal "$CHANNEL" "testing"
 
     rm -rf "$RUN_AS_HOME"
 }
@@ -320,6 +363,25 @@ EOF
     assert_equal "$?" "0"
 
     run jq -e '(.i2c_devices | sort) == ["attiny1614","tas5806"]' "$RUN_AS_HOME/.local/state/ovos/installer.json"
+    assert_success
+
+    rm -rf "$RUN_AS_HOME"
+}
+
+@test "function_state_directory_clears_persisted_i2c_devices_when_none_are_detected" {
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    RUN_AS="$(id -un)"
+    RUN_AS_GROUP="$(id -gn)"
+    mkdir -p "$RUN_AS_HOME/.local/state/ovos"
+    cat >"$RUN_AS_HOME/.local/state/ovos/installer.json" <<'EOF'
+{"i2c_devices":["tas5806"]}
+EOF
+    DETECTED_DEVICES=()
+
+    state_directory
+    assert_equal "$?" "0"
+
+    run jq -e '.i2c_devices == []' "$RUN_AS_HOME/.local/state/ovos/installer.json"
     assert_success
 
     rm -rf "$RUN_AS_HOME"
