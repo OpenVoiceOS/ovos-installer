@@ -57,6 +57,43 @@ fi
 
 export OVERCLOCK_ARM_FREQ OVERCLOCK_GPU_FREQ OVERCLOCK_OVER_VOLTAGE OVERCLOCK_INITIAL_TURBO OVERCLOCK_ARM_BOOST
 
+persist_tuning_state() {
+  local state_tmp
+
+  state_tmp="$(mktemp)"
+  if [ -f "$INSTALLER_STATE_FILE" ] && \
+    jq --arg tuning "$TUNING" --arg tuning_overclock "$TUNING_OVERCLOCK" \
+      'if type=="object" then . else {} end | .tuning = $tuning | .tuning_overclock = $tuning_overclock' \
+      "$INSTALLER_STATE_FILE" >"$state_tmp" 2>>"$LOG_FILE"; then
+    mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+  else
+    jq -n --arg tuning "$TUNING" --arg tuning_overclock "$TUNING_OVERCLOCK" \
+      '{tuning: $tuning, tuning_overclock: $tuning_overclock}' >"$state_tmp" 2>>"$LOG_FILE" && \
+      mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
+  fi
+
+  # Keep state writable by the target user when running under sudo/root.
+  if [ -n "${RUN_AS:-}" ] && [ -f "$INSTALLER_STATE_FILE" ]; then
+    chown "$RUN_AS":"$(id -ng "$RUN_AS" 2>>"$LOG_FILE")" "$INSTALLER_STATE_FILE" &>>"$LOG_FILE" || true
+  fi
+}
+
+if [ -f "$INSTALLER_STATE_FILE" ]; then
+  persisted_tuning="$(jq -r '.tuning // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE")"
+  case "$persisted_tuning" in
+    yes | no)
+      TUNING="$persisted_tuning"
+      ;;
+  esac
+
+  persisted_tuning_overclock="$(jq -r '.tuning_overclock // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE")"
+  case "$persisted_tuning_overclock" in
+    yes | no)
+      TUNING_OVERCLOCK="$persisted_tuning_overclock"
+      ;;
+  esac
+fi
+
 active_option="${TUNING:-yes}"
 if [[ "$active_option" != "yes" && "$active_option" != "no" ]]; then
   active_option="yes"
@@ -124,6 +161,7 @@ while true; do
         TUNING_OVERCLOCK="$overclock_choice"
         export TUNING
         export TUNING_OVERCLOCK
+        persist_tuning_state
         break
       else
         continue
@@ -131,6 +169,7 @@ while true; do
     else
       export TUNING
       export TUNING_OVERCLOCK="no"
+      persist_tuning_state
       break
     fi
   else
