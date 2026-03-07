@@ -77,9 +77,19 @@ function setup() {
     run test -f "$ha_extra_vars_file"
     assert_success
 
+    OVOS_INSTALLER_PIP_CONFIG_FILE="$(mktemp /tmp/ovos-pip-config.XXXXXX)"
+    PIP_CONFIG_FILE="$OVOS_INSTALLER_PIP_CONFIG_FILE"
+    export OVOS_INSTALLER_PIP_CONFIG_FILE PIP_CONFIG_FILE
+    run test -f "$OVOS_INSTALLER_PIP_CONFIG_FILE"
+    assert_success
+    local pip_config_file="$OVOS_INSTALLER_PIP_CONFIG_FILE"
+
     cleanup_installer_runtime
 
     run test -f "$ha_extra_vars_file"
+    assert_failure
+
+    run test -f "$pip_config_file"
     assert_failure
 
     run bash -c 'exec 9>"$1"; flock -n 9' _ "$OVOS_INSTALLER_LOCK_FILE"
@@ -105,4 +115,9 @@ function teardown() {
         rm -f "$ha_extra_vars_file"
         unset ha_extra_vars_file
     fi
+    if [ -n "${OVOS_INSTALLER_PIP_CONFIG_FILE:-}" ]; then
+        rm -f "$OVOS_INSTALLER_PIP_CONFIG_FILE"
+        unset OVOS_INSTALLER_PIP_CONFIG_FILE
+    fi
+    unset PIP_CONFIG_FILE
 }
