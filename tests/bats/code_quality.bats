@@ -1078,6 +1078,7 @@ function setup() {
     local defaults_file="ansible/roles/ovos_containers/defaults/main.yml"
     local common_file="ansible/roles/ovos_containers/tasks/common.yml"
     local composer_file="ansible/roles/ovos_containers/tasks/composer.yml"
+    local uninstall_file="ansible/roles/ovos_containers/tasks/uninstall.yml"
 
     run grep -q "ovos_containers_repo_force_sync" "$defaults_file"
     assert_success
@@ -1089,6 +1090,12 @@ function setup() {
     assert_success
 
     run grep -q "ovos_containers_compose_retry_delay" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos_containers_compose_timeout" "$defaults_file"
+    assert_success
+
+    run grep -q 'ovos_installer_docker_compose_timeout | default(30)' "$defaults_file"
     assert_success
 
     run grep -q "Check containers repository refresh markers" "$common_file"
@@ -1104,6 +1111,9 @@ function setup() {
     assert_success
 
     run grep -q "delay: \"{{ ovos_containers_compose_retry_delay | int }}\"" "$composer_file"
+    assert_success
+
+    run grep -q 'timeout: "{{ ovos_containers_compose_timeout }}"' "$uninstall_file"
     assert_success
 }
 

@@ -93,7 +93,7 @@ ovos_containers_docker_compose_remove_orphans: "{{ ovos_installer_docker_compose
 ovos_containers_docker_compose_remove_images: "{{ ovos_installer_docker_compose_remove_images | default('all') }}"
 ovos_containers_docker_compose_remove_volumes: "{{ ovos_installer_docker_compose_remove_volumes | default(true) }}"
 ovos_containers_docker_timeout: "900"
-ovos_containers_compose_timeout: 1
+ovos_containers_compose_timeout: "{{ ovos_installer_docker_compose_timeout | default(30) }}"
 ovos_containers_compose_retries: "{{ ovos_installer_docker_compose_retries | default(3) }}"
 ovos_containers_compose_retry_delay: "{{ ovos_installer_docker_compose_retry_delay | default(2) }}"
 ovos_containers_compose_project_name: "{{ 'hivemind' if ovos_containers_profile == 'satellite' else 'ovos' }}"
