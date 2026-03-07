@@ -1804,6 +1804,19 @@ function setup() {
     assert_success
 }
 
+@test "services_uninstall_uses_correct_dropin_directory_paths" {
+    local file="ansible/roles/ovos_services/tasks/uninstall.yml"
+
+    run grep -F -q 'path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.d"' "$file"
+    assert_success
+
+    run grep -F -q 'path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.d"' "$file"
+    assert_success
+
+    run grep -q '\.service\.d' "$file"
+    assert_failure
+}
+
 @test "install_ansible_installs_collections_to_repo_local_path" {
     run grep -F -q 'collections_path="${PWD}/.ansible/collections"' utils/common.sh
     assert_success
