@@ -52,8 +52,9 @@
       - ovos_installer_method in ['virtualenv', 'containers']
       - ovos_installer_llm_api_url | default('') | length > 0
       - ovos_installer_llm_api_key | default('') | length > 0
+      - ovos_installer_llm_model | default('') | trim | length > 0
       - ovos_installer_llm_persona | default('') | length > 0
-    fail_msg: "LLM feature requires profile ovos/listener and non-empty API URL, API key, and persona."
+    fail_msg: "LLM feature requires profile ovos/listener and non-empty API URL, API key, model, and persona."
   when:
     - not (ovos_installer_is_cleaning | bool)
     - ovos_installer_feature_llm | default(false) | bool

@@ -349,6 +349,7 @@ function spy_value() {
     METHOD="virtualenv"
     LLM_API_URL="https://llama.smartgic.io/v1"
     LLM_API_KEY="sk-test"
+    LLM_MODEL="gpt-4o-mini"
     LLM_PERSONA="helpful, creative, clever, and very friendly."
     WHIPTAIL_FORCE_SELECTION=$'skills\nllm'
 

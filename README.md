@@ -210,6 +210,11 @@ EOF
 - `profile`: Installation profile (`ovos` for standard setup).
 - `features.skills`: Install default voice skills.
 - `features.extra_skills`: Install additional community skills.
+- `features.llm`: Enable OVOS Persona LLM fallback.
+- `llm.api_url`: OpenAI-compatible API base URL (required when `features.llm` is true).
+- `llm.key`: API key for the selected endpoint (required when `features.llm` is true).
+- `llm.model`: Model name to use for completions (required when `features.llm` is true).
+- `llm.persona`: System prompt/persona text for `ovos-persona` (required when `features.llm` is true).
 - `raspberry_pi_tuning`: Enable maximum-performance tuning for Raspberry Pi hardware (includes an overclocking prompt).
 - `share_telemetry`: Allow sharing anonymous usage statistics.
 - `share_usage_telemetry`: Allow sharing detailed usage data.

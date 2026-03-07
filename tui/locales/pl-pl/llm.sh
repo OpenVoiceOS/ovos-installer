@@ -6,6 +6,7 @@ Wybrano funkcję LLM dla ovos-persona.
 Podaj proszę:
   - URL API kompatybilny z OpenAI
   - Klucz API
+  - Model
   - Prompt persony
 "
 LLM_TITLE_EXISTING="Instalacja Open Voice OS - Istniejące ustawienia LLM"
@@ -29,6 +30,12 @@ Wprowadź klucz API LLM.
 LLM_CONTENT_KEY_KEEP_EXISTING="
 Pozostaw puste, aby zachować istniejący klucz.
 "
+LLM_TITLE_MODEL="Instalacja Open Voice OS - Model LLM"
+LLM_CONTENT_MODEL="
+Wprowadź nazwę modelu LLM, którego chcesz użyć.
+
+Przykład: gpt-4o-mini
+"
 LLM_TITLE_PERSONA="Instalacja Open Voice OS - Persona LLM"
 LLM_CONTENT_PERSONA="
 Wprowadź prompt persony używany przez ovos-persona.
@@ -39,7 +46,7 @@ LLM_TITLE_INVALID="Instalacja Open Voice OS - Nieprawidłowa konfiguracja LLM"
 LLM_CONTENT_MISSING_INFO="
 Brakuje wymaganych informacji LLM.
 
-Podaj URL API, klucz API i tekst persony.
+Podaj URL API, klucz API, model i tekst persony.
 "
 LLM_CONTENT_INVALID_URL="
 Nieprawidłowy URL.
@@ -50,6 +57,6 @@ Podaj prawidłowy URL API kompatybilny z OpenAI.
 export LLM_TITLE_SETUP LLM_CONTENT_HAVE_DETAILS
 export LLM_TITLE_EXISTING LLM_CONTENT_EXISTING
 export LLM_TITLE_URL LLM_CONTENT_URL
-export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING
+export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING LLM_TITLE_MODEL LLM_CONTENT_MODEL
 export LLM_TITLE_PERSONA LLM_CONTENT_PERSONA
 export LLM_TITLE_INVALID LLM_CONTENT_MISSING_INFO LLM_CONTENT_INVALID_URL

@@ -45,6 +45,8 @@ function setup() {
             test -n \"\$LLM_TITLE_KEY\"
             test -n \"\$LLM_CONTENT_KEY\"
             test -n \"\$LLM_CONTENT_KEY_KEEP_EXISTING\"
+            test -n \"\$LLM_TITLE_MODEL\"
+            test -n \"\$LLM_CONTENT_MODEL\"
             test -n \"\$LLM_TITLE_PERSONA\"
             test -n \"\$LLM_CONTENT_PERSONA\"
             test -n \"\$LLM_TITLE_INVALID\"
@@ -59,5 +61,19 @@ function setup() {
             return 1
         fi
         assert_output --partial "LLM"
+    done
+}
+
+@test "locales_llm_model_strings_are_localized_outside_en_us" {
+    for f in tui/locales/*/llm.sh; do
+        if [ "$f" = "tui/locales/en-us/llm.sh" ]; then
+            continue
+        fi
+
+        run grep -F -q 'LLM_TITLE_MODEL="Open Voice OS Installation - LLM Model"' "$f"
+        assert_failure
+
+        run grep -F -q "Please enter the LLM model name to use." "$f"
+        assert_failure
     done
 }

@@ -6,6 +6,7 @@ Je hebt de LLM-functie voor ovos-persona geselecteerd.
 Geef alsjeblieft op:
   - OpenAI-compatibele API-URL
   - API-sleutel
+  - Model
   - Persona-prompt
 "
 LLM_TITLE_EXISTING="Open Voice OS Installatie - Bestaande LLM-instellingen"
@@ -29,6 +30,12 @@ Voer je LLM API-sleutel in.
 LLM_CONTENT_KEY_KEEP_EXISTING="
 Laat leeg om je bestaande sleutel te behouden.
 "
+LLM_TITLE_MODEL="Open Voice OS Installatie - LLM-model"
+LLM_CONTENT_MODEL="
+Voer de naam in van het LLM-model dat je wilt gebruiken.
+
+Voorbeeld: gpt-4o-mini
+"
 LLM_TITLE_PERSONA="Open Voice OS Installatie - LLM Persona"
 LLM_CONTENT_PERSONA="
 Voer de persona-prompt in die door ovos-persona wordt gebruikt.
@@ -39,7 +46,7 @@ LLM_TITLE_INVALID="Open Voice OS Installatie - Ongeldige LLM-configuratie"
 LLM_CONTENT_MISSING_INFO="
 Sommige vereiste LLM-informatie ontbreekt.
 
-Geef API-URL, API-sleutel en persona-tekst op.
+Geef API-URL, API-sleutel, model en persona-tekst op.
 "
 LLM_CONTENT_INVALID_URL="
 Ongeldige URL.
@@ -50,6 +57,6 @@ Geef een geldige OpenAI-compatibele API-URL op.
 export LLM_TITLE_SETUP LLM_CONTENT_HAVE_DETAILS
 export LLM_TITLE_EXISTING LLM_CONTENT_EXISTING
 export LLM_TITLE_URL LLM_CONTENT_URL
-export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING
+export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING LLM_TITLE_MODEL LLM_CONTENT_MODEL
 export LLM_TITLE_PERSONA LLM_CONTENT_PERSONA
 export LLM_TITLE_INVALID LLM_CONTENT_MISSING_INFO LLM_CONTENT_INVALID_URL

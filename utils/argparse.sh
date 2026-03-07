@@ -70,6 +70,7 @@ function handle_options() {
     export HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}"
     export LLM_API_URL="${LLM_API_URL:-}"
     export LLM_API_KEY="${LLM_API_KEY:-}"
+    export LLM_MODEL="${LLM_MODEL:-}"
     export LLM_PERSONA="${LLM_PERSONA:-helpful, creative, clever, and very friendly.}"
     export OVOS_VENV_PYTHON="${OVOS_VENV_PYTHON:-3.11}"
     export HIVEMIND_HOST="${HIVEMIND_HOST:-}"
