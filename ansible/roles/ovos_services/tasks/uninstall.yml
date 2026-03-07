@@ -35,7 +35,7 @@
 
 - name: Remove OVOS system drop-in directories
   ansible.builtin.file:
-    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.service.d"
+    path: "{{ ovos_installer_systemd_system_path }}/{{ item }}.d"
     state: absent
   loop: "{{ ovos_services_uninstall_units }}"
   notify: Reload Systemd
@@ -44,7 +44,7 @@
   become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.file:
-    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.service.d"
+    path: "{{ ovos_installer_systemd_user_path }}/{{ item }}.d"
     state: absent
   loop: "{{ ovos_services_uninstall_units }}"
   notify: Reload Systemd User
