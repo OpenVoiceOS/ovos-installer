@@ -134,6 +134,7 @@
     - ovos_installer_profile not in ['satellite', 'server']
     - (ovos_installer_llm_api_url | default('') | trim | length) > 0
     - (ovos_installer_llm_api_key | default('') | trim | length) > 0
+    - (ovos_installer_llm_model | default('') | trim | length) > 0
     - (ovos_installer_llm_persona | default('') | trim | length) > 0
     - (_ovos_llm_persona_name | length) > 0
   block:
@@ -161,6 +162,7 @@
               "ovos-solver-openai-plugin": {
                 "api_url": ovos_installer_llm_api_url,
                 "key": ovos_installer_llm_api_key,
+                "model": ovos_installer_llm_model,
                 "system_prompt": ovos_installer_llm_persona
               }
             } | to_nice_json

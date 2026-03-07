@@ -176,7 +176,7 @@ if [ "$xtrace_was_on" == "true" ]; then
 fi
 
 if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
-  [ "${FEATURE_LLM:-false}" == "true" ] || [ -n "${LLM_API_URL:-}" ] || [ -n "${LLM_API_KEY:-}" ]; then
+  [ "${FEATURE_LLM:-false}" == "true" ] || [ -n "${LLM_API_URL:-}" ] || [ -n "${LLM_API_KEY:-}" ] || [ -n "${LLM_MODEL:-}" ]; then
 
   old_umask="$(umask)"
   umask 077
@@ -184,6 +184,7 @@ if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
     if HOMEASSISTANT_API_KEY="${HOMEASSISTANT_API_KEY:-}" LLM_API_KEY="${LLM_API_KEY:-}" jq -c -n \
       --arg ha_url "${HOMEASSISTANT_URL:-}" \
       --arg llm_api_url "${LLM_API_URL:-}" \
+      --arg llm_model "${LLM_MODEL:-}" \
       --arg llm_persona "${LLM_PERSONA:-}" \
       '{
         ovos_installer_homeassistant_url: $ha_url,
@@ -191,6 +192,7 @@ if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
         ovos_installer_homeassistant_api_key: (env.HOMEASSISTANT_API_KEY // ""),
         ovos_installer_llm_api_url: $llm_api_url,
         ovos_installer_llm_api_key: (env.LLM_API_KEY // ""),
+        ovos_installer_llm_model: $llm_model,
         ovos_installer_llm_persona: $llm_persona
       }' \
       >"$ha_extra_vars_file" 2>>"$LOG_FILE"; then

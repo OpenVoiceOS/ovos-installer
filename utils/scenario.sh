@@ -10,6 +10,7 @@ if [ -f "$SCENARIO_PATH" ]; then
     declare -A options
     declare -A features
     declare -A hivemind
+    declare -A llm
     declare -a required_options=(
         uninstall
         method
@@ -45,6 +46,13 @@ if [ -f "$SCENARIO_PATH" ]; then
         hivemind["$key_hivemind"]="$value_hivemind"
     done < <(
         "$YQ_BINARY_PATH" '.hivemind | to_entries | map([.key, .value] | join("=")) | .[]' "$SCENARIO_PATH"
+    )
+
+    # Read all the llm options
+    while IFS="=" read -r key_llm value_llm; do
+        llm["$key_llm"]="$value_llm"
+    done < <(
+        "$YQ_BINARY_PATH" '.llm | to_entries | map([.key, .value] | join("=")) | .[]' "$SCENARIO_PATH"
     )
 
     # Make sure the scenario file is not empty
@@ -195,6 +203,30 @@ if [ -f "$SCENARIO_PATH" ]; then
                             ;;
                         password)
                             [ -n "${hivemind[$hivemind_option]}" ] && export SATELLITE_PASSWORD="${hivemind[$hivemind_option]}"
+                            ;;
+                        *)
+                            export SCENARIO_NOT_SUPPORTED="true"
+                            ;;
+                        esac
+                    fi
+                done
+                ;;
+            llm)
+                for llm_option in "${!llm[@]}"; do
+                    # Ensure the llm option is supported by the installer
+                    if in_array SCENARIO_ALLOWED_LLM_OPTIONS "$llm_option"; then
+                        case "$llm_option" in
+                        api_url)
+                            export LLM_API_URL="${llm[$llm_option]}"
+                            ;;
+                        key)
+                            export LLM_API_KEY="${llm[$llm_option]}"
+                            ;;
+                        model)
+                            export LLM_MODEL="${llm[$llm_option]}"
+                            ;;
+                        persona)
+                            export LLM_PERSONA="${llm[$llm_option]}"
                             ;;
                         *)
                             export SCENARIO_NOT_SUPPORTED="true"

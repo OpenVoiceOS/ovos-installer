@@ -29,6 +29,12 @@ Sartu zure LLM API gakoa.
 LLM_CONTENT_KEY_KEEP_EXISTING="
 Utzi hutsik lehendik duzun gakoa mantentzeko.
 "
+LLM_TITLE_MODEL="Open Voice OS Installation - LLM Model"
+LLM_CONTENT_MODEL="
+Please enter the LLM model name to use.
+
+Example: gpt-4o-mini
+"
 LLM_TITLE_PERSONA="Open Voice OS instalazioa - LLM pertsona"
 LLM_CONTENT_PERSONA="
 Sartu ovos-personak erabiltzen duen pertsona prompt-a.
@@ -50,6 +56,6 @@ Eman OpenAI bateragarria den API URL baliodun bat.
 export LLM_TITLE_SETUP LLM_CONTENT_HAVE_DETAILS
 export LLM_TITLE_EXISTING LLM_CONTENT_EXISTING
 export LLM_TITLE_URL LLM_CONTENT_URL
-export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING
+export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING LLM_TITLE_MODEL LLM_CONTENT_MODEL
 export LLM_TITLE_PERSONA LLM_CONTENT_PERSONA
 export LLM_TITLE_INVALID LLM_CONTENT_MISSING_INFO LLM_CONTENT_INVALID_URL

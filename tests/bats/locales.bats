@@ -45,6 +45,8 @@ function setup() {
             test -n \"\$LLM_TITLE_KEY\"
             test -n \"\$LLM_CONTENT_KEY\"
             test -n \"\$LLM_CONTENT_KEY_KEEP_EXISTING\"
+            test -n \"\$LLM_TITLE_MODEL\"
+            test -n \"\$LLM_CONTENT_MODEL\"
             test -n \"\$LLM_TITLE_PERSONA\"
             test -n \"\$LLM_CONTENT_PERSONA\"
             test -n \"\$LLM_TITLE_INVALID\"

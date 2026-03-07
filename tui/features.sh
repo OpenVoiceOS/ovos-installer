@@ -60,7 +60,7 @@ if [ "${_ha_supported}" == "true" ]; then
   features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
 fi
 if [ "${_llm_supported}" == "true" ]; then
-  features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + persona)}" "OFF")
+  features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + model + persona)}" "OFF")
 fi
 
 if [ -f "$INSTALLER_STATE_FILE" ] && \
@@ -106,9 +106,9 @@ if [ -f "$INSTALLER_STATE_FILE" ] && \
   fi
   if [ "${_llm_supported}" == "true" ]; then
     if jq -e '.features|any(. == "llm")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
-      features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + persona)}" "ON")
+      features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + model + persona)}" "ON")
     else
-      features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + persona)}" "OFF")
+      features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + model + persona)}" "OFF")
     fi
   fi
 fi
@@ -127,7 +127,7 @@ if [ "${#features[@]}" -lt 3 ] || [ $(( ${#features[@]} % 3 )) -ne 0 ]; then
     features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
   fi
   if [ "${_llm_supported}" == "true" ]; then
-    features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + persona)}" "OFF")
+    features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + model + persona)}" "OFF")
   fi
 fi
 

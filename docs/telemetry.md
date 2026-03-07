@@ -37,3 +37,4 @@ Below is a list of the collected data _(see the [Ansible task](https://github.co
 | `venv`                 | OVOS installed into a Python virtual environment         |
 
 No Home Assistant URL or API key values are collected, only whether the Home Assistant feature was enabled.
+No LLM API URL, API key, model, or persona values are collected, only whether the LLM feature was enabled.

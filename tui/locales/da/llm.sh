@@ -29,6 +29,12 @@ Angiv din LLM API-nøgle.
 LLM_CONTENT_KEY_KEEP_EXISTING="
 Lad feltet være tomt for at beholde din eksisterende nøgle.
 "
+LLM_TITLE_MODEL="Open Voice OS Installation - LLM Model"
+LLM_CONTENT_MODEL="
+Please enter the LLM model name to use.
+
+Example: gpt-4o-mini
+"
 LLM_TITLE_PERSONA="Open Voice OS Installation - LLM Persona"
 LLM_CONTENT_PERSONA="
 Angiv persona-prompten, der bruges af ovos-persona.
@@ -50,6 +56,6 @@ Angiv en gyldig OpenAI-kompatibel API-URL.
 export LLM_TITLE_SETUP LLM_CONTENT_HAVE_DETAILS
 export LLM_TITLE_EXISTING LLM_CONTENT_EXISTING
 export LLM_TITLE_URL LLM_CONTENT_URL
-export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING
+export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING LLM_TITLE_MODEL LLM_CONTENT_MODEL
 export LLM_TITLE_PERSONA LLM_CONTENT_PERSONA
 export LLM_TITLE_INVALID LLM_CONTENT_MISSING_INFO LLM_CONTENT_INVALID_URL

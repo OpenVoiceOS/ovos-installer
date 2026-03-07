@@ -1422,6 +1422,33 @@ function setup() {
     run grep -q "SCENARIO_ALLOWED_FEATURES=(skills extra_skills homeassistant llm)" utils/constants.sh
     assert_success
 
+    run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)" utils/constants.sh
+    assert_success
+
+    run grep -q "SCENARIO_ALLOWED_LLM_OPTIONS=(api_url key model persona)" utils/constants.sh
+    assert_success
+
+    run grep -q '\.llm | to_entries | map(\[.key, .value\] | join("=")) | .\[]' utils/scenario.sh
+    assert_success
+
+    run grep -q "case \"\$option\" in" utils/scenario.sh
+    assert_success
+
+    run grep -q "llm)" utils/scenario.sh
+    assert_success
+
+    run grep -q "export LLM_API_URL=" utils/scenario.sh
+    assert_success
+
+    run grep -q "export LLM_API_KEY=" utils/scenario.sh
+    assert_success
+
+    run grep -q "export LLM_MODEL=" utils/scenario.sh
+    assert_success
+
+    run grep -q "export LLM_PERSONA=" utils/scenario.sh
+    assert_success
+
     run grep -q 'ovos_installer_feature_llm=${FEATURE_LLM}' setup.sh
     assert_success
 
@@ -1431,10 +1458,22 @@ function setup() {
     run grep -q '\[ "\${FEATURE_LLM:-false}" == "true" \]' setup.sh
     assert_success
 
+    run grep -q '\[ -n "\${LLM_MODEL:-}" \]' setup.sh
+    assert_success
+
     run grep -q '\[ -n "\${LLM_PERSONA:-}" \]' setup.sh
     assert_failure
 
+    run grep -q "ovos_installer_llm_model: \$llm_model" setup.sh
+    assert_success
+
     run grep -q "ovos_installer_llm_api_key: (env.LLM_API_KEY // \"\")" setup.sh
+    assert_success
+
+    run grep -q "ovos_installer_llm_model:" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_installer_llm_model | default('') | trim | length > 0" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
     run grep -q '"persona": {' ansible/roles/ovos_config/templates/mycroft.conf.j2
@@ -1444,6 +1483,9 @@ function setup() {
     assert_success
 
     run grep -q '"ovos-solver-openai-plugin": {' ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
+    run grep -q '"model": ovos_installer_llm_model' ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
     run grep -q '"system_prompt": ovos_installer_llm_persona' ansible/roles/ovos_config/tasks/install.yml
