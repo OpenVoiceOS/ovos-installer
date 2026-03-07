@@ -27,7 +27,6 @@ ovos_services_user_runtime_dir: "/run/user/{{ ovos_installer_uid }}"
 ovos_services_user_runtime_mode: "0700"
 ovos_services_user_systemd_unit: "user@{{ ovos_installer_uid }}"
 ovos_services_enable_linger_cmd: "loginctl enable-linger {{ ovos_installer_user }}"
-ovos_services_disable_linger_cmd: "loginctl disable-linger {{ ovos_installer_user }}"
 ovos_services_user_bus_environment:
   XDG_RUNTIME_DIR: "{{ ovos_services_user_runtime_dir }}"
   DBUS_SESSION_BUS_ADDRESS: "unix:path={{ ovos_services_user_runtime_dir }}/bus"
