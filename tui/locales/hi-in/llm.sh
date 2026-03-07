@@ -6,6 +6,7 @@ LLM_CONTENT_HAVE_DETAILS="
 कृपया यह जानकारी दें:
   - OpenAI-संगत API URL
   - API key
+  - मॉडल
   - Persona prompt
 "
 LLM_TITLE_EXISTING="Open Voice OS Installation - मौजूदा LLM सेटिंग्स"
@@ -29,11 +30,11 @@ LLM_CONTENT_KEY="
 LLM_CONTENT_KEY_KEEP_EXISTING="
 मौजूदा key रखने के लिए इसे खाली छोड़ दें।
 "
-LLM_TITLE_MODEL="Open Voice OS Installation - LLM Model"
+LLM_TITLE_MODEL="Open Voice OS Installation - LLM मॉडल"
 LLM_CONTENT_MODEL="
-Please enter the LLM model name to use.
+कृपया उपयोग करने के लिए LLM मॉडल का नाम दर्ज करें।
 
-Example: gpt-4o-mini
+उदाहरण: gpt-4o-mini
 "
 LLM_TITLE_PERSONA="Open Voice OS Installation - LLM Persona"
 LLM_CONTENT_PERSONA="
@@ -45,7 +46,7 @@ LLM_TITLE_INVALID="Open Voice OS Installation - अमान्य LLM कॉन
 LLM_CONTENT_MISSING_INFO="
 कुछ आवश्यक LLM जानकारी गायब है।
 
-कृपया API URL, API key और persona text प्रदान करें।
+कृपया API URL, API key, मॉडल और persona text प्रदान करें।
 "
 LLM_CONTENT_INVALID_URL="
 अमान्य URL।

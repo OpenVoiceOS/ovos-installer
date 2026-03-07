@@ -6,6 +6,7 @@ Has seleccionado la función LLM para ovos-persona.
 Por favor, proporciona:
   - URL de API compatible con OpenAI
   - Clave API
+  - Modelo
   - Prompt de persona
 "
 LLM_TITLE_EXISTING="Instalación de Open Voice OS - Configuración LLM existente"
@@ -29,11 +30,11 @@ Introduce tu clave API de LLM.
 LLM_CONTENT_KEY_KEEP_EXISTING="
 Déjalo vacío para conservar tu clave actual.
 "
-LLM_TITLE_MODEL="Open Voice OS Installation - LLM Model"
+LLM_TITLE_MODEL="Instalación de Open Voice OS - Modelo LLM"
 LLM_CONTENT_MODEL="
-Please enter the LLM model name to use.
+Introduce el nombre del modelo LLM que se debe usar.
 
-Example: gpt-4o-mini
+Ejemplo: gpt-4o-mini
 "
 LLM_TITLE_PERSONA="Instalación de Open Voice OS - Persona LLM"
 LLM_CONTENT_PERSONA="
@@ -45,7 +46,7 @@ LLM_TITLE_INVALID="Instalación de Open Voice OS - Configuración LLM no válida
 LLM_CONTENT_MISSING_INFO="
 Falta información requerida de LLM.
 
-Proporciona URL de API, clave API y texto de persona.
+Proporciona URL de API, clave API, modelo y texto de persona.
 "
 LLM_CONTENT_INVALID_URL="
 URL no válida.
