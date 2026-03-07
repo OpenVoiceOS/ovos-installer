@@ -1509,7 +1509,7 @@ function setup() {
     run grep -q "ovos_installer_llm_model | default('') | trim | length > 0" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
-    run grep -q "ovos_installer_llm_max_tokens | default(300, true) | string | trim | int" ansible/roles/ovos_installer/tasks/assert.yml
+    run grep -F -q "(ovos_installer_llm_max_tokens | default(300, true) | string | trim | int) > 0" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
     run grep -F -q "(ovos_installer_llm_temperature | default(0.2) | string | trim) is match('^([0-9]+([.][0-9]+)?|[.][0-9]+)$')" ansible/roles/ovos_installer/tasks/assert.yml
@@ -1575,7 +1575,7 @@ function setup() {
     run grep -q '.solvers\["ovos-solver-openai-plugin"\]\.system_prompt' tui/llm.sh
     assert_success
 
-    run grep -F -q ': "${LLM_DEFAULT_PERSONA:=Respond in the same language as the user in a plain spoken style for a voice assistant.' tui/llm.sh
+    run grep -F -q 'source "utils/llm_defaults.sh"' tui/llm.sh
     assert_success
 
     run grep -F -q 'export LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"' tui/llm.sh
@@ -1591,6 +1591,18 @@ function setup() {
     assert_success
 
     run grep -q '.solvers\["ovos-solver-openai-plugin"\]\.top_p' tui/llm.sh
+    assert_success
+
+    run grep -F -q 'source "utils/llm_defaults.sh"' utils/argparse.sh
+    assert_success
+
+    run grep -F -q 'export LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-$LLM_DEFAULT_MAX_TOKENS}"' utils/argparse.sh
+    assert_success
+
+    run grep -F -q 'export LLM_TEMPERATURE="${LLM_TEMPERATURE:-$LLM_DEFAULT_TEMPERATURE}"' utils/argparse.sh
+    assert_success
+
+    run grep -F -q 'export LLM_TOP_P="${LLM_TOP_P:-$LLM_DEFAULT_TOP_P}"' utils/argparse.sh
     assert_success
 }
 

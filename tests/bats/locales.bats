@@ -102,14 +102,17 @@ function setup() {
             continue
         fi
 
-        run grep -F -q 'LLM_TITLE_MODEL="Open Voice OS Installation - LLM Model"' "$f"
-        assert_failure
-
-        run grep -F -q "Please enter the LLM model name to use." "$f"
-        assert_failure
-
-        run grep -F -q "LLM_DEFAULT_PERSONA=\"Respond in the same language as the user in a plain spoken style for a voice assistant. No emojis. No markdown." "$f"
-        assert_failure
+        run bash -euc "
+            source tui/locales/en-us/llm.sh
+            en_title_model=\$LLM_TITLE_MODEL
+            en_content_model=\$LLM_CONTENT_MODEL
+            en_default_persona=\$LLM_DEFAULT_PERSONA
+            source '$f'
+            [ \"\$LLM_TITLE_MODEL\" != \"\$en_title_model\" ]
+            [ \"\$LLM_CONTENT_MODEL\" != \"\$en_content_model\" ]
+            [ \"\$LLM_DEFAULT_PERSONA\" != \"\$en_default_persona\" ]
+        "
+        assert_success
     done
 }
 
@@ -119,11 +122,15 @@ function setup() {
             continue
         fi
 
-        run grep -F -q 'LLM_DESCRIPTION="Enable AI conversation fallback for OVOS Persona (guided setup for URL, key, model, style, and reply tuning)"' "$f"
-        assert_failure
-
-        run grep -F -q 'HOMEASSISTANT_DESCRIPTION="Enable Home Assistant integration (requires URL + token)"' "$f"
-        assert_failure
+        run bash -euc "
+            source tui/locales/en-us/features.sh
+            en_llm_description=\$LLM_DESCRIPTION
+            en_homeassistant_description=\$HOMEASSISTANT_DESCRIPTION
+            source '$f'
+            [ \"\$LLM_DESCRIPTION\" != \"\$en_llm_description\" ]
+            [ \"\$HOMEASSISTANT_DESCRIPTION\" != \"\$en_homeassistant_description\" ]
+        "
+        assert_success
     done
 }
 

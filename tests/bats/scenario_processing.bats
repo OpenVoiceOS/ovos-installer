@@ -463,3 +463,93 @@ EOF
     unset -f download_yq in_array source
     rm -rf "$RUN_AS_HOME"
 }
+
+@test "scenario_file_llm_top_p_reaches_llm_fast_path_and_persists_state" {
+    local scenario_file yq_mock state_file log_file run_as_home
+    scenario_file="$(mktemp)"
+    yq_mock="$(mktemp)"
+    state_file="$(mktemp)"
+    log_file="$(mktemp)"
+    run_as_home="$(mktemp -d)"
+    rm -f "$state_file"
+
+    cat <<'EOF' >"$scenario_file"
+placeholder: true
+EOF
+
+    cat <<'EOF' >"$yq_mock"
+#!/usr/bin/env bash
+query="$1"
+if [ "$query" = 'to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    cat <<'OUT'
+uninstall=false
+method=virtualenv
+channel=testing
+profile=ovos
+features=enabled
+raspberry_pi_tuning=false
+share_telemetry=false
+share_usage_telemetry=false
+llm=config
+OUT
+elif [ "$query" = '.features | to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    cat <<'OUT'
+skills=true
+extra_skills=false
+llm=true
+OUT
+elif [ "$query" = '.hivemind | to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    :
+elif [ "$query" = '.llm | to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    cat <<'OUT'
+api_url=llama.smartgic.io/v1
+key=sk-scenario
+model=qwen3-nothink:latest
+persona=Respond briefly and clearly.
+max_tokens=350
+temperature=0.4
+top_p=0.6
+OUT
+fi
+EOF
+    chmod +x "$yq_mock"
+
+    run bash -lc '
+        set -e
+        cd "$1"
+        source utils/constants.sh
+        export LOCALE="en-us"
+        source tui/locales/en-us/misc.sh
+        export SCENARIO_PATH="$2"
+        export YQ_BINARY_PATH="$3"
+        export INSTALLER_STATE_FILE="$4"
+        export LOG_FILE="$5"
+        export RUN_AS_HOME="$6"
+
+        in_array() {
+            local array_name="$1"
+            local needle="$2"
+            local -n haystack="$array_name"
+            local item
+
+            for item in "${haystack[@]}"; do
+                if [ "$item" = "$needle" ]; then
+                    return 0
+                fi
+            done
+            return 1
+        }
+
+        source utils/scenario.sh
+        source tui/llm.sh
+        printf "%s|%s|%s\\n" "$LLM_API_URL" "$LLM_MODEL" "$LLM_TOP_P"
+        jq -r "\"\\(.llm.api_url)|\\(.llm.top_p|tostring)\"" "$INSTALLER_STATE_FILE"
+    ' _ "$PWD" "$scenario_file" "$yq_mock" "$state_file" "$log_file" "$run_as_home"
+
+    assert_success
+    assert_line --index 0 "http://llama.smartgic.io/v1|qwen3-nothink:latest|0.6"
+    assert_line --index 1 "http://llama.smartgic.io/v1|0.6"
+
+    rm -f "$scenario_file" "$yq_mock" "$state_file" "$log_file"
+    rm -rf "$run_as_home"
+}

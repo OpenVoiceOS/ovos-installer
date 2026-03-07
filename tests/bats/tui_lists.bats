@@ -88,7 +88,9 @@ function setup() {
                 return "$WHIPTAIL_FORCE_YESNO_STATUS"
                 ;;
             --msgbox)
-                printf '%s\t%s\t%s\t%s\t%s\n' "msgbox" "$dialog_title" "" "" "0" >>"$WHIPTAIL_DIALOG_FILE"
+                local dialog_body="${args[$(( ${#args[@]} - 3 ))]}"
+                dialog_body="${dialog_body//$'\n'/\\n}"
+                printf '%s\t%s\t%s\t%s\t%s\n' "msgbox" "$dialog_title" "" "$dialog_body" "0" >>"$WHIPTAIL_DIALOG_FILE"
                 return 0
                 ;;
         esac
@@ -202,7 +204,10 @@ function dialog_value() {
 
     awk -F '\t' -v kind="$dialog_kind" -v title="$dialog_title" -v col="$column" '
         $1 == kind && $2 == title {value = $col}
-        END {print value}
+        END {
+            gsub(/\\n/, "\n", value)
+            print value
+        }
     ' "$WHIPTAIL_DIALOG_FILE"
 }
 
@@ -493,6 +498,28 @@ function dialog_value() {
     assert_output "https://llama.smartgic.io/v1|qwen3-nothink:latest|300|0.2|0.1"
 }
 
+@test "llm: invalid url shows the URL-specific validation message" {
+    METHOD="virtualenv"
+    queue_whiptail_response "invalid://url"
+    queue_whiptail_response "https://llama.smartgic.io/v1"
+    queue_whiptail_response "sk-test"
+    queue_whiptail_response "qwen3-nothink:latest"
+    queue_whiptail_response "Respond in plain spoken English for a voice assistant. Keep replies concise."
+    queue_whiptail_response "300"
+    queue_whiptail_response "0.2"
+    queue_whiptail_response "0.1"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    local invalid_message
+    invalid_message="$(dialog_value msgbox "$LLM_TITLE_INVALID" response)"
+
+    assert_equal "$FEATURE_LLM" "true"
+    [[ "$invalid_message" == *"Invalid URL."* ]]
+    [[ "$invalid_message" == *"Please provide a valid OpenAI-compatible API URL."* ]]
+}
+
 @test "llm: restores persisted defaults for reply tuning prompts" {
     printf '%s\n' '{"llm":{"api_url":"https://llama.smartgic.io/v1","model":"qwen3-nothink:latest","persona":"Respond briefly and clearly.","max_tokens":"450","temperature":"0.4","top_p":"0.7"}}' >"$INSTALLER_STATE_FILE"
     METHOD="virtualenv"
@@ -631,6 +658,30 @@ EOF
     assert_equal "$(dialog_value inputbox "$LLM_TITLE_MAX_TOKENS" default)" "300"
     assert_equal "$(dialog_value inputbox "$LLM_TITLE_TEMPERATURE" default)" "0.2"
     assert_equal "$(dialog_value inputbox "$LLM_TITLE_TOP_P" default)" "0.1"
+}
+
+@test "llm: invalid persisted tuning defaults are sanitized before prompts" {
+    printf '%s\n' '{"llm":{"api_url":"https://llama.smartgic.io/v1","model":"qwen3-nothink:latest","persona":"Respond briefly and clearly.","max_tokens":"bad","temperature":"3","top_p":"2"}}' >"$INSTALLER_STATE_FILE"
+    METHOD="virtualenv"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "sk-from-state"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "true"
+    assert_equal "$LLM_MAX_TOKENS" "300"
+    assert_equal "$LLM_TEMPERATURE" "0.2"
+    assert_equal "$LLM_TOP_P" "0.1"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_MAX_TOKENS" default)" "300"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TEMPERATURE" default)" "0.2"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TOP_P" default)" "0.1"
+    assert_equal "$(dialog_value msgbox "$LLM_TITLE_INVALID" response)" ""
 }
 
 @test "tuning: radiolist is well-formed (list-height >= 1, options present)" {

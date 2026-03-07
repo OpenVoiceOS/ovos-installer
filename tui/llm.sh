@@ -6,6 +6,8 @@ if [ -f "$_llm_locale_file" ]; then
 else
   source "tui/locales/en-us/llm.sh"
 fi
+# shellcheck source=utils/llm_defaults.sh
+source "utils/llm_defaults.sh"
 
 : "${LLM_TITLE_SETUP:=Open Voice OS Installation - LLM}"
 : "${LLM_TITLE_EXISTING:=Open Voice OS Installation - Existing LLM Settings}"
@@ -32,7 +34,6 @@ fi
 : "${LLM_CONTENT_INVALID_MAX_TOKENS:=Invalid reply length. Please enter a whole number greater than 0.}"
 : "${LLM_CONTENT_INVALID_TEMPERATURE:=Invalid creativity level. Please enter a number between 0 and 2.}"
 : "${LLM_CONTENT_INVALID_TOP_P:=Invalid focus level. Please enter a number between 0 and 1.}"
-: "${LLM_DEFAULT_PERSONA:=Respond in the same language as the user in a plain spoken style for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud.}"
 
 _llm_restore_xtrace="false"
 case "$-" in
@@ -45,6 +46,19 @@ restore_llm_xtrace() {
   if [ "$_llm_restore_xtrace" == "true" ]; then
     set -x
   fi
+}
+
+cancel_llm_setup() {
+  export LLM_BACK="true"
+  export FEATURE_LLM="false"
+  export LLM_API_URL=""
+  LLM_API_KEY=""
+  export LLM_MODEL=""
+  export LLM_PERSONA=""
+  export LLM_MAX_TOKENS=""
+  export LLM_TEMPERATURE=""
+  export LLM_TOP_P=""
+  restore_llm_xtrace
 }
 
 trim_llm_input() {
@@ -148,10 +162,11 @@ export FEATURE_LLM="false"
 export LLM_API_URL="${LLM_API_URL:-}"
 export LLM_MODEL="${LLM_MODEL:-}"
 export LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"
-export LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-300}"
-export LLM_TEMPERATURE="${LLM_TEMPERATURE:-0.2}"
-export LLM_TOP_P="${LLM_TOP_P:-0.1}"
+export LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-$LLM_DEFAULT_MAX_TOKENS}"
+export LLM_TEMPERATURE="${LLM_TEMPERATURE:-$LLM_DEFAULT_TEMPERATURE}"
+export LLM_TOP_P="${LLM_TOP_P:-$LLM_DEFAULT_TOP_P}"
 LLM_API_KEY="${LLM_API_KEY:-}"
+LLM_API_URL="$(normalize_llm_url "$LLM_API_URL")"
 LLM_MAX_TOKENS="$(normalize_llm_positive_int "$LLM_MAX_TOKENS")"
 LLM_TEMPERATURE="$(normalize_llm_decimal_in_range "$LLM_TEMPERATURE" "0" "2")"
 LLM_TOP_P="$(normalize_llm_decimal_in_range "$LLM_TOP_P" "0" "1")"
@@ -159,6 +174,7 @@ LLM_TOP_P="$(normalize_llm_decimal_in_range "$LLM_TOP_P" "0" "1")"
 if [ -n "${LLM_API_URL}" ] && [ -n "${LLM_API_KEY}" ] && [ -n "${LLM_MODEL}" ] && [ -n "${LLM_PERSONA}" ] && \
   [ -n "${LLM_MAX_TOKENS}" ] && [ -n "${LLM_TEMPERATURE}" ] && [ -n "${LLM_TOP_P}" ]; then
   export FEATURE_LLM="true"
+  persist_llm_state
   restore_llm_xtrace
   return
 fi
@@ -188,6 +204,7 @@ if [ -f "$llm_persona_file" ]; then
   llm_existing_max_tokens="$(jq -r '.["ovos-solver-openai-plugin"].max_tokens // .["ovos-openai-plugin"].max_tokens // .solvers["ovos-solver-openai-plugin"].max_tokens // .solvers["ovos-openai-plugin"].max_tokens // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
   llm_existing_temperature="$(jq -r '.["ovos-solver-openai-plugin"].temperature // .["ovos-openai-plugin"].temperature // .solvers["ovos-solver-openai-plugin"].temperature // .solvers["ovos-openai-plugin"].temperature // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
   llm_existing_top_p="$(jq -r '.["ovos-solver-openai-plugin"].top_p // .["ovos-openai-plugin"].top_p // .solvers["ovos-solver-openai-plugin"].top_p // .solvers["ovos-openai-plugin"].top_p // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
+  llm_existing_url="$(normalize_llm_url "$llm_existing_url")"
   llm_existing_max_tokens="$(normalize_llm_positive_int "$llm_existing_max_tokens")"
   llm_existing_temperature="$(normalize_llm_decimal_in_range "$llm_existing_temperature" "0" "2")"
   llm_existing_top_p="$(normalize_llm_decimal_in_range "$llm_existing_top_p" "0" "1")"
@@ -215,16 +232,7 @@ if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existi
     return
   fi
   if [ "$exit_status" -eq 255 ]; then
-    export FEATURE_LLM="false"
-    export LLM_API_URL=""
-    LLM_API_KEY=""
-    export LLM_MODEL=""
-    export LLM_PERSONA=""
-    export LLM_MAX_TOKENS=""
-    export LLM_TEMPERATURE=""
-    export LLM_TOP_P=""
-    export LLM_BACK="true"
-    restore_llm_xtrace
+    cancel_llm_setup
     return
   fi
 fi
@@ -235,7 +243,7 @@ llm_url_default=""
 if [ -n "$llm_existing_url" ]; then
   llm_url_default="$llm_existing_url"
 elif [ -f "$INSTALLER_STATE_FILE" ]; then
-  llm_url_default="$(jq -r '.llm.api_url // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
+  llm_url_default="$(normalize_llm_url "$(jq -r '.llm.api_url // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)")"
 fi
 if [ -z "$llm_url_default" ]; then
   llm_url_default="${LLM_API_URL:-https://llama.smartgic.io/v1}"
@@ -265,30 +273,30 @@ llm_max_tokens_default=""
 if [ -n "$llm_existing_max_tokens" ]; then
   llm_max_tokens_default="$llm_existing_max_tokens"
 elif [ -f "$INSTALLER_STATE_FILE" ]; then
-  llm_max_tokens_default="$(jq -r '.llm.max_tokens // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
+  llm_max_tokens_default="$(normalize_llm_positive_int "$(jq -r '.llm.max_tokens // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)")"
 fi
 if [ -z "$llm_max_tokens_default" ]; then
-  llm_max_tokens_default="${LLM_MAX_TOKENS:-300}"
+  llm_max_tokens_default="${LLM_MAX_TOKENS:-$LLM_DEFAULT_MAX_TOKENS}"
 fi
 
 llm_temperature_default=""
 if [ -n "$llm_existing_temperature" ]; then
   llm_temperature_default="$llm_existing_temperature"
 elif [ -f "$INSTALLER_STATE_FILE" ]; then
-  llm_temperature_default="$(jq -r '.llm.temperature // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
+  llm_temperature_default="$(normalize_llm_decimal_in_range "$(jq -r '.llm.temperature // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)" "0" "2")"
 fi
 if [ -z "$llm_temperature_default" ]; then
-  llm_temperature_default="${LLM_TEMPERATURE:-0.2}"
+  llm_temperature_default="${LLM_TEMPERATURE:-$LLM_DEFAULT_TEMPERATURE}"
 fi
 
 llm_top_p_default=""
 if [ -n "$llm_existing_top_p" ]; then
   llm_top_p_default="$llm_existing_top_p"
 elif [ -f "$INSTALLER_STATE_FILE" ]; then
-  llm_top_p_default="$(jq -r '.llm.top_p // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
+  llm_top_p_default="$(normalize_llm_decimal_in_range "$(jq -r '.llm.top_p // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)" "0" "1")"
 fi
 if [ -z "$llm_top_p_default" ]; then
-  llm_top_p_default="${LLM_TOP_P:-0.1}"
+  llm_top_p_default="${LLM_TOP_P:-$LLM_DEFAULT_TOP_P}"
 fi
 
 while :; do
@@ -297,16 +305,7 @@ while :; do
 
   exit_status=$?
   if [ "$exit_status" -ne 0 ]; then
-    export LLM_BACK="true"
-    export FEATURE_LLM="false"
-    export LLM_API_URL=""
-    LLM_API_KEY=""
-    export LLM_MODEL=""
-    export LLM_PERSONA=""
-    export LLM_MAX_TOKENS=""
-    export LLM_TEMPERATURE=""
-    export LLM_TOP_P=""
-    restore_llm_xtrace
+    cancel_llm_setup
     return
   fi
 
@@ -336,16 +335,7 @@ ${LLM_CONTENT_KEY_KEEP_EXISTING}"
     LLM_API_KEY="$llm_existing_key"
   fi
   if [ "$exit_status" -ne 0 ]; then
-    export LLM_BACK="true"
-    export FEATURE_LLM="false"
-    export LLM_API_URL=""
-    LLM_API_KEY=""
-    export LLM_MODEL=""
-    export LLM_PERSONA=""
-    export LLM_MAX_TOKENS=""
-    export LLM_TEMPERATURE=""
-    export LLM_TOP_P=""
-    restore_llm_xtrace
+    cancel_llm_setup
     return
   fi
   if [ -z "$LLM_API_KEY" ]; then
@@ -362,16 +352,7 @@ while :; do
 
   exit_status=$?
   if [ "$exit_status" -ne 0 ]; then
-    export LLM_BACK="true"
-    export FEATURE_LLM="false"
-    export LLM_API_URL=""
-    LLM_API_KEY=""
-    export LLM_MODEL=""
-    export LLM_PERSONA=""
-    export LLM_MAX_TOKENS=""
-    export LLM_TEMPERATURE=""
-    export LLM_TOP_P=""
-    restore_llm_xtrace
+    cancel_llm_setup
     return
   fi
   LLM_MODEL="$(trim_llm_input "$LLM_MODEL")"
@@ -391,16 +372,7 @@ while :; do
 
   exit_status=$?
   if [ "$exit_status" -ne 0 ]; then
-    export LLM_BACK="true"
-    export FEATURE_LLM="false"
-    export LLM_API_URL=""
-    LLM_API_KEY=""
-    export LLM_MODEL=""
-    export LLM_PERSONA=""
-    export LLM_MAX_TOKENS=""
-    export LLM_TEMPERATURE=""
-    export LLM_TOP_P=""
-    restore_llm_xtrace
+    cancel_llm_setup
     return
   fi
   LLM_PERSONA="$(trim_llm_input "$LLM_PERSONA")"
@@ -419,16 +391,7 @@ while :; do
 
   exit_status=$?
   if [ "$exit_status" -ne 0 ]; then
-    export LLM_BACK="true"
-    export FEATURE_LLM="false"
-    export LLM_API_URL=""
-    LLM_API_KEY=""
-    export LLM_MODEL=""
-    export LLM_PERSONA=""
-    export LLM_MAX_TOKENS=""
-    export LLM_TEMPERATURE=""
-    export LLM_TOP_P=""
-    restore_llm_xtrace
+    cancel_llm_setup
     return
   fi
 
@@ -449,16 +412,7 @@ while :; do
 
   exit_status=$?
   if [ "$exit_status" -ne 0 ]; then
-    export LLM_BACK="true"
-    export FEATURE_LLM="false"
-    export LLM_API_URL=""
-    LLM_API_KEY=""
-    export LLM_MODEL=""
-    export LLM_PERSONA=""
-    export LLM_MAX_TOKENS=""
-    export LLM_TEMPERATURE=""
-    export LLM_TOP_P=""
-    restore_llm_xtrace
+    cancel_llm_setup
     return
   fi
 
@@ -479,16 +433,7 @@ while :; do
 
   exit_status=$?
   if [ "$exit_status" -ne 0 ]; then
-    export LLM_BACK="true"
-    export FEATURE_LLM="false"
-    export LLM_API_URL=""
-    LLM_API_KEY=""
-    export LLM_MODEL=""
-    export LLM_PERSONA=""
-    export LLM_MAX_TOKENS=""
-    export LLM_TEMPERATURE=""
-    export LLM_TOP_P=""
-    restore_llm_xtrace
+    cancel_llm_setup
     return
   fi
 
