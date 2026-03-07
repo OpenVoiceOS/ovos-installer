@@ -12,17 +12,26 @@ fi
 : "${LLM_TITLE_URL:=Open Voice OS Installation - LLM API URL}"
 : "${LLM_TITLE_KEY:=Open Voice OS Installation - LLM API Key}"
 : "${LLM_TITLE_MODEL:=Open Voice OS Installation - LLM Model}"
-: "${LLM_TITLE_PERSONA:=Open Voice OS Installation - LLM Persona}"
+: "${LLM_TITLE_PERSONA:=Open Voice OS Installation - LLM Assistant Style}"
+: "${LLM_TITLE_MAX_TOKENS:=Open Voice OS Installation - LLM Reply Length}"
+: "${LLM_TITLE_TEMPERATURE:=Open Voice OS Installation - LLM Creativity}"
+: "${LLM_TITLE_TOP_P:=Open Voice OS Installation - LLM Focus}"
 : "${LLM_TITLE_INVALID:=Open Voice OS Installation - Invalid LLM Configuration}"
-: "${LLM_CONTENT_HAVE_DETAILS:=Please provide API URL, API key, model, and persona text.}"
+: "${LLM_CONTENT_HAVE_DETAILS:=Please provide API URL, API key, model, assistant style, reply length, creativity, and focus settings.}"
 : "${LLM_CONTENT_EXISTING:=Existing LLM persona configuration detected.}"
 : "${LLM_CONTENT_URL:=Please enter your OpenAI-compatible API URL.}"
 : "${LLM_CONTENT_KEY:=Please enter your LLM API key.}"
 : "${LLM_CONTENT_KEY_KEEP_EXISTING:=Leave empty to keep your existing key.}"
 : "${LLM_CONTENT_MODEL:=Please enter the LLM model name to use.}"
-: "${LLM_CONTENT_PERSONA:=Please enter the persona prompt used by ovos-persona.}"
+: "${LLM_CONTENT_PERSONA:=Please enter the assistant style prompt used by ovos-persona.}"
+: "${LLM_CONTENT_MAX_TOKENS:=Please enter the reply length budget for the model.}"
+: "${LLM_CONTENT_TEMPERATURE:=Please enter the creativity level for the model.}"
+: "${LLM_CONTENT_TOP_P:=Please enter the focus level for the model.}"
 : "${LLM_CONTENT_MISSING_INFO:=Some required LLM information is missing.}"
 : "${LLM_CONTENT_INVALID_URL:=Invalid URL.}"
+: "${LLM_CONTENT_INVALID_MAX_TOKENS:=Invalid reply length. Please enter a whole number greater than 0.}"
+: "${LLM_CONTENT_INVALID_TEMPERATURE:=Invalid creativity level. Please enter a number between 0 and 2.}"
+: "${LLM_CONTENT_INVALID_TOP_P:=Invalid focus level. Please enter a number between 0 and 1.}"
 
 _llm_restore_xtrace="false"
 case "$-" in
@@ -35,6 +44,13 @@ restore_llm_xtrace() {
   if [ "$_llm_restore_xtrace" == "true" ]; then
     set -x
   fi
+}
+
+trim_llm_input() {
+  local llm_value="$1"
+  llm_value="${llm_value#"${llm_value%%[![:space:]]*}"}"
+  llm_value="${llm_value%"${llm_value##*[![:space:]]}"}"
+  printf '%s' "$llm_value"
 }
 
 normalize_llm_url() {
@@ -62,12 +78,50 @@ normalize_llm_url() {
   fi
 }
 
+normalize_llm_positive_int() {
+  local llm_value
+  llm_value="$(trim_llm_input "$1")"
+
+  if [[ "$llm_value" =~ ^[0-9]+$ ]] && [ "$llm_value" -gt 0 ]; then
+    printf '%s' "$llm_value"
+  else
+    printf '%s' ""
+  fi
+}
+
+normalize_llm_decimal_in_range() {
+  local llm_value min_value max_value
+  llm_value="$(trim_llm_input "$1")"
+  min_value="$2"
+  max_value="$3"
+
+  if awk -v value="$llm_value" -v min="$min_value" -v max="$max_value" '
+    BEGIN {
+      if (value == "") {
+        exit 1
+      }
+      if (value ~ /^[0-9]+([.][0-9]+)?$/ || value ~ /^[.][0-9]+$/) {
+        if ((value + 0) >= (min + 0) && (value + 0) <= (max + 0)) {
+          exit 0
+        }
+      }
+      exit 1
+    }
+  ' >/dev/null 2>&1; then
+    printf '%s' "$llm_value"
+  else
+    printf '%s' ""
+  fi
+}
+
 persist_llm_state() {
   local state_tmp
   state_tmp="$(mktemp)"
   if [ -f "$INSTALLER_STATE_FILE" ]; then
     if jq --arg api_url "$LLM_API_URL" --arg model "$LLM_MODEL" --arg persona "$LLM_PERSONA" \
-      'if type=="object" then . else {} end | .llm = ((.llm // {}) + {api_url: $api_url, model: $model, persona: $persona})' \
+      --arg max_tokens "$LLM_MAX_TOKENS" --arg temperature "$LLM_TEMPERATURE" --arg top_p "$LLM_TOP_P" \
+      'if type=="object" then . else {} end
+       | .llm = ((.llm // {}) + {api_url: $api_url, model: $model, persona: $persona, max_tokens: $max_tokens, temperature: $temperature, top_p: $top_p})' \
       "$INSTALLER_STATE_FILE" >"$state_tmp" 2>>"$LOG_FILE"; then
       mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
     else
@@ -76,7 +130,8 @@ persist_llm_state() {
     fi
   else
     if jq -n --arg api_url "$LLM_API_URL" --arg model "$LLM_MODEL" --arg persona "$LLM_PERSONA" \
-      '{llm: {api_url: $api_url, model: $model, persona: $persona}}' >"$state_tmp" 2>>"$LOG_FILE"; then
+      --arg max_tokens "$LLM_MAX_TOKENS" --arg temperature "$LLM_TEMPERATURE" --arg top_p "$LLM_TOP_P" \
+      '{llm: {api_url: $api_url, model: $model, persona: $persona, max_tokens: $max_tokens, temperature: $temperature, top_p: $top_p}}' >"$state_tmp" 2>>"$LOG_FILE"; then
       mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
     else
       rm -f "$state_tmp"
@@ -91,7 +146,10 @@ persist_llm_state() {
 export FEATURE_LLM="false"
 export LLM_API_URL="${LLM_API_URL:-}"
 export LLM_MODEL="${LLM_MODEL:-}"
-export LLM_PERSONA="${LLM_PERSONA:-helpful, creative, clever, and very friendly.}"
+export LLM_PERSONA="${LLM_PERSONA:-Respond in plain spoken English for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud.}"
+export LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-300}"
+export LLM_TEMPERATURE="${LLM_TEMPERATURE:-0.2}"
+export LLM_TOP_P="${LLM_TOP_P:-0.1}"
 LLM_API_KEY="${LLM_API_KEY:-}"
 
 if [ -n "${LLM_API_URL}" ] && [ -n "${LLM_API_KEY}" ] && [ -n "${LLM_MODEL}" ] && [ -n "${LLM_PERSONA}" ]; then
@@ -114,15 +172,22 @@ llm_existing_url=""
 llm_existing_key=""
 llm_existing_model=""
 llm_existing_persona=""
+llm_existing_max_tokens=""
+llm_existing_temperature=""
+llm_existing_top_p=""
 if [ -f "$llm_persona_file" ]; then
   llm_existing_url="$(jq -r '.["ovos-solver-openai-plugin"].api_url // .["ovos-openai-plugin"].api_url // .solvers["ovos-solver-openai-plugin"].api_url // .solvers["ovos-openai-plugin"].api_url // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
   llm_existing_key="$(jq -r '.["ovos-solver-openai-plugin"].key // .["ovos-openai-plugin"].key // .solvers["ovos-solver-openai-plugin"].key // .solvers["ovos-openai-plugin"].key // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
   llm_existing_model="$(jq -r '.["ovos-solver-openai-plugin"].model // .["ovos-openai-plugin"].model // .solvers["ovos-solver-openai-plugin"].model // .solvers["ovos-openai-plugin"].model // .["ovos-solver-openai-plugin"].model_name // .["ovos-openai-plugin"].model_name // .solvers["ovos-solver-openai-plugin"].model_name // .solvers["ovos-openai-plugin"].model_name // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
   llm_existing_persona="$(jq -r '.["ovos-solver-openai-plugin"].system_prompt // .["ovos-openai-plugin"].system_prompt // .solvers["ovos-solver-openai-plugin"].system_prompt // .solvers["ovos-openai-plugin"].system_prompt // .["ovos-solver-openai-plugin"].persona // .["ovos-openai-plugin"].persona // .solvers["ovos-solver-openai-plugin"].persona // .solvers["ovos-openai-plugin"].persona // .prompt // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
+  llm_existing_max_tokens="$(jq -r '.["ovos-solver-openai-plugin"].max_tokens // .["ovos-openai-plugin"].max_tokens // .solvers["ovos-solver-openai-plugin"].max_tokens // .solvers["ovos-openai-plugin"].max_tokens // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
+  llm_existing_temperature="$(jq -r '.["ovos-solver-openai-plugin"].temperature // .["ovos-openai-plugin"].temperature // .solvers["ovos-solver-openai-plugin"].temperature // .solvers["ovos-openai-plugin"].temperature // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
+  llm_existing_top_p="$(jq -r '.["ovos-solver-openai-plugin"].top_p // .["ovos-openai-plugin"].top_p // .solvers["ovos-solver-openai-plugin"].top_p // .solvers["ovos-openai-plugin"].top_p // ""' "$llm_persona_file" 2>>"$LOG_FILE" || true)"
 fi
 
 if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existing_model" ] && [ -n "$llm_existing_persona" ]; then
   _llm_existing_prompt="${LLM_CONTENT_EXISTING//__URL__/$llm_existing_url}"
+  _llm_existing_prompt="${_llm_existing_prompt//__MODEL__/$llm_existing_model}"
   whiptail --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
     --title "$LLM_TITLE_EXISTING" "$_llm_existing_prompt" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
 
@@ -133,6 +198,9 @@ if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existi
     LLM_API_KEY="$llm_existing_key"
     export LLM_MODEL="$llm_existing_model"
     export LLM_PERSONA="$llm_existing_persona"
+    export LLM_MAX_TOKENS="${llm_existing_max_tokens:-${LLM_MAX_TOKENS:-300}}"
+    export LLM_TEMPERATURE="${llm_existing_temperature:-${LLM_TEMPERATURE:-0.2}}"
+    export LLM_TOP_P="${llm_existing_top_p:-${LLM_TOP_P:-0.1}}"
     persist_llm_state
     restore_llm_xtrace
     return
@@ -143,6 +211,9 @@ if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existi
     LLM_API_KEY=""
     export LLM_MODEL=""
     export LLM_PERSONA=""
+    export LLM_MAX_TOKENS=""
+    export LLM_TEMPERATURE=""
+    export LLM_TOP_P=""
     export LLM_BACK="true"
     restore_llm_xtrace
     return
@@ -168,7 +239,7 @@ elif [ -f "$INSTALLER_STATE_FILE" ]; then
   llm_persona_default="$(jq -r '.llm.persona // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
 fi
 if [ -z "$llm_persona_default" ]; then
-  llm_persona_default="${LLM_PERSONA:-helpful, creative, clever, and very friendly.}"
+  llm_persona_default="${LLM_PERSONA:-Respond in plain spoken English for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud.}"
 fi
 
 llm_model_default=""
@@ -179,6 +250,36 @@ elif [ -f "$INSTALLER_STATE_FILE" ]; then
 fi
 if [ -z "$llm_model_default" ]; then
   llm_model_default="${LLM_MODEL:-gpt-4o-mini}"
+fi
+
+llm_max_tokens_default=""
+if [ -n "$llm_existing_max_tokens" ]; then
+  llm_max_tokens_default="$llm_existing_max_tokens"
+elif [ -f "$INSTALLER_STATE_FILE" ]; then
+  llm_max_tokens_default="$(jq -r '.llm.max_tokens // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
+fi
+if [ -z "$llm_max_tokens_default" ]; then
+  llm_max_tokens_default="${LLM_MAX_TOKENS:-300}"
+fi
+
+llm_temperature_default=""
+if [ -n "$llm_existing_temperature" ]; then
+  llm_temperature_default="$llm_existing_temperature"
+elif [ -f "$INSTALLER_STATE_FILE" ]; then
+  llm_temperature_default="$(jq -r '.llm.temperature // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
+fi
+if [ -z "$llm_temperature_default" ]; then
+  llm_temperature_default="${LLM_TEMPERATURE:-0.2}"
+fi
+
+llm_top_p_default=""
+if [ -n "$llm_existing_top_p" ]; then
+  llm_top_p_default="$llm_existing_top_p"
+elif [ -f "$INSTALLER_STATE_FILE" ]; then
+  llm_top_p_default="$(jq -r '.llm.top_p // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
+fi
+if [ -z "$llm_top_p_default" ]; then
+  llm_top_p_default="${LLM_TOP_P:-0.1}"
 fi
 
 while :; do
@@ -193,6 +294,9 @@ while :; do
     LLM_API_KEY=""
     export LLM_MODEL=""
     export LLM_PERSONA=""
+    export LLM_MAX_TOKENS=""
+    export LLM_TEMPERATURE=""
+    export LLM_TOP_P=""
     restore_llm_xtrace
     return
   fi
@@ -229,6 +333,9 @@ ${LLM_CONTENT_KEY_KEEP_EXISTING}"
     LLM_API_KEY=""
     export LLM_MODEL=""
     export LLM_PERSONA=""
+    export LLM_MAX_TOKENS=""
+    export LLM_TEMPERATURE=""
+    export LLM_TOP_P=""
     restore_llm_xtrace
     return
   fi
@@ -252,11 +359,13 @@ while :; do
     LLM_API_KEY=""
     export LLM_MODEL=""
     export LLM_PERSONA=""
+    export LLM_MAX_TOKENS=""
+    export LLM_TEMPERATURE=""
+    export LLM_TOP_P=""
     restore_llm_xtrace
     return
   fi
-  LLM_MODEL="${LLM_MODEL#"${LLM_MODEL%%[![:space:]]*}"}"
-  LLM_MODEL="${LLM_MODEL%"${LLM_MODEL##*[![:space:]]}"}"
+  LLM_MODEL="$(trim_llm_input "$LLM_MODEL")"
   if [ -z "$LLM_MODEL" ]; then
     whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
@@ -279,17 +388,109 @@ while :; do
     LLM_API_KEY=""
     export LLM_MODEL=""
     export LLM_PERSONA=""
+    export LLM_MAX_TOKENS=""
+    export LLM_TEMPERATURE=""
+    export LLM_TOP_P=""
     restore_llm_xtrace
     return
   fi
-  LLM_PERSONA="${LLM_PERSONA#"${LLM_PERSONA%%[![:space:]]*}"}"
-  LLM_PERSONA="${LLM_PERSONA%"${LLM_PERSONA##*[![:space:]]}"}"
+  LLM_PERSONA="$(trim_llm_input "$LLM_PERSONA")"
   if [ -z "$LLM_PERSONA" ]; then
     whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
   export LLM_PERSONA
+  break
+done
+
+while :; do
+  llm_max_tokens_input="$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$LLM_TITLE_MAX_TOKENS" "$LLM_CONTENT_MAX_TOKENS" 25 80 "$llm_max_tokens_default" 3>&1 1>&2 2>&3)"
+
+  exit_status=$?
+  if [ "$exit_status" -ne 0 ]; then
+    export LLM_BACK="true"
+    export FEATURE_LLM="false"
+    export LLM_API_URL=""
+    LLM_API_KEY=""
+    export LLM_MODEL=""
+    export LLM_PERSONA=""
+    export LLM_MAX_TOKENS=""
+    export LLM_TEMPERATURE=""
+    export LLM_TOP_P=""
+    restore_llm_xtrace
+    return
+  fi
+
+  LLM_MAX_TOKENS="$(normalize_llm_positive_int "$llm_max_tokens_input")"
+  if [ -z "$LLM_MAX_TOKENS" ]; then
+    whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_MAX_TOKENS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    continue
+  fi
+
+  llm_max_tokens_default="$LLM_MAX_TOKENS"
+  export LLM_MAX_TOKENS
+  break
+done
+
+while :; do
+  llm_temperature_input="$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$LLM_TITLE_TEMPERATURE" "$LLM_CONTENT_TEMPERATURE" 25 80 "$llm_temperature_default" 3>&1 1>&2 2>&3)"
+
+  exit_status=$?
+  if [ "$exit_status" -ne 0 ]; then
+    export LLM_BACK="true"
+    export FEATURE_LLM="false"
+    export LLM_API_URL=""
+    LLM_API_KEY=""
+    export LLM_MODEL=""
+    export LLM_PERSONA=""
+    export LLM_MAX_TOKENS=""
+    export LLM_TEMPERATURE=""
+    export LLM_TOP_P=""
+    restore_llm_xtrace
+    return
+  fi
+
+  LLM_TEMPERATURE="$(normalize_llm_decimal_in_range "$llm_temperature_input" "0" "2")"
+  if [ -z "$LLM_TEMPERATURE" ]; then
+    whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_TEMPERATURE" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    continue
+  fi
+
+  llm_temperature_default="$LLM_TEMPERATURE"
+  export LLM_TEMPERATURE
+  break
+done
+
+while :; do
+  llm_top_p_input="$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$LLM_TITLE_TOP_P" "$LLM_CONTENT_TOP_P" 25 80 "$llm_top_p_default" 3>&1 1>&2 2>&3)"
+
+  exit_status=$?
+  if [ "$exit_status" -ne 0 ]; then
+    export LLM_BACK="true"
+    export FEATURE_LLM="false"
+    export LLM_API_URL=""
+    LLM_API_KEY=""
+    export LLM_MODEL=""
+    export LLM_PERSONA=""
+    export LLM_MAX_TOKENS=""
+    export LLM_TEMPERATURE=""
+    export LLM_TOP_P=""
+    restore_llm_xtrace
+    return
+  fi
+
+  LLM_TOP_P="$(normalize_llm_decimal_in_range "$llm_top_p_input" "0" "1")"
+  if [ -z "$LLM_TOP_P" ]; then
+    whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_TOP_P" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    continue
+  fi
+
+  llm_top_p_default="$LLM_TOP_P"
+  export LLM_TOP_P
   break
 done
 

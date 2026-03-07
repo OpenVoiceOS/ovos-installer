@@ -186,6 +186,9 @@ if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
       --arg llm_api_url "${LLM_API_URL:-}" \
       --arg llm_model "${LLM_MODEL:-}" \
       --arg llm_persona "${LLM_PERSONA:-}" \
+      --arg llm_max_tokens "${LLM_MAX_TOKENS:-300}" \
+      --arg llm_temperature "${LLM_TEMPERATURE:-0.2}" \
+      --arg llm_top_p "${LLM_TOP_P:-0.1}" \
       '{
         ovos_installer_homeassistant_url: $ha_url,
         ovos_installer_homeassistant_host: $ha_url,
@@ -193,7 +196,10 @@ if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
         ovos_installer_llm_api_url: $llm_api_url,
         ovos_installer_llm_api_key: (env.LLM_API_KEY // ""),
         ovos_installer_llm_model: $llm_model,
-        ovos_installer_llm_persona: $llm_persona
+        ovos_installer_llm_persona: $llm_persona,
+        ovos_installer_llm_max_tokens: $llm_max_tokens,
+        ovos_installer_llm_temperature: $llm_temperature,
+        ovos_installer_llm_top_p: $llm_top_p
       }' \
       >"$ha_extra_vars_file" 2>>"$LOG_FILE"; then
       ha_extra_vars=(-e "@${ha_extra_vars_file}")

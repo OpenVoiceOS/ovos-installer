@@ -49,9 +49,18 @@ function setup() {
             test -n \"\$LLM_CONTENT_MODEL\"
             test -n \"\$LLM_TITLE_PERSONA\"
             test -n \"\$LLM_CONTENT_PERSONA\"
+            test -n \"\$LLM_TITLE_MAX_TOKENS\"
+            test -n \"\$LLM_CONTENT_MAX_TOKENS\"
+            test -n \"\$LLM_TITLE_TEMPERATURE\"
+            test -n \"\$LLM_CONTENT_TEMPERATURE\"
+            test -n \"\$LLM_TITLE_TOP_P\"
+            test -n \"\$LLM_CONTENT_TOP_P\"
             test -n \"\$LLM_TITLE_INVALID\"
             test -n \"\$LLM_CONTENT_MISSING_INFO\"
             test -n \"\$LLM_CONTENT_INVALID_URL\"
+            test -n \"\$LLM_CONTENT_INVALID_MAX_TOKENS\"
+            test -n \"\$LLM_CONTENT_INVALID_TEMPERATURE\"
+            test -n \"\$LLM_CONTENT_INVALID_TOP_P\"
             printf '%s\n' \"\$LLM_TITLE_SETUP\"
         "
 
@@ -61,6 +70,28 @@ function setup() {
             return 1
         fi
         assert_output --partial "LLM"
+    done
+}
+
+@test "locales_features_scripts_are_sourceable" {
+    for f in tui/locales/*/features.sh; do
+        run bash -euc "
+            source '$f'
+            test -n \"\$TITLE\"
+            test -n \"\$CONTENT\"
+            test -n \"\$SKILL_DESCRIPTION\"
+            test -n \"\$EXTRA_SKILL_DESCRIPTION\"
+            test -n \"\$HOMEASSISTANT_DESCRIPTION\"
+            test -n \"\$LLM_DESCRIPTION\"
+            printf '%s\n' \"\$TITLE\"
+        "
+
+        if [ "$status" -ne 0 ]; then
+            echo \"Failed to source $f\" >&2
+            echo \"$output\" >&2
+            return 1
+        fi
+        [ -n "$output" ]
     done
 }
 
@@ -76,4 +107,46 @@ function setup() {
         run grep -F -q "Please enter the LLM model name to use." "$f"
         assert_failure
     done
+}
+
+@test "locales_feature_strings_are_localized_outside_en_us" {
+    for f in tui/locales/*/features.sh; do
+        if [ "$f" = "tui/locales/en-us/features.sh" ]; then
+            continue
+        fi
+
+        run grep -F -q 'LLM_DESCRIPTION="Enable AI conversation fallback for OVOS Persona (guided setup for URL, key, model, style, and reply tuning)"' "$f"
+        assert_failure
+
+        run grep -F -q 'HOMEASSISTANT_DESCRIPTION="Enable Home Assistant integration (requires URL + token)"' "$f"
+        assert_failure
+    done
+}
+
+@test "english_llm_locale_explains reply tuning in plain language" {
+    local file="tui/locales/en-us/llm.sh"
+
+    run grep -F -q "This lets OVOS use an AI assistant when normal skills do not have a good answer." "$file"
+    assert_success
+
+    run grep -F -q "API URL: where OVOS sends AI requests" "$file"
+    assert_success
+
+    run grep -F -q "Reply length: how much room the model gets to answer" "$file"
+    assert_success
+
+    run grep -F -q "Creativity: lower is safer, higher is more imaginative" "$file"
+    assert_success
+
+    run grep -F -q "Focus: lower keeps answers tighter and more predictable" "$file"
+    assert_success
+
+    run grep -F -q "Recommended for voice use: 300" "$file"
+    assert_success
+
+    run grep -F -q "Recommended for voice use: 0.2" "$file"
+    assert_success
+
+    run grep -F -q "Recommended for voice use: 0.1" "$file"
+    assert_success
 }

@@ -1425,7 +1425,7 @@ function setup() {
     run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)" utils/constants.sh
     assert_success
 
-    run grep -q "SCENARIO_ALLOWED_LLM_OPTIONS=(api_url key model persona)" utils/constants.sh
+    run grep -q "SCENARIO_ALLOWED_LLM_OPTIONS=(api_url key model persona max_tokens temperature top_p)" utils/constants.sh
     assert_success
 
     run grep -q '\.llm | to_entries | map(\[.key, .value\] | join("=")) | .\[]' utils/scenario.sh
@@ -1449,6 +1449,15 @@ function setup() {
     run grep -q "export LLM_PERSONA=" utils/scenario.sh
     assert_success
 
+    run grep -q "export LLM_MAX_TOKENS=" utils/scenario.sh
+    assert_success
+
+    run grep -q "export LLM_TEMPERATURE=" utils/scenario.sh
+    assert_success
+
+    run grep -q "export LLM_TOP_P=" utils/scenario.sh
+    assert_success
+
     run grep -q 'ovos_installer_feature_llm=${FEATURE_LLM}' setup.sh
     assert_success
 
@@ -1467,6 +1476,15 @@ function setup() {
     run grep -q "ovos_installer_llm_model: \$llm_model" setup.sh
     assert_success
 
+    run grep -q "ovos_installer_llm_max_tokens: \$llm_max_tokens" setup.sh
+    assert_success
+
+    run grep -q "ovos_installer_llm_temperature: \$llm_temperature" setup.sh
+    assert_success
+
+    run grep -q "ovos_installer_llm_top_p: \$llm_top_p" setup.sh
+    assert_success
+
     run grep -q "ovos_installer_llm_api_key: (env.LLM_API_KEY // \"\")" setup.sh
     assert_success
 
@@ -1476,7 +1494,25 @@ function setup() {
     run grep -q 'ovos_installer_llm_model: ""' ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 
+    run grep -q "ovos_installer_llm_max_tokens: 300" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_installer_llm_temperature: 0.2" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_installer_llm_top_p: 0.1" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
     run grep -q "ovos_installer_llm_model | default('') | trim | length > 0" ansible/roles/ovos_installer/tasks/assert.yml
+    assert_success
+
+    run grep -q "ovos_installer_llm_max_tokens | default(300, true) | string | trim | int" ansible/roles/ovos_installer/tasks/assert.yml
+    assert_success
+
+    run grep -q "ovos_installer_llm_temperature | default(0.2, true) | float" ansible/roles/ovos_installer/tasks/assert.yml
+    assert_success
+
+    run grep -q "ovos_installer_llm_top_p | default(0.1, true) | float" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
     run grep -q '"persona": {' ansible/roles/ovos_config/templates/mycroft.conf.j2
@@ -1491,6 +1527,15 @@ function setup() {
     run grep -q "_ovos_llm_model: \"{{ ovos_installer_llm_model | default('') | trim }}\"" ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
+    run grep -q "_ovos_llm_max_tokens: \"{{ ovos_installer_llm_max_tokens | default(300, true) | string | trim | int }}\"" ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
+    run grep -q "_ovos_llm_temperature: \"{{ ovos_installer_llm_temperature | default(0.2, true) | string | trim | float }}\"" ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
+    run grep -q "_ovos_llm_top_p: \"{{ ovos_installer_llm_top_p | default(0.1, true) | string | trim | float }}\"" ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
     run grep -q '"model": _ovos_llm_model' ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
@@ -1500,10 +1545,28 @@ function setup() {
     run grep -q '"system_prompt": ovos_installer_llm_persona' ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
+    run grep -q '"max_tokens": _ovos_llm_max_tokens' ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
+    run grep -q '"temperature": _ovos_llm_temperature' ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
+    run grep -q '"top_p": _ovos_llm_top_p' ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
     run grep -q '"persona": ovos_installer_llm_persona' ansible/roles/ovos_config/tasks/install.yml
     assert_failure
 
     run grep -q '.solvers\["ovos-solver-openai-plugin"\]\.system_prompt' tui/llm.sh
+    assert_success
+
+    run grep -q '.solvers\["ovos-solver-openai-plugin"\]\.max_tokens' tui/llm.sh
+    assert_success
+
+    run grep -q '.solvers\["ovos-solver-openai-plugin"\]\.temperature' tui/llm.sh
+    assert_success
+
+    run grep -q '.solvers\["ovos-solver-openai-plugin"\]\.top_p' tui/llm.sh
     assert_success
 }
 
