@@ -3,6 +3,18 @@
   ansible.builtin.set_fact:
     ovos_services_uninstall_units: "{{ (ovos_services_managed_units + [ovos_services_admin_unit]) | unique }}"
 
+- name: Detect whether lingering is already enabled
+  ansible.builtin.command:
+    argv:
+      - loginctl
+      - show-user
+      - "{{ ovos_installer_user }}"
+      - --property=Linger
+      - --value
+  register: ovos_services_user_linger_state
+  changed_when: false
+  failed_when: false
+
 - name: Ensure systemd user runtime is available
   ansible.builtin.import_tasks: systemd-user-runtime.yml
 
@@ -120,6 +132,12 @@
 
 - name: Flush handlers ovos (uninstall)
   ansible.builtin.meta: flush_handlers
+
+- name: Disable lingering if uninstall enabled it temporarily
+  ansible.builtin.command: "{{ ovos_services_disable_linger_cmd }}"
+  changed_when: false
+  failed_when: false
+  when: (ovos_services_user_linger_state.stdout | default('') | trim | lower) == 'no'
 
 - name: Remove directories
   ansible.builtin.file:

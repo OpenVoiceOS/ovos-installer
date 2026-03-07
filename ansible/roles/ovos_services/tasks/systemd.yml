@@ -10,6 +10,9 @@
         mode: "{{ ovos_services_wrapper_mode }}"
       when: ovos_services_is_desktop_profile | bool
 
+    - name: Ensure systemd user runtime is available
+      ansible.builtin.import_tasks: systemd-user-runtime.yml
+
     - name: Remove user scope units when using system scope
       when: (ovos_installer_systemd_scope | default('user')) == 'system'
       block:
@@ -50,9 +53,6 @@
             state: absent
           loop: "{{ ovos_services_managed_units }}"
           notify: Reload Systemd
-
-    - name: Ensure systemd user runtime is available
-      ansible.builtin.import_tasks: systemd-user-runtime.yml
 
     - name: Copy OVOS systemd unit files
       vars:
