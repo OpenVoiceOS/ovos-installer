@@ -393,7 +393,7 @@ function detect_sound() {
     local python_detection
     # Use the Python helper to reliably detect the server name
     if [ -f "utils/detect_sound.py" ] && command -v python3 &>>"$LOG_FILE"; then
-        python_detection=$(python3 utils/detect_sound.py)
+        python_detection=$(python3 utils/detect_sound.py "${RUN_AS:-}")
     else
         python_detection="N/A"
     fi
