@@ -48,6 +48,7 @@ function setup() {
             test -n \"\$LLM_TITLE_MODEL\"
             test -n \"\$LLM_CONTENT_MODEL\"
             test -n \"\$LLM_TITLE_PERSONA\"
+            test -n \"\$LLM_DEFAULT_PERSONA\"
             test -n \"\$LLM_CONTENT_PERSONA\"
             test -n \"\$LLM_TITLE_MAX_TOKENS\"
             test -n \"\$LLM_CONTENT_MAX_TOKENS\"
@@ -105,6 +106,9 @@ function setup() {
         assert_failure
 
         run grep -F -q "Please enter the LLM model name to use." "$f"
+        assert_failure
+
+        run grep -F -q "LLM_DEFAULT_PERSONA=\"Respond in the same language as the user in a plain spoken style for a voice assistant." "$f"
         assert_failure
     done
 }

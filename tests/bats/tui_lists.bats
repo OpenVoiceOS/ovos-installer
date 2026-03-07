@@ -79,7 +79,7 @@ function setup() {
                         response=""
                         ;;
                 esac
-                printf '%s\t%s\t%s\t%s\t%s\n' "passwordbox" "$dialog_title" "" "$response" "0" >>"$WHIPTAIL_DIALOG_FILE"
+                printf '%s\t%s\t%s\t%s\t%s\n' "passwordbox" "$dialog_title" "" "<redacted>" "0" >>"$WHIPTAIL_DIALOG_FILE"
                 printf '%s\n' "$response" >&2
                 return 0
                 ;;
@@ -488,7 +488,7 @@ function dialog_value() {
     assert_equal "$LLM_TEMPERATURE" "0.2"
     assert_equal "$LLM_TOP_P" "0.1"
 
-    run jq -r '.llm.api_url + "|" + .llm.model + "|" + .llm.max_tokens + "|" + .llm.temperature + "|" + .llm.top_p' "$INSTALLER_STATE_FILE"
+    run jq -r '"\(.llm.api_url)|\(.llm.model)|\(.llm.max_tokens|tostring)|\(.llm.temperature|tostring)|\(.llm.top_p|tostring)"' "$INSTALLER_STATE_FILE"
     assert_success
     assert_output "https://llama.smartgic.io/v1|qwen3-nothink:latest|300|0.2|0.1"
 }
@@ -556,7 +556,7 @@ EOF
     assert_equal "$LLM_TOP_P" "0.1"
     assert_equal "$(dialog_value yesno "$LLM_TITLE_EXISTING" status)" "0"
 
-    run jq -r '.llm.api_url + "|" + .llm.model + "|" + .llm.max_tokens + "|" + .llm.temperature + "|" + .llm.top_p' "$INSTALLER_STATE_FILE"
+    run jq -r '"\(.llm.api_url)|\(.llm.model)|\(.llm.max_tokens|tostring)|\(.llm.temperature|tostring)|\(.llm.top_p|tostring)"' "$INSTALLER_STATE_FILE"
     assert_success
     assert_output "https://llama.smartgic.io/v1|qwen3-nothink:latest|320|0.2|0.1"
 }

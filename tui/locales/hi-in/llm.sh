@@ -49,6 +49,7 @@ LLM_CONTENT_MODEL="
 उदाहरण: gpt-4o-mini, llama3.1:8b, qwen3-nothink:latest
 "
 LLM_TITLE_PERSONA="Open Voice OS Installation - LLM सहायक शैली"
+LLM_DEFAULT_PERSONA="उपयोगकर्ता की भाषा में वॉइस असिस्टेंट के लिए सरल और स्वाभाविक बोलचाल की शैली में उत्तर दें। इमोजी न हों। मार्कडाउन न हो। बुलेट पॉइंट न हों। कोष्ठकों में अतिरिक्त टिप्पणियां न हों। उत्तर संक्षिप्त रखें, आमतौर पर एक या दो छोटे वाक्य। सीधे उत्तर से शुरू करें और उसे ज़ोर से बोलने पर स्वाभाविक लगना चाहिए।"
 LLM_CONTENT_PERSONA="
 बताइए कि सहायक को कैसे बोलना और व्यवहार करना चाहिए।
 
@@ -114,7 +115,7 @@ export LLM_TITLE_EXISTING LLM_CONTENT_EXISTING
 export LLM_TITLE_URL LLM_CONTENT_URL
 export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING
 export LLM_TITLE_MODEL LLM_CONTENT_MODEL
-export LLM_TITLE_PERSONA LLM_CONTENT_PERSONA
+export LLM_TITLE_PERSONA LLM_DEFAULT_PERSONA LLM_CONTENT_PERSONA
 export LLM_TITLE_MAX_TOKENS LLM_CONTENT_MAX_TOKENS
 export LLM_TITLE_TEMPERATURE LLM_CONTENT_TEMPERATURE
 export LLM_TITLE_TOP_P LLM_CONTENT_TOP_P

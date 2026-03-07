@@ -71,7 +71,7 @@ function handle_options() {
     export LLM_API_URL="${LLM_API_URL:-}"
     export LLM_API_KEY="${LLM_API_KEY:-}"
     export LLM_MODEL="${LLM_MODEL:-}"
-    export LLM_PERSONA="${LLM_PERSONA:-Respond in plain spoken English for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud.}"
+    export LLM_PERSONA="${LLM_PERSONA:-Respond in the same language as the user in a plain spoken style for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud.}"
     export LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-300}"
     export LLM_TEMPERATURE="${LLM_TEMPERATURE:-0.2}"
     export LLM_TOP_P="${LLM_TOP_P:-0.1}"

@@ -49,6 +49,7 @@ Introduïu el nom del model que OVOS ha d'utilitzar per a les converses.
 Exemples: gpt-4o-mini, llama3.1:8b, qwen3-nothink:latest
 "
 LLM_TITLE_PERSONA="Instal·lació d'Open Voice OS - Estil de l'assistent LLM"
+LLM_DEFAULT_PERSONA="Respon en l'idioma de l'usuari amb un estil de parla natural per a un assistent de veu. Sense emojis. Sense markdown. Sense llistes amb pics. Sense aclariments entre parèntesis. Mantén les respostes concises, normalment d'una o dues frases curtes. Comença directament amb la resposta i fes que soni natural quan es llegeixi en veu alta."
 LLM_CONTENT_PERSONA="
 Descriviu com ha de parlar i comportar-se l'assistent.
 
@@ -114,7 +115,7 @@ export LLM_TITLE_EXISTING LLM_CONTENT_EXISTING
 export LLM_TITLE_URL LLM_CONTENT_URL
 export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING
 export LLM_TITLE_MODEL LLM_CONTENT_MODEL
-export LLM_TITLE_PERSONA LLM_CONTENT_PERSONA
+export LLM_TITLE_PERSONA LLM_DEFAULT_PERSONA LLM_CONTENT_PERSONA
 export LLM_TITLE_MAX_TOKENS LLM_CONTENT_MAX_TOKENS
 export LLM_TITLE_TEMPERATURE LLM_CONTENT_TEMPERATURE
 export LLM_TITLE_TOP_P LLM_CONTENT_TOP_P

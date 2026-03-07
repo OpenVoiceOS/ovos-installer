@@ -55,8 +55,10 @@
       - ovos_installer_llm_model | default('') | trim | length > 0
       - ovos_installer_llm_persona | default('') | length > 0
       - (ovos_installer_llm_max_tokens | default(300, true) | string | trim | int) > 0
+      - (ovos_installer_llm_temperature | default(0.2, true) | string | trim) is match('^([0-9]+([.][0-9]+)?|[.][0-9]+)$')
       - (ovos_installer_llm_temperature | default(0.2, true) | float) >= 0
       - (ovos_installer_llm_temperature | default(0.2, true) | float) <= 2
+      - (ovos_installer_llm_top_p | default(0.1, true) | string | trim) is match('^([0-9]+([.][0-9]+)?|[.][0-9]+)$')
       - (ovos_installer_llm_top_p | default(0.1, true) | float) >= 0
       - (ovos_installer_llm_top_p | default(0.1, true) | float) <= 1
     fail_msg: "LLM feature requires profile ovos/listener and non-empty API URL, API key, model, and persona."

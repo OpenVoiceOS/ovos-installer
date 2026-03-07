@@ -32,6 +32,7 @@ fi
 : "${LLM_CONTENT_INVALID_MAX_TOKENS:=Invalid reply length. Please enter a whole number greater than 0.}"
 : "${LLM_CONTENT_INVALID_TEMPERATURE:=Invalid creativity level. Please enter a number between 0 and 2.}"
 : "${LLM_CONTENT_INVALID_TOP_P:=Invalid focus level. Please enter a number between 0 and 1.}"
+: "${LLM_DEFAULT_PERSONA:=Respond in the same language as the user in a plain spoken style for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud.}"
 
 _llm_restore_xtrace="false"
 case "$-" in
@@ -146,7 +147,7 @@ persist_llm_state() {
 export FEATURE_LLM="false"
 export LLM_API_URL="${LLM_API_URL:-}"
 export LLM_MODEL="${LLM_MODEL:-}"
-export LLM_PERSONA="${LLM_PERSONA:-Respond in plain spoken English for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud.}"
+export LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"
 export LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-300}"
 export LLM_TEMPERATURE="${LLM_TEMPERATURE:-0.2}"
 export LLM_TOP_P="${LLM_TOP_P:-0.1}"
@@ -239,7 +240,7 @@ elif [ -f "$INSTALLER_STATE_FILE" ]; then
   llm_persona_default="$(jq -r '.llm.persona // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
 fi
 if [ -z "$llm_persona_default" ]; then
-  llm_persona_default="${LLM_PERSONA:-Respond in plain spoken English for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud.}"
+  llm_persona_default="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"
 fi
 
 llm_model_default=""

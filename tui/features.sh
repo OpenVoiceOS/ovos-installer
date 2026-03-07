@@ -9,7 +9,7 @@ export FEATURE_HOMEASSISTANT="false"
 export FEATURE_LLM="false"
 export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
 export LLM_API_URL="${LLM_API_URL:-}"
-export LLM_PERSONA="${LLM_PERSONA:-Respond in plain spoken English for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud.}"
+export LLM_PERSONA="${LLM_PERSONA:-Respond in the same language as the user in a plain spoken style for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud.}"
 
 _mark2_or_devkit_detected="false"
 _gui_supported="false"

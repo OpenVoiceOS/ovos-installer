@@ -49,6 +49,7 @@ Wprowadź nazwę modelu, którego OVOS ma używać do rozmów.
 Przykłady: gpt-4o-mini, llama3.1:8b, qwen3-nothink:latest
 "
 LLM_TITLE_PERSONA="Instalacja Open Voice OS - Styl asystenta LLM"
+LLM_DEFAULT_PERSONA="Odpowiadaj w języku użytkownika prostym, naturalnym stylem mówionym dla asystenta głosowego. Bez emoji. Bez markdownu. Bez wypunktowań. Bez wtrąceń w nawiasach. Odpowiedzi mają być zwięzłe, zwykle jedno albo dwa krótkie zdania. Zacznij od razu od odpowiedzi i zadbaj, by brzmiała naturalnie po przeczytaniu na głos."
 LLM_CONTENT_PERSONA="
 Opisz, jak asystent ma mówić i się zachowywać.
 
@@ -114,7 +115,7 @@ export LLM_TITLE_EXISTING LLM_CONTENT_EXISTING
 export LLM_TITLE_URL LLM_CONTENT_URL
 export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING
 export LLM_TITLE_MODEL LLM_CONTENT_MODEL
-export LLM_TITLE_PERSONA LLM_CONTENT_PERSONA
+export LLM_TITLE_PERSONA LLM_DEFAULT_PERSONA LLM_CONTENT_PERSONA
 export LLM_TITLE_MAX_TOKENS LLM_CONTENT_MAX_TOKENS
 export LLM_TITLE_TEMPERATURE LLM_CONTENT_TEMPERATURE
 export LLM_TITLE_TOP_P LLM_CONTENT_TOP_P

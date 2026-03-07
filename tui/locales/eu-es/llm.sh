@@ -49,6 +49,7 @@ Sartu OVOSek elkarrizketetarako erabili behar duen modeloaren izena.
 Adibideak: gpt-4o-mini, llama3.1:8b, qwen3-nothink:latest
 "
 LLM_TITLE_PERSONA="Open Voice OS instalazioa - LLM laguntzailearen estiloa"
+LLM_DEFAULT_PERSONA="Erantzun erabiltzailearen hizkuntzan, ahots-laguntzaile baterako ahozko estilo argi eta naturalean. Ez erabili emojirik. Ez erabili markdownik. Ez erabili buletik. Ez erabili parentesi arteko oharrik. Mantendu erantzunak laburrak, normalean esaldi labur bat edo bi. Hasi zuzenean erantzunarekin eta egin ahoz esanda naturala izan dadin."
 LLM_CONTENT_PERSONA="
 Azaldu laguntzaileak nola hitz egin eta jokatu behar duen.
 
@@ -114,7 +115,7 @@ export LLM_TITLE_EXISTING LLM_CONTENT_EXISTING
 export LLM_TITLE_URL LLM_CONTENT_URL
 export LLM_TITLE_KEY LLM_CONTENT_KEY LLM_CONTENT_KEY_KEEP_EXISTING
 export LLM_TITLE_MODEL LLM_CONTENT_MODEL
-export LLM_TITLE_PERSONA LLM_CONTENT_PERSONA
+export LLM_TITLE_PERSONA LLM_DEFAULT_PERSONA LLM_CONTENT_PERSONA
 export LLM_TITLE_MAX_TOKENS LLM_CONTENT_MAX_TOKENS
 export LLM_TITLE_TEMPERATURE LLM_CONTENT_TEMPERATURE
 export LLM_TITLE_TOP_P LLM_CONTENT_TOP_P
