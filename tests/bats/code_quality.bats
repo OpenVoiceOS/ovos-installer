@@ -1473,6 +1473,9 @@ function setup() {
     run grep -q "ovos_installer_llm_model:" ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 
+    run grep -q 'ovos_installer_llm_model: ""' ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
     run grep -q "ovos_installer_llm_model | default('') | trim | length > 0" ansible/roles/ovos_installer/tasks/assert.yml
     assert_success
 
@@ -1485,8 +1488,14 @@ function setup() {
     run grep -q '"ovos-solver-openai-plugin": {' ansible/roles/ovos_config/tasks/install.yml
     assert_success
 
-    run grep -q '"model": ovos_installer_llm_model' ansible/roles/ovos_config/tasks/install.yml
+    run grep -q "_ovos_llm_model: \"{{ ovos_installer_llm_model | default('') | trim }}\"" ansible/roles/ovos_config/tasks/install.yml
     assert_success
+
+    run grep -q '"model": _ovos_llm_model' ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+
+    run grep -q '"model": ovos_installer_llm_model' ansible/roles/ovos_config/tasks/install.yml
+    assert_failure
 
     run grep -q '"system_prompt": ovos_installer_llm_persona' ansible/roles/ovos_config/tasks/install.yml
     assert_success
