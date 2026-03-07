@@ -1002,8 +1002,8 @@ function create_python_venv() {
         on_error
     fi
 
-    # On aarch64/Pi 5, ignore piwheels via a temporary installer-only pip
-    # config instead of mutating the host-wide /etc/pip.conf.
+    # On aarch64, ignore piwheels via a temporary installer-only pip config
+    # instead of mutating the host-wide /etc/pip.conf.
     if ! prepare_installer_pip_config; then
         echo -e "[$fail_format]"
         echo "Failed to prepare an installer-specific pip configuration override." | tee -a "$LOG_FILE"
@@ -1067,15 +1067,15 @@ function create_python_venv() {
 }
 
 # Prepare a temporary pip.conf override for the installer when the host-wide
-# config routes ARM installs through piwheels. This keeps custom indexes intact
-# while avoiding permanent edits to /etc/pip.conf.
+# config routes aarch64 installs through piwheels. This keeps custom indexes
+# intact while avoiding permanent edits to /etc/pip.conf.
 function prepare_installer_pip_config() {
     local pip_conf_source="${OVOS_INSTALLER_SYSTEM_PIP_CONFIG_FILE:-/etc/pip.conf}"
     local pip_conf_tmp=""
 
     cleanup_installer_pip_config
 
-    if [ "${ARCH:-}" != "aarch64" ] && [[ "${RASPBERRYPI_MODEL:-}" != *"Raspberry Pi 5"* ]]; then
+    if [ "${ARCH:-}" != "aarch64" ]; then
         return 0
     fi
 

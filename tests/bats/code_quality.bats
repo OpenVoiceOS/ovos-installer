@@ -1867,6 +1867,12 @@ function setup() {
 
     run grep -F -q "sed -e '/extra-index/ s/^#*/#/g' -i /etc/pip.conf" utils/common.sh
     assert_failure
+
+    run grep -F -q 'if [ "${ARCH:-}" != "aarch64" ]; then' utils/common.sh
+    assert_success
+
+    run grep -F -q 'RASPBERRYPI_MODEL:-}" != *"Raspberry Pi 5"*' utils/common.sh
+    assert_failure
 }
 
 @test "setup_downloads_yq_only_when_scenario_file_exists" {
