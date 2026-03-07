@@ -11,6 +11,9 @@ function usage() {
     echo
 }
 
+# shellcheck source=utils/llm_defaults.sh
+source "utils/llm_defaults.sh"
+
 # Parse command line arguments, handling both short and long options
 # We are not using getopts as it only handles short arguments
 # such as -v where this method handles short and long arguments
@@ -71,7 +74,10 @@ function handle_options() {
     export LLM_API_URL="${LLM_API_URL:-}"
     export LLM_API_KEY="${LLM_API_KEY:-}"
     export LLM_MODEL="${LLM_MODEL:-}"
-    export LLM_PERSONA="${LLM_PERSONA:-helpful, creative, clever, and very friendly.}"
+    export LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"
+    export LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-$LLM_DEFAULT_MAX_TOKENS}"
+    export LLM_TEMPERATURE="${LLM_TEMPERATURE:-$LLM_DEFAULT_TEMPERATURE}"
+    export LLM_TOP_P="${LLM_TOP_P:-$LLM_DEFAULT_TOP_P}"
     export OVOS_VENV_PYTHON="${OVOS_VENV_PYTHON:-3.11}"
     export HIVEMIND_HOST="${HIVEMIND_HOST:-}"
     export HIVEMIND_PORT="${HIVEMIND_PORT:-}"

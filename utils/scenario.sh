@@ -228,6 +228,15 @@ if [ -f "$SCENARIO_PATH" ]; then
                         persona)
                             export LLM_PERSONA="${llm[$llm_option]}"
                             ;;
+                        max_tokens)
+                            export LLM_MAX_TOKENS="${llm[$llm_option]}"
+                            ;;
+                        temperature)
+                            export LLM_TEMPERATURE="${llm[$llm_option]}"
+                            ;;
+                        top_p)
+                            export LLM_TOP_P="${llm[$llm_option]}"
+                            ;;
                         *)
                             export SCENARIO_NOT_SUPPORTED="true"
                             ;;

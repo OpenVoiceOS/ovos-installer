@@ -15,6 +15,9 @@ function setup() {
     INSTALLER_STATE_FILE="$(mktemp)"
     rm -f "$INSTALLER_STATE_FILE"
     WHIPTAIL_SPY_FILE="$(mktemp)"
+    WHIPTAIL_DIALOG_FILE="$(mktemp)"
+    WHIPTAIL_INPUT_QUEUE_FILE="$(mktemp)"
+    RUN_AS_HOME="$(mktemp -d)"
 
     export EXISTING_INSTANCE="false"
     export ARCH="x86_64"
@@ -24,12 +27,73 @@ function setup() {
 
     # Whiptail spy values (written from subshells via $WHIPTAIL_SPY_FILE)
     WHIPTAIL_FORCE_SELECTION=""
+    WHIPTAIL_FORCE_YESNO_STATUS="0"
     printf '%s\n' "list_height=0" "option_count=0" "tags=" >"$WHIPTAIL_SPY_FILE"
+    : >"$WHIPTAIL_DIALOG_FILE"
+    : >"$WHIPTAIL_INPUT_QUEUE_FILE"
 
     # Minimal whiptail stub that validates list arguments and returns a selection.
     whiptail() {
         local args=("$@")
         local j k
+        local dialog_type=""
+        local dialog_title=""
+
+        for ((j = 0; j < ${#args[@]}; j++)); do
+            case "${args[$j]}" in
+                --inputbox|--passwordbox|--yesno|--msgbox|--checklist|--radiolist)
+                    dialog_type="${args[$j]}"
+                    ;;
+                --title)
+                    dialog_title="${args[$((j + 1))]}"
+                    ;;
+            esac
+        done
+
+        case "$dialog_type" in
+            --inputbox)
+                local default_value="${args[$(( ${#args[@]} - 1 ))]}"
+                local response="$default_value"
+                if whiptail_queue_has_response; then
+                    response="$(whiptail_dequeue_response)"
+                fi
+                case "$response" in
+                    __DEFAULT__)
+                        response="$default_value"
+                        ;;
+                    __EMPTY__)
+                        response=""
+                        ;;
+                esac
+                printf '%s\t%s\t%s\t%s\t%s\n' "inputbox" "$dialog_title" "$default_value" "$response" "0" >>"$WHIPTAIL_DIALOG_FILE"
+                printf '%s\n' "$response" >&2
+                return 0
+                ;;
+            --passwordbox)
+                local response=""
+                if whiptail_queue_has_response; then
+                    response="$(whiptail_dequeue_response)"
+                fi
+                case "$response" in
+                    __EMPTY__)
+                        response=""
+                        ;;
+                esac
+                printf '%s\t%s\t%s\t%s\t%s\n' "passwordbox" "$dialog_title" "" "<redacted>" "0" >>"$WHIPTAIL_DIALOG_FILE"
+                printf '%s\n' "$response" >&2
+                return 0
+                ;;
+            --yesno)
+                printf '%s\t%s\t%s\t%s\t%s\n' "yesno" "$dialog_title" "" "" "$WHIPTAIL_FORCE_YESNO_STATUS" >>"$WHIPTAIL_DIALOG_FILE"
+                return "$WHIPTAIL_FORCE_YESNO_STATUS"
+                ;;
+            --msgbox)
+                local dialog_body="${args[$(( ${#args[@]} - 3 ))]}"
+                dialog_body="${dialog_body//$'\n'/\\n}"
+                printf '%s\t%s\t%s\t%s\t%s\n' "msgbox" "$dialog_title" "" "$dialog_body" "0" >>"$WHIPTAIL_DIALOG_FILE"
+                return 0
+                ;;
+        esac
 
         # Find the "height width list-height" triple that precedes (tag item status)*.
         for ((j = 0; j + 5 < ${#args[@]}; j++)); do
@@ -89,12 +153,62 @@ function setup() {
         # Non-list dialogs: succeed with no output.
         return 0
     }
-    export -f whiptail
+    export -f whiptail whiptail_queue_has_response whiptail_dequeue_response
 }
 
 function spy_value() {
     local key="$1"
     awk -F= -v k="$key" '$1==k {print $2; exit}' "$WHIPTAIL_SPY_FILE"
+}
+
+function whiptail_queue_has_response() {
+    [ -s "$WHIPTAIL_INPUT_QUEUE_FILE" ]
+}
+
+function whiptail_dequeue_response() {
+    local response
+    local queue_tmp
+
+    response="$(sed -n '1p' "$WHIPTAIL_INPUT_QUEUE_FILE")"
+    queue_tmp="$(mktemp)"
+    sed '1d' "$WHIPTAIL_INPUT_QUEUE_FILE" >"$queue_tmp"
+    mv -f "$queue_tmp" "$WHIPTAIL_INPUT_QUEUE_FILE"
+    printf '%s' "$response"
+}
+
+function queue_whiptail_response() {
+    printf '%s\n' "$1" >>"$WHIPTAIL_INPUT_QUEUE_FILE"
+}
+
+function dialog_value() {
+    local dialog_kind="$1"
+    local dialog_title="$2"
+    local field="$3"
+    local column=0
+
+    case "$field" in
+        default)
+            column=3
+            ;;
+        response)
+            column=4
+            ;;
+        status)
+            column=5
+            ;;
+        *)
+            echo "unsupported dialog field: $field" >&2
+            return 1
+            ;;
+    esac
+
+    awk -F '\t' -v kind="$dialog_kind" -v title="$dialog_title" -v col="$column" '
+        $1 == kind && $2 == title {value = $col}
+        END {
+            gsub(/\\n/, "\n", value)
+            print value
+        }
+    ' "$WHIPTAIL_DIALOG_FILE"
 }
 
 @test "channels: shows all options when navigating back in a new install" {
@@ -359,6 +473,217 @@ function spy_value() {
     assert_equal "$FEATURE_LLM" "true"
 }
 
+@test "llm: guided setup persists reply tuning values" {
+    METHOD="virtualenv"
+    queue_whiptail_response "https://llama.smartgic.io/v1"
+    queue_whiptail_response "sk-test"
+    queue_whiptail_response "qwen3-nothink:latest"
+    queue_whiptail_response "Respond in plain spoken English for a voice assistant. Keep replies concise."
+    queue_whiptail_response "300"
+    queue_whiptail_response "0.2"
+    queue_whiptail_response "0.1"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "true"
+    assert_equal "$LLM_API_URL" "https://llama.smartgic.io/v1"
+    assert_equal "$LLM_MODEL" "qwen3-nothink:latest"
+    assert_equal "$LLM_MAX_TOKENS" "300"
+    assert_equal "$LLM_TEMPERATURE" "0.2"
+    assert_equal "$LLM_TOP_P" "0.1"
+
+    run jq -r '"\(.llm.api_url)|\(.llm.model)|\(.llm.max_tokens|tostring)|\(.llm.temperature|tostring)|\(.llm.top_p|tostring)"' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "https://llama.smartgic.io/v1|qwen3-nothink:latest|300|0.2|0.1"
+}
+
+@test "llm: invalid url shows the URL-specific validation message" {
+    METHOD="virtualenv"
+    queue_whiptail_response "invalid://url"
+    queue_whiptail_response "https://llama.smartgic.io/v1"
+    queue_whiptail_response "sk-test"
+    queue_whiptail_response "qwen3-nothink:latest"
+    queue_whiptail_response "Respond in plain spoken English for a voice assistant. Keep replies concise."
+    queue_whiptail_response "300"
+    queue_whiptail_response "0.2"
+    queue_whiptail_response "0.1"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    local invalid_message
+    invalid_message="$(dialog_value msgbox "$LLM_TITLE_INVALID" response)"
+
+    assert_equal "$FEATURE_LLM" "true"
+    [[ "$invalid_message" == *"Invalid URL."* ]]
+    [[ "$invalid_message" == *"Please provide a valid OpenAI-compatible API URL."* ]]
+}
+
+@test "llm: restores persisted defaults for reply tuning prompts" {
+    printf '%s\n' '{"llm":{"api_url":"https://llama.smartgic.io/v1","model":"qwen3-nothink:latest","persona":"Respond briefly and clearly.","max_tokens":"450","temperature":"0.4","top_p":"0.7"}}' >"$INSTALLER_STATE_FILE"
+    METHOD="virtualenv"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "sk-from-state"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "true"
+    assert_equal "$LLM_API_URL" "https://llama.smartgic.io/v1"
+    assert_equal "$LLM_MODEL" "qwen3-nothink:latest"
+    assert_equal "$LLM_PERSONA" "Respond briefly and clearly."
+    assert_equal "$LLM_MAX_TOKENS" "450"
+    assert_equal "$LLM_TEMPERATURE" "0.4"
+    assert_equal "$LLM_TOP_P" "0.7"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_URL" default)" "https://llama.smartgic.io/v1"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_MODEL" default)" "qwen3-nothink:latest"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_PERSONA" default)" "Respond briefly and clearly."
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_MAX_TOKENS" default)" "450"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TEMPERATURE" default)" "0.4"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TOP_P" default)" "0.7"
+}
+
+@test "llm: keeping an existing persona profile also restores tuning values" {
+    mkdir -p "$RUN_AS_HOME/.config/ovos_persona"
+    cat <<'EOF' >"$RUN_AS_HOME/.config/ovos_persona/ovos-installer-llm.json"
+{
+  "name": "OVOS Installer LLM",
+  "ovos-solver-openai-plugin": {
+    "api_url": "https://llama.smartgic.io/v1",
+    "key": "sk-existing",
+    "model": "qwen3-nothink:latest",
+    "system_prompt": "Respond in plain spoken English.",
+    "max_tokens": 320,
+    "temperature": 0.2,
+    "top_p": 0.1
+  },
+  "solvers": [
+    "ovos-solver-openai-plugin"
+  ]
+}
+EOF
+    METHOD="virtualenv"
+    WHIPTAIL_FORCE_YESNO_STATUS="0"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "true"
+    assert_equal "$LLM_API_URL" "https://llama.smartgic.io/v1"
+    assert_equal "$LLM_MODEL" "qwen3-nothink:latest"
+    assert_equal "$LLM_PERSONA" "Respond in plain spoken English."
+    assert_equal "$LLM_MAX_TOKENS" "320"
+    assert_equal "$LLM_TEMPERATURE" "0.2"
+    assert_equal "$LLM_TOP_P" "0.1"
+    assert_equal "$(dialog_value yesno "$LLM_TITLE_EXISTING" status)" "0"
+
+    run jq -r '"\(.llm.api_url)|\(.llm.model)|\(.llm.max_tokens|tostring)|\(.llm.temperature|tostring)|\(.llm.top_p|tostring)"' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "https://llama.smartgic.io/v1|qwen3-nothink:latest|320|0.2|0.1"
+}
+
+@test "llm: invalid preseeded tuning values fall back to validated prompt defaults" {
+    METHOD="virtualenv"
+    LLM_API_URL="https://llama.smartgic.io/v1"
+    LLM_API_KEY="sk-preseeded"
+    LLM_MODEL="qwen3-nothink:latest"
+    LLM_PERSONA="Respond briefly and clearly."
+    LLM_MAX_TOKENS="not-a-number"
+    LLM_TEMPERATURE="3"
+    LLM_TOP_P="2"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "sk-preseeded"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "true"
+    assert_equal "$LLM_MAX_TOKENS" "300"
+    assert_equal "$LLM_TEMPERATURE" "0.2"
+    assert_equal "$LLM_TOP_P" "0.1"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_URL" default)" "https://llama.smartgic.io/v1"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_MAX_TOKENS" default)" "300"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TEMPERATURE" default)" "0.2"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TOP_P" default)" "0.1"
+}
+
+@test "llm: invalid existing tuning values skip fast keep-existing flow" {
+    mkdir -p "$RUN_AS_HOME/.config/ovos_persona"
+    cat <<'EOF' >"$RUN_AS_HOME/.config/ovos_persona/ovos-installer-llm.json"
+{
+  "name": "OVOS Installer LLM",
+  "ovos-solver-openai-plugin": {
+    "api_url": "https://llama.smartgic.io/v1",
+    "key": "sk-existing",
+    "model": "qwen3-nothink:latest",
+    "system_prompt": "Respond in plain spoken English.",
+    "max_tokens": "bad",
+    "temperature": 3,
+    "top_p": 2
+  },
+  "solvers": [
+    "ovos-solver-openai-plugin"
+  ]
+}
+EOF
+    METHOD="virtualenv"
+    WHIPTAIL_FORCE_YESNO_STATUS="0"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "sk-existing"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "true"
+    assert_equal "$LLM_MAX_TOKENS" "300"
+    assert_equal "$LLM_TEMPERATURE" "0.2"
+    assert_equal "$LLM_TOP_P" "0.1"
+    assert_equal "$(dialog_value yesno "$LLM_TITLE_EXISTING" status)" ""
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_MAX_TOKENS" default)" "300"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TEMPERATURE" default)" "0.2"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TOP_P" default)" "0.1"
+}
+
+@test "llm: invalid persisted tuning defaults are sanitized before prompts" {
+    printf '%s\n' '{"llm":{"api_url":"https://llama.smartgic.io/v1","model":"qwen3-nothink:latest","persona":"Respond briefly and clearly.","max_tokens":"bad","temperature":"3","top_p":"2"}}' >"$INSTALLER_STATE_FILE"
+    METHOD="virtualenv"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "sk-from-state"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "true"
+    assert_equal "$LLM_MAX_TOKENS" "300"
+    assert_equal "$LLM_TEMPERATURE" "0.2"
+    assert_equal "$LLM_TOP_P" "0.1"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_MAX_TOKENS" default)" "300"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TEMPERATURE" default)" "0.2"
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_TOP_P" default)" "0.1"
+    assert_equal "$(dialog_value msgbox "$LLM_TITLE_INVALID" response)" ""
+}
+
 @test "tuning: radiolist is well-formed (list-height >= 1, options present)" {
     WHIPTAIL_FORCE_SELECTION="no"
 
@@ -412,5 +737,5 @@ function spy_value() {
 }
 
 function teardown() {
-    rm -f "$LOG_FILE" "$INSTALLER_STATE_FILE" "$WHIPTAIL_SPY_FILE"
+    rm -rf "$LOG_FILE" "$INSTALLER_STATE_FILE" "$WHIPTAIL_SPY_FILE" "$WHIPTAIL_DIALOG_FILE" "$WHIPTAIL_INPUT_QUEUE_FILE" "$RUN_AS_HOME"
 }

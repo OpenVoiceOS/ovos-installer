@@ -129,6 +129,9 @@
     _ovos_persona_file: "{{ _ovos_persona_path }}/ovos-installer-llm.json"
     _ovos_llm_persona_name: "{{ ovos_installer_llm_persona_name | default('OVOS Installer LLM') | trim }}"
     _ovos_llm_model: "{{ ovos_installer_llm_model | default('') | trim }}"
+    _ovos_llm_max_tokens: "{{ ovos_installer_llm_max_tokens | default(300, true) | string | trim | int }}"
+    _ovos_llm_temperature: "{{ ovos_installer_llm_temperature | default(0.2) | string | trim | float }}"
+    _ovos_llm_top_p: "{{ ovos_installer_llm_top_p | default(0.1) | string | trim | float }}"
   when:
     - ovos_installer_feature_llm | default(false) | bool
     - ovos_installer_method in ["virtualenv", "containers"]
@@ -164,7 +167,10 @@
                   "api_url": ovos_installer_llm_api_url,
                   "key": ovos_installer_llm_api_key,
                   "model": _ovos_llm_model,
-                  "system_prompt": ovos_installer_llm_persona
+                  "system_prompt": ovos_installer_llm_persona,
+                  "max_tokens": _ovos_llm_max_tokens,
+                  "temperature": _ovos_llm_temperature,
+                  "top_p": _ovos_llm_top_p
                 }
               } | to_nice_json
           }}

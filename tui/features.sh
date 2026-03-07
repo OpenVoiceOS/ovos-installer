@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck source=tui/locales/en-us/features.sh
 source "tui/locales/$LOCALE/features.sh"
+# shellcheck source=utils/llm_defaults.sh
+source "utils/llm_defaults.sh"
 
 export FEATURE_SKILLS="false"
 export FEATURE_EXTRA_SKILLS="false"
@@ -9,7 +11,7 @@ export FEATURE_HOMEASSISTANT="false"
 export FEATURE_LLM="false"
 export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
 export LLM_API_URL="${LLM_API_URL:-}"
-export LLM_PERSONA="${LLM_PERSONA:-helpful, creative, clever, and very friendly.}"
+export LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"
 
 _mark2_or_devkit_detected="false"
 _gui_supported="false"
@@ -60,7 +62,7 @@ if [ "${_ha_supported}" == "true" ]; then
   features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
 fi
 if [ "${_llm_supported}" == "true" ]; then
-  features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + model + persona)}" "OFF")
+  features+=("llm" "${LLM_DESCRIPTION:-Enable AI conversation fallback for OVOS Persona (guided setup for URL, key, model, style, and reply tuning)}" "OFF")
 fi
 
 if [ -f "$INSTALLER_STATE_FILE" ] && \
@@ -106,9 +108,9 @@ if [ -f "$INSTALLER_STATE_FILE" ] && \
   fi
   if [ "${_llm_supported}" == "true" ]; then
     if jq -e '.features|any(. == "llm")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
-      features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + model + persona)}" "ON")
+      features+=("llm" "${LLM_DESCRIPTION:-Enable AI conversation fallback for OVOS Persona (guided setup for URL, key, model, style, and reply tuning)}" "ON")
     else
-      features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + model + persona)}" "OFF")
+      features+=("llm" "${LLM_DESCRIPTION:-Enable AI conversation fallback for OVOS Persona (guided setup for URL, key, model, style, and reply tuning)}" "OFF")
     fi
   fi
 fi
@@ -127,7 +129,7 @@ if [ "${#features[@]}" -lt 3 ] || [ $(( ${#features[@]} % 3 )) -ne 0 ]; then
     features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
   fi
   if [ "${_llm_supported}" == "true" ]; then
-    features+=("llm" "${LLM_DESCRIPTION:-Enable OVOS Persona LLM fallback (requires API URL + key + model + persona)}" "OFF")
+    features+=("llm" "${LLM_DESCRIPTION:-Enable AI conversation fallback for OVOS Persona (guided setup for URL, key, model, style, and reply tuning)}" "OFF")
   fi
 fi
 
