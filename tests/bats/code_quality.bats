@@ -2095,6 +2095,52 @@ function setup() {
     assert_success
 }
 
+@test "services_user_scope_operations_export_user_bus_environment" {
+    local systemd_file="ansible/roles/ovos_services/tasks/systemd.yml"
+    local uninstall_file="ansible/roles/ovos_services/tasks/uninstall.yml"
+
+    run grep -q "ovos_services_user_bus_environment" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "Ensure systemd user runtime is available" "$systemd_file"
+    assert_success
+
+    run grep -q "systemd-user-runtime.yml" "$uninstall_file"
+    assert_success
+
+    run grep -q 'environment: "{{ ovos_services_user_bus_environment }}"' ansible/roles/ovos_services/handlers/main.yml
+    assert_success
+
+    run grep -q 'environment: "{{ ovos_services_user_bus_environment }}"' ansible/roles/ovos_services/handlers/block-sound.yml
+    assert_success
+
+    run grep -q 'environment: "{{ ovos_services_user_bus_environment }}"' "$systemd_file"
+    assert_success
+
+    run grep -q 'environment: "{{ ovos_services_user_bus_environment }}"' "$uninstall_file"
+    assert_success
+}
+
+@test "services_user_runtime_setup_precedes_user_scope_cleanup_and_uninstall_skips_linger_changes" {
+    local systemd_file="ansible/roles/ovos_services/tasks/systemd.yml"
+    local uninstall_file="ansible/roles/ovos_services/tasks/uninstall.yml"
+
+    run bash -c 'runtime_line=$(grep -n "systemd-user-runtime.yml" "$1" | head -n1 | cut -d: -f1); cleanup_line=$(grep -n "Stop and disable OVOS user units from previous installs" "$1" | head -n1 | cut -d: -f1); [ -n "$runtime_line" ] && [ -n "$cleanup_line" ] && [ "$runtime_line" -lt "$cleanup_line" ]' _ "$systemd_file"
+    assert_success
+
+    run grep -q "ovos_services_manage_linger: false" "$uninstall_file"
+    assert_success
+
+    run grep -q "show-user" "$uninstall_file"
+    assert_failure
+
+    run grep -q "Disable lingering if uninstall enabled it temporarily" "$uninstall_file"
+    assert_failure
+
+    run grep -q "ovos_services_disable_linger_cmd" ansible/roles/ovos_services/defaults/main.yml
+    assert_failure
+}
+
 @test "services_uninstall_removes_requested_runtime_artifacts" {
     local defaults_file="ansible/roles/ovos_services/defaults/main.yml"
 

@@ -1,0 +1,19 @@
+---
+- name: Enable lingering for {{ ovos_installer_user }}
+  ansible.builtin.command: "{{ ovos_services_enable_linger_cmd }}"
+  changed_when: false
+  failed_when: false
+  when: ovos_services_manage_linger | default(true) | bool
+
+- name: Ensure /run/user exists for {{ ovos_installer_uid }}
+  ansible.builtin.file:
+    path: "{{ ovos_services_user_runtime_dir }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "{{ ovos_services_user_runtime_mode }}"
+
+- name: Ensure user systemd instance is running
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_services_user_systemd_unit }}"
+    state: started

@@ -7,6 +7,7 @@
   listen: Restart OVOS services
   become: true
   become_user: "{{ ovos_installer_user }}"
+  environment: "{{ ovos_services_user_bus_environment }}"
   ansible.builtin.systemd_service:
     name: ovos.service
     scope: user
@@ -77,6 +78,7 @@
     - Restart WirePlumber
   become: true
   become_user: "{{ ovos_installer_user }}"
+  environment: "{{ ovos_services_user_bus_environment }}"
   ansible.builtin.systemd_service:
     name: wireplumber
     scope: user
@@ -92,6 +94,7 @@
   listen: Restart PipeWire
   become: true
   become_user: "{{ ovos_installer_user }}"
+  environment: "{{ ovos_services_user_bus_environment }}"
   ansible.builtin.systemd_service:
     name: pipewire
     scope: user
@@ -106,6 +109,7 @@
 - name: Reload Systemd User
   become: true
   become_user: "{{ ovos_installer_user }}"
+  environment: "{{ ovos_services_user_bus_environment }}"
   ansible.builtin.systemd_service:
     daemon_reload: true
     scope: user
