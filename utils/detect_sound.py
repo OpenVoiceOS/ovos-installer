@@ -2,15 +2,20 @@ import os
 import platform
 import shutil
 import subprocess
+import sys
 
 
-def get_process_names():
-    """Return a set of running process names."""
+def get_process_names(username=None):
+    """Return a set of running process names for the target user."""
     try:
         pgrep_bin = shutil.which("pgrep")
         if not pgrep_bin:
             return set()
-        output = subprocess.check_output([pgrep_bin, "-a", "."], text=True).splitlines()
+        command = [pgrep_bin]
+        if username:
+            command.extend(["-u", username])
+        command.extend(["-a", "."])
+        output = subprocess.check_output(command, text=True).splitlines()
         processes = set()
         for line in output:
             parts = line.split(" ", 1)
@@ -22,13 +27,13 @@ def get_process_names():
         return set()
 
 
-def detect_sound_server():
-    """Detect the active sound server."""
+def detect_sound_server(username=None):
+    """Detect the active sound server for the target user/session."""
     if platform.system() == "Darwin":
         # macOS uses CoreAudio as the native audio stack.
         return "CoreAudio"
 
-    processes = get_process_names()
+    processes = get_process_names(username)
 
     has_pipewire = "pipewire" in processes
     has_pipewire_pulse = "pipewire-pulse" in processes
@@ -44,4 +49,4 @@ def detect_sound_server():
 
 
 if __name__ == "__main__":
-    print(detect_sound_server())
+    print(detect_sound_server(sys.argv[1] if len(sys.argv) > 1 else None))

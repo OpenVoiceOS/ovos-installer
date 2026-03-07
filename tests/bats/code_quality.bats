@@ -59,6 +59,9 @@ function setup() {
 
     run grep -q "shutil.which(\"pgrep\")" utils/detect_sound.py
     assert_success
+
+    run grep -F -q 'command.extend(["-u", username])' utils/detect_sound.py
+    assert_success
 }
 
 @test "printf_migration_required_packages" {

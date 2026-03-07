@@ -83,6 +83,28 @@ function setup() {
     unset python3
 }
 
+@test "function_detect_sound_scopes_helper_to_run_as_user" {
+    local python_args_file
+    python_args_file="$(mktemp /tmp/ovos-detect-sound-args.XXXXXX)"
+
+    function python3() {
+        printf '%s\n' "$*" >"$python_args_file"
+        echo "PipeWire"
+    }
+    export -f python3
+
+    touch "utils/detect_sound.py"
+
+    detect_sound
+    assert_equal "$SOUND_SERVER" "PipeWire"
+
+    run grep -q "utils/detect_sound.py testuser" "$python_args_file"
+    assert_success
+
+    rm -f "$python_args_file" "utils/detect_sound.py"
+    unset python3
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
     if [ -n "$DETECT_SOUND_BACKUP" ]; then
