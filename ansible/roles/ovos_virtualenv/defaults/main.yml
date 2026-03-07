@@ -29,10 +29,19 @@ ovos_virtualenv_uv_cache_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv
 ovos_virtualenv_uv_exec_path: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_virtualenv_installer_venv_path }}/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ovos_virtualenv_uv_install_retries: "{{ ovos_installer_uv_install_retries | default(3) }}"
 ovos_virtualenv_uv_install_delay: "{{ ovos_installer_uv_install_delay | default(2) }}"
-ovos_virtualenv_uv_environment:
-  HOME: "{{ ovos_installer_user_home }}"
-  PATH: "{{ ovos_virtualenv_uv_exec_path }}"
-  UV_CACHE_DIR: "{{ ovos_virtualenv_uv_cache_dir }}"
+ovos_virtualenv_uv_environment: >-
+  {{
+    {
+      'HOME': ovos_installer_user_home,
+      'PATH': ovos_virtualenv_uv_exec_path,
+      'UV_CACHE_DIR': ovos_virtualenv_uv_cache_dir
+    }
+    | combine(
+        {'PIP_CONFIG_FILE': ovos_installer_pip_config_file}
+        if (ovos_installer_pip_config_file | default('') | length > 0)
+        else {}
+      )
+  }}
 ovos_virtualenv_constraints_url: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
 ovos_virtualenv_constraints_path: "{{ ovos_virtualenv_tmp_dir }}/constraints-{{ ovos_installer_channel }}.txt"
 ovos_virtualenv_constraints_refresh_interval: "{{ ovos_installer_constraints_refresh_interval | default(21600) }}"

@@ -528,7 +528,7 @@ function setup() {
     run grep -q "ovos_virtualenv_uv_environment" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
-    run grep -q "UV_CACHE_DIR: \"{{ ovos_virtualenv_uv_cache_dir }}\"" ansible/roles/ovos_virtualenv/defaults/main.yml
+    run grep -q "'UV_CACHE_DIR': ovos_virtualenv_uv_cache_dir" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
     run grep -q "Ensure dedicated uv cache directory exists" ansible/roles/ovos_virtualenv/tasks/venv.yml
@@ -586,7 +586,7 @@ function setup() {
     run grep -q "/opt/homebrew/bin:/usr/local/bin" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
-    run grep -q "PATH: \"{{ ovos_virtualenv_uv_exec_path }}\"" ansible/roles/ovos_virtualenv/defaults/main.yml
+    run grep -q "'PATH': ovos_virtualenv_uv_exec_path" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 }
 
@@ -1873,6 +1873,29 @@ function setup() {
 
     run grep -F -q '$PIP_COMMAND install --upgrade pip setuptools' utils/common.sh
     assert_success
+}
+
+@test "installer_uses_temporary_pip_config_override_instead_of_mutating_etc_pip_conf" {
+    run grep -F -q "function prepare_installer_pip_config()" utils/common.sh
+    assert_success
+
+    run grep -F -q 'ovos_installer_pip_config_file=${PIP_CONFIG_FILE:-}' setup.sh
+    assert_success
+
+    run grep -q "PIP_CONFIG_FILE" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "Restore /etc/pip.conf configuration" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_failure
+
+    run grep -F -q "sed -e '/extra-index/ s/^#*/#/g' -i /etc/pip.conf" utils/common.sh
+    assert_failure
+
+    run grep -F -q 'if [ "${ARCH:-}" != "aarch64" ]; then' utils/common.sh
+    assert_success
+
+    run grep -F -q 'RASPBERRYPI_MODEL:-}" != *"Raspberry Pi 5"*' utils/common.sh
+    assert_failure
 }
 
 @test "setup_downloads_yq_only_when_scenario_file_exists" {

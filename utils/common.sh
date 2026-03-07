@@ -87,9 +87,25 @@ function cleanup_ha_extra_vars_file() {
     fi
 }
 
+# Remove the temporary installer-only pip configuration override when present.
+function cleanup_installer_pip_config() {
+    local pip_config_file="${OVOS_INSTALLER_PIP_CONFIG_FILE:-}"
+
+    if [ -n "$pip_config_file" ]; then
+        rm -f "$pip_config_file" 2>/dev/null || true
+    fi
+
+    if [ -n "$pip_config_file" ] && [ "${PIP_CONFIG_FILE:-}" == "$pip_config_file" ]; then
+        unset PIP_CONFIG_FILE
+    fi
+
+    unset OVOS_INSTALLER_PIP_CONFIG_FILE
+}
+
 # Consolidated runtime cleanup hook used by setup.sh EXIT/INT/TERM handling.
 function cleanup_installer_runtime() {
     cleanup_ha_extra_vars_file
+    cleanup_installer_pip_config
     release_installer_lock
 }
 
@@ -986,12 +1002,12 @@ function create_python_venv() {
         on_error
     fi
 
-    # Disable https://www.piwheels.org/simple when aarch64 CPU architecture
-    # or Raspberry Pi 5 board are detected.
-    if [ -f /etc/pip.conf ]; then
-        if [ "$ARCH" == "aarch64" ] || [[ "$RASPBERRYPI_MODEL" == *"Raspberry Pi 5"* ]]; then
-            sed -e '/extra-index/ s/^#*/#/g' -i /etc/pip.conf &>>"$LOG_FILE"
-        fi
+    # On aarch64, ignore piwheels via a temporary installer-only pip config
+    # instead of mutating the host-wide /etc/pip.conf.
+    if ! prepare_installer_pip_config; then
+        echo -e "[$fail_format]"
+        echo "Failed to prepare an installer-specific pip configuration override." | tee -a "$LOG_FILE"
+        exit "${EXIT_MISSING_DEPENDENCY}"
     fi
 
     if [ -d "$VENV_PATH" ]; then
@@ -1048,6 +1064,47 @@ function create_python_venv() {
     chown "$RUN_AS":"${RUN_AS_GROUP:-$RUN_AS}" "$VENV_PATH" "${RUN_AS_HOME}/.venvs" &>>"$LOG_FILE"
     unset -f ansible-galaxy pip3
     echo -e "[$done_format]"
+}
+
+# Prepare a temporary pip.conf override for the installer when the host-wide
+# config routes aarch64 installs through piwheels. This keeps custom indexes
+# intact while avoiding permanent edits to /etc/pip.conf.
+function prepare_installer_pip_config() {
+    local pip_conf_source="${OVOS_INSTALLER_SYSTEM_PIP_CONFIG_FILE:-/etc/pip.conf}"
+    local pip_conf_tmp=""
+
+    cleanup_installer_pip_config
+
+    if [ "${ARCH:-}" != "aarch64" ]; then
+        return 0
+    fi
+
+    if [ ! -f "$pip_conf_source" ]; then
+        return 0
+    fi
+
+    if ! grep -Eiq '^[[:space:]]*(extra-index|extra-index-url|index-url)[[:space:]]*=.*piwheels\.org' "$pip_conf_source"; then
+        return 0
+    fi
+
+    if ! pip_conf_tmp="$(mktemp "${TMPDIR:-/tmp}/ovos-installer-pip-config.XXXXXX" 2>>"$LOG_FILE")"; then
+        return 1
+    fi
+
+    if ! awk '
+        BEGIN { IGNORECASE = 1 }
+        /^[[:space:]]*#/ { print; next }
+        /^[[:space:]]*(extra-index|extra-index-url|index-url)[[:space:]]*=.*piwheels\.org/ { next }
+        { print }
+    ' "$pip_conf_source" >"$pip_conf_tmp"; then
+        rm -f "$pip_conf_tmp"
+        return 1
+    fi
+
+    export OVOS_INSTALLER_PIP_CONFIG_FILE="$pip_conf_tmp"
+    export PIP_CONFIG_FILE="$pip_conf_tmp"
+    printf '%s\n' "[info] Using installer-specific pip config without piwheels overrides: ${pip_conf_tmp}" >>"$LOG_FILE"
+    return 0
 }
 
 # Ensure temp directory has enough space for large wheel extraction.

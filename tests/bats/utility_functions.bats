@@ -151,6 +151,37 @@ EOF
     unset uname python3
 }
 
+@test "function_prepare_installer_pip_config_uses_temp_override_without_piwheels" {
+    local pip_conf
+    local pip_override
+    pip_conf="$(mktemp /tmp/ovos-pip-conf.XXXXXX)"
+    cat >"$pip_conf" <<'EOF'
+[global]
+extra-index-url = https://www.piwheels.org/simple
+extra-index-url = https://packages.example.invalid/simple
+EOF
+
+    ARCH="aarch64"
+    RASPBERRYPI_MODEL="N/A"
+    OVOS_INSTALLER_SYSTEM_PIP_CONFIG_FILE="$pip_conf"
+
+    prepare_installer_pip_config
+    pip_override="$PIP_CONFIG_FILE"
+
+    run test -f "$pip_override"
+    assert_success
+
+    run grep -q "piwheels.org" "$pip_override"
+    assert_failure
+
+    run grep -q "packages.example.invalid" "$pip_override"
+    assert_success
+
+    cleanup_installer_pip_config
+    rm -f "$pip_conf"
+    unset ARCH RASPBERRYPI_MODEL OVOS_INSTALLER_SYSTEM_PIP_CONFIG_FILE
+}
+
 # Test local variable usage
 @test "function_detect_sound_local_variables" {
     # Set required environment variables
@@ -225,5 +256,7 @@ function teardown() {
     else
         rm -f "utils/detect_sound.py"
     fi
+    cleanup_installer_pip_config
+    unset PIP_CONFIG_FILE OVOS_INSTALLER_PIP_CONFIG_FILE OVOS_INSTALLER_SYSTEM_PIP_CONFIG_FILE
     unset RUN_AS SOUND_SERVER CPU_IS_CAPABLE
 }

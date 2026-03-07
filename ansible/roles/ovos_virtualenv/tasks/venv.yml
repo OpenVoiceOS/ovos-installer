@@ -177,8 +177,15 @@
       {{ ovos_virtualenv_path }}/bin/python{{ ovos_virtualenv_venv_python }} -m pip install -U
       pip wheel
       "{{ ovos_virtualenv_setuptools_package }}"
-  environment:
-    HOME: "{{ ovos_installer_user_home }}"
+  environment: >-
+    {{
+      {'HOME': ovos_installer_user_home}
+      | combine(
+          {'PIP_CONFIG_FILE': ovos_installer_pip_config_file}
+          if (ovos_installer_pip_config_file | default('') | length > 0)
+          else {}
+        )
+    }}
   changed_when: false
   when:
     - not (ovos_virtualenv_is_cleaning | bool)
