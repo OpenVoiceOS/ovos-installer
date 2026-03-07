@@ -371,6 +371,46 @@ function spy_value() {
     assert_equal "$(spy_value list_height)" "4"
 }
 
+@test "tuning: persists confirmed tuning and overclock choices to installer state" {
+    WHIPTAIL_FORCE_SELECTION="yes"
+
+    # shellcheck source=tui/locales/en-us/tuning.sh
+    source tui/locales/en-us/tuning.sh
+    # shellcheck source=tui/tuning.sh
+    source tui/tuning.sh
+
+    run jq -r '.tuning + ":" + .tuning_overclock' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "yes:yes"
+}
+
+@test "tuning: restores persisted tuning choice as the default radiolist selection" {
+    printf '%s\n' '{"tuning":"no","tuning_overclock":"no"}' >"$INSTALLER_STATE_FILE"
+    WHIPTAIL_FORCE_SELECTION="no"
+
+    # shellcheck source=tui/locales/en-us/tuning.sh
+    source tui/locales/en-us/tuning.sh
+    # shellcheck source=tui/tuning.sh
+    source tui/tuning.sh
+
+    assert_equal "$(spy_value statuses)" "OFF ON"
+    assert_equal "$TUNING" "no"
+}
+
+@test "tuning: restores persisted overclock choice as the default radiolist selection" {
+    printf '%s\n' '{"tuning":"yes","tuning_overclock":"yes"}' >"$INSTALLER_STATE_FILE"
+    WHIPTAIL_FORCE_SELECTION="yes"
+
+    # shellcheck source=tui/locales/en-us/tuning.sh
+    source tui/locales/en-us/tuning.sh
+    # shellcheck source=tui/tuning.sh
+    source tui/tuning.sh
+
+    assert_equal "$(spy_value tags)" "yes no"
+    assert_equal "$(spy_value statuses)" "ON OFF"
+    assert_equal "$TUNING_OVERCLOCK" "yes"
+}
+
 function teardown() {
     rm -f "$LOG_FILE" "$INSTALLER_STATE_FILE" "$WHIPTAIL_SPY_FILE"
 }
