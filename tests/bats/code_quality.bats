@@ -2036,6 +2036,17 @@ function setup() {
     assert_success
 }
 
+@test "setup_disables_ansible_color_when_logging_through_tee" {
+    run grep -F -q "export ANSIBLE_NOCOLOR=true" setup.sh
+    assert_success
+
+    run grep -F -q "export ANSIBLE_FORCE_COLOR=true" setup.sh
+    assert_failure
+
+    run grep -F -q "export PY_COLORS=1" setup.sh
+    assert_failure
+}
+
 @test "common_defines_installer_lock_and_cleanup_helpers" {
     run grep -F -q "function acquire_installer_lock()" utils/common.sh
     assert_success

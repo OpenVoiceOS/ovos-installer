@@ -156,11 +156,11 @@ case "${DISTRO_NAME:-}" in
     ;;
 esac
 export ANSIBLE_NOCOWS=1
-if [ -t 1 ]; then
-  # ansible-playbook output is piped through tee, so force colors for interactive sessions.
-  export ANSIBLE_FORCE_COLOR=true
-  export PY_COLORS=1
-fi
+# ansible-playbook output is always piped through tee for logging, so keep it
+# plain text to avoid raw ANSI escapes in logs and pasted output.
+export ANSIBLE_NOCOLOR=true
+unset ANSIBLE_FORCE_COLOR || true
+unset PY_COLORS || true
 
 # Pass Home Assistant/LLM credentials via an extra-vars file
 # (avoids exposing secrets in the process list).
