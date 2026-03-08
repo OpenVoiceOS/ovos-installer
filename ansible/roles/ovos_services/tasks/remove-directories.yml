@@ -1,0 +1,6 @@
+---
+- name: Remove directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ ovos_services_remove_directories }}"
