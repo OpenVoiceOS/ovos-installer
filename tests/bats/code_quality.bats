@@ -1284,6 +1284,23 @@ function setup() {
     assert_failure
 }
 
+@test "mark2_boot_config_changes_flag_reboot" {
+    local touchscreen_file="ansible/roles/ovos_hardware_mark2/tasks/touchscreen.yml"
+    local vocalfusion_file="ansible/roles/ovos_hardware_mark2/tasks/vocalfusion.yml"
+
+    run bash -c "grep -A5 -F -- \"- name: Add rpi-backlight DT overlay\" \"$touchscreen_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Manage touchscreen, DevKit vs Mark II\" \"$touchscreen_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A15 -F -- \"- name: Copy DTBO files to boot overlays directory\" \"$vocalfusion_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Manage sj201, buttons and PWM overlays\" \"$vocalfusion_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+}
+
 @test "mark2_sj201_service_includes_sbin_in_runtime_path" {
     local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
     local service_file="ansible/roles/ovos_hardware_mark2/templates/sj201.service.j2"
@@ -1805,6 +1822,29 @@ function setup() {
     assert_success
 
     run grep -q "notify: Set Reboot" "$eeprom_file"
+    assert_success
+}
+
+@test "performance_tuning_boot_and_cmdline_changes_flag_reboot" {
+    local io_file="ansible/roles/ovos_performance_tuning/tasks/io.yml"
+    local numa_file="ansible/roles/ovos_performance_tuning/tasks/numa.yml"
+
+    run bash -c "grep -A8 -F -- \"- name: Manage I2C, SPI and I2S buses\" \"$io_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Disable USB Autosuspend (cmdline.txt)\" \"$io_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Apply CPU boost/voltage settings (config.txt)\" \"$io_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Apply CPU frequency overclock (config.txt)\" \"$io_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Apply GPU overclocking (config.txt)\" \"$io_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"- name: Enable NUMA for Raspberry Pi 4 & 5\" \"$numa_file\" | grep -q -- \"notify: Set Reboot\""
     assert_success
 }
 

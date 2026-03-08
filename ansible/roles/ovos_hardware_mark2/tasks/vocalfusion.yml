@@ -41,6 +41,7 @@
     mode: "0755"
     remote_src: true
   loop: "{{ ovos_hardware_mark2_vocalfusion_dtbo_overlays }}"
+  notify: Set Reboot
 
 - name: Manage sj201, buttons and PWM overlays
   ansible.builtin.lineinfile:
@@ -51,6 +52,7 @@
          if (ovos_hardware_mark2_pi5_model_match | default('')) in (ovos_installer_raspberrypi | default(''))
          else '' }}
   loop: "{{ ovos_hardware_mark2_vocalfusion_dtbo_overlays | map('regex_replace', '^', 'dtoverlay=') | list }}"
+  notify: Set Reboot
 
 - name: Build vocalfusion-soundcard.ko kernel module
   ansible.builtin.shell:
