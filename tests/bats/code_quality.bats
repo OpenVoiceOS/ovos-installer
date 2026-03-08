@@ -1811,6 +1811,29 @@ function setup() {
     assert_success
 }
 
+@test "performance_tuning_boot_and_cmdline_changes_flag_reboot" {
+    local io_file="ansible/roles/ovos_performance_tuning/tasks/io.yml"
+    local numa_file="ansible/roles/ovos_performance_tuning/tasks/numa.yml"
+
+    run bash -c "grep -A8 -F -- \"- name: Manage I2C, SPI and I2S buses\" \"$io_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Disable USB Autosuspend (cmdline.txt)\" \"$io_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Apply CPU boost/voltage settings (config.txt)\" \"$io_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Apply CPU frequency overclock (config.txt)\" \"$io_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Apply GPU overclocking (config.txt)\" \"$io_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"- name: Enable NUMA for Raspberry Pi 4 & 5\" \"$numa_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+}
+
 @test "services_asserts_messagebus_binary_before_starting_services" {
     run grep -q "Check OVOS messagebus binary exists" ansible/roles/ovos_services/tasks/assert.yml
     assert_success
