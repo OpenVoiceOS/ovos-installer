@@ -844,6 +844,9 @@ function setup() {
     run bash -c "grep -A4 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"tasks_from: remove-directories.yml\""
     assert_success
 
+    run bash -c 'remove_line=$(grep -n -F -- "- name: Remove OVOS service directories after tuning cleanup" "$1" | head -n1 | cut -d: -f1); autoremove_line=$(grep -n -F -- "- name: Autoremove orphaned packages (Debian/Zorin)" "$1" | head -n1 | cut -d: -f1); [ -n "$remove_line" ] && [ -n "$autoremove_line" ] && [ "$remove_line" -lt "$autoremove_line" ]' _ "$uninstall_file"
+    assert_success
+
     run grep -F -q 'loop: "{{ ovos_services_remove_directories }}"' "$services_uninstall_file"
     assert_failure
 }
