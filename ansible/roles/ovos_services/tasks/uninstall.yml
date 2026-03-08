@@ -122,9 +122,3 @@
 
 - name: Flush handlers ovos (uninstall)
   ansible.builtin.meta: flush_handlers
-
-- name: Remove directories
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  loop: "{{ ovos_services_remove_directories }}"

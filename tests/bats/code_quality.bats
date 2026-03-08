@@ -837,6 +837,20 @@ function setup() {
     assert_success
 }
 
+@test "installer_removes_service_directories_after_tuning_cleanup" {
+    local uninstall_file="ansible/roles/ovos_installer/tasks/uninstall.yml"
+    local services_uninstall_file="ansible/roles/ovos_services/tasks/uninstall.yml"
+
+    run bash -c "grep -A4 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"tasks_from: remove-directories.yml\""
+    assert_success
+
+    run bash -c 'remove_line=$(grep -n -F -- "- name: Remove OVOS service directories after tuning cleanup" "$1" | head -n1 | cut -d: -f1); autoremove_line=$(grep -n -F -- "- name: Autoremove orphaned packages (Debian/Zorin)" "$1" | head -n1 | cut -d: -f1); [ -n "$remove_line" ] && [ -n "$autoremove_line" ] && [ "$remove_line" -lt "$autoremove_line" ]' _ "$uninstall_file"
+    assert_success
+
+    run grep -F -q 'loop: "{{ ovos_services_remove_directories }}"' "$services_uninstall_file"
+    assert_failure
+}
+
 @test "virtualenv_gui_core_requirements_use_installable_package_name" {
     local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
 
