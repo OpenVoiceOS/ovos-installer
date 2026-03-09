@@ -5,8 +5,8 @@ Bijna klaar. Een korte samenvatting:
     - Omgeving: $METHOD
     - Versie:   $CHANNEL
     - Profiel:  $PROFILE
-    - Skills:   $FEATURE_SKILLS
-    - Tuning:   $TUNING
+    - Skills:   $FEATURE_SKILLS_SUMMARY_STATE
+    - Tuning:   $TUNING_SUMMARY_STATE
 
 De beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.
 

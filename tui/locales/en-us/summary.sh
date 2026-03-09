@@ -27,11 +27,11 @@ You are almost done, here is a summary of choices you made to install Open Voice
     - Method:   $METHOD
     - Version:  $CHANNEL
     - Profile:  $PROFILE
-    - Skills:   $FEATURE_SKILLS
-    - Extra:    $FEATURE_EXTRA_SKILLS
+    - Skills:   $FEATURE_SKILLS_SUMMARY_STATE
+    - Extra:    $FEATURE_EXTRA_SKILLS_SUMMARY_STATE
     - HA:       $HOMEASSISTANT_SUMMARY_STATE
     - LLM:      $LLM_SUMMARY_STATE
-    - Tuning:   $TUNING
+    - Tuning:   $TUNING_SUMMARY_STATE
 
 The choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.
 

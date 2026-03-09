@@ -96,6 +96,34 @@ function setup() {
     done
 }
 
+@test "locales_summary_scripts_are_sourceable" {
+    for f in tui/locales/*/summary.sh; do
+        run bash -euc "
+            METHOD='virtualenv'
+            CHANNEL='alpha'
+            PROFILE='ovos'
+            FEATURE_SKILLS_SUMMARY_STATE='enabled'
+            FEATURE_EXTRA_SKILLS_SUMMARY_STATE='disabled'
+            HOMEASSISTANT_SUMMARY_STATE='enabled'
+            LLM_SUMMARY_STATE='enabled'
+            TUNING_SUMMARY_STATE='enabled'
+            BACK_BUTTON='Back'
+            source '$f'
+            test -n \"\$TITLE\"
+            test -n \"\$CONTENT\"
+            printf '%s\n' \"\$CONTENT\"
+        "
+
+        if [ "$status" -ne 0 ]; then
+            echo \"Failed to source $f\" >&2
+            echo \"$output\" >&2
+            return 1
+        fi
+
+        assert_output --partial "virtualenv"
+    done
+}
+
 @test "locales_llm_model_strings_are_localized_outside_en_us" {
     for f in tui/locales/*/llm.sh; do
         if [ "$f" = "tui/locales/en-us/llm.sh" ]; then

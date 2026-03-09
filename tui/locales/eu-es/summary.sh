@@ -5,8 +5,8 @@ Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren labur
     - Metodoa: $METHOD
     - Bertsioa: $CHANNEL
     - Profila: $PROFILE
-    - Trebetasunak: $FEATURE_SKILLS
-    - Afinazioa: $TUNING
+    - Trebetasunak: $FEATURE_SKILLS_SUMMARY_STATE
+    - Afinazioa: $TUNING_SUMMARY_STATE
 
 Open Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.
 

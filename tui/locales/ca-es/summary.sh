@@ -5,8 +5,8 @@ Gairebé heu acabat, aquí teniu un resum de les opcions que heu triat en instal
     - Mètode: $METHOD
     - Versió: $CHANNEL
     - Perfil: $PROFILE
-    - Habilitats: $FEATURE_SKILLS
-    - Afinació: $TUNING
+    - Habilitats: $FEATURE_SKILLS_SUMMARY_STATE
+    - Afinació: $TUNING_SUMMARY_STATE
 
 Les opcions seleccionades durant el procés d'instal·lació de l'Open Voice OS s'han considerat acuradament per a adaptar el nostre sistema a les vostres necessitats i preferències úniques.
 

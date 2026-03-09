@@ -5,8 +5,8 @@ CONTENT="
 - Method: $METHOD
 - Version: $CHANNEL
 - Profile: $PROFILE
-- Skills: $FEATURE_SKILLS
-- Tuning: $TUNING
+- Skills: $FEATURE_SKILLS_SUMMARY_STATE
+- Tuning: $TUNING_SUMMARY_STATE
 
 Las decisiones que has tomado durante el proceso de instalación de Open Voice OS han sido cuidadosamente consideradas para adaptar el sistema a tus necesidades y preferencias.
 
