@@ -19,6 +19,7 @@ function log_error() {
     printf '%s\n' "$*" >&2
 }
 
+# Strip ANSI escape sequences from a stream before writing to plain-text logs.
 function strip_ansi_stream() {
     if command -v perl >/dev/null 2>&1; then
         perl -pe 's/\e\[[0-9;?]*[ -\/]*[@-~]//g'
