@@ -35,7 +35,6 @@ ExecStartPre=/bin/bash -c 'for _ovos_retry in {1..30}; do [ -S /run/user/{{ ovos
 WorkingDirectory={{ ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' }}/.venvs/ovos
 ExecStart={{ ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' }}/.venvs/ovos/bin/ovos_PHAL
 ExecReload=/usr/bin/kill -s HUP $MAINPID
-ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec={{ '1s' if ovos_installer_tuning | default(false) | bool else '5s' }}
 

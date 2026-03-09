@@ -18,7 +18,6 @@ EnvironmentFile=-{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tu
 WorkingDirectory={{ _ovos_service_user_home }}/.venvs/ovos
 ExecStart={{ _ovos_service_user_home }}/.venvs/ovos/bin/ovos-dinkum-listener
 ExecReload=/usr/bin/kill -s HUP $MAINPID
-ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec={{ '1s' if ovos_installer_tuning | bool else '5s' }}
 TimeoutStartSec=5min
