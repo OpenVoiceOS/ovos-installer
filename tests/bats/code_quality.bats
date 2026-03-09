@@ -2094,7 +2094,7 @@ function setup() {
 }
 
 @test "setup_keeps_ansible_color_in_terminal_and_plain_text_in_logs" {
-    run grep -F -q "strip_ansi_stream()" setup.sh
+    run grep -F -q "function strip_ansi_stream()" utils/common.sh
     assert_success
 
     run grep -F -q "if [ -t 1 ]; then" setup.sh

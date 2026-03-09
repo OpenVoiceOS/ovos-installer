@@ -135,14 +135,6 @@ if [ "$EXISTING_INSTANCE" == "true" ]; then
   export SHARE_USAGE_TELEMETRY="false"
 fi
 
-strip_ansi_stream() {
-  if command -v perl >/dev/null 2>&1; then
-    perl -pe 's/\e\[[0-9;?]*[ -\/]*[@-~]//g'
-  else
-    sed -E $'s/\x1B\\[[0-9;?]*[ -/]*[@-~]//g'
-  fi
-}
-
 log_info "➤ Starting Ansible playbook... ☕🍵🧋"
 
 # Execute the Ansible playbook on localhost
