@@ -842,6 +842,9 @@ function setup() {
     run bash -c "grep -A4 -F -- \"- name: Include ovos_services role for uninstall pre-stop\" \"$file\" | grep -F -q -- \"handlers_from: noop\""
     assert_success
 
+    run test -f ansible/roles/ovos_services/handlers/noop.yml
+    assert_success
+
     run bash -c "grep -A6 -F -- \"- name: Include ovos_services role\" \"$file\" | grep -F -q -- \"not (ovos_installer_is_cleaning | bool)\""
     assert_success
 }
