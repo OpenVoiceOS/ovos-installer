@@ -809,25 +809,6 @@ function setup() {
     assert_failure
 }
 
-@test "mark2_gui_support_accepts_debian_family_trixie" {
-    local installer_assert_file="ansible/roles/ovos_installer/tasks/assert.yml"
-    local gui_tasks_file="ansible/roles/ovos_virtualenv/tasks/gui.yml"
-    local uninstall_file="ansible/roles/ovos_virtualenv/tasks/uninstall.yml"
-    local site_file="ansible/site.yml"
-
-    run grep -F -q -- "ansible_facts.os_family | default('') == 'Debian'" "$installer_assert_file"
-    assert_success
-
-    run grep -F -q -- "ansible_facts.os_family | default('') == \"Debian\"" "$gui_tasks_file"
-    assert_success
-
-    run grep -F -q -- "ansible_facts.os_family | default('') == \"Debian\"" "$uninstall_file"
-    assert_success
-
-    run grep -F -q -- "ansible_facts.os_family | default('') == \"Debian\"" "$site_file"
-    assert_success
-}
-
 @test "site_includes_shared_input_contract_role" {
     run grep -q "role: ovos_contract" ansible/site.yml
     assert_success

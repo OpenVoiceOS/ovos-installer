@@ -66,7 +66,7 @@
         - ovos_hardware_mark2
         - hardware
       when:
-        - ansible_facts.os_family | default('') == "Debian"
+        - ansible_facts.distribution == "Debian"
         - ansible_facts.distribution_major_version is version('11', '>=')
         - "'Raspberry Pi 4' in (ovos_installer_raspberrypi | default('')) or 'Raspberry Pi 5' in (ovos_installer_raspberrypi | default(''))"
         - "'tas5806' in ovos_installer_i2c_devices"

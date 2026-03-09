@@ -25,14 +25,14 @@ done
 if [[ "$_mark2_or_devkit_detected" == "true" ]] && \
   [[ "${PROFILE:-}" != "server" ]] && \
   [[ "${PROFILE:-}" != "satellite" ]] && \
-  [[ "${DISTRO_NAME:-}" =~ ^(debian|raspbian)$ ]] && \
+  [[ "${DISTRO_NAME:-}" == "debian" ]] && \
   { [[ "${DISTRO_VERSION_ID:-}" == 13* ]] || [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]; }; then
   _gui_supported="true"
   _gui_default_state="ON"
 fi
 _gui_description="${GUI_DESCRIPTION:-Enable OVOS GUI support}"
 if [ "${_gui_supported}" == "true" ]; then
-  _gui_description="${GUI_DESCRIPTION:-Enable OVOS GUI support (Mark II/DevKit on Debian or Raspberry Pi OS Trixie)}"
+  _gui_description="${GUI_DESCRIPTION:-Enable OVOS GUI support (Mark II/DevKit on Debian Trixie)}"
   if [ "${_gui_default_state}" == "ON" ]; then
     export FEATURE_GUI="true"
   fi

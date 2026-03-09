@@ -3,10 +3,10 @@
   ansible.builtin.assert:
     that:
       - ansible_facts.system == "Linux"
-      - ansible_facts.os_family | default('') == "Debian"
+      - ansible_facts.distribution == "Debian"
       - ansible_facts.distribution_major_version == "13"
       - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
-    fail_msg: "GUI build is only supported on Debian-family Trixie Mark II/DevKit."
+    fail_msg: "GUI build is only supported on Debian Trixie Mark II/DevKit."
 
 - name: Install package requirements for ovos-gui (Debian Trixie)
   ansible.builtin.apt:

@@ -54,7 +54,7 @@
     autoremove: true
   failed_when: false
   when:
-    - ansible_facts.os_family | default('') == "Debian"
+    - ansible_facts.distribution == "Debian"
     - ansible_facts.distribution_major_version == "13"
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
 
