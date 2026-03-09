@@ -30,6 +30,7 @@
 - name: Include ovos_services role for uninstall pre-stop
   ansible.builtin.include_role:
     name: ovos_services
+    handlers_from: noop
   when: ovos_installer_is_cleaning | bool
   tags:
     - ovos_services

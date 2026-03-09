@@ -1,0 +1,2 @@
+# Intentionally empty. The uninstall pre-stop role load must not register
+# the normal ovos_services handlers, or they shadow the install-time handlers.
