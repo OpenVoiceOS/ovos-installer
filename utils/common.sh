@@ -1552,9 +1552,10 @@ function is_mark2_detected() {
     is_mark2_or_devkit_detected && ! has_detected_device "attiny1614"
 }
 
-# Returns success when the host is Debian Trixie.
+# Returns success when the host is a Trixie-based Debian family system that is
+# valid for Mark II/DevKit support (Debian or Raspberry Pi OS).
 function is_debian_trixie() {
-    [ "${DISTRO_NAME:-unknown}" == "debian" ] && {
+    [[ "${DISTRO_NAME:-unknown}" =~ ^(debian|raspbian)$ ]] && {
         [[ "${DISTRO_VERSION_ID:-}" == 13* ]] || [[ "${DISTRO_VERSION:-}" =~ [Tt]rixie ]]
     }
 }
@@ -1581,7 +1582,7 @@ function enforce_mark2_devkit_gui_support() {
 
     if ! is_debian_trixie; then
         if [ "${FEATURE_GUI:-false}" != "false" ]; then
-            echo "Mark II/DevKit GUI is only supported on Debian Trixie. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
+            echo "Mark II/DevKit GUI is only supported on Debian or Raspberry Pi OS Trixie. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
         fi
         export FEATURE_GUI="false"
         return 0
@@ -1617,7 +1618,7 @@ function enforce_mark2_devkit_trixie_requirement() {
 
     if ! is_debian_trixie; then
         echo -e "[$fail_format]"
-        echo "Mark II/DevKit requires Debian Trixie (13). Detected ${DISTRO_NAME:-unknown} ${DISTRO_VERSION_ID:-unknown} (${DISTRO_VERSION:-unknown})." | tee -a "$LOG_FILE"
+        echo "Mark II/DevKit requires Debian or Raspberry Pi OS Trixie (13). Detected ${DISTRO_NAME:-unknown} ${DISTRO_VERSION_ID:-unknown} (${DISTRO_VERSION:-unknown})." | tee -a "$LOG_FILE"
         exit "${EXIT_OS_NOT_SUPPORTED}"
     fi
 }

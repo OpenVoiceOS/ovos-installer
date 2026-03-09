@@ -187,6 +187,16 @@ EOF
     assert_success
 }
 
+@test "function_enforce_mark2_devkit_trixie_requirement_accepts_raspbian_trixie" {
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_NAME="raspbian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Raspberry Pi OS 13 (trixie)"
+
+    run enforce_mark2_devkit_trixie_requirement
+    assert_success
+}
+
 @test "function_has_detected_device_handles_unset_detected_devices" {
     unset DETECTED_DEVICES
 
@@ -235,6 +245,17 @@ EOF
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    FEATURE_GUI="true"
+
+    enforce_mark2_devkit_gui_support
+    assert_equal "$FEATURE_GUI" "true"
+}
+
+@test "function_enforce_mark2_devkit_gui_support_preserves_feature_gui_on_supported_raspbian_trixie" {
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_NAME="raspbian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Raspberry Pi OS 13 (trixie)"
     FEATURE_GUI="true"
 
     enforce_mark2_devkit_gui_support
@@ -309,7 +330,7 @@ EOF
     run enforce_mark2_devkit_trixie_requirement
     assert_failure
     assert_equal "$status" "$EXIT_OS_NOT_SUPPORTED"
-    assert_output --partial "Mark II/DevKit requires Debian Trixie (13)."
+    assert_output --partial "Mark II/DevKit requires Debian or Raspberry Pi OS Trixie (13)."
 }
 
 # Test apt_ensure function

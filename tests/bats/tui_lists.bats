@@ -387,6 +387,26 @@ function dialog_value() {
     assert_equal "$FEATURE_GUI" "true"
 }
 
+@test "features: shows GUI on Raspberry Pi OS Trixie Mark 2 hardware and enables it when selected" {
+    PROFILE="ovos"
+    DISTRO_NAME="raspbian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Raspberry Pi OS 13 (trixie)"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION=$'skills\ngui'
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    assert_equal "$(spy_value option_count)" "5"
+    tags="$(spy_value tags)"
+    if [[ "$tags" != *gui* ]]; then
+        echo "expected gui in tag list: $tags" >&2
+        return 1
+    fi
+    assert_equal "$FEATURE_GUI" "true"
+}
+
 @test "features: honors persisted GUI disabled state on Debian Trixie Mark 2 hardware" {
     printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"],"feature_gui_selected":false}' >"$INSTALLER_STATE_FILE"
     PROFILE="ovos"

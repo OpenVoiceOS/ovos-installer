@@ -21,10 +21,10 @@
     that:
       - ovos_installer_method == 'virtualenv'
       - ansible_facts.system == 'Linux'
-      - ansible_facts.distribution == 'Debian'
+      - ansible_facts.os_family | default('') == 'Debian'
       - ansible_facts.distribution_major_version == '13'
       - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
-    fail_msg: "GUI support is only available on Debian Trixie Mark II/DevKit virtualenv installs."
+    fail_msg: "GUI support is only available on Debian-family Trixie Mark II/DevKit virtualenv installs."
   when:
     - not (ovos_installer_is_cleaning | bool)
     - ovos_installer_feature_gui | bool
