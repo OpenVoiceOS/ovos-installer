@@ -847,14 +847,29 @@ function setup() {
 
     run bash -c "grep -A6 -F -- \"- name: Include ovos_services role\" \"$file\" | grep -F -q -- \"not (ovos_installer_is_cleaning | bool)\""
     assert_success
+
+    run bash -c "grep -A4 -F -- \"- name: Include uninstall tasks\" \"$file\" | grep -F -q -- \"ansible.builtin.include_tasks: uninstall.yml\""
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"- name: Include uninstall tasks\" \"$file\" | grep -F -q -- \"ansible.builtin.import_tasks: uninstall.yml\""
+    assert_failure
 }
 
 @test "installer_removes_service_directories_after_tuning_cleanup" {
     local uninstall_file="ansible/roles/ovos_installer/tasks/uninstall.yml"
     local services_uninstall_file="ansible/roles/ovos_services/tasks/uninstall.yml"
 
-    run bash -c "grep -A4 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"tasks_from: remove-directories.yml\""
+    run bash -c "grep -A5 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"ansible.builtin.include_role:\""
     assert_success
+
+    run bash -c "grep -A5 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"tasks_from: remove-directories.yml\""
+    assert_success
+
+    run bash -c "grep -A5 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"handlers_from: noop\""
+    assert_success
+
+    run bash -c "grep -A5 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"ansible.builtin.import_role:\""
+    assert_failure
 
     run bash -c 'remove_line=$(grep -n -F -- "- name: Remove OVOS service directories after tuning cleanup" "$1" | head -n1 | cut -d: -f1); autoremove_line=$(grep -n -F -- "- name: Autoremove orphaned packages (Debian/Zorin)" "$1" | head -n1 | cut -d: -f1); [ -n "$remove_line" ] && [ -n "$autoremove_line" ] && [ "$remove_line" -lt "$autoremove_line" ]' _ "$uninstall_file"
     assert_success

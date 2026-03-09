@@ -1,8 +1,9 @@
 ---
 - name: Remove OVOS service directories after tuning cleanup
-  ansible.builtin.import_role:
+  ansible.builtin.include_role:
     name: ovos_services
     tasks_from: remove-directories.yml
+    handlers_from: noop
   when:
     - ansible_facts.system == 'Linux'
 

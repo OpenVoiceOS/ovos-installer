@@ -102,7 +102,7 @@
     - ovos_telemetry
 
 - name: Include uninstall tasks
-  ansible.builtin.import_tasks: uninstall.yml
+  ansible.builtin.include_tasks: uninstall.yml
   when: ovos_installer_is_cleaning | bool
   tags:
     - uninstall
