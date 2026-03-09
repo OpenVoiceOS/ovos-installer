@@ -2108,15 +2108,42 @@ function setup() {
     assert_success
 }
 
-@test "setup_disables_ansible_color_when_logging_through_tee" {
+@test "setup_keeps_ansible_color_in_terminal_and_plain_text_in_logs" {
+    run grep -F -q "function strip_ansi_stream()" utils/common.sh
+    assert_success
+
+    run grep -F -q "if [ -t 1 ]; then" setup.sh
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"if [ -t 1 ]; then\" setup.sh | grep -F -q -- \"export ANSIBLE_FORCE_COLOR=true\""
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"if [ -t 1 ]; then\" setup.sh | grep -F -q -- \"export PY_COLORS=1\""
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"if [ -t 1 ]; then\" setup.sh | grep -F -q -- \"unset ANSIBLE_NOCOLOR || true\""
+    assert_success
+
     run grep -F -q "export ANSIBLE_NOCOLOR=true" setup.sh
     assert_success
 
-    run grep -F -q "export ANSIBLE_FORCE_COLOR=true" setup.sh
-    assert_failure
+    run grep -F -q 'mkfifo "$ansi_log_pipe"' setup.sh
+    assert_success
 
-    run grep -F -q "export PY_COLORS=1" setup.sh
-    assert_failure
+    run grep -F -q 'tee -a "$LOG_FILE"' setup.sh
+    assert_success
+
+    run grep -F -q 'pipeline_status=("${PIPESTATUS[@]}")' setup.sh
+    assert_success
+
+    run grep -F -q 'tee_rc="${pipeline_status[1]}"' setup.sh
+    assert_success
+
+    run grep -F -q 'wait "$ansi_log_pipe_pid" || strip_rc="$?"' setup.sh
+    assert_success
+
+    run grep -F -q 'log_error "Failed to write Ansible output to $LOG_FILE."' setup.sh
+    assert_success
 }
 
 @test "common_defines_installer_lock_and_cleanup_helpers" {

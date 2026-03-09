@@ -156,11 +156,15 @@ case "${DISTRO_NAME:-}" in
     ;;
 esac
 export ANSIBLE_NOCOWS=1
-# ansible-playbook output is always piped through tee for logging, so keep it
-# plain text to avoid raw ANSI escapes in logs and pasted output.
-export ANSIBLE_NOCOLOR=true
-unset ANSIBLE_FORCE_COLOR || true
-unset PY_COLORS || true
+if [ -t 1 ]; then
+  unset ANSIBLE_NOCOLOR || true
+  export ANSIBLE_FORCE_COLOR=true
+  export PY_COLORS=1
+else
+  export ANSIBLE_NOCOLOR=true
+  unset ANSIBLE_FORCE_COLOR || true
+  unset PY_COLORS || true
+fi
 
 # Pass Home Assistant/LLM credentials via an extra-vars file
 # (avoids exposing secrets in the process list).
@@ -216,7 +220,8 @@ fi
 if [ "$xtrace_was_on" == "true" ]; then
   set -x
 fi
-ansible-playbook -i 127.0.0.1, ansible/site.yml \
+ansible_command=(
+  ansible-playbook -i "127.0.0.1," ansible/site.yml
   -e "ovos_installer_user=${RUN_AS}" \
   -e "ovos_installer_group=${RUN_AS_GROUP}" \
   -e "ovos_installer_uid=${RUN_AS_UID}" \
@@ -256,10 +261,49 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   "${ha_extra_vars[@]}" \
   -e "$(jq -c -n '{ovos_installer_i2c_devices: $ARGS.positional}' --args "${DETECTED_DEVICES[@]}")" \
   -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \
-  "${ansible_tags[@]}" "${ansible_debug[@]}" 2>&1 | tee -a "$LOG_FILE"
+  "${ansible_tags[@]}" "${ansible_debug[@]}"
+)
 
-# Retrieve the ansible-playbook status code from the pipeline and check for success or failure
-ansible_rc="${PIPESTATUS[0]}"
+ansible_rc=0
+tee_rc=0
+strip_rc=0
+if [ -t 1 ]; then
+  if ! ansi_log_pipe_dir="$(mktemp -d "${TMPDIR:-/tmp}/ovos-ansible-log.XXXXXX" 2>>"$LOG_FILE")"; then
+    log_error "Unable to initialize the Ansible log writer."
+    cleanup_ha_extra_vars_file
+    exit "${EXIT_FAILURE}"
+  fi
+  ansi_log_pipe="${ansi_log_pipe_dir}/stream"
+  if ! mkfifo "$ansi_log_pipe" 2>>"$LOG_FILE"; then
+    log_error "Unable to create the Ansible log pipe at ${ansi_log_pipe}."
+    rm -rf "$ansi_log_pipe_dir"
+    cleanup_ha_extra_vars_file
+    exit "${EXIT_FAILURE}"
+  fi
+
+  strip_ansi_stream <"$ansi_log_pipe" >>"$LOG_FILE" &
+  ansi_log_pipe_pid="$!"
+  "${ansible_command[@]}" 2>&1 | tee "$ansi_log_pipe"
+  pipeline_status=("${PIPESTATUS[@]}")
+  ansible_rc="${pipeline_status[0]}"
+  tee_rc="${pipeline_status[1]}"
+  wait "$ansi_log_pipe_pid" || strip_rc="$?"
+  rm -f "$ansi_log_pipe"
+  rmdir "$ansi_log_pipe_dir" 2>/dev/null || true
+else
+  "${ansible_command[@]}" 2>&1 | tee -a "$LOG_FILE"
+  pipeline_status=("${PIPESTATUS[@]}")
+  ansible_rc="${pipeline_status[0]}"
+  tee_rc="${pipeline_status[1]}"
+fi
+
+if [ "$tee_rc" -ne 0 ] || [ "$strip_rc" -ne 0 ]; then
+  log_error "Failed to write Ansible output to $LOG_FILE."
+  if [ "$ansible_rc" -eq 0 ]; then
+    ansible_rc="${EXIT_FAILURE}"
+  fi
+fi
+
 cleanup_ha_extra_vars_file
 
 if [ "$ansible_rc" -eq 0 ]; then

@@ -182,6 +182,14 @@ EOF
     unset ARCH RASPBERRYPI_MODEL OVOS_INSTALLER_SYSTEM_PIP_CONFIG_FILE
 }
 
+@test "function_strip_ansi_stream_removes_escape_sequences" {
+    run bash -c 'source "$1"; source "$2"; printf "\033[31mred\033[0m\nplain\n" | strip_ansi_stream' _ \
+        "$BATS_TEST_DIRNAME/../../utils/constants.sh" \
+        "$BATS_TEST_DIRNAME/../../utils/common.sh"
+    assert_success
+    assert_output $'red\nplain'
+}
+
 # Test local variable usage
 @test "function_detect_sound_local_variables" {
     # Set required environment variables
