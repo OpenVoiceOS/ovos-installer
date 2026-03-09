@@ -2093,15 +2093,30 @@ function setup() {
     assert_success
 }
 
-@test "setup_disables_ansible_color_when_logging_through_tee" {
+@test "setup_keeps_ansible_color_in_terminal_and_plain_text_in_logs" {
+    run grep -F -q "strip_ansi_stream()" setup.sh
+    assert_success
+
+    run grep -F -q "if [ -t 1 ]; then" setup.sh
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"if [ -t 1 ]; then\" setup.sh | grep -F -q -- \"export ANSIBLE_FORCE_COLOR=true\""
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"if [ -t 1 ]; then\" setup.sh | grep -F -q -- \"export PY_COLORS=1\""
+    assert_success
+
+    run bash -c "grep -A4 -F -- \"if [ -t 1 ]; then\" setup.sh | grep -F -q -- \"unset ANSIBLE_NOCOLOR || true\""
+    assert_success
+
     run grep -F -q "export ANSIBLE_NOCOLOR=true" setup.sh
     assert_success
 
-    run grep -F -q "export ANSIBLE_FORCE_COLOR=true" setup.sh
-    assert_failure
+    run grep -F -q 'tee >(strip_ansi_stream >>"$LOG_FILE")' setup.sh
+    assert_success
 
-    run grep -F -q "export PY_COLORS=1" setup.sh
-    assert_failure
+    run grep -F -q 'tee -a "$LOG_FILE"' setup.sh
+    assert_success
 }
 
 @test "common_defines_installer_lock_and_cleanup_helpers" {

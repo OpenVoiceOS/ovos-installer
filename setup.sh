@@ -135,6 +135,14 @@ if [ "$EXISTING_INSTANCE" == "true" ]; then
   export SHARE_USAGE_TELEMETRY="false"
 fi
 
+strip_ansi_stream() {
+  if command -v perl >/dev/null 2>&1; then
+    perl -pe 's/\e\[[0-9;?]*[ -\/]*[@-~]//g'
+  else
+    sed -E $'s/\x1B\\[[0-9;?]*[ -/]*[@-~]//g'
+  fi
+}
+
 log_info "➤ Starting Ansible playbook... ☕🍵🧋"
 
 # Execute the Ansible playbook on localhost
@@ -156,11 +164,15 @@ case "${DISTRO_NAME:-}" in
     ;;
 esac
 export ANSIBLE_NOCOWS=1
-# ansible-playbook output is always piped through tee for logging, so keep it
-# plain text to avoid raw ANSI escapes in logs and pasted output.
-export ANSIBLE_NOCOLOR=true
-unset ANSIBLE_FORCE_COLOR || true
-unset PY_COLORS || true
+if [ -t 1 ]; then
+  unset ANSIBLE_NOCOLOR || true
+  export ANSIBLE_FORCE_COLOR=true
+  export PY_COLORS=1
+else
+  export ANSIBLE_NOCOLOR=true
+  unset ANSIBLE_FORCE_COLOR || true
+  unset PY_COLORS || true
+fi
 
 # Pass Home Assistant/LLM credentials via an extra-vars file
 # (avoids exposing secrets in the process list).
@@ -216,7 +228,8 @@ fi
 if [ "$xtrace_was_on" == "true" ]; then
   set -x
 fi
-ansible-playbook -i 127.0.0.1, ansible/site.yml \
+ansible_command=(
+  ansible-playbook -i "127.0.0.1," ansible/site.yml
   -e "ovos_installer_user=${RUN_AS}" \
   -e "ovos_installer_group=${RUN_AS_GROUP}" \
   -e "ovos_installer_uid=${RUN_AS_UID}" \
@@ -256,7 +269,14 @@ ansible-playbook -i 127.0.0.1, ansible/site.yml \
   "${ha_extra_vars[@]}" \
   -e "$(jq -c -n '{ovos_installer_i2c_devices: $ARGS.positional}' --args "${DETECTED_DEVICES[@]}")" \
   -e "ovos_installer_reboot_file_path=${REBOOT_FILE_PATH}" \
-  "${ansible_tags[@]}" "${ansible_debug[@]}" 2>&1 | tee -a "$LOG_FILE"
+  "${ansible_tags[@]}" "${ansible_debug[@]}"
+)
+
+if [ -t 1 ]; then
+  "${ansible_command[@]}" 2>&1 | tee >(strip_ansi_stream >>"$LOG_FILE")
+else
+  "${ansible_command[@]}" 2>&1 | tee -a "$LOG_FILE"
+fi
 
 # Retrieve the ansible-playbook status code from the pipeline and check for success or failure
 ansible_rc="${PIPESTATUS[0]}"
