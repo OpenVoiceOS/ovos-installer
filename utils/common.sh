@@ -1716,7 +1716,7 @@ function setup_avrdude() {
         rm "$AVRDUDE_BINARY_PATH"
     fi
 
-    if ! curl -s -f -L --insecure "$avrdude_binary_url" -o "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"; then
+    if ! curl -s -f -L "$avrdude_binary_url" -o "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"; then
         printf '%s\n' "[warn] Failed to download avrdude binary for Mark 1 detection." >>"$LOG_FILE"
         return 1
     fi
@@ -1751,7 +1751,7 @@ EOF
         return 1
     fi
 
-    if ! curl -s -f -L --insecure "$avrdude_config_url" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"; then
+    if ! curl -s -f -L "$avrdude_config_url" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"; then
         printf '%s\n' "[warn] Failed to download avrdude configuration for Mark 1 detection." >>"$LOG_FILE"
         return 1
     fi

@@ -19,6 +19,12 @@ function mock_curl_touch_output() {
         fi
         shift
     done
+
+    if [ -z "$output" ]; then
+        printf '%s\n' "mock_curl_touch_output: missing -o output path" >&2
+        return 1
+    fi
+
     touch "$output"
     return 0
 }
@@ -46,6 +52,8 @@ function mock_curl_touch_output() {
     [ -f "$AVRDUDE_BINARY_PATH" ]
     # Should create avrduderc file
     [ -f "$RUN_AS_HOME/.avrduderc" ]
+    # Should create avrdude config file
+    [ -f "$AVRDUDE_CONFIG_PATH" ]
 
     # Clean up
     rm -f "$AVRDUDE_BINARY_PATH" "$AVRDUDE_CONFIG_PATH" "$RUN_AS_HOME/.avrduderc"
@@ -145,14 +153,19 @@ EOF
     function detect_libgpiod_abi() {
         printf '%s\n' "3"
     }
-    export -f detect_libgpiod_abi
+    function resolve_avrdude_artifact_urls_and_print() {
+        resolve_avrdude_artifact_urls || return 1
+        printf '%s\n' "$AVRDUDE_BINARY_URL"
+        printf '%s\n' "$AVRDUDE_CONFIG_URL"
+    }
+    export -f detect_libgpiod_abi resolve_avrdude_artifact_urls_and_print
 
-    resolve_avrdude_artifact_urls
-    assert_equal "$?" "0"
-    assert_equal "$AVRDUDE_BINARY_URL" "https://artifacts.smartgic.io/avrdude/v8.1/aarch64/libgpiod3/avrdude"
-    assert_equal "$AVRDUDE_CONFIG_URL" "https://artifacts.smartgic.io/avrdude/v8.1/aarch64/libgpiod3/avrdude.conf"
+    run resolve_avrdude_artifact_urls_and_print
+    assert_success
+    assert_line --index 0 "https://artifacts.smartgic.io/avrdude/v8.1/aarch64/libgpiod3/avrdude"
+    assert_line --index 1 "https://artifacts.smartgic.io/avrdude/v8.1/aarch64/libgpiod3/avrdude.conf"
 
-    unset -f detect_libgpiod_abi
+    unset -f detect_libgpiod_abi resolve_avrdude_artifact_urls_and_print
 }
 
 @test "function_setup_avrdude_fails_without_supported_artifact" {
