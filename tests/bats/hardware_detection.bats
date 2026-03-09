@@ -101,6 +101,24 @@ function mock_curl_touch_output() {
     : >"$LOG_FILE"
 
     function curl() {
+        local output=""
+        while [ "$#" -gt 0 ]; do
+            if [ "$1" == "-o" ]; then
+                output="$2"
+                break
+            fi
+            shift
+        done
+
+        if [ "$output" == "$AVRDUDE_BINARY_PATH" ]; then
+            cat <<'EOF' >"$output"
+#!/usr/bin/env bash
+echo "avrdude: error while loading shared libraries: libgpiod.so.2: cannot open shared object file: No such file or directory" >&2
+exit 127
+EOF
+            return 0
+        fi
+
         mock_curl_touch_output "$@"
     }
     function detect_libgpiod_abi() {
@@ -110,8 +128,8 @@ function mock_curl_touch_output() {
         return 0
     }
     function avrdude() {
-        echo "avrdude: error while loading shared libraries: libgpiod.so.2: cannot open shared object file: No such file or directory" >&2
-        return 127
+        echo "unexpected PATH avrdude invocation" >&2
+        return 99
     }
     export -f curl detect_libgpiod_abi chown avrdude
 
@@ -123,6 +141,9 @@ function mock_curl_touch_output() {
 
     run grep -F -q "[warn] Skipping Mark 1 AVR probe because avrdude is unusable on this host." "$LOG_FILE"
     assert_success
+
+    run grep -F -q "unexpected PATH avrdude invocation" "$LOG_FILE"
+    assert_failure
 
     rm -f "$AVRDUDE_BINARY_PATH" "$AVRDUDE_CONFIG_PATH" "$RUN_AS_HOME/.avrduderc"
     rm -rf "$RUN_AS_HOME"

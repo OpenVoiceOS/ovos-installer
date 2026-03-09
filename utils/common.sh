@@ -1769,7 +1769,7 @@ function detect_mark1_device() {
         return 0
     fi
 
-    if ! atmega328p="$(avrdude -C +"$RUN_AS_HOME"/.avrduderc -p atmega328p -c linuxgpio -U signature:r:-:i -F 2>>"$LOG_FILE" | head -1)"; then
+    if ! atmega328p="$("$AVRDUDE_BINARY_PATH" -C +"$RUN_AS_HOME"/.avrduderc -p atmega328p -c linuxgpio -U signature:r:-:i -F 2>>"$LOG_FILE" | head -1)"; then
         printf '%s\n' "[warn] Skipping Mark 1 AVR probe because avrdude is unusable on this host." >>"$LOG_FILE"
         return 0
     fi
