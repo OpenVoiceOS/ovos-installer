@@ -833,6 +833,12 @@ function setup() {
     run bash -c "grep -A8 -F -- \"- name: Include ovos_services role for uninstall pre-stop\" \"$file\" | grep -F -q -- \"ovos_installer_is_cleaning\""
     assert_success
 
+    run bash -c "grep -A3 -F -- \"- name: Include ovos_services role for uninstall pre-stop\" \"$file\" | grep -F -q -- \"ansible.builtin.include_role:\""
+    assert_success
+
+    run bash -c "grep -A3 -F -- \"- name: Include ovos_services role for uninstall pre-stop\" \"$file\" | grep -F -q -- \"ansible.builtin.import_role:\""
+    assert_failure
+
     run bash -c "grep -A6 -F -- \"- name: Include ovos_services role\" \"$file\" | grep -F -q -- \"not (ovos_installer_is_cleaning | bool)\""
     assert_success
 }
