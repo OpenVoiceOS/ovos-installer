@@ -5,8 +5,8 @@ Fast fertig. Eine kurze Zusammenfassung:
     - Umgebung: $METHOD
     - Version:  $CHANNEL
     - Profil:   $PROFILE
-    - Skills:   $FEATURE_SKILLS
-    - Tuning:   $TUNING
+    - Skills:   $FEATURE_SKILLS_SUMMARY_STATE
+    - Tuning:   $TUNING_SUMMARY_STATE
 
 Die Entscheidungen, die während des Installationsprozesses von Open Voice OS getroffen werden, wurden sorgfältig abgewogen, um unser System an Ihre individuellen Bedürfnisse und Vorlieben anzupassen.
 

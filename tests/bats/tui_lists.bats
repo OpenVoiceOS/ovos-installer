@@ -766,6 +766,33 @@ EOF
     [[ "$finish_body" == *"sudo systemctl status ovos.service ovos-gui.service"* ]]
 }
 
+@test "summary: normalizes mixed boolean-like states" {
+    METHOD="virtualenv"
+    CHANNEL="alpha"
+    PROFILE="ovos"
+    FEATURE_SKILLS="true"
+    FEATURE_EXTRA_SKILLS="false"
+    FEATURE_HOMEASSISTANT="true"
+    HOMEASSISTANT_URL="http://homeassistant.local:8123"
+    FEATURE_LLM="true"
+    LLM_API_URL="https://llama.smartgic.io/v1"
+    LLM_API_KEY="secret"
+    LLM_MODEL="qwen3-nothink:latest"
+    LLM_PERSONA="Keep replies short."
+    TUNING="yes"
+    LOCALE="en-us"
+    WHIPTAIL_FORCE_YESNO_STATUS="0"
+
+    # shellcheck source=tui/summary.sh
+    source tui/summary.sh
+
+    [[ "$CONTENT" == *"- Skills:   enabled"* ]]
+    [[ "$CONTENT" == *"- Extra:    disabled"* ]]
+    [[ "$CONTENT" == *"- HA:       enabled"* ]]
+    [[ "$CONTENT" == *"- LLM:      enabled"* ]]
+    [[ "$CONTENT" == *"- Tuning:   enabled"* ]]
+}
+
 function teardown() {
     rm -rf "$LOG_FILE" "$INSTALLER_STATE_FILE" "$WHIPTAIL_SPY_FILE" "$WHIPTAIL_DIALOG_FILE" "$WHIPTAIL_INPUT_QUEUE_FILE" "$RUN_AS_HOME"
 }

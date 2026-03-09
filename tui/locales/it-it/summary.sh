@@ -5,8 +5,8 @@ Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare 
     - Distribuzione: $METHOD
     - Versione: $CHANNEL
     - Profilo: $PROFILE
-    - Competenze: $FEATURE_SKILLS
-    - Ottimizzazione: $TUNING
+    - Competenze: $FEATURE_SKILLS_SUMMARY_STATE
+    - Ottimizzazione: $TUNING_SUMMARY_STATE
 
 Le decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.
 

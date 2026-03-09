@@ -5,8 +5,8 @@ Quase a terminar. Um breve resumo:
     - Implementação: $METHOD
     - Versão:      $CHANNEL
     - Perfil:      $PROFILE
-    - Skills:      $FEATURE_SKILLS
-    - Otimização:  $TUNING
+    - Skills:      $FEATURE_SKILLS_SUMMARY_STATE
+    - Otimização:  $TUNING_SUMMARY_STATE
 
 As decisões tomadas durante o processo de instalação do Open Voice OS foram cuidadosamente consideradas para personalizar o nosso sistema de acordo com as suas necessidades e preferências individuais.
 

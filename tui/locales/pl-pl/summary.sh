@@ -5,8 +5,8 @@ Już prawie skończyłeś, oto podsumowanie wyborów dokonanych podczas instalac
 - Metoda: $METHOD
 - Wersja: $CHANNEL
 - Profil: $PROFILE
-- Umiejętności: $FEATURE_SKILLS
-- Strojenie: $TUNING
+- Umiejętności: $FEATURE_SKILLS_SUMMARY_STATE
+- Strojenie: $TUNING_SUMMARY_STATE
 
 Wybory dokonane podczas instalacji Open Voice OS zostały starannie rozważone, aby dostosować nasz system do Twoich unikalnych potrzeb i preferencji.
 

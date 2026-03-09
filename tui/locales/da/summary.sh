@@ -5,8 +5,8 @@ Du er næsten færdig, her er en oversigt over de valg, du har truffet for at in
     - Metode: $METHOD
     - Version: $CHANNEL
     - Profil: $PROFILE
-    - Færdigheder: $FEATURE_SKILLS
-    - Tuning: $TUNING
+    - Færdigheder: $FEATURE_SKILLS_SUMMARY_STATE
+    - Tuning: $TUNING_SUMMARY_STATE
 
 De valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.
 
