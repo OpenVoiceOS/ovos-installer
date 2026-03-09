@@ -264,14 +264,46 @@ ansible_command=(
   "${ansible_tags[@]}" "${ansible_debug[@]}"
 )
 
+ansible_rc=0
+tee_rc=0
+strip_rc=0
 if [ -t 1 ]; then
-  "${ansible_command[@]}" 2>&1 | tee >(strip_ansi_stream >>"$LOG_FILE")
+  if ! ansi_log_pipe_dir="$(mktemp -d "${TMPDIR:-/tmp}/ovos-ansible-log.XXXXXX" 2>>"$LOG_FILE")"; then
+    log_error "Unable to initialize the Ansible log writer."
+    cleanup_ha_extra_vars_file
+    exit "${EXIT_FAILURE}"
+  fi
+  ansi_log_pipe="${ansi_log_pipe_dir}/stream"
+  if ! mkfifo "$ansi_log_pipe" 2>>"$LOG_FILE"; then
+    log_error "Unable to create the Ansible log pipe at ${ansi_log_pipe}."
+    rm -rf "$ansi_log_pipe_dir"
+    cleanup_ha_extra_vars_file
+    exit "${EXIT_FAILURE}"
+  fi
+
+  strip_ansi_stream <"$ansi_log_pipe" >>"$LOG_FILE" &
+  ansi_log_pipe_pid="$!"
+  "${ansible_command[@]}" 2>&1 | tee "$ansi_log_pipe"
+  pipeline_status=("${PIPESTATUS[@]}")
+  ansible_rc="${pipeline_status[0]}"
+  tee_rc="${pipeline_status[1]}"
+  wait "$ansi_log_pipe_pid" || strip_rc="$?"
+  rm -f "$ansi_log_pipe"
+  rmdir "$ansi_log_pipe_dir" 2>/dev/null || true
 else
   "${ansible_command[@]}" 2>&1 | tee -a "$LOG_FILE"
+  pipeline_status=("${PIPESTATUS[@]}")
+  ansible_rc="${pipeline_status[0]}"
+  tee_rc="${pipeline_status[1]}"
 fi
 
-# Retrieve the ansible-playbook status code from the pipeline and check for success or failure
-ansible_rc="${PIPESTATUS[0]}"
+if [ "$tee_rc" -ne 0 ] || [ "$strip_rc" -ne 0 ]; then
+  log_error "Failed to write Ansible output to $LOG_FILE."
+  if [ "$ansible_rc" -eq 0 ]; then
+    ansible_rc="${EXIT_FAILURE}"
+  fi
+fi
+
 cleanup_ha_extra_vars_file
 
 if [ "$ansible_rc" -eq 0 ]; then

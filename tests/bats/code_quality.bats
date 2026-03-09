@@ -2112,10 +2112,22 @@ function setup() {
     run grep -F -q "export ANSIBLE_NOCOLOR=true" setup.sh
     assert_success
 
-    run grep -F -q 'tee >(strip_ansi_stream >>"$LOG_FILE")' setup.sh
+    run grep -F -q 'mkfifo "$ansi_log_pipe"' setup.sh
     assert_success
 
     run grep -F -q 'tee -a "$LOG_FILE"' setup.sh
+    assert_success
+
+    run grep -F -q 'pipeline_status=("${PIPESTATUS[@]}")' setup.sh
+    assert_success
+
+    run grep -F -q 'tee_rc="${pipeline_status[1]}"' setup.sh
+    assert_success
+
+    run grep -F -q 'wait "$ansi_log_pipe_pid" || strip_rc="$?"' setup.sh
+    assert_success
+
+    run grep -F -q 'log_error "Failed to write Ansible output to $LOG_FILE."' setup.sh
     assert_success
 }
 

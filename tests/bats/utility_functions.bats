@@ -183,7 +183,9 @@ EOF
 }
 
 @test "function_strip_ansi_stream_removes_escape_sequences" {
-    run bash -lc 'source utils/constants.sh; source utils/common.sh; printf "\033[31mred\033[0m\nplain\n" | strip_ansi_stream'
+    run bash -c 'source "$1"; source "$2"; printf "\033[31mred\033[0m\nplain\n" | strip_ansi_stream' _ \
+        "$BATS_TEST_DIRNAME/../../utils/constants.sh" \
+        "$BATS_TEST_DIRNAME/../../utils/common.sh"
     assert_success
     assert_output $'red\nplain'
 }
