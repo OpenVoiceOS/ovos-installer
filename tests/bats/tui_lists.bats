@@ -736,6 +736,36 @@ EOF
     assert_equal "$TUNING_OVERCLOCK" "yes"
 }
 
+@test "finish: shows user-scope service hint for non-tuned virtualenv installs" {
+    METHOD="virtualenv"
+    RASPBERRYPI_MODEL="N/A"
+    TUNING="no"
+    FEATURE_GUI="true"
+    LOCALE="en-us"
+
+    # shellcheck source=tui/finish.sh
+    source tui/finish.sh
+
+    finish_body="$(dialog_value msgbox "Open Voice OS Installation - Finish" response)"
+    [[ "$finish_body" == *"OVOS services were installed in user systemd scope."* ]]
+    [[ "$finish_body" == *"systemctl --user status ovos.service ovos-gui.service"* ]]
+}
+
+@test "finish: shows system-scope service hint for tuned Raspberry Pi installs" {
+    METHOD="virtualenv"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    TUNING="yes"
+    FEATURE_GUI="true"
+    LOCALE="en-us"
+
+    # shellcheck source=tui/finish.sh
+    source tui/finish.sh
+
+    finish_body="$(dialog_value msgbox "Open Voice OS Installation - Finish" response)"
+    [[ "$finish_body" == *"OVOS services were installed in system systemd scope."* ]]
+    [[ "$finish_body" == *"sudo systemctl status ovos.service ovos-gui.service"* ]]
+}
+
 function teardown() {
     rm -rf "$LOG_FILE" "$INSTALLER_STATE_FILE" "$WHIPTAIL_SPY_FILE" "$WHIPTAIL_DIALOG_FILE" "$WHIPTAIL_INPUT_QUEUE_FILE" "$RUN_AS_HOME"
 }

@@ -4,6 +4,8 @@ The installation has been successfully completed! 🎉
 
 Your voice assistant is ready to go. We're excited for you to explore the wide array of features and capabilities this voice assistant has to offer.
 
+$OVOS_SERVICE_SCOPE_HINT
+
 If you enabled the default skills feature then you can start to interact with your assistant by saying:
 
   - Hey Mycroft, what time is it?
