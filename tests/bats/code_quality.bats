@@ -899,6 +899,28 @@ function setup() {
     assert_failure
 }
 
+@test "virtualenv_core_requirements_pin_compatible_common_query_packages" {
+    local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+
+    run grep -F -q "ovos-skill-ddg==0.3.6" "$file"
+    assert_success
+
+    run grep -F -q "ovos-wikipedia-solver==0.1.3" "$file"
+    assert_success
+
+    run grep -F -q "crf-query-xtract==0.2.0" "$file"
+    assert_success
+
+    run grep -F -q "brill-postagger==0.1.2" "$file"
+    assert_success
+
+    run grep -F -q "nltk==3.9.3" "$file"
+    assert_success
+
+    run grep -F -q "sklearn-crfsuite==0.5.0" "$file"
+    assert_success
+}
+
 @test "virtualenv_mark2_uses_phal_mk2_without_pyee_pin" {
     local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
 

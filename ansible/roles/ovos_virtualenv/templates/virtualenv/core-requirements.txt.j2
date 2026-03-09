@@ -10,6 +10,14 @@ ovos-ww-plugin-precise-onnx
 {% endif %}
 {% endif %}
 ovos-docs-viewer
+# Keep common-query defaults on a compatible published stack until the alpha
+# Wikipedia/DDG packages stop breaking solver interfaces and transitive deps.
+ovos-skill-ddg==0.3.6
+ovos-wikipedia-solver==0.1.3
+crf-query-xtract==0.2.0
+brill-postagger==0.1.2
+nltk==3.9.3
+sklearn-crfsuite==0.5.0
 {% if ovos_installer_feature_gui | bool %}
 ovos-gui[extras]
 ovos-skill-homescreen
