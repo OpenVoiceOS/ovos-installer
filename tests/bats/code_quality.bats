@@ -154,10 +154,11 @@ function setup() {
     # This ensures maintainability
     assert_equal "${ANSIBLE_LOG_FILE}" "/var/log/ovos-ansible.log"
     assert_equal "${ATMEGA328P_SIGNATURE}" ":030000001E950F3B"
+    assert_equal "${AVRDUDE_ARTIFACT_ARCH}" "aarch64"
+    assert_equal "${AVRDUDE_ARTIFACT_BASE_URL}" "https://artifacts.smartgic.io/avrdude"
+    assert_equal "${AVRDUDE_ARTIFACT_VERSION}" "v8.1"
     assert_equal "${AVRDUDE_BINARY_PATH}" "/usr/local/bin/avrdude"
-    assert_equal "${AVRDUDE_BINARY_URL}" "https://artifacts.smartgic.io/avrdude/avrdude-aarch64"
     assert_equal "${AVRDUDE_CONFIG_PATH}" "/usr/local/etc/avrdude.conf"
-    assert_equal "${AVRDUDE_CONFIG_URL}" "https://artifacts.smartgic.io/avrdude/avrdude.conf"
 }
 
 # Test modularity improvements

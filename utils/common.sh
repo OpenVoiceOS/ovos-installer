@@ -1631,20 +1631,102 @@ function enforce_mark2_devkit_trixie_requirement() {
     fi
 }
 
+# Detect which libgpiod ABI the host exposes so Mark 1 probing can pick
+# the matching avrdude bundle.
+function detect_libgpiod_abi() {
+    local -a libgpiod3_paths=(
+        "/usr/lib/aarch64-linux-gnu/libgpiod.so.3"
+        "/lib/aarch64-linux-gnu/libgpiod.so.3"
+    )
+    local -a libgpiod2_paths=(
+        "/usr/lib/aarch64-linux-gnu/libgpiod.so.2"
+        "/lib/aarch64-linux-gnu/libgpiod.so.2"
+    )
+    local candidate=""
+
+    if command -v ldconfig &>>"$LOG_FILE"; then
+        if ldconfig -p 2>>"$LOG_FILE" | grep -q 'libgpiod\.so\.3'; then
+            printf '%s\n' "3"
+            return 0
+        elif ldconfig -p 2>>"$LOG_FILE" | grep -q 'libgpiod\.so\.2'; then
+            printf '%s\n' "2"
+            return 0
+        fi
+    fi
+
+    for candidate in "${libgpiod3_paths[@]}"; do
+        if [ -e "$candidate" ]; then
+            printf '%s\n' "3"
+            return 0
+        fi
+    done
+
+    for candidate in "${libgpiod2_paths[@]}"; do
+        if [ -e "$candidate" ]; then
+            printf '%s\n' "2"
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# Build the avrdude binary and config URLs for the libgpiod bundle that
+# matches the current host ABI.
+function resolve_avrdude_artifact_urls() {
+    local bundle=""
+
+    case "$(detect_libgpiod_abi || true)" in
+    3)
+        bundle="libgpiod3"
+        ;;
+    2)
+        bundle="libgpiod2"
+        ;;
+    *)
+        printf '%s\n' "[warn] Unable to determine libgpiod ABI for Mark 1 detection." >>"$LOG_FILE"
+        return 1
+        ;;
+    esac
+
+    export AVRDUDE_BINARY_URL="${AVRDUDE_ARTIFACT_BASE_URL}/${AVRDUDE_ARTIFACT_VERSION}/${AVRDUDE_ARTIFACT_ARCH}/${bundle}/avrdude"
+    export AVRDUDE_CONFIG_URL="${AVRDUDE_ARTIFACT_BASE_URL}/${AVRDUDE_ARTIFACT_VERSION}/${AVRDUDE_ARTIFACT_ARCH}/${bundle}/avrdude.conf"
+    printf '%s\n' "[info] Selected avrdude ${bundle} artifact for Mark 1 detection." >>"$LOG_FILE"
+    return 0
+}
+
 # Downloads avrdude binary with libgpiod support from
 # https://artifacts.smartgic.io. Once downloaded, a custom avrduderc will
 # be created with the Mark 1 required pinout. This binary will only be
 # downloaded when I2C 1a address (UU reserved address) and Raspberry Pi
 # board are detected.
 function setup_avrdude() {
+    local avrdude_binary_url=""
+    local avrdude_config_url=""
+
+    if ! resolve_avrdude_artifact_urls; then
+        printf '%s\n' "[warn] Failed to resolve avrdude artifact bundle for Mark 1 detection." >>"$LOG_FILE"
+        return 1
+    fi
+
+    avrdude_binary_url="${AVRDUDE_BINARY_URL}"
+    avrdude_config_url="${AVRDUDE_CONFIG_URL}"
+
     if [ -f "$AVRDUDE_BINARY_PATH" ]; then
         rm "$AVRDUDE_BINARY_PATH"
     fi
 
-    curl -s -f -L --insecure "$AVRDUDE_BINARY_URL" -o "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
-    chmod 0755 "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"
+    if ! curl -s -f -L "$avrdude_binary_url" -o "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"; then
+        printf '%s\n' "[warn] Failed to download avrdude binary for Mark 1 detection." >>"$LOG_FILE"
+        return 1
+    fi
 
-    cat <<EOF >"$RUN_AS_HOME/.avrduderc"
+    if ! chmod 0755 "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"; then
+        printf '%s\n' "[warn] Failed to mark avrdude binary executable for Mark 1 detection." >>"$LOG_FILE"
+        return 1
+    fi
+
+    if ! cat <<EOF >"$RUN_AS_HOME/.avrduderc"
 # Mark 1 pinout
 programmer
   id               = "linuxgpio_rpi";
@@ -1659,8 +1741,20 @@ programmer
   sdi   = 17;   # MISO
 ;
 EOF
-    chown "$RUN_AS:${RUN_AS_GROUP:-$RUN_AS}" "$RUN_AS_HOME/.avrduderc" &>>"$LOG_FILE"
-    curl -s -f -L --insecure "$AVRDUDE_CONFIG_URL" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"
+    then
+        printf '%s\n' "[warn] Failed to create avrduderc for Mark 1 detection." >>"$LOG_FILE"
+        return 1
+    fi
+
+    if ! chown "$RUN_AS:${RUN_AS_GROUP:-$RUN_AS}" "$RUN_AS_HOME/.avrduderc" &>>"$LOG_FILE"; then
+        printf '%s\n' "[warn] Failed to set ownership on avrduderc for Mark 1 detection." >>"$LOG_FILE"
+        return 1
+    fi
+
+    if ! curl -s -f -L "$avrdude_config_url" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"; then
+        printf '%s\n' "[warn] Failed to download avrdude configuration for Mark 1 detection." >>"$LOG_FILE"
+        return 1
+    fi
 }
 
 # This function retrieves the atmega328p signature when present. If the
@@ -1668,11 +1762,23 @@ EOF
 # is detected.
 # This function is only triggered when a I2C reserved device is detected.
 function detect_mark1_device() {
-    setup_avrdude
-    atmega328p="$(avrdude -C +"$RUN_AS_HOME"/.avrduderc -p atmega328p -c linuxgpio -U signature:r:-:i -F 2>>"$LOG_FILE" | head -1)"
+    local atmega328p=""
+
+    if ! setup_avrdude; then
+        printf '%s\n' "[warn] Skipping Mark 1 AVR probe because avrdude could not be prepared." >>"$LOG_FILE"
+        return 0
+    fi
+
+    if ! atmega328p="$("$AVRDUDE_BINARY_PATH" -C +"$RUN_AS_HOME"/.avrduderc -p atmega328p -c linuxgpio -U signature:r:-:i -F 2>>"$LOG_FILE" | head -1)"; then
+        printf '%s\n' "[warn] Skipping Mark 1 AVR probe because avrdude is unusable on this host." >>"$LOG_FILE"
+        return 0
+    fi
+
     if [ "$atmega328p" == "$ATMEGA328P_SIGNATURE" ]; then
         DETECTED_DEVICES+=("atmega328p")
     fi
+
+    return 0
 }
 
 # This function checks if attiny1614 I2C device is present, this is only

@@ -10,17 +10,41 @@ function setup() {
     RASPBERRYPI_MODEL="N/A"
 }
 
+function mock_curl_touch_output() {
+    local output=""
+    while [ "$#" -gt 0 ]; do
+        if [ "$1" == "-o" ]; then
+            output="$2"
+            break
+        fi
+        shift
+    done
+
+    if [ -z "$output" ]; then
+        printf '%s\n' "mock_curl_touch_output: missing -o output path" >&2
+        return 1
+    fi
+
+    touch "$output"
+    return 0
+}
+
 # Test avrdude setup function
 @test "function_setup_avrdude_file_creation" {
     AVRDUDE_BINARY_PATH=/tmp/test_avrdude
+    AVRDUDE_CONFIG_PATH=/tmp/test_avrdude.conf
     RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
 
+    function detect_libgpiod_abi() {
+        printf '%s\n' "3"
+    }
     function curl() {
-        # Mock successful curl download
-        touch "$AVRDUDE_BINARY_PATH"
+        mock_curl_touch_output "$@"
+    }
+    function chown() {
         return 0
     }
-    export -f curl
+    export -f detect_libgpiod_abi curl chown
 
     run setup_avrdude
     assert_success
@@ -28,25 +52,33 @@ function setup() {
     [ -f "$AVRDUDE_BINARY_PATH" ]
     # Should create avrduderc file
     [ -f "$RUN_AS_HOME/.avrduderc" ]
+    # Should create avrdude config file
+    [ -f "$AVRDUDE_CONFIG_PATH" ]
 
     # Clean up
-    rm -f "$AVRDUDE_BINARY_PATH" "$RUN_AS_HOME/.avrduderc"
+    rm -f "$AVRDUDE_BINARY_PATH" "$AVRDUDE_CONFIG_PATH" "$RUN_AS_HOME/.avrduderc"
     rm -rf "$RUN_AS_HOME"
+    unset -f detect_libgpiod_abi curl chown
 }
 
 @test "function_setup_avrdude_existing_file_removal" {
     AVRDUDE_BINARY_PATH=/tmp/test_avrdude
+    AVRDUDE_CONFIG_PATH=/tmp/test_avrdude.conf
     RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
 
     # Create existing file
     touch "$AVRDUDE_BINARY_PATH"
 
+    function detect_libgpiod_abi() {
+        printf '%s\n' "3"
+    }
     function curl() {
-        # Mock successful curl download - recreate the file
-        touch "$AVRDUDE_BINARY_PATH"
+        mock_curl_touch_output "$@"
+    }
+    function chown() {
         return 0
     }
-    export -f curl
+    export -f detect_libgpiod_abi curl chown
 
     run setup_avrdude
     assert_success
@@ -56,9 +88,170 @@ function setup() {
     [ -f "$RUN_AS_HOME/.avrduderc" ]
 
     # Clean up
-    rm -f "$AVRDUDE_BINARY_PATH" "$RUN_AS_HOME/.avrduderc"
+    rm -f "$AVRDUDE_BINARY_PATH" "$AVRDUDE_CONFIG_PATH" "$RUN_AS_HOME/.avrduderc"
     rm -rf "$RUN_AS_HOME"
-    unset -f curl
+    unset -f detect_libgpiod_abi curl chown
+}
+
+@test "function_detect_mark1_device_skips_unusable_avrdude" {
+    AVRDUDE_BINARY_PATH=/tmp/test_avrdude
+    AVRDUDE_CONFIG_PATH=/tmp/test_avrdude.conf
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    DETECTED_DEVICES=()
+    : >"$LOG_FILE"
+
+    function curl() {
+        local output=""
+        while [ "$#" -gt 0 ]; do
+            if [ "$1" == "-o" ]; then
+                output="$2"
+                break
+            fi
+            shift
+        done
+
+        if [ "$output" == "$AVRDUDE_BINARY_PATH" ]; then
+            cat <<'EOF' >"$output"
+#!/usr/bin/env bash
+echo "avrdude: error while loading shared libraries: libgpiod.so.2: cannot open shared object file: No such file or directory" >&2
+exit 127
+EOF
+            return 0
+        fi
+
+        mock_curl_touch_output "$@"
+    }
+    function detect_libgpiod_abi() {
+        printf '%s\n' "3"
+    }
+    function chown() {
+        return 0
+    }
+    function avrdude() {
+        echo "unexpected PATH avrdude invocation" >&2
+        return 99
+    }
+    export -f curl detect_libgpiod_abi chown avrdude
+
+    run detect_mark1_device
+    assert_success
+
+    run has_detected_device "atmega328p"
+    assert_failure
+
+    run grep -F -q "[warn] Skipping Mark 1 AVR probe because avrdude is unusable on this host." "$LOG_FILE"
+    assert_success
+
+    run grep -F -q "unexpected PATH avrdude invocation" "$LOG_FILE"
+    assert_failure
+
+    rm -f "$AVRDUDE_BINARY_PATH" "$AVRDUDE_CONFIG_PATH" "$RUN_AS_HOME/.avrduderc"
+    rm -rf "$RUN_AS_HOME"
+    unset -f curl detect_libgpiod_abi chown avrdude
+}
+
+@test "function_detect_libgpiod_abi_prefers_ldconfig" {
+    function ldconfig() {
+        cat <<'EOF'
+libgpiod.so.3 (libc6,AArch64) => /lib/aarch64-linux-gnu/libgpiod.so.3
+libgpiod.so.2 (libc6,AArch64) => /lib/aarch64-linux-gnu/libgpiod.so.2
+EOF
+    }
+    export -f ldconfig
+
+    run detect_libgpiod_abi
+    assert_success
+    assert_output "3"
+
+    unset -f ldconfig
+}
+
+@test "function_resolve_avrdude_artifact_urls_uses_gpiod3_bundle" {
+    AVRDUDE_ARTIFACT_BASE_URL="https://artifacts.smartgic.io/avrdude"
+    AVRDUDE_ARTIFACT_VERSION="v8.1"
+    AVRDUDE_ARTIFACT_ARCH="aarch64"
+
+    function detect_libgpiod_abi() {
+        printf '%s\n' "3"
+    }
+    function resolve_avrdude_artifact_urls_and_print() {
+        resolve_avrdude_artifact_urls || return 1
+        printf '%s\n' "$AVRDUDE_BINARY_URL"
+        printf '%s\n' "$AVRDUDE_CONFIG_URL"
+    }
+    export -f detect_libgpiod_abi resolve_avrdude_artifact_urls_and_print
+
+    run resolve_avrdude_artifact_urls_and_print
+    assert_success
+    assert_line --index 0 "https://artifacts.smartgic.io/avrdude/v8.1/aarch64/libgpiod3/avrdude"
+    assert_line --index 1 "https://artifacts.smartgic.io/avrdude/v8.1/aarch64/libgpiod3/avrdude.conf"
+
+    unset -f detect_libgpiod_abi resolve_avrdude_artifact_urls_and_print
+}
+
+@test "function_setup_avrdude_fails_without_supported_artifact" {
+    AVRDUDE_BINARY_PATH=/tmp/test_avrdude
+    AVRDUDE_CONFIG_PATH=/tmp/test_avrdude.conf
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    : >"$LOG_FILE"
+
+    function detect_libgpiod_abi() {
+        return 1
+    }
+    function chown() {
+        return 0
+    }
+    export -f detect_libgpiod_abi chown
+
+    run setup_avrdude
+    assert_failure
+    run grep -F -q "[warn] Failed to resolve avrdude artifact bundle for Mark 1 detection." "$LOG_FILE"
+    assert_success
+
+    rm -f "$AVRDUDE_BINARY_PATH" "$AVRDUDE_CONFIG_PATH" "$RUN_AS_HOME/.avrduderc"
+    rm -rf "$RUN_AS_HOME"
+    unset -f detect_libgpiod_abi chown
+}
+
+@test "function_setup_avrdude_uses_selected_bundle_without_legacy_fallback" {
+    AVRDUDE_BINARY_PATH=/tmp/test_avrdude
+    AVRDUDE_CONFIG_PATH=/tmp/test_avrdude.conf
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    : >"$LOG_FILE"
+
+    function detect_libgpiod_abi() {
+        printf '%s\n' "3"
+    }
+    function curl() {
+        local url=""
+        local -a args=("$@")
+        while [ "$#" -gt 0 ]; do
+            if [[ "$1" == http* ]]; then
+                url="$1"
+            fi
+            shift
+        done
+
+        if [[ "$url" != *"/libgpiod3/avrdude" && "$url" != *"/libgpiod3/avrdude.conf" ]]; then
+            return 22
+        fi
+
+        mock_curl_touch_output "${args[@]}"
+        return 0
+    }
+    function chown() {
+        return 0
+    }
+    export -f detect_libgpiod_abi curl chown
+
+    setup_avrdude
+    assert_equal "$?" "0"
+    assert_equal "$AVRDUDE_BINARY_URL" "https://artifacts.smartgic.io/avrdude/v8.1/aarch64/libgpiod3/avrdude"
+    assert_equal "$AVRDUDE_CONFIG_URL" "https://artifacts.smartgic.io/avrdude/v8.1/aarch64/libgpiod3/avrdude.conf"
+
+    rm -f "$AVRDUDE_BINARY_PATH" "$AVRDUDE_CONFIG_PATH" "$RUN_AS_HOME/.avrduderc"
+    rm -rf "$RUN_AS_HOME"
+    unset -f detect_libgpiod_abi curl chown
 }
 
 
