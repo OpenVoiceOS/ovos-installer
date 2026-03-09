@@ -3,10 +3,11 @@ set -euo pipefail
 
 export ANSIBLE_LOG_FILE=/var/log/ovos-ansible.log
 export ATMEGA328P_SIGNATURE=":030000001E950F3B"
+export AVRDUDE_ARTIFACT_ARCH="aarch64"
+export AVRDUDE_ARTIFACT_BASE_URL="https://artifacts.smartgic.io/avrdude"
+export AVRDUDE_ARTIFACT_VERSION="v8.1"
 export AVRDUDE_BINARY_PATH=/usr/local/bin/avrdude
-export AVRDUDE_BINARY_URL="https://artifacts.smartgic.io/avrdude/avrdude-aarch64"
 export AVRDUDE_CONFIG_PATH=/usr/local/etc/avrdude.conf
-export AVRDUDE_CONFIG_URL="https://artifacts.smartgic.io/avrdude/avrdude.conf"
 declare -a DETECTED_DEVICES
 export DETECTED_DEVICES
 export DT_FILE=/sys/firmware/devicetree/base/model
