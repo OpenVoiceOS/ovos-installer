@@ -15,6 +15,7 @@ EnvironmentFile=-{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tu
 {% endif %}
 ExecStart={{ ovos_services_messagebus_command }}
 ExecReload=/usr/bin/kill -s HUP $MAINPID
+ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec={{ '1s' if ovos_installer_tuning | bool else '5s' }}
 

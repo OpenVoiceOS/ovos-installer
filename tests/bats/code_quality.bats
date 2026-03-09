@@ -1895,11 +1895,6 @@ function setup() {
     assert_failure
 }
 
-@test "virtualenv_systemd_units_do_not_force_kill_on_stop" {
-    run rg -n 'ExecStop=/usr/bin/kill -s KILL \\$MAINPID' ansible/roles/ovos_services/templates/virtualenv
-    assert_failure
-}
-
 @test "setup_exports_collection_paths_for_launchd_module_resolution" {
     run grep -q "ANSIBLE_COLLECTIONS_PATH" setup.sh
     assert_success

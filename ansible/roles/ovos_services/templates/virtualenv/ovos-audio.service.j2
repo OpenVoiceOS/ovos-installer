@@ -16,6 +16,7 @@ EnvironmentFile=-{{ ovos_installer_user_home }}/.config/environment.d/99-ovos-tu
 WorkingDirectory={{ ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' }}/.venvs/ovos
 ExecStart={{ ovos_installer_user_home if (ovos_installer_systemd_scope | default('user')) == 'system' else '%h' }}/.venvs/ovos/bin/ovos-audio
 ExecReload=/usr/bin/kill -s HUP $MAINPID
+ExecStop=/usr/bin/kill -s KILL $MAINPID
 Restart=on-failure
 RestartSec={{ '1s' if ovos_installer_tuning | bool else '5s' }}
 {% if ovos_installer_tuning_performance | bool and (ovos_installer_systemd_scope | default('user')) == 'system' %}
