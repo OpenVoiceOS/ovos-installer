@@ -239,7 +239,7 @@ if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existi
   fi
 fi
 
-tui_whiptail_dialog --msgbox --title "$LLM_TITLE_SETUP" "$LLM_CONTENT_HAVE_DETAILS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_SETUP" "$LLM_CONTENT_HAVE_DETAILS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
 
 llm_url_default=""
 if [ -n "$llm_existing_url" ]; then
@@ -311,7 +311,7 @@ while :; do
 
   LLM_API_URL="$(normalize_llm_url "$llm_url_input")"
   if [ -z "$LLM_API_URL" ]; then
-    tui_whiptail_dialog --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_URL" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_URL" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -341,7 +341,7 @@ ${LLM_CONTENT_KEY_KEEP_EXISTING}"
     return
   fi
   if [ -z "$LLM_API_KEY" ]; then
-    tui_whiptail_dialog --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -356,7 +356,7 @@ while :; do
   fi
   LLM_MODEL="$(trim_llm_input "$LLM_MODEL")"
   if [ -z "$LLM_MODEL" ]; then
-    tui_whiptail_dialog --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -373,7 +373,7 @@ while :; do
   fi
   LLM_PERSONA="$(trim_llm_input "$LLM_PERSONA")"
   if [ -z "$LLM_PERSONA" ]; then
-    tui_whiptail_dialog --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -391,7 +391,7 @@ while :; do
 
   LLM_MAX_TOKENS="$(normalize_llm_positive_int "$llm_max_tokens_input")"
   if [ -z "$LLM_MAX_TOKENS" ]; then
-    tui_whiptail_dialog --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_MAX_TOKENS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_MAX_TOKENS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -410,7 +410,7 @@ while :; do
 
   LLM_TEMPERATURE="$(normalize_llm_decimal_in_range "$llm_temperature_input" "0" "2")"
   if [ -z "$LLM_TEMPERATURE" ]; then
-    tui_whiptail_dialog --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_TEMPERATURE" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_TEMPERATURE" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -429,7 +429,7 @@ while :; do
 
   LLM_TOP_P="$(normalize_llm_decimal_in_range "$llm_top_p_input" "0" "1")"
   if [ -z "$LLM_TOP_P" ]; then
-    tui_whiptail_dialog --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_TOP_P" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_TOP_P" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 

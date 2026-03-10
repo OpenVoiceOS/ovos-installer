@@ -191,13 +191,13 @@ while :; do
   HOMEASSISTANT_URL="${HOMEASSISTANT_URL//[[:space:]]/}"
   HOMEASSISTANT_URL="${HOMEASSISTANT_URL%/}"
   if [ -z "$HOMEASSISTANT_URL" ]; then
-    tui_whiptail_dialog --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+    tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
   if [[ "$HOMEASSISTANT_URL" != http://* && "$HOMEASSISTANT_URL" != https://* ]]; then
     if [[ "$HOMEASSISTANT_URL" == *"://"* ]]; then
-      tui_whiptail_dialog --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_URL" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+      tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_URL" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
       continue
     fi
     HOMEASSISTANT_URL="http://${HOMEASSISTANT_URL}"
@@ -220,7 +220,7 @@ while :; do
   fi
 
   if [ -z "$authority" ]; then
-    tui_whiptail_dialog --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+    tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -233,7 +233,7 @@ while :; do
     elif [[ "$authority" =~ ^\\[[^\\]]+\\]:[0-9]+$ ]]; then
       :
     else
-      tui_whiptail_dialog --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_PORT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+      tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_PORT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
       continue
     fi
   else
@@ -242,7 +242,7 @@ while :; do
       if [[ "$authority" =~ ^[^:/]+:[0-9]+$ ]]; then
         :
       else
-        tui_whiptail_dialog --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_PORT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+        tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_PORT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
         continue
       fi
     else
@@ -293,7 +293,7 @@ ${CONTENT_TOKEN_KEEP_EXISTING}"
   fi
 
   if [ -z "$HOMEASSISTANT_API_KEY" ]; then
-    tui_whiptail_dialog --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
+    tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
