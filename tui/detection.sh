@@ -1,19 +1,33 @@
 #!/usr/bin/env bash
 HARDWARE_DETECTED="N/A"
+_mark2_or_devkit_detected="false"
+_devkit_detected="false"
 
 for device in "${DETECTED_DEVICES[@]}"; do
     case ${device} in
     tas5806)
-        HARDWARE_DETECTED="Mycroft Mark II"
+        if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]; then
+            _mark2_or_devkit_detected="true"
+        fi
         ;;
     atmega328p)
         HARDWARE_DETECTED="Mycroft Mark 1"
         ;;
     attiny1614)
-        HARDWARE_DETECTED="Mycroft DevKit"
+        if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]; then
+            _devkit_detected="true"
+        fi
         ;;
     esac
 done
+
+if [ "$_mark2_or_devkit_detected" == "true" ]; then
+    if [ "$_devkit_detected" == "true" ]; then
+        HARDWARE_DETECTED="Mycroft DevKit"
+    else
+        HARDWARE_DETECTED="Mycroft Mark II"
+    fi
+fi
 
 if [ "$HARDWARE_DETECTED" == "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then
     HARDWARE_DETECTED="$HARDWARE_MODEL"

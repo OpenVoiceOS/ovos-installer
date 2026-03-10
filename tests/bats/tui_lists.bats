@@ -237,6 +237,7 @@ function dialog_value() {
 
 @test "channels: hides non-alpha channels on Mark 2/DevKit hardware" {
     EXISTING_INSTANCE="false"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION="alpha"
 
@@ -246,6 +247,19 @@ function dialog_value() {
     assert_equal "$(spy_value option_count)" "1"
     assert_equal "$(spy_value list_height)" "4"
     assert_equal "$(spy_value tags)" "alpha"
+}
+
+@test "channels: keeps testing channel on Raspberry Pi 5 tas5806 false positives" {
+    EXISTING_INSTANCE="false"
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION="testing"
+
+    # shellcheck source=tui/channels.sh
+    source tui/channels.sh
+
+    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value tags)" "testing alpha"
 }
 
 @test "profiles: shows all options when navigating back in a new install" {
@@ -316,6 +330,7 @@ function dialog_value() {
 @test "methods: hides containers on Mark 2 hardware" {
     EXISTING_INSTANCE="false"
     INSTANCE_TYPE=""
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION="virtualenv"
 
@@ -327,9 +342,24 @@ function dialog_value() {
     assert_equal "$(spy_value tags)" "virtualenv"
 }
 
+@test "methods: keeps containers on Raspberry Pi 5 tas5806 false positives" {
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value tags)" "containers virtualenv"
+}
+
 @test "methods: keeps containers hidden on Mark 2 for existing container installs" {
     EXISTING_INSTANCE="true"
     INSTANCE_TYPE="containers"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION="virtualenv"
 
@@ -344,6 +374,7 @@ function dialog_value() {
 @test "methods: applies Mark 2 restriction to DevKit detection" {
     EXISTING_INSTANCE="false"
     INSTANCE_TYPE=""
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("attiny1614" "tas5806")
     WHIPTAIL_FORCE_SELECTION="virtualenv"
 
@@ -372,6 +403,7 @@ function dialog_value() {
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION=$'skills\ngui'
 
@@ -387,12 +419,33 @@ function dialog_value() {
     assert_equal "$FEATURE_GUI" "true"
 }
 
+@test "features: keeps GUI hidden on Raspberry Pi 5 tas5806 false positives" {
+    PROFILE="ovos"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION="skills"
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    tags="$(spy_value tags)"
+    if [[ "$tags" == *gui* ]]; then
+        echo "did not expect gui in tag list: $tags" >&2
+        return 1
+    fi
+    assert_equal "$FEATURE_GUI" "false"
+}
+
 @test "features: honors persisted GUI disabled state on Debian Trixie Mark 2 hardware" {
     printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"],"feature_gui_selected":false}' >"$INSTALLER_STATE_FILE"
     PROFILE="ovos"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION="skills"
 
@@ -408,6 +461,7 @@ function dialog_value() {
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION=$'skills\ngui'
 
@@ -424,6 +478,7 @@ function dialog_value() {
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION=$'skills\ngui'
 

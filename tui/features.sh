@@ -16,12 +16,14 @@ export LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"
 _mark2_or_devkit_detected="false"
 _gui_supported="false"
 _gui_default_state="OFF"
-for _device in "${DETECTED_DEVICES[@]}"; do
-  if [ "$_device" == "tas5806" ]; then
-    _mark2_or_devkit_detected="true"
-    break
-  fi
-done
+if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]; then
+  for _device in "${DETECTED_DEVICES[@]}"; do
+    if [ "$_device" == "tas5806" ]; then
+      _mark2_or_devkit_detected="true"
+      break
+    fi
+  done
+fi
 if [[ "$_mark2_or_devkit_detected" == "true" ]] && \
   [[ "${PROFILE:-}" != "server" ]] && \
   [[ "${PROFILE:-}" != "satellite" ]] && \

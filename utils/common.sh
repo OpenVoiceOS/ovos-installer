@@ -1492,12 +1492,19 @@ function has_detected_device() {
     return 1
 }
 
-# Returns success for Mark II/DevKit family hardware (tas5806 present).
-function is_mark2_or_devkit_detected() {
-    has_detected_device "tas5806"
+# Returns success when the detected board is a Raspberry Pi 4.
+function is_raspberry_pi_4() {
+    [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]
 }
 
-# Returns success for Mark II-only hardware (tas5806 present, attiny1614 absent).
+# Returns success for Mark II/DevKit family hardware.
+# These devices are only supported on Raspberry Pi 4 and require tas5806.
+function is_mark2_or_devkit_detected() {
+    is_raspberry_pi_4 && has_detected_device "tas5806"
+}
+
+# Returns success for Mark II-only hardware on Raspberry Pi 4
+# (tas5806 present, attiny1614 absent).
 function is_mark2_detected() {
     is_mark2_or_devkit_detected && ! has_detected_device "attiny1614"
 }
@@ -1722,9 +1729,15 @@ function detect_mark1_device() {
     return 0
 }
 
-# This function checks if attiny1614 I2C device is present, this is only
-# triggered when a tas5806 I2C device is detected.
+# This function checks if attiny1614 I2C device is present on supported
+# Raspberry Pi 4 Mark II/DevKit family hardware. It is only triggered when
+# a tas5806 I2C device is detected.
 function detect_devkit_device() {
+    if ! is_raspberry_pi_4; then
+        printf '%s\n' "[info] Ignoring tas5806/attiny1614 detection on unsupported board: ${RASPBERRYPI_MODEL:-unknown}" >>"$LOG_FILE"
+        return 0
+    fi
+
     if i2c_get "${SUPPORTED_DEVICES["attiny1614"]}"; then
         DETECTED_DEVICES+=("attiny1614")
     fi

@@ -27,13 +27,15 @@ fi
 
 # Mark 2/DevKit devices support only the alpha stream.
 mark2_or_devkit_detected="false"
-for device in "${DETECTED_DEVICES[@]}"; do
-  case "$device" in
-    tas5806)
-      mark2_or_devkit_detected="true"
-      ;;
-  esac
-done
+if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]; then
+  for device in "${DETECTED_DEVICES[@]}"; do
+    case "$device" in
+      tas5806)
+        mark2_or_devkit_detected="true"
+        ;;
+    esac
+  done
+fi
 if [[ "$mark2_or_devkit_detected" == "true" ]]; then
   active_channel="alpha"
   available_channels=(alpha)

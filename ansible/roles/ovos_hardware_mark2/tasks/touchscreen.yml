@@ -13,5 +13,7 @@
     line: "{{ item.overlay }}"
     state: "{{ item.state }}"
   loop: "{{ ovos_hardware_mark2_touchscreen_overlays }}"
-  when: "'tas5806' in (ovos_installer_i2c_devices | default([]))"
+  when:
+    - "'Raspberry Pi 4' in (ovos_installer_raspberrypi | default(''))"
+    - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
   notify: Set Reboot

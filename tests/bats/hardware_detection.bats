@@ -417,6 +417,7 @@ EOF
 
 @test "function_enforce_mark2_devkit_trixie_requirement_accepts_debian_trixie" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
@@ -434,6 +435,7 @@ EOF
 
 @test "function_enforce_mark2_alpha_channel_forces_alpha" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     CHANNEL="testing"
 
     enforce_mark2_alpha_channel
@@ -442,6 +444,7 @@ EOF
 
 @test "function_enforce_mark2_alpha_channel_is_silent" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     CHANNEL="testing"
 
     run enforce_mark2_alpha_channel
@@ -451,6 +454,7 @@ EOF
 
 @test "function_enforce_mark2_alpha_channel_forces_alpha_on_devkit" {
     DETECTED_DEVICES=("attiny1614" "tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     CHANNEL="testing"
 
     enforce_mark2_alpha_channel
@@ -459,6 +463,7 @@ EOF
 
 @test "function_enforce_mark2_devkit_gui_support_does_not_force_feature_gui_on_trixie" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
@@ -470,6 +475,7 @@ EOF
 
 @test "function_enforce_mark2_devkit_gui_support_preserves_feature_gui_on_supported_trixie" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
@@ -481,6 +487,7 @@ EOF
 
 @test "function_enforce_mark2_devkit_gui_support_disables_feature_gui_on_non_trixie" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="12"
     DISTRO_VERSION="Debian GNU/Linux 12 (bookworm)"
@@ -492,6 +499,7 @@ EOF
 
 @test "function_enforce_mark2_devkit_gui_support_sets_feature_gui_false_on_non_trixie_when_unset" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="12"
     DISTRO_VERSION="Debian GNU/Linux 12 (bookworm)"
@@ -503,6 +511,7 @@ EOF
 
 @test "function_enforce_mark2_devkit_gui_support_disables_server_profile" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
@@ -515,6 +524,7 @@ EOF
 
 @test "function_enforce_mark2_devkit_display_server_sets_eglfs_for_headless" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISPLAY_SERVER="N/A"
 
     enforce_mark2_devkit_display_server
@@ -523,6 +533,7 @@ EOF
 
 @test "function_enforce_mark2_devkit_display_server_is_silent" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISPLAY_SERVER="N/A"
 
     run enforce_mark2_devkit_display_server
@@ -532,6 +543,7 @@ EOF
 
 @test "function_enforce_mark2_devkit_display_server_keeps_detected_compositor" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISPLAY_SERVER="wayland"
 
     enforce_mark2_devkit_display_server
@@ -540,6 +552,7 @@ EOF
 
 @test "function_enforce_mark2_devkit_trixie_requirement_rejects_non_trixie" {
     DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="12"
     DISTRO_VERSION="Debian GNU/Linux 12 (bookworm)"
@@ -548,6 +561,39 @@ EOF
     assert_failure
     assert_equal "$status" "$EXIT_OS_NOT_SUPPORTED"
     assert_output --partial "Mark II/DevKit requires Debian Trixie (13)."
+}
+
+@test "function_is_mark2_or_devkit_detected_requires_raspberry_pi_4" {
+    DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+
+    run is_mark2_or_devkit_detected
+    assert_failure
+}
+
+@test "function_detect_devkit_device_ignores_tas5806_hits_on_unsupported_boards" {
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    DETECTED_DEVICES=()
+    : >"$LOG_FILE"
+
+    function i2c_get() {
+        return 0
+    }
+    export -f i2c_get
+
+    run detect_devkit_device
+    assert_success
+
+    run has_detected_device "tas5806"
+    assert_failure
+
+    run has_detected_device "attiny1614"
+    assert_failure
+
+    run grep -q "Ignoring tas5806/attiny1614 detection on unsupported board" "$LOG_FILE"
+    assert_success
+
+    unset -f i2c_get
 }
 
 # Test apt_ensure function
