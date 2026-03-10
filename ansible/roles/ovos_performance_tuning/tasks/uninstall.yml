@@ -4,6 +4,8 @@
     name: "{{ 'linux-tools-common' if ansible_facts.distribution != 'Debian' else 'linux-cpupower' }}"
     install_recommends: false
     state: absent
+    purge: true
+    autoremove: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Debian"
@@ -12,14 +14,16 @@
   ansible.builtin.dnf:
     name: kernel-tools
     state: absent
+    autoremove: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "RedHat"
 
 - name: Remove cpupower package on SUSE family
-  ansible.builtin.package:
+  community.general.zypper:
     name: kernel-tools
     state: absent
+    clean_deps: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Suse"
@@ -28,6 +32,8 @@
   community.general.pacman:
     name: linux-tools
     state: absent
+    extra_args: --recursive
+    remove_nosave: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Archlinux"
@@ -202,6 +208,8 @@
     name: "{{ ovos_performance_tuning_zram_packages_debian }}"
     install_recommends: false
     state: absent
+    purge: true
+    autoremove: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Debian"
@@ -210,6 +218,7 @@
   ansible.builtin.dnf:
     name: "{{ ovos_performance_tuning_zram_packages_redhat }}"
     state: absent
+    autoremove: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "RedHat"
@@ -219,6 +228,7 @@
     name: "{{ ovos_performance_tuning_zram_packages_suse }}"
     disable_recommends: true
     state: absent
+    clean_deps: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Suse"
@@ -227,6 +237,8 @@
   community.general.pacman:
     name: "{{ ovos_performance_tuning_zram_packages_arch }}"
     state: absent
+    extra_args: --recursive
+    remove_nosave: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Archlinux"

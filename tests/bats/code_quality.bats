@@ -1231,6 +1231,7 @@ function setup() {
 @test "mark2_role_stops_install_flow_while_cleaning" {
     local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
     local tasks_file="ansible/roles/ovos_hardware_mark2/tasks/main.yml"
+    local uninstall_file="ansible/roles/ovos_hardware_mark2/tasks/uninstall.yml"
 
     run grep -q "ovos_hardware_mark2_is_cleaning" "$defaults_file"
     assert_success
@@ -1242,6 +1243,69 @@ function setup() {
     assert_success
 
     run grep -F -q "when: not (ovos_hardware_mark2_is_cleaning | bool)" "$tasks_file"
+    assert_success
+
+    run grep -F -q "ansible.builtin.import_tasks: uninstall.yml" "$tasks_file"
+    assert_success
+
+    run grep -F -q "when: ovos_hardware_mark2_is_cleaning | bool" "$tasks_file"
+    assert_success
+
+    run grep -F -q "Remove kernel headers package" "$uninstall_file"
+    assert_success
+
+    run bash -c "grep -A6 -F -- \"- name: Remove kernel headers package\" \"$uninstall_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+}
+
+@test "uninstall_package_removals_request_dependency_cleanup_across_distros" {
+    local virtualenv_file="ansible/roles/ovos_virtualenv/tasks/uninstall.yml"
+    local performance_file="ansible/roles/ovos_performance_tuning/tasks/uninstall.yml"
+    local audio_file="ansible/roles/ovos_audio_tuning/tasks/uninstall.yml"
+
+    run bash -c "grep -A30 -F -- \"- name: Remove virtualenv package requirements (Debian/Zorin)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A30 -F -- \"- name: Remove virtualenv package requirements (Debian/Zorin)\" \"$virtualenv_file\" | grep -F -q -- \"purge: true\""
+    assert_success
+
+    run bash -c "grep -A24 -F -- \"- name: Remove virtualenv package requirements (RedHat)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A24 -F -- \"- name: Remove virtualenv package requirements (SUSE)\" \"$virtualenv_file\" | grep -F -q -- \"clean_deps: true\""
+    assert_success
+
+    run bash -c "grep -A24 -F -- \"- name: Remove virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"extra_args: --recursive\""
+    assert_success
+
+    run bash -c "grep -A24 -F -- \"- name: Remove virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"remove_nosave: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove cpupower package on SUSE family\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove cpupower package on Arch family\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove systemd-zram-generator (Debian)\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove systemd-zram-generator (SUSE)\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove systemd-zram-generator (Arch Linux)\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (Debian/Zorin)\" \"$audio_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (SUSE)\" \"$audio_file\" | grep -F -q -- \"clean_deps: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (Archlinux)\" \"$audio_file\" | grep -F -q -- \"remove_nosave: true\""
     assert_success
 }
 

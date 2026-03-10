@@ -23,12 +23,47 @@
     state: absent
   notify: Restart WirePlumber
 
-- name: Remove rtkit package
-  ansible.builtin.package:
+- name: Remove rtkit package (Debian/Zorin)
+  ansible.builtin.apt:
     name: "{{ ovos_audio_tuning_rtkit_package }}"
     state: absent
+    purge: true
+    autoremove: true
   failed_when: false
-  when: ovos_installer_uninstall_remove_packages | default(false) | bool
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family in ['Debian', 'Zorin OS']
+
+- name: Remove rtkit package (RedHat)
+  ansible.builtin.dnf:
+    name: "{{ ovos_audio_tuning_rtkit_package }}"
+    state: absent
+    autoremove: true
+  failed_when: false
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "RedHat"
+
+- name: Remove rtkit package (SUSE)
+  community.general.zypper:
+    name: "{{ ovos_audio_tuning_rtkit_package }}"
+    state: absent
+    clean_deps: true
+  failed_when: false
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Suse"
+
+- name: Remove rtkit package (Archlinux)
+  community.general.pacman:
+    name: "{{ ovos_audio_tuning_rtkit_package }}"
+    state: absent
+    extra_args: --recursive
+    remove_nosave: true
+  failed_when: false
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Archlinux"
 
 - name: Remove USB Audio configuration
   ansible.builtin.file:
