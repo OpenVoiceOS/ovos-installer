@@ -38,6 +38,16 @@ if tui_is_raspberry_pi_4 && tui_hardware_has_detected_device "tas5806"; then
 fi
 
 if [ "$TUI_HARDWARE_DETECTED" = "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then
+    case "$HARDWARE_MODEL" in
+        "Mycroft DevKit")
+            TUI_MARK2_OR_DEVKIT_DETECTED="true"
+            TUI_DEVKIT_DETECTED="true"
+            ;;
+        "Mycroft Mark II")
+            TUI_MARK2_OR_DEVKIT_DETECTED="true"
+            TUI_DEVKIT_DETECTED="false"
+            ;;
+    esac
     TUI_HARDWARE_DETECTED="$HARDWARE_MODEL"
 fi
 

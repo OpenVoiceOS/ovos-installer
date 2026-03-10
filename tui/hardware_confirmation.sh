@@ -76,6 +76,7 @@ function hardware_confirmation_persist_state() {
 
 hardware_confirmation_choice=""
 hardware_confirmation_candidate=""
+hardware_confirmation_content=""
 
 case "${HARDWARE_CONFIRMATION:-}" in
   generic|mark2|devkit)
@@ -105,6 +106,7 @@ elif [ -n "$hardware_confirmation_candidate" ]; then
   else
     hardware_confirmation_content="${HARDWARE_CONFIRMATION_MARK2_CONTENT}\n\n${HARDWARE_CONFIRMATION_GENERIC_NOTE}"
   fi
+  printf -v hardware_confirmation_content '%b' "$hardware_confirmation_content"
 
   if whiptail --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
     --title "$HARDWARE_CONFIRMATION_TITLE" \

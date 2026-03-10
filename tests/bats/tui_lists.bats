@@ -84,7 +84,9 @@ function setup() {
                 return 0
                 ;;
             --yesno)
-                printf '%s\t%s\t%s\t%s\t%s\n' "yesno" "$dialog_title" "" "" "$WHIPTAIL_FORCE_YESNO_STATUS" >>"$WHIPTAIL_DIALOG_FILE"
+                local dialog_body="${args[$(( ${#args[@]} - 3 ))]}"
+                dialog_body="${dialog_body//$'\n'/\\n}"
+                printf '%s\t%s\t%s\t%s\t%s\n' "yesno" "$dialog_title" "" "$dialog_body" "$WHIPTAIL_FORCE_YESNO_STATUS" >>"$WHIPTAIL_DIALOG_FILE"
                 return "$WHIPTAIL_FORCE_YESNO_STATUS"
                 ;;
             --msgbox)
@@ -297,6 +299,10 @@ function dialog_value() {
     run grep -F -q $'yesno\tOpen Voice OS Installation - Hardware Check' "$WHIPTAIL_DIALOG_FILE"
     assert_success
 
+    run dialog_value "yesno" "Open Voice OS Installation - Hardware Check" response
+    assert_success
+    assert_output --partial $'A Raspberry Pi 4 with a TAS5806 audio device was detected.\n\nThis can be a Mycroft Mark II'
+
     RASPBERRYPI_MODEL="Raspberry Pi 4"
     EXISTING_INSTANCE="false"
     INSTANCE_TYPE=""
@@ -311,6 +317,39 @@ function dialog_value() {
     # shellcheck source=tui/detection.sh
     source tui/detection.sh
     assert_equal "$HARDWARE_DETECTED" "N/A"
+}
+
+@test "hardware state: HARDWARE_MODEL fallback restores mark2 family flags" {
+    RASPBERRYPI_MODEL="N/A"
+    DETECTED_DEVICES=()
+    HARDWARE_MODEL="Mycroft DevKit"
+
+    # shellcheck source=tui/hardware_state.sh
+    source tui/hardware_state.sh
+
+    assert_equal "$TUI_HARDWARE_DETECTED" "Mycroft DevKit"
+    assert_equal "$TUI_MARK2_OR_DEVKIT_DETECTED" "true"
+    assert_equal "$TUI_DEVKIT_DETECTED" "true"
+
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    PROFILE="ovos"
+    WHIPTAIL_FORCE_SELECTION="alpha"
+
+    # shellcheck source=tui/channels.sh
+    source tui/channels.sh
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value tags)" "alpha"
+
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value tags)" "virtualenv"
 }
 
 @test "hardware confirmation: confirming devkit persists family detection before summary screens" {
