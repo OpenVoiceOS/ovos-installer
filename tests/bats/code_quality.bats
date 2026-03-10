@@ -347,6 +347,13 @@ function setup() {
     assert_success
 }
 
+@test "mycroft_conf_defines_mark2_family_before_server_profile_guard" {
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run bash -c "mark2_line=\$(grep -n -F \"{% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}\" \"$conf_file\" | head -n1 | cut -d: -f1); profile_line=\$(grep -n -F '{% if ovos_installer_profile != \"server\" %}' \"$conf_file\" | head -n1 | cut -d: -f1); [ -n \"\$mark2_line\" ] && [ -n \"\$profile_line\" ] && [ \"\$mark2_line\" -lt \"\$profile_line\" ]"
+    assert_success
+}
+
 @test "mycroft_conf_sets_mark2_compatible_intent_pipeline" {
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
