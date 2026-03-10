@@ -278,7 +278,7 @@ EOF
     assert_success
 }
 
-@test "function_i2c_scan_recovers_mark2_from_installer_state_when_live_scan_misses" {
+@test "function_i2c_scan_does_not_restore_cached_mark2_state_when_live_scan_misses" {
     RASPBERRYPI_MODEL="Raspberry Pi 4"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
@@ -305,17 +305,17 @@ EOF
         return 0
     }
     function i2c_get() {
-        return 1  # Live scan misses; should recover from state.
+        return 1
     }
     export -f dtparam lsmod modprobe i2c_get
 
     i2c_scan
     assert_equal "$?" "0"
 
-    has_detected_device "tas5806"
-    assert_equal "$?" "0"
-    assert_equal "$DISPLAY_SERVER" "eglfs"
-    assert_equal "$CHANNEL" "alpha"
+    run has_detected_device "tas5806"
+    assert_failure
+    assert_equal "$DISPLAY_SERVER" "N/A"
+    assert_equal "$CHANNEL" "testing"
 
     rm -rf "$RUN_AS_HOME"
 }
@@ -368,6 +368,51 @@ EOF
     run i2c_scan
     assert_success
     # Should not attempt I2C operations
+}
+
+@test "function_i2c_scan_ignores_non_primary_bus_false_positives_by_default" {
+    run bash -lc "
+        source '$BATS_TEST_DIRNAME/../../utils/constants.sh'
+        source '$BATS_TEST_DIRNAME/../../utils/common.sh'
+        LOG_FILE=\"\$(mktemp /tmp/ovos-installer-bats.XXXXXX)\"
+        RASPBERRYPI_MODEL='Raspberry Pi 5'
+        I2C_BUS='1'
+        DISTRO_NAME='debian'
+        DISTRO_VERSION_ID='13'
+        DISTRO_VERSION='Debian GNU/Linux 13 (trixie)'
+        DISPLAY_SERVER='N/A'
+        CHANNEL='testing'
+        FEATURE_GUI='false'
+        DETECTED_DEVICES=()
+
+        dtparam() { return 0; }
+        lsmod() { return 0; }
+        modprobe() { return 0; }
+        i2cdetect() {
+            printf 'i2c-bus:%s\n' \"\$3\" >>\"\$LOG_FILE\"
+            if [[ \"\$3\" == '13' ]]; then
+                printf '%s\n' '2f'
+            else
+                printf '\n'
+            fi
+        }
+        export -f dtparam lsmod modprobe i2cdetect
+
+        i2c_scan >/dev/null
+        if has_detected_device 'tas5806'; then
+            printf '%s\n' 'tas5806:present'
+        else
+            printf '%s\n' 'tas5806:absent'
+        fi
+        printf 'feature_gui:%s\n' \"\$FEATURE_GUI\"
+        printf 'channel:%s\n' \"\$CHANNEL\"
+        grep -o 'i2c-bus:[0-9]\\+' \"\$LOG_FILE\" | sort -u
+    "
+    assert_success
+    assert_output --partial "tas5806:absent"
+    assert_output --partial "feature_gui:false"
+    assert_output --partial "channel:testing"
+    assert_output --partial "i2c-bus:1"
 }
 
 @test "function_enforce_mark2_devkit_trixie_requirement_accepts_debian_trixie" {

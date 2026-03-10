@@ -28,6 +28,26 @@ function setup() {
     unset i2cdetect
 }
 
+@test "function_install_i2c_get_uses_only_primary_bus_by_default" {
+    I2C_BUS="1"
+    export I2C_BUS
+
+    function i2cdetect() {
+        if [[ "$3" == "13" ]]; then
+            echo "2f"
+        else
+            echo ""
+        fi
+    }
+    export -f i2cdetect
+
+    run i2c_get "2f"
+    assert_failure
+
+    unset i2cdetect
+    unset I2C_BUS
+}
+
 @test "function_install_i2c_get_falls_back_to_other_buses" {
     OVOS_I2C_SCAN_BUSES="1 10"
     export OVOS_I2C_SCAN_BUSES
