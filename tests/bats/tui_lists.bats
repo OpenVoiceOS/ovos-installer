@@ -496,6 +496,10 @@ function dialog_value() {
     run jq -r '"\(.llm.api_url)|\(.llm.model)|\(.llm.max_tokens|tostring)|\(.llm.temperature|tostring)|\(.llm.top_p|tostring)"' "$INSTALLER_STATE_FILE"
     assert_success
     assert_output "https://llama.smartgic.io/v1|qwen3-nothink:latest|300|0.2|0.1"
+
+    run jq -r '"\(.llm.max_tokens|type)|\(.llm.temperature|type)|\(.llm.top_p|type)"' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "number|number|number"
 }
 
 @test "llm: invalid url shows the URL-specific validation message" {
@@ -586,6 +590,10 @@ EOF
     run jq -r '"\(.llm.api_url)|\(.llm.model)|\(.llm.max_tokens|tostring)|\(.llm.temperature|tostring)|\(.llm.top_p|tostring)"' "$INSTALLER_STATE_FILE"
     assert_success
     assert_output "https://llama.smartgic.io/v1|qwen3-nothink:latest|320|0.2|0.1"
+
+    run jq -r '"\(.llm.max_tokens|type)|\(.llm.temperature|type)|\(.llm.top_p|type)"' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "number|number|number"
 }
 
 @test "llm: invalid preseeded tuning values fall back to validated prompt defaults" {

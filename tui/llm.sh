@@ -134,7 +134,7 @@ persist_llm_state() {
   state_tmp="$(mktemp)"
   if [ -f "$INSTALLER_STATE_FILE" ]; then
     if jq --arg api_url "$LLM_API_URL" --arg model "$LLM_MODEL" --arg persona "$LLM_PERSONA" \
-      --arg max_tokens "$LLM_MAX_TOKENS" --arg temperature "$LLM_TEMPERATURE" --arg top_p "$LLM_TOP_P" \
+      --argjson max_tokens "$LLM_MAX_TOKENS" --argjson temperature "$LLM_TEMPERATURE" --argjson top_p "$LLM_TOP_P" \
       'if type=="object" then . else {} end
        | .llm = ((.llm // {}) + {api_url: $api_url, model: $model, persona: $persona, max_tokens: $max_tokens, temperature: $temperature, top_p: $top_p})' \
       "$INSTALLER_STATE_FILE" >"$state_tmp" 2>>"$LOG_FILE"; then
@@ -145,7 +145,7 @@ persist_llm_state() {
     fi
   else
     if jq -n --arg api_url "$LLM_API_URL" --arg model "$LLM_MODEL" --arg persona "$LLM_PERSONA" \
-      --arg max_tokens "$LLM_MAX_TOKENS" --arg temperature "$LLM_TEMPERATURE" --arg top_p "$LLM_TOP_P" \
+      --argjson max_tokens "$LLM_MAX_TOKENS" --argjson temperature "$LLM_TEMPERATURE" --argjson top_p "$LLM_TOP_P" \
       '{llm: {api_url: $api_url, model: $model, persona: $persona, max_tokens: $max_tokens, temperature: $temperature, top_p: $top_p}}' >"$state_tmp" 2>>"$LOG_FILE"; then
       mv -f "$state_tmp" "$INSTALLER_STATE_FILE"
     else
