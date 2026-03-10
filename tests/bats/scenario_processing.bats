@@ -544,11 +544,13 @@ EOF
         source tui/llm.sh
         printf "%s|%s|%s\\n" "$LLM_API_URL" "$LLM_MODEL" "$LLM_TOP_P"
         jq -r "\"\\(.llm.api_url)|\\(.llm.top_p|tostring)\"" "$INSTALLER_STATE_FILE"
+        jq -r "\"\\(.llm.max_tokens|type)|\\(.llm.temperature|type)|\\(.llm.top_p|type)\"" "$INSTALLER_STATE_FILE"
     ' _ "$PWD" "$scenario_file" "$yq_mock" "$state_file" "$log_file" "$run_as_home"
 
     assert_success
     assert_line --index 0 "http://llama.smartgic.io/v1|qwen3-nothink:latest|0.6"
     assert_line --index 1 "http://llama.smartgic.io/v1|0.6"
+    assert_line --index 2 "number|number|number"
 
     rm -f "$scenario_file" "$yq_mock" "$state_file" "$log_file"
     rm -rf "$run_as_home"
