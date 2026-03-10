@@ -57,3 +57,17 @@ function setup() {
     assert_success
     assert_output $'status=255 answer=typed-value\nsurvived'
 }
+
+@test "dialog helper: capture rejects missing output variable" {
+    local repo_root
+    repo_root="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+
+    run env REPO_ROOT="$repo_root" bash -c '
+        cd "$REPO_ROOT"
+        source tui/dialogs.sh
+        tui_whiptail_capture
+    '
+
+    assert_failure
+    assert_output "tui_whiptail_capture: missing output variable"
+}

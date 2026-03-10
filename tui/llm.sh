@@ -218,6 +218,7 @@ if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existi
   _llm_existing_prompt="${_llm_existing_prompt//__MODEL__/$llm_existing_model}"
   if tui_whiptail_dialog --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
     --title "$LLM_TITLE_EXISTING" "$_llm_existing_prompt" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"; then
+    exit_status=0
     export FEATURE_LLM="true"
     export LLM_API_URL="$llm_existing_url"
     LLM_API_KEY="$llm_existing_key"
@@ -229,8 +230,9 @@ if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existi
     persist_llm_state
     restore_llm_xtrace
     return
+  else
+    exit_status=$?
   fi
-  exit_status=$?
   if [ "$exit_status" -eq 255 ]; then
     cancel_llm_setup
     return

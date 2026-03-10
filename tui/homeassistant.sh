@@ -125,6 +125,7 @@ if [ -n "$ha_existing_url" ] && [ -n "$ha_existing_api_key" ]; then
   _ha_existing_prompt="${CONTENT_EXISTING//__URL__/$ha_existing_url}"
   if tui_whiptail_dialog --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
     --title "$TITLE_EXISTING" "$_ha_existing_prompt" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"; then
+    exit_status=0
     export FEATURE_HOMEASSISTANT="true"
     HOMEASSISTANT_URL="$(normalize_homeassistant_url "$ha_existing_url")"
     HOMEASSISTANT_API_KEY="$ha_existing_api_key"
@@ -132,8 +133,9 @@ if [ -n "$ha_existing_url" ] && [ -n "$ha_existing_api_key" ]; then
     persist_homeassistant_url
     restore_homeassistant_xtrace
     return
+  else
+    exit_status=$?
   fi
-  exit_status=$?
   if [ "$exit_status" -eq 255 ]; then
     export FEATURE_HOMEASSISTANT="false"
     export HOMEASSISTANT_URL=""
@@ -155,9 +157,13 @@ if [ -z "$ha_url_default" ]; then
   ha_url_default="http://homeassistant.local:8123"
 fi
 
-if ! tui_whiptail_dialog --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
+if tui_whiptail_dialog --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
   --title "$TITLE_HAVE_DETAILS" "$CONTENT_HAVE_DETAILS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"; then
+  exit_status=0
+else
   exit_status=$?
+fi
+if [ "$exit_status" -ne 0 ]; then
   # No (1): skip. ESC (255): go back to the feature selection.
   export FEATURE_HOMEASSISTANT="false"
   export HOMEASSISTANT_URL=""

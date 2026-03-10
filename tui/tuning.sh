@@ -96,35 +96,36 @@ if [ -f "$INSTALLER_STATE_FILE" ]; then
   esac
 fi
 
-active_option="${TUNING:-yes}"
-if [[ "$active_option" != "yes" && "$active_option" != "no" ]]; then
-  active_option="yes"
-fi
 available_options=(yes no)
 
-list_height="${#available_options[@]}"
-if [ "$list_height" -lt 4 ]; then
-  list_height=4
-fi
-
-whiptail_args=(
-  --title "$TITLE"
-  --radiolist "$CONTENT"
-  --cancel-button "$BACK_BUTTON"
-  --ok-button "$OK_BUTTON"
-  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height"
-)
-
-for option in "${available_options[@]}"; do
-  whiptail_args+=("$option" "")
-  if [[ $option = "$active_option" ]]; then
-    whiptail_args+=("ON")
-  else
-    whiptail_args+=("OFF")
-  fi
-done
-
 while true; do
+  active_option="${TUNING:-yes}"
+  if [[ "$active_option" != "yes" && "$active_option" != "no" ]]; then
+    active_option="yes"
+  fi
+
+  list_height="${#available_options[@]}"
+  if [ "$list_height" -lt 4 ]; then
+    list_height=4
+  fi
+
+  whiptail_args=(
+    --title "$TITLE"
+    --radiolist "$CONTENT"
+    --cancel-button "$BACK_BUTTON"
+    --ok-button "$OK_BUTTON"
+    "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height"
+  )
+
+  for option in "${available_options[@]}"; do
+    whiptail_args+=("$option" "")
+    if [[ $option = "$active_option" ]]; then
+      whiptail_args+=("ON")
+    else
+      whiptail_args+=("OFF")
+    fi
+  done
+
   tuning_choice=""
   if tui_whiptail_capture tuning_choice "${whiptail_args[@]}"; then
     TUNING="$tuning_choice"

@@ -24,6 +24,11 @@ function tui_whiptail_dialog() {
 
 # Capture whiptail output while preserving its exit status under errexit.
 function tui_whiptail_capture() {
+  if [ "$#" -lt 1 ]; then
+    printf '%s\n' "tui_whiptail_capture: missing output variable" >&2
+    return 2
+  fi
+
   local output_var="$1"
   shift
 
