@@ -415,6 +415,85 @@ EOF
     assert_output --partial "i2c-bus:1"
 }
 
+@test "function_i2c_scan_scenario_defaults_ambiguous_mark2_candidate_back_to_generic" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DISPLAY_SERVER="N/A"
+    CHANNEL="testing"
+    PROFILE="ovos"
+    FEATURE_GUI="false"
+    SCENARIO_FOUND="true"
+    unset HARDWARE_CONFIRMATION || true
+    DETECTED_DEVICES=()
+
+    function dtparam() {
+        return 0
+    }
+    function lsmod() {
+        return 0
+    }
+    function modprobe() {
+        return 0
+    }
+    function i2c_get() {
+        [ "$1" = "2f" ]
+    }
+    export -f dtparam lsmod modprobe i2c_get
+
+    i2c_scan
+    assert_equal "$?" "0"
+
+    run has_detected_device "tas5806"
+    assert_failure
+    assert_equal "$CHANNEL" "testing"
+    assert_equal "$DISPLAY_SERVER" "N/A"
+    assert_equal "$FEATURE_GUI" "false"
+
+    unset -f dtparam lsmod modprobe i2c_get
+    unset HARDWARE_CONFIRMATION
+}
+
+@test "function_i2c_scan_scenario_explicit_mark2_override_restores_mark2_restrictions" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DISPLAY_SERVER="N/A"
+    CHANNEL="testing"
+    PROFILE="ovos"
+    FEATURE_GUI="false"
+    SCENARIO_FOUND="true"
+    HARDWARE_CONFIRMATION="mark2"
+    DETECTED_DEVICES=()
+
+    function dtparam() {
+        return 0
+    }
+    function lsmod() {
+        return 0
+    }
+    function modprobe() {
+        return 0
+    }
+    function i2c_get() {
+        return 1
+    }
+    export -f dtparam lsmod modprobe i2c_get
+
+    i2c_scan
+    assert_equal "$?" "0"
+
+    run has_detected_device "tas5806"
+    assert_success
+    assert_equal "$CHANNEL" "alpha"
+    assert_equal "$DISPLAY_SERVER" "eglfs"
+
+    unset -f dtparam lsmod modprobe i2c_get
+    unset HARDWARE_CONFIRMATION
+}
+
 @test "function_enforce_mark2_devkit_trixie_requirement_accepts_debian_trixie" {
     DETECTED_DEVICES=("tas5806")
     RASPBERRYPI_MODEL="Raspberry Pi 4"

@@ -1530,7 +1530,7 @@ function setup() {
     run grep -q "SCENARIO_ALLOWED_FEATURES=(skills extra_skills homeassistant llm)" utils/constants.sh
     assert_success
 
-    run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)" utils/constants.sh
+    run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)" utils/constants.sh
     assert_success
 
     run grep -q "SCENARIO_ALLOWED_LLM_OPTIONS=(api_url key model persona max_tokens temperature top_p)" utils/constants.sh
@@ -1786,6 +1786,29 @@ function setup() {
     assert_success
 
     run grep -q 'if \[ \"\${SCENARIO_FOUND:-false}\" != \"false\" \]; then' utils/common.sh
+    assert_success
+}
+
+@test "automation_hardware_override_avoids_raw_mark2_promotion_without_confirmation" {
+    run grep -q 'export HARDWARE_CONFIRMATION="\${HARDWARE_CONFIRMATION:-}"' utils/argparse.sh
+    assert_success
+
+    run grep -q 'declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)' utils/constants.sh
+    assert_success
+
+    run grep -q 'hardware)' utils/scenario.sh
+    assert_success
+
+    run grep -q 'export HARDWARE_CONFIRMATION="\${options\[\$option\]}"' utils/scenario.sh
+    assert_success
+
+    run grep -q 'if \[ -n "\${HARDWARE_CONFIRMATION:-}" \]; then' utils/common.sh
+    assert_success
+
+    run grep -q 'apply_hardware_confirmation_choice "\${HARDWARE_CONFIRMATION}"' utils/common.sh
+    assert_success
+
+    run grep -q 'clear_mark2_family_detected_devices' utils/common.sh
     assert_success
 }
 

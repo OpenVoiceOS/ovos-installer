@@ -346,6 +346,27 @@ function dialog_value() {
     assert_equal "$(spy_value tags)" "testing alpha"
 }
 
+@test "hardware confirmation: explicit generic override skips prompt and keeps generic flow" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DETECTED_DEVICES=("tas5806")
+    HARDWARE_CONFIRMATION="generic"
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    run grep -F -q $'yesno\tOpen Voice OS Installation - Hardware Check' "$WHIPTAIL_DIALOG_FILE"
+    assert_failure
+
+    run jq -r '.hardware_confirmation' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "generic"
+
+    run jq -e '.i2c_devices == []' "$INSTALLER_STATE_FILE"
+    assert_success
+
+    unset HARDWARE_CONFIRMATION
+}
+
 @test "hardware confirmation: persisted mark2 choice restores mark2 restrictions when live probe misses" {
     printf '%s\n' '{"hardware_confirmation":"mark2","i2c_devices":[]}' >"$INSTALLER_STATE_FILE"
     RASPBERRYPI_MODEL="Raspberry Pi 4"

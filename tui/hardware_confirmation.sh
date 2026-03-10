@@ -18,68 +18,15 @@ DISPLAY_DETECTED="${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}"
 # shellcheck source=tui/locales/en-us/detection.sh
 source "tui/locales/$LOCALE/detection.sh"
 
-function hardware_confirmation_has_detected_device() {
-  local needle="$1"
-  local device=""
-
-  for device in "${DETECTED_DEVICES[@]:-}"; do
-    if [ "$device" = "$needle" ]; then
-      return 0
-    fi
-  done
-
-  return 1
-}
-
 function hardware_confirmation_mark2_candidate() {
   if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]] && \
-    hardware_confirmation_has_detected_device "tas5806"; then
-    if hardware_confirmation_has_detected_device "attiny1614"; then
+    has_detected_device "tas5806"; then
+    if has_detected_device "attiny1614"; then
       printf '%s\n' "devkit"
     else
       printf '%s\n' "mark2"
     fi
   fi
-}
-
-function hardware_confirmation_strip_mark2_family_devices() {
-  local device=""
-  local -a filtered_devices=()
-
-  for device in "${DETECTED_DEVICES[@]:-}"; do
-    case "$device" in
-      tas5806|attiny1614) ;;
-      *)
-        filtered_devices+=("$device")
-        ;;
-    esac
-  done
-
-  DETECTED_DEVICES=("${filtered_devices[@]}")
-}
-
-function hardware_confirmation_add_device() {
-  local needle="$1"
-
-  if ! hardware_confirmation_has_detected_device "$needle"; then
-    DETECTED_DEVICES+=("$needle")
-  fi
-}
-
-function hardware_confirmation_apply_choice() {
-  local choice="$1"
-
-  hardware_confirmation_strip_mark2_family_devices
-
-  case "$choice" in
-    mark2)
-      hardware_confirmation_add_device "tas5806"
-      ;;
-    devkit)
-      hardware_confirmation_add_device "tas5806"
-      hardware_confirmation_add_device "attiny1614"
-      ;;
-  esac
 }
 
 function hardware_confirmation_persist_state() {
@@ -94,7 +41,7 @@ function hardware_confirmation_persist_state() {
   fi
 
   for detected_device in atmega328p attiny1614 tas5806; do
-    if hardware_confirmation_has_detected_device "$detected_device"; then
+    if has_detected_device "$detected_device"; then
       detected_devices_to_store+=("$detected_device")
     fi
   done
@@ -130,7 +77,13 @@ function hardware_confirmation_persist_state() {
 hardware_confirmation_choice=""
 hardware_confirmation_candidate=""
 
-if [ -f "$INSTALLER_STATE_FILE" ]; then
+case "${HARDWARE_CONFIRMATION:-}" in
+  generic|mark2|devkit)
+    hardware_confirmation_choice="$HARDWARE_CONFIRMATION"
+    ;;
+esac
+
+if [ -z "$hardware_confirmation_choice" ] && [ -f "$INSTALLER_STATE_FILE" ]; then
   hardware_confirmation_choice="$(jq -r '.hardware_confirmation // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
   case "$hardware_confirmation_choice" in
     mark2|devkit|generic) ;;
@@ -144,8 +97,8 @@ if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]; then
   hardware_confirmation_candidate="$(hardware_confirmation_mark2_candidate)"
 fi
 
-if [ -n "$hardware_confirmation_choice" ] && [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]; then
-  hardware_confirmation_apply_choice "$hardware_confirmation_choice"
+if [ -n "$hardware_confirmation_choice" ]; then
+  apply_hardware_confirmation_choice "$hardware_confirmation_choice"
 elif [ -n "$hardware_confirmation_candidate" ]; then
   : "${HARDWARE_CONFIRMATION_TITLE:=Open Voice OS Installation - Hardware Check}"
   : "${HARDWARE_CONFIRMATION_MARK2_CONTENT:=A Raspberry Pi 4 with a TAS5806 audio device was detected.\n\nThis can be a Mycroft Mark II, but some generic HATs expose the same signal.\n\nIs this device actually a Mycroft Mark II?}"
@@ -166,7 +119,7 @@ elif [ -n "$hardware_confirmation_candidate" ]; then
     hardware_confirmation_choice="generic"
   fi
 
-  hardware_confirmation_apply_choice "$hardware_confirmation_choice"
+  apply_hardware_confirmation_choice "$hardware_confirmation_choice"
 fi
 
 if [ -n "$hardware_confirmation_choice" ]; then

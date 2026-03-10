@@ -1473,8 +1473,13 @@ function i2c_scan() {
 
     # Interactive TUI installs confirm ambiguous Mark II/DevKit candidates
     # before applying hardware-specific restrictions. Scenario installs do not
-    # have that prompt, so they continue to use the current detection result.
+    # have that prompt, so they must use an explicit override to opt in.
     if [ "${SCENARIO_FOUND:-false}" != "false" ]; then
+        if [ -n "${HARDWARE_CONFIRMATION:-}" ]; then
+            apply_hardware_confirmation_choice "${HARDWARE_CONFIRMATION}"
+        else
+            clear_mark2_family_detected_devices
+        fi
         enforce_mark2_devkit_trixie_requirement
         enforce_mark2_alpha_channel
         enforce_mark2_devkit_gui_support
@@ -1497,6 +1502,32 @@ function has_detected_device() {
     return 1
 }
 
+# Remove Mark II/DevKit family I2C fingerprints from the current detection set.
+function clear_mark2_family_detected_devices() {
+    local device=""
+    local -a filtered_devices=()
+
+    for device in "${DETECTED_DEVICES[@]:-}"; do
+        case "$device" in
+        tas5806 | attiny1614) ;;
+        *)
+            filtered_devices+=("$device")
+            ;;
+        esac
+    done
+
+    DETECTED_DEVICES=("${filtered_devices[@]}")
+}
+
+# Add a detected device only when it is not already present.
+function add_detected_device_once() {
+    local needle="$1"
+
+    if ! has_detected_device "$needle"; then
+        DETECTED_DEVICES+=("$needle")
+    fi
+}
+
 # Returns success when the detected board is a Raspberry Pi 4.
 function is_raspberry_pi_4() {
     [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]
@@ -1512,6 +1543,40 @@ function is_mark2_or_devkit_detected() {
 # (tas5806 present, attiny1614 absent).
 function is_mark2_detected() {
     is_mark2_or_devkit_detected && ! has_detected_device "attiny1614"
+}
+
+# Apply an explicit hardware override to the current detection result.
+# Unsupported Mark II/DevKit overrides on non-Pi-4 boards are ignored.
+function apply_hardware_confirmation_choice() {
+    local choice="$1"
+
+    case "$choice" in
+    generic | "")
+        clear_mark2_family_detected_devices
+        ;;
+    mark2)
+        if ! is_raspberry_pi_4; then
+            printf '%s\n' "[warn] Ignoring mark2 override on unsupported board: ${RASPBERRYPI_MODEL:-unknown}" >>"$LOG_FILE"
+            clear_mark2_family_detected_devices
+            return 0
+        fi
+        clear_mark2_family_detected_devices
+        add_detected_device_once "tas5806"
+        ;;
+    devkit)
+        if ! is_raspberry_pi_4; then
+            printf '%s\n' "[warn] Ignoring devkit override on unsupported board: ${RASPBERRYPI_MODEL:-unknown}" >>"$LOG_FILE"
+            clear_mark2_family_detected_devices
+            return 0
+        fi
+        clear_mark2_family_detected_devices
+        add_detected_device_once "tas5806"
+        add_detected_device_once "attiny1614"
+        ;;
+    *)
+        printf '%s\n' "[warn] Ignoring unsupported hardware confirmation choice: ${choice}" >>"$LOG_FILE"
+        ;;
+    esac
 }
 
 # Returns success when the host is Debian Trixie.
@@ -1744,12 +1809,12 @@ function detect_devkit_device() {
     fi
 
     if i2c_get "${SUPPORTED_DEVICES["attiny1614"]}"; then
-        DETECTED_DEVICES+=("attiny1614")
+        add_detected_device_once "attiny1614"
     fi
     # If attiny1614 is not detected then this is a Mark II device and not
     # a DevKit device so we force back the DETECTED_DEVICES variable
     # to tas5806.
-    DETECTED_DEVICES+=("tas5806")
+    add_detected_device_once "tas5806"
 }
 
 # Checks to see if apt-based packages are installed and installs them if needed.
