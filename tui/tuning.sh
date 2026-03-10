@@ -174,7 +174,7 @@ while true; do
   fi
 
   # Preserve the previous selection when the user goes back.
-  if [ -z "${TUNING:-}" ]; then
+  if ! [[ "${TUNING:-}" == "yes" || "${TUNING:-}" == "no" ]]; then
     TUNING="$active_option"
     export TUNING
   fi

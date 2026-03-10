@@ -877,13 +877,11 @@ EOF
 }
 
 @test "homeassistant: esc on existing configuration goes back cleanly" {
-    mkdir -p "$RUN_AS_HOME/.config/mycroft"
-    cat <<'EOF' >"$RUN_AS_HOME/.config/mycroft/mycroft.conf"
+    mkdir -p "$RUN_AS_HOME/.config/mycroft/skills/skill-homeassistant.oscillatelabsllc"
+    cat <<'EOF' >"$RUN_AS_HOME/.config/mycroft/skills/skill-homeassistant.oscillatelabsllc/settings.json"
 {
-  "homeassistant": {
-    "url": "http://homeassistant.local:8123",
-    "api_key": "ha-existing"
-  }
+  "host": "http://homeassistant.local:8123",
+  "api_key": "ha-existing"
 }
 EOF
     WHIPTAIL_FORCE_YESNO_STATUS="255"
