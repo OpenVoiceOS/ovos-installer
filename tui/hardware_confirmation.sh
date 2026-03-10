@@ -170,7 +170,6 @@ elif [ -n "$hardware_confirmation_candidate" ]; then
 fi
 
 if [ -n "$hardware_confirmation_choice" ]; then
-  export HARDWARE_CONFIRMATION="$hardware_confirmation_choice"
   hardware_confirmation_persist_state "$hardware_confirmation_choice"
 fi
 

@@ -1731,7 +1731,7 @@ function setup() {
 }
 
 @test "tui_hardware_falls_back_to_detected_model" {
-    run grep -F -q 'if [ "$HARDWARE_DETECTED" == "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then' tui/detection.sh
+    run grep -F -q 'if [ "$TUI_HARDWARE_DETECTED" = "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then' tui/hardware_state.sh
     assert_success
 }
 
@@ -1786,6 +1786,20 @@ function setup() {
     assert_success
 
     run grep -q 'if \[ \"\${SCENARIO_FOUND:-false}\" != \"false\" \]; then' utils/common.sh
+    assert_success
+}
+
+@test "tui_hardware_state_is_shared_across_detection_method_channel_and_feature_screens" {
+    run grep -q "source tui/hardware_state.sh" tui/detection.sh
+    assert_success
+
+    run grep -q "source tui/hardware_state.sh" tui/methods.sh
+    assert_success
+
+    run grep -q "source tui/hardware_state.sh" tui/channels.sh
+    assert_success
+
+    run grep -q "source tui/hardware_state.sh" tui/features.sh
     assert_success
 }
 
