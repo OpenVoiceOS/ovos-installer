@@ -802,6 +802,9 @@ function setup() {
     run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"autoremove: true\""
     assert_success
 
+    run bash -c "grep -A50 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -F -q -- \"'Raspberry Pi 4' in (ovos_installer_raspberrypi | default(''))\""
+    assert_success
+
     run bash -c "grep -A50 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
     assert_success
 }

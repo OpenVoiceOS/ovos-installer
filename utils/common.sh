@@ -1566,7 +1566,7 @@ function enforce_mark2_devkit_display_server() {
 }
 
 # Enforce Debian Trixie (13) when Mark II/DevKit hardware is detected.
-# Hardware detection is based on the tas5806 codec presence.
+# Hardware detection requires Raspberry Pi 4 plus the tas5806 codec presence.
 function enforce_mark2_devkit_trixie_requirement() {
     if ! is_mark2_or_devkit_detected; then
         return 0
