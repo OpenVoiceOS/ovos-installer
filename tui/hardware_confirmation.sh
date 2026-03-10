@@ -19,7 +19,7 @@ DISPLAY_DETECTED="${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}"
 source "tui/locales/$LOCALE/detection.sh"
 
 function hardware_confirmation_mark2_candidate() {
-  if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]] && \
+  if is_raspberry_pi_4 && \
     has_detected_device "tas5806"; then
     if has_detected_device "attiny1614"; then
       printf '%s\n' "devkit"
@@ -87,7 +87,7 @@ if [ -z "$hardware_confirmation_choice" ]; then
   hardware_confirmation_choice="$(read_persisted_hardware_confirmation_choice)"
 fi
 
-if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]; then
+if is_raspberry_pi_4; then
   hardware_confirmation_candidate="$(hardware_confirmation_mark2_candidate)"
 fi
 

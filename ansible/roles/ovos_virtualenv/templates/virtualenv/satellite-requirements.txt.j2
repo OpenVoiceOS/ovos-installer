@@ -1,4 +1,5 @@
-{% set _ovos_is_mark2_family = ('Raspberry Pi 4' in (ovos_installer_raspberrypi | default(''))) and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}
+{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search('(^|\\s)Raspberry\\s+Pi\\s+4([^0-9]|$)') %}
+{% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}
 hivemind-bus-client
 hivemind-voice-sat
 ovos-audio[extras]

@@ -1536,7 +1536,7 @@ function add_detected_device_once() {
 
 # Returns success when the detected board is a Raspberry Pi 4.
 function is_raspberry_pi_4() {
-    [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]
+    [[ "${RASPBERRYPI_MODEL:-}" =~ (^|[[:space:]])Raspberry[[:space:]]Pi[[:space:]]4([^0-9]|$) ]]
 }
 
 # Returns success for Mark II/DevKit family hardware.

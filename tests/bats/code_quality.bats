@@ -296,13 +296,19 @@ function setup() {
     local sat_file="ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2"
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
-    run grep -F -q "{% set _ovos_is_mark2_family = ('Raspberry Pi 4' in (ovos_installer_raspberrypi | default(''))) and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}" "$core_file"
+    run grep -F -q "{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search('(^|\\\\s)Raspberry\\\\s+Pi\\\\s+4([^0-9]|$)') %}" "$core_file"
+    assert_success
+
+    run grep -F -q "{% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}" "$core_file"
     assert_success
 
     run grep -F -q "{% if ansible_facts.system == 'Darwin' or _ovos_is_mark2_family %}" "$core_file"
     assert_success
 
-    run grep -F -q "{% set _ovos_is_mark2_family = ('Raspberry Pi 4' in (ovos_installer_raspberrypi | default(''))) and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}" "$sat_file"
+    run grep -F -q "{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search('(^|\\\\s)Raspberry\\\\s+Pi\\\\s+4([^0-9]|$)') %}" "$sat_file"
+    assert_success
+
+    run grep -F -q "{% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}" "$sat_file"
     assert_success
 
     run grep -F -q "{% if ansible_facts.system == 'Darwin' or _ovos_is_mark2_family %}" "$sat_file"
@@ -318,7 +324,10 @@ function setup() {
 @test "mycroft_conf_applies_sounddevice_tuning_for_mark2_only" {
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
-    run grep -F -q "{% set _ovos_is_mark2_family = ('Raspberry Pi 4' in (ovos_installer_raspberrypi | default(''))) and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}" "$conf_file"
+    run grep -F -q "{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search('(^|\\\\s)Raspberry\\\\s+Pi\\\\s+4([^0-9]|$)') %}" "$conf_file"
+    assert_success
+
+    run grep -F -q "{% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}" "$conf_file"
     assert_success
 
     run grep -F -q "{% set _ovos_is_mark2 = _ovos_is_mark2_family and ('attiny1614' not in (ovos_installer_i2c_devices | default([]))) %}" "$conf_file"
@@ -802,7 +811,7 @@ function setup() {
     run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"autoremove: true\""
     assert_success
 
-    run bash -c "grep -A50 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -F -q -- \"'Raspberry Pi 4' in (ovos_installer_raspberrypi | default(''))\""
+    run grep -F -q "regex_search('(^|\\\\s)Raspberry\\\\s+Pi\\\\s+4([^0-9]|$)')" "$file"
     assert_success
 
     run bash -c "grep -A50 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
@@ -815,7 +824,7 @@ function setup() {
     run grep -q "Assert Mark 2/DevKit-supported installer modes" "$file"
     assert_success
 
-    run grep -F -q -- "'Raspberry Pi 4' in (ovos_installer_raspberrypi | default(''))" "$file"
+    run grep -F -q -- "regex_search('(^|\\\\s)Raspberry\\\\s+Pi\\\\s+4([^0-9]|$)')" "$file"
     assert_success
 
     run grep -F -q -- "'tas5806' in (ovos_installer_i2c_devices | default([]))" "$file"
@@ -1335,7 +1344,7 @@ function setup() {
     run grep -q "Manage touchscreen, DevKit vs Mark II" "$file"
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Manage touchscreen, DevKit vs Mark II\" \"$file\" | grep -F -q -- \"'Raspberry Pi 4' in (ovos_installer_raspberrypi | default(''))\""
+    run grep -F -q "regex_search('(^|\\\\s)Raspberry\\\\s+Pi\\\\s+4([^0-9]|$)')" "$file"
     assert_success
 
     run bash -c "grep -A10 -F -- \"- name: Manage touchscreen, DevKit vs Mark II\" \"$file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
@@ -1420,7 +1429,7 @@ function setup() {
     run bash -c "grep -A22 -F -- \"- name: Resolve ALSA default backend for .asoundrc\" \"$tasks_file\" | grep -F -q -- \"_ovos_sound_mark2_fallback_server in ovos_sound_supported_alsa_defaults\""
     assert_success
 
-    run bash -c "grep -A22 -F -- \"- name: Resolve ALSA default backend for .asoundrc\" \"$tasks_file\" | grep -F -q -- \"'Raspberry Pi 4' in (ovos_installer_raspberrypi | default(''))\""
+    run grep -F -q "regex_search('(^|\\\\s)Raspberry\\\\s+Pi\\\\s+4([^0-9]|$)')" "$tasks_file"
     assert_success
 
     run bash -c "grep -A10 -F -- \"- name: Generate .asoundrc based on detected sound server (Raspberry Pi only)\" \"$tasks_file\" | grep -F -q -- \"pcm.!default {{ ovos_sound_asoundrc_server }}\""
@@ -1821,6 +1830,17 @@ function setup() {
     assert_success
 
     run grep -q 'hardware_confirmation_choice="\$(read_persisted_hardware_confirmation_choice)"' tui/hardware_confirmation.sh
+    assert_success
+}
+
+@test "mark2_family_pi4_checks_reject_raspberry_pi_400" {
+    run grep -F -q '[[ "${RASPBERRYPI_MODEL:-}" =~ (^|[[:space:]])Raspberry[[:space:]]Pi[[:space:]]4([^0-9]|$) ]]' utils/common.sh
+    assert_success
+
+    run grep -F -q '[[ "${RASPBERRYPI_MODEL:-}" =~ (^|[[:space:]])Raspberry[[:space:]]Pi[[:space:]]4([^0-9]|$) ]]' tui/hardware_state.sh
+    assert_success
+
+    run grep -F -q 'if is_raspberry_pi_4 && \' tui/hardware_confirmation.sh
     assert_success
 }
 

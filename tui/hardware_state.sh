@@ -16,7 +16,7 @@ function tui_hardware_has_detected_device() {
 }
 
 function tui_is_raspberry_pi_4() {
-    [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]
+    [[ "${RASPBERRYPI_MODEL:-}" =~ (^|[[:space:]])Raspberry[[:space:]]Pi[[:space:]]4([^0-9]|$) ]]
 }
 
 TUI_MARK2_OR_DEVKIT_DETECTED="false"

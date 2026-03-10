@@ -262,6 +262,23 @@ function dialog_value() {
     assert_equal "$(spy_value tags)" "testing alpha"
 }
 
+@test "detection: Raspberry Pi 400 tas5806 does not present as Mark II" {
+    RASPBERRYPI_MODEL="Raspberry Pi 400 Rev 1.0"
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    KERNEL="6.12.0"
+    PYTHON="Python 3.11"
+    CPU_IS_CAPABLE="true"
+    VENV_PATH="/home/test/.venvs/ovos-installer"
+    SOUND_SERVER="PipeWire"
+    DISPLAY_SERVER="N/A"
+
+    # shellcheck source=tui/detection.sh
+    source tui/detection.sh
+
+    assert_equal "$HARDWARE_DETECTED" "N/A"
+}
+
 @test "hardware confirmation: declining ambiguous Pi 4 mark2 candidate keeps generic flow" {
     RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")

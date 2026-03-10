@@ -166,6 +166,13 @@ EOF
     unset -f ldconfig
 }
 
+@test "function_is_raspberry_pi_4_rejects_raspberry_pi_400" {
+    RASPBERRYPI_MODEL="Raspberry Pi 400 Rev 1.0"
+
+    run is_raspberry_pi_4
+    assert_failure
+}
+
 @test "function_resolve_avrdude_artifact_urls_uses_gpiod3_bundle" {
     AVRDUDE_ARTIFACT_BASE_URL="https://artifacts.smartgic.io/avrdude"
     AVRDUDE_ARTIFACT_VERSION="v8.1"
