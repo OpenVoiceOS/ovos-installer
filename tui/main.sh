@@ -5,6 +5,9 @@ source "tui/locales/$LOCALE/misc.sh"
 # shellcheck source=tui/welcome.sh
 source tui/welcome.sh
 
+# shellcheck source=tui/hardware_confirmation.sh
+source tui/hardware_confirmation.sh
+
 # shellcheck source=tui/detection.sh
 source tui/detection.sh
 

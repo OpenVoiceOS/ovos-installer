@@ -262,6 +262,120 @@ function dialog_value() {
     assert_equal "$(spy_value tags)" "testing alpha"
 }
 
+@test "hardware confirmation: declining ambiguous Pi 4 mark2 candidate keeps generic flow" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_YESNO_STATUS="1"
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    run jq -r '.hardware_confirmation' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "generic"
+
+    run jq -e '.i2c_devices == []' "$INSTALLER_STATE_FILE"
+    assert_success
+
+    run grep -F -q $'yesno\tOpen Voice OS Installation - Hardware Check' "$WHIPTAIL_DIALOG_FILE"
+    assert_success
+
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    WHIPTAIL_FORCE_SELECTION="containers"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value tags)" "containers virtualenv"
+
+    # shellcheck source=tui/detection.sh
+    source tui/detection.sh
+    assert_equal "$HARDWARE_DETECTED" "N/A"
+}
+
+@test "hardware confirmation: confirming devkit persists family detection before summary screens" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DETECTED_DEVICES=("attiny1614" "tas5806")
+    WHIPTAIL_FORCE_YESNO_STATUS="0"
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    run jq -r '.hardware_confirmation' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "devkit"
+
+    run jq -e '(.i2c_devices | sort) == ["attiny1614","tas5806"]' "$INSTALLER_STATE_FILE"
+    assert_success
+
+    assert_equal "$CHANNEL" "alpha"
+    assert_equal "$DISPLAY_SERVER" "eglfs"
+
+    # shellcheck source=tui/detection.sh
+    source tui/detection.sh
+    assert_equal "$HARDWARE_DETECTED" "Mycroft DevKit"
+}
+
+@test "hardware confirmation: persisted generic choice skips re-prompt and strips stale mark2 state" {
+    printf '%s\n' '{"hardware_confirmation":"generic","i2c_devices":["tas5806"]}' >"$INSTALLER_STATE_FILE"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DETECTED_DEVICES=("tas5806")
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    run grep -F -q $'yesno\tOpen Voice OS Installation - Hardware Check' "$WHIPTAIL_DIALOG_FILE"
+    assert_failure
+
+    run jq -e '.i2c_devices == []' "$INSTALLER_STATE_FILE"
+    assert_success
+
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    WHIPTAIL_FORCE_SELECTION="testing"
+
+    # shellcheck source=tui/channels.sh
+    source tui/channels.sh
+
+    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value tags)" "testing alpha"
+}
+
+@test "hardware confirmation: persisted mark2 choice restores mark2 restrictions when live probe misses" {
+    printf '%s\n' '{"hardware_confirmation":"mark2","i2c_devices":[]}' >"$INSTALLER_STATE_FILE"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DETECTED_DEVICES=()
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    assert_equal "$CHANNEL" "alpha"
+    assert_equal "$DISPLAY_SERVER" "eglfs"
+
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value tags)" "virtualenv"
+
+    # shellcheck source=tui/detection.sh
+    source tui/detection.sh
+    assert_equal "$HARDWARE_DETECTED" "Mycroft Mark II"
+}
+
 @test "profiles: shows all options when navigating back in a new install" {
     printf '%s\n' '{"profile":"ovos"}' >"$INSTALLER_STATE_FILE"
     EXISTING_INSTANCE="false"

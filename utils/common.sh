@@ -1471,10 +1471,15 @@ function i2c_scan() {
         echo -e "[$done_format]"
     fi
 
-    enforce_mark2_devkit_trixie_requirement
-    enforce_mark2_alpha_channel
-    enforce_mark2_devkit_gui_support
-    enforce_mark2_devkit_display_server
+    # Interactive TUI installs confirm ambiguous Mark II/DevKit candidates
+    # before applying hardware-specific restrictions. Scenario installs do not
+    # have that prompt, so they continue to use the current detection result.
+    if [ "${SCENARIO_FOUND:-false}" != "false" ]; then
+        enforce_mark2_devkit_trixie_requirement
+        enforce_mark2_alpha_channel
+        enforce_mark2_devkit_gui_support
+        enforce_mark2_devkit_display_server
+    fi
 }
 
 # Returns success when a device key is present in DETECTED_DEVICES.

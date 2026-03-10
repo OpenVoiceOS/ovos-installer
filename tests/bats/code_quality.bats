@@ -1776,6 +1776,19 @@ function setup() {
     assert_success
 }
 
+@test "tui_confirms_ambiguous_mark2_hardware_before_detection" {
+    local file="tui/main.sh"
+
+    run grep -q "source tui/hardware_confirmation.sh" "$file"
+    assert_success
+
+    run bash -c "confirm_line=\$(grep -n 'source tui/hardware_confirmation.sh' '$file' | head -n1 | cut -d: -f1); detect_line=\$(grep -n 'source tui/detection.sh' '$file' | head -n1 | cut -d: -f1); [ -n \"\$confirm_line\" ] && [ -n \"\$detect_line\" ] && [ \"\$confirm_line\" -lt \"\$detect_line\" ]"
+    assert_success
+
+    run grep -q 'if \[ \"\${SCENARIO_FOUND:-false}\" != \"false\" \]; then' utils/common.sh
+    assert_success
+}
+
 @test "setup_forces_telemetry_off_for_existing_instance" {
     local file="setup.sh"
 
