@@ -18,6 +18,7 @@
   loop:
     - "{{ ovos_virtualenv_path }}"
     - "{{ ovos_virtualenv_root_dir }}"
+    - "{{ ovos_virtualenv_padatious_cache_repo_path }}"
     - "{{ ovos_virtualenv_tmp_dir }}"
     - "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
     - "{{ ovos_virtualenv_rust_messagebus_binary_path }}"

@@ -19,6 +19,14 @@
       }}
   changed_when: false
 
+- name: Ensure padatious cache repository parent directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_padatious_cache_repo_path | dirname }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+
 - name: Checkout padatious cache repository
   ansible.builtin.git:
     repo: "{{ ovos_virtualenv_padatious_cache_repo_url }}"

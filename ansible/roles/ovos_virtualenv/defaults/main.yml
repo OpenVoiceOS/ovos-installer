@@ -61,7 +61,7 @@ ovos_virtualenv_setuptools_package: "{{ ovos_installer_setuptools_package | defa
 ovos_virtualenv_repair_ownership: "{{ ovos_installer_repair_venv_ownership | default(false) }}"
 ovos_virtualenv_padatious_cache_repo_url: https://github.com/OpenVoiceOS/padatious_cache
 ovos_virtualenv_padatious_cache_repo_version: dev
-ovos_virtualenv_padatious_cache_repo_path: "{{ ovos_virtualenv_tmp_dir }}/padatious_cache"
+ovos_virtualenv_padatious_cache_repo_path: "{{ ovos_installer_user_home }}/.cache/ovos-installer/padatious_cache"
 ovos_virtualenv_padatious_cache_repo_refresh_interval: 21600
 ovos_virtualenv_gui_repo_refresh_interval: "{{ ovos_installer_gui_repo_refresh_interval | default(21600) }}"
 ovos_virtualenv_gui_repo_force_sync: "{{ ovos_installer_gui_repo_force_sync | default(false) }}"
@@ -132,6 +132,7 @@ ovos_virtualenv_macos_packages:
 ovos_virtualenv_uninstall_extra_paths:
   - "{{ ovos_hardware_mark1_working_directory | default('/opt/mark1') }}"
   - "{{ ovos_hardware_mark2_working_dir | default('/opt/sj201') }}"
+  - "{{ ovos_virtualenv_padatious_cache_repo_path }}"
   - "{{ ovos_virtualenv_padatious_cache_dir }}"
   - "{{ ovos_virtualenv_padatious_cache_staging_dir }}"
   - "{{ ovos_virtualenv_padatious_cache_backup_dir }}"
