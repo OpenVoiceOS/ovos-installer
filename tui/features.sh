@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
 # shellcheck source=tui/locales/en-us/features.sh
 source "tui/locales/$LOCALE/features.sh"
 # shellcheck source=utils/llm_defaults.sh
@@ -148,13 +150,9 @@ if [ "${DEBUG:-false}" == "true" ]; then
   } >>"$LOG_FILE" 2>/dev/null || true
 fi
 
-OVOS_FEATURES=$(whiptail --separate-output --title "$TITLE" \
+if ! tui_whiptail_capture OVOS_FEATURES --separate-output --title "$TITLE" \
   --checklist "$CONTENT" --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
-  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height" "${features[@]}" 3>&1 1>&2 2>&3)
-
-exit_status=$?
-
-if [ "$exit_status" -ne 0 ]; then
+  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height" "${features[@]}"; then
   source tui/profiles.sh
   if [[ "$PROFILE" == "satellite" ]]; then
     # Satellite doesn't have selectable features; collect satellite settings next.

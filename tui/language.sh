@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
 message="
 Please select a language:
 "
@@ -23,7 +25,9 @@ for language in "${available_languages[@]}"; do
 done
 
 # Retrieve language and make it lower case with ",,"
-language=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
+if ! tui_whiptail_capture language "${whiptail_args[@]}"; then
+  language=""
+fi
 language="${language,,}"
 
 if [ -z "$language" ]; then

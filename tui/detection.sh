@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
 HARDWARE_DETECTED="N/A"
 
 for device in "${DETECTED_DEVICES[@]}"; do
@@ -42,4 +44,4 @@ export DISTRO_LABEL
 # shellcheck source=tui/locales/en-us/detection.sh
 source "tui/locales/$LOCALE/detection.sh"
 
-whiptail --msgbox --ok-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+tui_whiptail_dialog --msgbox --ok-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true

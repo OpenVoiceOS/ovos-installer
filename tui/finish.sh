@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
 CONFIG_FILE="${RUN_AS_HOME}/.config/mycroft/mycroft.conf"
 OVOS_SERVICE_SCOPE_HINT=""
 OVOS_SERVICE_STATUS_COMMAND=""
@@ -32,4 +34,4 @@ export CONFIG_FILE OVOS_SERVICE_SCOPE_HINT OVOS_SERVICE_STATUS_COMMAND
 # shellcheck source=tui/locales/en-us/finish.sh
 source "tui/locales/$LOCALE/finish.sh"
 
-whiptail --msgbox --ok-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+tui_whiptail_dialog --msgbox --ok-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true

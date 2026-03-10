@@ -248,6 +248,24 @@ function dialog_value() {
     assert_equal "$(spy_value tags)" "alpha"
 }
 
+@test "telemetry: declining prompt keeps installer flow alive and disables telemetry" {
+    WHIPTAIL_FORCE_YESNO_STATUS="1"
+
+    # shellcheck source=tui/telemetry.sh
+    source tui/telemetry.sh
+
+    assert_equal "$SHARE_TELEMETRY" "false"
+}
+
+@test "usage telemetry: declining prompt keeps installer flow alive and disables usage telemetry" {
+    WHIPTAIL_FORCE_YESNO_STATUS="1"
+
+    # shellcheck source=tui/usage_telemetry.sh
+    source tui/usage_telemetry.sh
+
+    assert_equal "$SHARE_USAGE_TELEMETRY" "false"
+}
+
 @test "profiles: shows all options when navigating back in a new install" {
     printf '%s\n' '{"profile":"ovos"}' >"$INSTALLER_STATE_FILE"
     EXISTING_INSTANCE="false"

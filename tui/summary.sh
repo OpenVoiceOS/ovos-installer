@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
+
 function summary_toggle_state() {
   local value="${1:-}"
 
@@ -28,11 +31,8 @@ while :; do
   # shellcheck source=tui/locales/en-us/summary.sh
   source "tui/locales/$LOCALE/summary.sh"
 
-  whiptail --yesno --no-button "$BACK_BUTTON" --yes-button "$OK_BUTTON" \
-    --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
-
-  exit_status=$?
-  if [ "$exit_status" -eq 0 ]; then
+  if tui_whiptail_dialog --yesno --no-button "$BACK_BUTTON" --yes-button "$OK_BUTTON" \
+    --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"; then
     break
   fi
 

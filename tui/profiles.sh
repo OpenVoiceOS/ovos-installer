@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
 # shellcheck source=tui/locales/en-us/profiles.sh
 source "tui/locales/$LOCALE/profiles.sh"
 
@@ -46,7 +48,9 @@ for method in "${available_profiles[@]}"; do
   fi
 done
 
-PROFILE=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
+if ! tui_whiptail_capture PROFILE "${whiptail_args[@]}"; then
+  PROFILE=""
+fi
 export PROFILE
 
 if [ -z "$PROFILE" ]; then
