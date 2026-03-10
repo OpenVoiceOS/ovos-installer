@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
 # shellcheck source=tui/locales/en-us/homeassistant.sh
 _homeassistant_locale_file="tui/locales/$LOCALE/homeassistant.sh"
 if [ -f "$_homeassistant_locale_file" ]; then
@@ -121,11 +123,9 @@ persist_homeassistant_url() {
 # a token on re-runs while still allowing users to reconfigure when needed.
 if [ -n "$ha_existing_url" ] && [ -n "$ha_existing_api_key" ]; then
   _ha_existing_prompt="${CONTENT_EXISTING//__URL__/$ha_existing_url}"
-  whiptail --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
-    --title "$TITLE_EXISTING" "$_ha_existing_prompt" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
-
-  exit_status=$?
-  if [ "$exit_status" -eq 0 ]; then
+  if tui_whiptail_dialog --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
+    --title "$TITLE_EXISTING" "$_ha_existing_prompt" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"; then
+    exit_status=0
     export FEATURE_HOMEASSISTANT="true"
     HOMEASSISTANT_URL="$(normalize_homeassistant_url "$ha_existing_url")"
     HOMEASSISTANT_API_KEY="$ha_existing_api_key"
@@ -133,6 +133,8 @@ if [ -n "$ha_existing_url" ] && [ -n "$ha_existing_api_key" ]; then
     persist_homeassistant_url
     restore_homeassistant_xtrace
     return
+  else
+    exit_status=$?
   fi
   if [ "$exit_status" -eq 255 ]; then
     export FEATURE_HOMEASSISTANT="false"
@@ -155,10 +157,12 @@ if [ -z "$ha_url_default" ]; then
   ha_url_default="http://homeassistant.local:8123"
 fi
 
-whiptail --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
-  --title "$TITLE_HAVE_DETAILS" "$CONTENT_HAVE_DETAILS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
-
-exit_status=$?
+if tui_whiptail_dialog --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
+  --title "$TITLE_HAVE_DETAILS" "$CONTENT_HAVE_DETAILS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"; then
+  exit_status=0
+else
+  exit_status=$?
+fi
 if [ "$exit_status" -ne 0 ]; then
   # No (1): skip. ESC (255): go back to the feature selection.
   export FEATURE_HOMEASSISTANT="false"
@@ -173,11 +177,8 @@ fi
 
 HOMEASSISTANT_URL="$ha_url_default"
 while :; do
-  HOMEASSISTANT_URL=$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
-    --title "$TITLE_URL" "$CONTENT_URL" 25 80 "$HOMEASSISTANT_URL" 3>&1 1>&2 2>&3)
-
-  exit_status=$?
-  if [ "$exit_status" -ne 0 ]; then
+  if ! tui_whiptail_capture HOMEASSISTANT_URL --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$TITLE_URL" "$CONTENT_URL" 25 80 "$HOMEASSISTANT_URL"; then
     export HOMEASSISTANT_BACK="true"
     export FEATURE_HOMEASSISTANT="false"
     export HOMEASSISTANT_URL=""
@@ -190,13 +191,13 @@ while :; do
   HOMEASSISTANT_URL="${HOMEASSISTANT_URL//[[:space:]]/}"
   HOMEASSISTANT_URL="${HOMEASSISTANT_URL%/}"
   if [ -z "$HOMEASSISTANT_URL" ]; then
-    whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
   if [[ "$HOMEASSISTANT_URL" != http://* && "$HOMEASSISTANT_URL" != https://* ]]; then
     if [[ "$HOMEASSISTANT_URL" == *"://"* ]]; then
-      whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_URL" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+      tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_URL" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
       continue
     fi
     HOMEASSISTANT_URL="http://${HOMEASSISTANT_URL}"
@@ -219,7 +220,7 @@ while :; do
   fi
 
   if [ -z "$authority" ]; then
-    whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -232,7 +233,7 @@ while :; do
     elif [[ "$authority" =~ ^\\[[^\\]]+\\]:[0-9]+$ ]]; then
       :
     else
-      whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_PORT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+      tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_PORT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
       continue
     fi
   else
@@ -241,7 +242,7 @@ while :; do
       if [[ "$authority" =~ ^[^:/]+:[0-9]+$ ]]; then
         :
       else
-        whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_PORT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+        tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_INVALID_PORT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
         continue
       fi
     else
@@ -272,10 +273,12 @@ while :; do
 ${CONTENT_TOKEN_KEEP_EXISTING}"
   fi
 
-  HOMEASSISTANT_API_KEY=$(whiptail --passwordbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
-    --title "$TITLE_TOKEN" "$_ha_token_prompt" 25 80 3>&1 1>&2 2>&3)
-
-  exit_status=$?
+  if tui_whiptail_capture HOMEASSISTANT_API_KEY --passwordbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$TITLE_TOKEN" "$_ha_token_prompt" 25 80; then
+    exit_status=0
+  else
+    exit_status=$?
+  fi
   if [ "$exit_status" -eq 0 ] && [ -z "$HOMEASSISTANT_API_KEY" ] && [ -n "$ha_existing_api_key" ]; then
     # Empty input means "keep existing" when we already have one.
     HOMEASSISTANT_API_KEY="$ha_existing_api_key"
@@ -290,7 +293,7 @@ ${CONTENT_TOKEN_KEEP_EXISTING}"
   fi
 
   if [ -z "$HOMEASSISTANT_API_KEY" ]; then
-    whiptail --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    tui_whiptail_dialog_allow_escape --msgbox --title "$TITLE_INVALID" "$CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 

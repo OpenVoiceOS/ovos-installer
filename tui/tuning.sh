@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
 
 # shellcheck source=tui/locales/en-us/tuning.sh
 source "tui/locales/$LOCALE/tuning.sh"
@@ -94,39 +96,38 @@ if [ -f "$INSTALLER_STATE_FILE" ]; then
   esac
 fi
 
-active_option="${TUNING:-yes}"
-if [[ "$active_option" != "yes" && "$active_option" != "no" ]]; then
-  active_option="yes"
-fi
 available_options=(yes no)
 
-list_height="${#available_options[@]}"
-if [ "$list_height" -lt 4 ]; then
-  list_height=4
-fi
-
-whiptail_args=(
-  --title "$TITLE"
-  --radiolist "$CONTENT"
-  --cancel-button "$BACK_BUTTON"
-  --ok-button "$OK_BUTTON"
-  "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height"
-)
-
-for option in "${available_options[@]}"; do
-  whiptail_args+=("$option" "")
-  if [[ $option = "$active_option" ]]; then
-    whiptail_args+=("ON")
-  else
-    whiptail_args+=("OFF")
-  fi
-done
-
 while true; do
-  tuning_choice=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
-  exit_status=$?
+  active_option="${TUNING:-yes}"
+  if [[ "$active_option" != "yes" && "$active_option" != "no" ]]; then
+    active_option="yes"
+  fi
 
-  if [ "$exit_status" -eq 0 ]; then
+  list_height="${#available_options[@]}"
+  if [ "$list_height" -lt 4 ]; then
+    list_height=4
+  fi
+
+  whiptail_args=(
+    --title "$TITLE"
+    --radiolist "$CONTENT"
+    --cancel-button "$BACK_BUTTON"
+    --ok-button "$OK_BUTTON"
+    "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height"
+  )
+
+  for option in "${available_options[@]}"; do
+    whiptail_args+=("$option" "")
+    if [[ $option = "$active_option" ]]; then
+      whiptail_args+=("ON")
+    else
+      whiptail_args+=("OFF")
+    fi
+  done
+
+  tuning_choice=""
+  if tui_whiptail_capture tuning_choice "${whiptail_args[@]}"; then
     TUNING="$tuning_choice"
     if [ "$TUNING" == "yes" ]; then
       overclock_option="${TUNING_OVERCLOCK:-no}"
@@ -155,34 +156,32 @@ while true; do
         fi
       done
 
-      overclock_choice=$(whiptail "${overclock_args[@]}" 3>&1 1>&2 2>&3)
-      overclock_exit_status=$?
-      if [ "$overclock_exit_status" -eq 0 ]; then
+      overclock_choice=""
+      if tui_whiptail_capture overclock_choice "${overclock_args[@]}"; then
         TUNING_OVERCLOCK="$overclock_choice"
         export TUNING
         export TUNING_OVERCLOCK
         persist_tuning_state
         break
-      else
-        continue
       fi
+      continue
     else
       export TUNING
       export TUNING_OVERCLOCK="no"
       persist_tuning_state
       break
     fi
-  else
-    # Preserve the previous selection when the user goes back.
-    if [ -z "${TUNING:-}" ]; then
-      TUNING="$active_option"
-      export TUNING
-    fi
-    if [[ "${PROFILE:-}" == "satellite" ]]; then
-      source tui/satellite/main.sh
-    else
-      source tui/features.sh
-    fi
-    break
   fi
+
+  # Preserve the previous selection when the user goes back.
+  if ! [[ "${TUNING:-}" == "yes" || "${TUNING:-}" == "no" ]]; then
+    TUNING="$active_option"
+    export TUNING
+  fi
+  if [[ "${PROFILE:-}" == "satellite" ]]; then
+    source tui/satellite/main.sh
+  else
+    source tui/features.sh
+  fi
+  break
 done

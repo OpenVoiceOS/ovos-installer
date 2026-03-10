@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
 # shellcheck source=tui/locales/en-us/channels.sh
 source "tui/locales/$LOCALE/channels.sh"
 # shellcheck source=tui/hardware_state.sh
@@ -63,7 +65,9 @@ for channel in "${available_channels[@]}"; do
   fi
 done
 
-CHANNEL=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
+if ! tui_whiptail_capture CHANNEL "${whiptail_args[@]}"; then
+  CHANNEL=""
+fi
 export CHANNEL
 
 if [ -z "$CHANNEL" ]; then

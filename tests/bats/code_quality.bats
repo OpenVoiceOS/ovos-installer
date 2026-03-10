@@ -2330,7 +2330,7 @@ function setup() {
 }
 
 @test "virtualenv_systemd_units_do_not_force_kill_on_stop" {
-    run rg -n 'ExecStop=/usr/bin/kill -s KILL \\$MAINPID' ansible/roles/ovos_services/templates/virtualenv
+    run grep -R -n 'ExecStop=/usr/bin/kill -s KILL \$MAINPID' ansible/roles/ovos_services/templates/virtualenv
     assert_failure
 }
 

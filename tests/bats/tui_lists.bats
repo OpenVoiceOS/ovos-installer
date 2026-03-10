@@ -251,6 +251,24 @@ function dialog_value() {
     assert_equal "$(spy_value tags)" "alpha"
 }
 
+@test "telemetry: declining prompt keeps installer flow alive and disables telemetry" {
+    WHIPTAIL_FORCE_YESNO_STATUS="1"
+
+    # shellcheck source=tui/telemetry.sh
+    source tui/telemetry.sh
+
+    assert_equal "$SHARE_TELEMETRY" "false"
+}
+
+@test "usage telemetry: declining prompt keeps installer flow alive and disables usage telemetry" {
+    WHIPTAIL_FORCE_YESNO_STATUS="1"
+
+    # shellcheck source=tui/usage_telemetry.sh
+    source tui/usage_telemetry.sh
+
+    assert_equal "$SHARE_USAGE_TELEMETRY" "false"
+}
+
 @test "channels: keeps testing channel on Raspberry Pi 5 tas5806 false positives" {
     EXISTING_INSTANCE="false"
     RASPBERRYPI_MODEL="Raspberry Pi 5"
@@ -861,6 +879,36 @@ EOF
     assert_output "number|number|number"
 }
 
+@test "llm: esc on existing persona configuration goes back cleanly" {
+    mkdir -p "$RUN_AS_HOME/.config/ovos_persona"
+    cat <<'EOF' >"$RUN_AS_HOME/.config/ovos_persona/ovos-installer-llm.json"
+{
+  "name": "OVOS Installer LLM",
+  "ovos-solver-openai-plugin": {
+    "api_url": "https://llama.smartgic.io/v1",
+    "key": "sk-existing",
+    "model": "qwen3-nothink:latest",
+    "system_prompt": "Respond in plain spoken English.",
+    "max_tokens": 320,
+    "temperature": 0.2,
+    "top_p": 0.1
+  },
+  "solvers": [
+    "ovos-solver-openai-plugin"
+  ]
+}
+EOF
+    METHOD="virtualenv"
+    WHIPTAIL_FORCE_YESNO_STATUS="255"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "false"
+    assert_equal "$LLM_BACK" "true"
+    assert_equal "$(dialog_value yesno "$LLM_TITLE_EXISTING" status)" "255"
+}
+
 @test "llm: invalid preseeded tuning values fall back to validated prompt defaults" {
     METHOD="virtualenv"
     LLM_API_URL="https://llama.smartgic.io/v1"
@@ -1007,6 +1055,108 @@ EOF
     assert_equal "$(spy_value tags)" "yes no"
     assert_equal "$(spy_value statuses)" "ON OFF"
     assert_equal "$TUNING_OVERCLOCK" "yes"
+}
+
+@test "tuning: rerender after backing out of overclock uses current tuning selection" {
+    local tuning_log
+    local whiptail_counter
+    tuning_log="$(mktemp)"
+    whiptail_counter="$(mktemp)"
+    printf '%s\n' "0" >"$whiptail_counter"
+
+    whiptail() {
+        local args=("$@")
+        local j k
+        local dialog_type=""
+        local dialog_title=""
+        local whiptail_invocation
+
+        whiptail_invocation="$(cat "$whiptail_counter")"
+
+        for ((j = 0; j < ${#args[@]}; j++)); do
+            case "${args[$j]}" in
+                --radiolist)
+                    dialog_type="${args[$j]}"
+                    ;;
+                --title)
+                    dialog_title="${args[$((j + 1))]}"
+                    ;;
+            esac
+        done
+
+        if [ "$dialog_type" != "--radiolist" ]; then
+            return 0
+        fi
+
+        for ((j = 0; j + 5 < ${#args[@]}; j++)); do
+            if [[ "${args[$j]}" =~ ^[0-9]+$ && "${args[$((j + 1))]}" =~ ^[0-9]+$ && "${args[$((j + 2))]}" =~ ^[0-9]+$ ]]; then
+                local options_start=$((j + 3))
+                local remaining=$(( ${#args[@]} - options_start ))
+                if (( remaining >= 3 && remaining % 3 == 0 )); then
+                    local -a parsed_statuses=()
+                    for ((k = options_start; k < ${#args[@]}; k += 3)); do
+                        parsed_statuses+=("${args[$((k + 2))]^^}")
+                    done
+                    printf '%s\t%s\t%s\n' "$whiptail_invocation" "$dialog_title" "${parsed_statuses[*]}" >>"$tuning_log"
+                    break
+                fi
+            fi
+        done
+
+        case "$whiptail_invocation" in
+            0)
+                printf '%s\n' "$((whiptail_invocation + 1))" >"$whiptail_counter"
+                printf '%s\n' "yes" >&2
+                return 0
+                ;;
+            1)
+                printf '%s\n' "$((whiptail_invocation + 1))" >"$whiptail_counter"
+                return 1
+                ;;
+            2)
+                printf '%s\n' "$((whiptail_invocation + 1))" >"$whiptail_counter"
+                printf '%s\n' "yes" >&2
+                return 0
+                ;;
+            3)
+                printf '%s\n' "$((whiptail_invocation + 1))" >"$whiptail_counter"
+                printf '%s\n' "no" >&2
+                return 0
+                ;;
+        esac
+
+        return 1
+    }
+
+    # shellcheck source=tui/locales/en-us/tuning.sh
+    source tui/locales/en-us/tuning.sh
+    # shellcheck source=tui/tuning.sh
+    source tui/tuning.sh
+
+    run awk -F '\t' -v title="$TITLE" '$1 == "2" && $2 == title { print $3 }' "$tuning_log"
+    assert_success
+    assert_output "ON OFF"
+
+    rm -f "$tuning_log"
+    rm -f "$whiptail_counter"
+}
+
+@test "homeassistant: esc on existing configuration goes back cleanly" {
+    mkdir -p "$RUN_AS_HOME/.config/mycroft/skills/skill-homeassistant.oscillatelabsllc"
+    cat <<'EOF' >"$RUN_AS_HOME/.config/mycroft/skills/skill-homeassistant.oscillatelabsllc/settings.json"
+{
+  "host": "http://homeassistant.local:8123",
+  "api_key": "ha-existing"
+}
+EOF
+    WHIPTAIL_FORCE_YESNO_STATUS="255"
+
+    # shellcheck source=tui/homeassistant.sh
+    source tui/homeassistant.sh
+
+    assert_equal "$FEATURE_HOMEASSISTANT" "false"
+    assert_equal "$HOMEASSISTANT_BACK" "true"
+    assert_equal "$(dialog_value yesno "$TITLE_EXISTING" status)" "255"
 }
 
 @test "finish: shows user-scope service hint for non-tuned virtualenv installs" {
