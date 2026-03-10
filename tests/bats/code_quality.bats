@@ -1299,6 +1299,15 @@ function setup() {
     run test -f ansible/roles/ovos_installer/tasks/package_tracking_load.yml
     assert_success
 
+    run bash -c "grep -A8 -F -- \"- name: Ensure tracked package ownership directory exists\" ansible/roles/ovos_installer/tasks/package_tracking_persist.yml | grep -F -q -- 'owner: \"root\"'"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Persist tracked package ownership marker\" ansible/roles/ovos_installer/tasks/package_tracking_persist.yml | grep -F -q -- 'owner: \"root\"'"
+    assert_success
+
+    run grep -F -q "_ovos_package_tracking_new_packages" ansible/roles/ovos_installer/tasks/package_tracking_prepare_macos.yml
+    assert_success
+
     run grep -F -q "ovos_audio_tuning_package_marker_path" "$audio_defaults"
     assert_success
 
@@ -1317,7 +1326,13 @@ function setup() {
     run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"autoremove: true\""
     assert_success
 
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"ignore_errors: true\""
+    assert_success
+
     run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"ansible_facts.os_family == \\\"Debian\\\"\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove rtkit package ownership marker\" \"$audio_file\" | grep -F -q -- 'ansible_facts.os_family in [\"Debian\", \"RedHat\", \"Suse\", \"Archlinux\"]'"
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (SUSE)\" \"$audio_file\" | grep -F -q -- \"clean_deps: true\""
@@ -1356,6 +1371,9 @@ function setup() {
     run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
     assert_success
 
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"ignore_errors: true\""
+    assert_success
+
     run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (SUSE)\" \"$virtualenv_file\" | grep -F -q -- \"clean_deps: true\""
     assert_success
 
@@ -1372,6 +1390,12 @@ function setup() {
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"ignore_errors: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove Linux virtualenv package ownership marker\" \"$virtualenv_file\" | grep -F -q -- 'ansible_facts.os_family in [\"Debian\", \"RedHat\", \"Suse\", \"Archlinux\"]'"
     assert_success
 
     run grep -F -q "ovos_performance_tuning_cpupower_marker_path" "$performance_defaults"
@@ -1401,6 +1425,9 @@ function setup() {
     run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
     assert_success
 
+    run bash -c "grep -A12 -F -- \"- name: Remove cpupower package ownership marker\" \"$performance_file\" | grep -F -q -- 'ansible_facts.os_family in [\"Debian\", \"RedHat\", \"Suse\", \"Archlinux\"]'"
+    assert_success
+
     run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on SUSE family\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
     assert_success
 
@@ -1408,6 +1435,9 @@ function setup() {
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (Debian)\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove zram package ownership marker\" \"$performance_file\" | grep -F -q -- 'ansible_facts.os_family in [\"Debian\", \"RedHat\", \"Suse\", \"Archlinux\"]'"
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (SUSE)\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
@@ -1429,6 +1459,12 @@ function setup() {
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"ignore_errors: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove kernel headers package ownership marker\" \"$mark2_uninstall_file\" | grep -F -q -- \"is not ansible.builtin.failed\""
     assert_success
 }
 

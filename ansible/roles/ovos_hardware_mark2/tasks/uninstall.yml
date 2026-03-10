@@ -16,7 +16,7 @@
     purge: true
     autoremove: true
   register: ovos_hardware_mark2_kernel_headers_uninstall_result
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Debian"
@@ -30,4 +30,4 @@
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Debian"
     - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
-      or not (ovos_hardware_mark2_kernel_headers_uninstall_result.failed | default(false))
+      or ovos_hardware_mark2_kernel_headers_uninstall_result is not ansible.builtin.failed

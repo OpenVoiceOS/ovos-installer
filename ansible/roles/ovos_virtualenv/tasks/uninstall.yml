@@ -41,7 +41,7 @@
     purge: true
     autoremove: true
   register: ovos_virtualenv_gui_package_uninstall_result
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.distribution == "Debian"
@@ -59,7 +59,7 @@
     - ansible_facts.distribution_major_version == "13"
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
     - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
-      or not (ovos_virtualenv_gui_package_uninstall_result.failed | default(false))
+      or ovos_virtualenv_gui_package_uninstall_result is not ansible.builtin.failed
 
 - name: Load tracked virtualenv package ownership (Linux)
   ansible.builtin.include_role:
@@ -79,7 +79,7 @@
     purge: true
     autoremove: true
   register: ovos_virtualenv_package_uninstall_debian
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Debian"
@@ -91,7 +91,7 @@
     state: absent
     autoremove: true
   register: ovos_virtualenv_package_uninstall_redhat
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "RedHat"
@@ -103,7 +103,7 @@
     state: absent
     clean_deps: true
   register: ovos_virtualenv_package_uninstall_suse
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Suse"
@@ -116,7 +116,7 @@
     extra_args: --recursive
     remove_nosave: true
   register: ovos_virtualenv_package_uninstall_archlinux
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Archlinux"
@@ -129,6 +129,7 @@
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system != "Darwin"
+    - ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
     - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or not (
         (ovos_virtualenv_package_uninstall_debian.failed | default(false))
@@ -158,7 +159,7 @@
   register: ovos_virtualenv_package_uninstall_macos
   environment:
     PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
@@ -172,7 +173,7 @@
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
     - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
-      or not (ovos_virtualenv_package_uninstall_macos.failed | default(false))
+      or ovos_virtualenv_package_uninstall_macos is not ansible.builtin.failed
 
 - name: Check for OVOS venv activation script
   ansible.builtin.stat:

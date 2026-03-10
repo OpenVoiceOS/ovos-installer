@@ -38,7 +38,7 @@
     purge: true
     autoremove: true
   register: ovos_audio_tuning_rtkit_uninstall_debian
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Debian"
@@ -50,7 +50,7 @@
     state: absent
     autoremove: true
   register: ovos_audio_tuning_rtkit_uninstall_redhat
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "RedHat"
@@ -62,7 +62,7 @@
     state: absent
     clean_deps: true
   register: ovos_audio_tuning_rtkit_uninstall_suse
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Suse"
@@ -75,7 +75,7 @@
     extra_args: --recursive
     remove_nosave: true
   register: ovos_audio_tuning_rtkit_uninstall_archlinux
-  failed_when: false
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Archlinux"
@@ -87,6 +87,7 @@
     state: absent
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
     - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or not (
         (ovos_audio_tuning_rtkit_uninstall_debian.failed | default(false))

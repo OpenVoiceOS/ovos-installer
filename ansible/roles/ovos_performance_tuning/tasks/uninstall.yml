@@ -60,6 +60,7 @@
     state: absent
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
     - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or not (
         (ovos_performance_tuning_cpupower_uninstall_debian.failed | default(false))
@@ -295,6 +296,7 @@
     state: absent
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
     - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or not (
         (ovos_performance_tuning_zram_uninstall_debian.failed | default(false))

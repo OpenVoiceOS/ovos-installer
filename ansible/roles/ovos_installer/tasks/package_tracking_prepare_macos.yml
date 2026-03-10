@@ -46,12 +46,13 @@
       }}
     _ovos_package_tracking_preinstalled_packages: >-
       {{ _ovos_package_tracking_requested_packages | intersect(ovos_package_tracking_homebrew_list.stdout_lines | default([])) | unique | sort }}
+    _ovos_package_tracking_new_packages: >-
+      {{ _ovos_package_tracking_requested_packages | difference(_ovos_package_tracking_preinstalled_packages) | unique | sort }}
   ansible.builtin.set_fact:
     ovos_package_tracking_existing_packages: "{{ _ovos_package_tracking_existing_packages }}"
     ovos_package_tracking_requested_packages_normalized: "{{ _ovos_package_tracking_requested_packages }}"
     ovos_package_tracking_preinstalled_packages: "{{ _ovos_package_tracking_preinstalled_packages }}"
-    ovos_package_tracking_new_packages: >-
-      {{ _ovos_package_tracking_requested_packages | difference(_ovos_package_tracking_preinstalled_packages) | unique | sort }}
+    ovos_package_tracking_new_packages: "{{ _ovos_package_tracking_new_packages }}"
     ovos_package_tracking_tracked_packages: >-
-      {{ (_ovos_package_tracking_existing_packages + ovos_package_tracking_new_packages) | unique | sort }}
+      {{ (_ovos_package_tracking_existing_packages + _ovos_package_tracking_new_packages) | unique | sort }}
   changed_when: false
