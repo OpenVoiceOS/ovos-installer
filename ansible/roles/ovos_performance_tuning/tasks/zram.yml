@@ -4,8 +4,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_debian_list }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_debian_list }}"
   when: ansible_facts.os_family == "Debian"
   tags:
     - always
@@ -25,7 +25,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
   when: ansible_facts.os_family == "Debian"
   tags:
     - always
@@ -35,8 +35,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_redhat_list }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_redhat_list }}"
   when: ansible_facts.os_family == "RedHat"
   tags:
     - always
@@ -55,7 +55,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
   when: ansible_facts.os_family == "RedHat"
   tags:
     - always
@@ -65,8 +65,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_suse_list }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_suse_list }}"
   when: ansible_facts.os_family == "Suse"
   tags:
     - always
@@ -86,7 +86,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
   when: ansible_facts.os_family == "Suse"
   tags:
     - always
@@ -96,8 +96,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_arch_list }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_arch_list }}"
   when: ansible_facts.os_family == "Archlinux"
   tags:
     - always
@@ -116,7 +116,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
   when: ansible_facts.os_family == "Archlinux"
   tags:
     - always

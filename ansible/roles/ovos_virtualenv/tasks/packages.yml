@@ -19,8 +19,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_debian }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_debian }}"
   when: ansible_facts.os_family == "Debian"
 
 - name: Handle virtualenv package requirements (ovos/hivemind) on Debian family
@@ -36,7 +36,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
   when: ansible_facts.os_family == "Debian"
 
 - name: Prepare tracked virtualenv package ownership (RedHat)
@@ -44,8 +44,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_redhat }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_redhat }}"
   when: ansible_facts.os_family == "RedHat"
 
 - name: Handle virtualenv package requirements (ovos/hivemind) on RedHat
@@ -60,7 +60,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
   when: ansible_facts.os_family == "RedHat"
 
 - name: Prepare tracked virtualenv package ownership (SUSE)
@@ -68,8 +68,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_suse }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_suse }}"
   when: ansible_facts.os_family == "Suse"
 
 - name: Handle virtualenv package requirements (ovos/hivemind) on SUSE
@@ -84,7 +84,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
   when: ansible_facts.os_family == "Suse"
 
 - name: Prepare tracked virtualenv package ownership (Archlinux)
@@ -92,8 +92,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_arch_tracked }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_arch_tracked }}"
   when: ansible_facts.os_family == "Archlinux"
 
 - name: Handle virtualenv package requirements (ovos/hivemind) on Archlinux
@@ -125,9 +125,9 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_macos.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_macos }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_macos_packages }}"
-    ovos_package_tracking_homebrew_path: "{{ ovos_virtualenv_homebrew_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_macos }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_virtualenv_macos_packages }}"
+    ovos_installer_package_tracking_homebrew_path: "{{ ovos_virtualenv_homebrew_path }}"
   when: ansible_facts.system == "Darwin"
 
 - name: Handle virtualenv package requirements (ovos/hivemind) on macOS
@@ -148,7 +148,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_macos }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_macos }}"
   when: ansible_facts.system == "Darwin"
 
 - name: Ensure user local bin directory exists for build compatibility shims (macOS)
@@ -242,5 +242,5 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
   when: ansible_facts.os_family == "Archlinux"

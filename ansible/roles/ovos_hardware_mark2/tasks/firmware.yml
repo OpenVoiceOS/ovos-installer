@@ -12,8 +12,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_hardware_mark2_package_marker_path }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_hardware_mark2_kernel_headers_packages }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_hardware_mark2_package_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_hardware_mark2_kernel_headers_packages }}"
 
 - name: Install kernel headers
   ansible.builtin.apt:
@@ -28,7 +28,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_hardware_mark2_package_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_hardware_mark2_package_marker_path }}"
 
 - name: Set EEPROM release
   ansible.builtin.lineinfile:

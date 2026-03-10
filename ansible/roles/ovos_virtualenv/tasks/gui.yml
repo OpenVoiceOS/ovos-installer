@@ -13,8 +13,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_gui_package_marker_path }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_gui_packages_debian }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_gui_package_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_virtualenv_gui_packages_debian }}"
 
 - name: Install package requirements for ovos-gui (Debian Trixie)
   ansible.builtin.apt:
@@ -28,7 +28,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_gui_package_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_gui_package_marker_path }}"
 
 - name: Define GUI build components
   ansible.builtin.set_fact:

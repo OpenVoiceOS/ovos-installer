@@ -402,8 +402,8 @@
         name: ovos_installer
         tasks_from: package_tracking_prepare_linux.yml
       vars:
-        ovos_package_tracking_marker_path: "{{ ovos_audio_tuning_package_marker_path }}"
-        ovos_package_tracking_requested_packages: "{{ ovos_audio_tuning_tracked_packages }}"
+        ovos_installer_package_tracking_marker_path: "{{ ovos_audio_tuning_package_marker_path }}"
+        ovos_installer_package_tracking_requested_packages: "{{ ovos_audio_tuning_tracked_packages }}"
       when: ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
 
     - name: Install rtkit for real-time audio scheduling
@@ -418,7 +418,7 @@
         name: ovos_installer
         tasks_from: package_tracking_persist.yml
       vars:
-        ovos_package_tracking_marker_path: "{{ ovos_audio_tuning_package_marker_path }}"
+        ovos_installer_package_tracking_marker_path: "{{ ovos_audio_tuning_package_marker_path }}"
       when:
         - ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
         - not (ovos_audio_tuning_rtkit_install_result.failed | default(false))

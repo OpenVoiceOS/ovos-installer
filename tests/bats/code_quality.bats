@@ -781,19 +781,19 @@ function setup() {
 @test "virtualenv_gui_uninstall_removes_debian_mark2_packages" {
     local file="ansible/roles/ovos_virtualenv/tasks/uninstall.yml"
 
-    run grep -q "Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)" "$file"
+    run grep -q "Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)" "$file"
     assert_success
 
-    run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"state: absent\""
+    run bash -c "grep -A40 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"state: absent\""
     assert_success
 
-    run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"purge: true\""
+    run bash -c "grep -A40 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"purge: true\""
     assert_success
 
-    run bash -c "grep -A40 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"autoremove: true\""
+    run bash -c "grep -A40 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"autoremove: true\""
     assert_success
 
-    run bash -c "grep -A50 -F -- \"- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
+    run bash -c "grep -A50 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
     assert_success
 }
 
@@ -1305,7 +1305,7 @@ function setup() {
     run bash -c "grep -A8 -F -- \"- name: Persist tracked package ownership marker\" ansible/roles/ovos_installer/tasks/package_tracking_persist.yml | grep -F -q -- 'owner: \"root\"'"
     assert_success
 
-    run grep -F -q "_ovos_package_tracking_new_packages" ansible/roles/ovos_installer/tasks/package_tracking_prepare_macos.yml
+    run grep -F -q "_ovos_installer_package_tracking_new_packages" ansible/roles/ovos_installer/tasks/package_tracking_prepare_macos.yml
     assert_success
 
     run grep -F -q "ovos_audio_tuning_package_marker_path" "$audio_defaults"
@@ -1320,7 +1320,7 @@ function setup() {
     run grep -F -q "package_tracking_load.yml" "$audio_file"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"name: \\\"{{ ovos_package_tracking_tracked_packages_to_remove }}\\\"\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"name: \\\"{{ ovos_installer_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"autoremove: true\""
@@ -1365,7 +1365,7 @@ function setup() {
     run grep -F -q "package_tracking_load.yml" "$virtualenv_file"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"name: \\\"{{ ovos_package_tracking_tracked_packages_to_remove }}\\\"\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"name: \\\"{{ ovos_installer_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
@@ -1386,7 +1386,7 @@ function setup() {
     run bash -c "grep -A14 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"ovos_installer_uninstall_remove_packages | default(false) | bool\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"name: \\\"{{ ovos_package_tracking_tracked_packages_to_remove }}\\\"\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"name: \\\"{{ ovos_installer_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
@@ -1419,7 +1419,7 @@ function setup() {
     run grep -F -q "package_tracking_load.yml" "$performance_file"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"name: \\\"{{ ovos_package_tracking_tracked_packages_to_remove }}\\\"\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"name: \\\"{{ ovos_installer_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
@@ -1455,7 +1455,7 @@ function setup() {
     run grep -F -q "package_tracking_load.yml" "$mark2_uninstall_file"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"name: \\\"{{ ovos_package_tracking_tracked_packages_to_remove }}\\\"\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"name: \\\"{{ ovos_installer_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"autoremove: true\""

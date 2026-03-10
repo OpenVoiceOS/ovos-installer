@@ -4,55 +4,59 @@
     name: ovos_installer
     tasks_from: package_tracking_load.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
   when: ovos_installer_uninstall_remove_packages | default(false) | bool
 
 - name: Remove tracked cpupower package on Debian family
   ansible.builtin.apt:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     install_recommends: false
     state: absent
     purge: true
     autoremove: true
   register: ovos_performance_tuning_cpupower_uninstall_debian
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Debian"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove tracked cpupower package on RedHat family
   ansible.builtin.dnf:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     autoremove: true
   register: ovos_performance_tuning_cpupower_uninstall_redhat
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "RedHat"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove tracked cpupower package on SUSE family
   community.general.zypper:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     clean_deps: true
   register: ovos_performance_tuning_cpupower_uninstall_suse
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Suse"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove tracked cpupower package on Arch family
   community.general.pacman:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     extra_args: --recursive
     remove_nosave: true
   register: ovos_performance_tuning_cpupower_uninstall_arch
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Archlinux"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove cpupower package ownership marker
   ansible.builtin.file:
@@ -61,7 +65,7 @@
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or not (
         (ovos_performance_tuning_cpupower_uninstall_debian.failed | default(false))
         or (ovos_performance_tuning_cpupower_uninstall_redhat.failed | default(false))
@@ -239,56 +243,60 @@
     name: ovos_installer
     tasks_from: package_tracking_load.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
   when: ovos_installer_uninstall_remove_packages | default(false) | bool
 
 - name: Remove tracked systemd-zram-generator (Debian)
   ansible.builtin.apt:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     install_recommends: false
     state: absent
     purge: true
     autoremove: true
   register: ovos_performance_tuning_zram_uninstall_debian
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Debian"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove tracked zram-generator-defaults (RedHat)
   ansible.builtin.dnf:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     autoremove: true
   register: ovos_performance_tuning_zram_uninstall_redhat
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "RedHat"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove tracked systemd-zram-generator (SUSE)
   community.general.zypper:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     disable_recommends: true
     state: absent
     clean_deps: true
   register: ovos_performance_tuning_zram_uninstall_suse
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Suse"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove tracked systemd-zram-generator (Arch Linux)
   community.general.pacman:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     extra_args: --recursive
     remove_nosave: true
   register: ovos_performance_tuning_zram_uninstall_arch
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Archlinux"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove zram package ownership marker
   ansible.builtin.file:
@@ -297,7 +305,7 @@
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or not (
         (ovos_performance_tuning_zram_uninstall_debian.failed | default(false))
         or (ovos_performance_tuning_zram_uninstall_redhat.failed | default(false))

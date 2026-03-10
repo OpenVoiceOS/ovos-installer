@@ -4,8 +4,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_cpupower_packages_debian }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_performance_tuning_cpupower_packages_debian }}"
   when: ansible_facts.os_family == "Debian"
   tags:
     - always
@@ -25,7 +25,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
   when: ansible_facts.os_family == "Debian"
   tags:
     - always
@@ -35,8 +35,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_cpupower_packages_redhat }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_performance_tuning_cpupower_packages_redhat }}"
   when: ansible_facts.os_family == "RedHat"
   tags:
     - always
@@ -55,7 +55,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
   when: ansible_facts.os_family == "RedHat"
   tags:
     - always
@@ -65,8 +65,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_cpupower_packages_suse }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_performance_tuning_cpupower_packages_suse }}"
   when: ansible_facts.os_family == "Suse"
   tags:
     - always
@@ -85,7 +85,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
   when: ansible_facts.os_family == "Suse"
   tags:
     - always
@@ -95,8 +95,8 @@
     name: ovos_installer
     tasks_from: package_tracking_prepare_linux.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
-    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_cpupower_packages_arch }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_performance_tuning_cpupower_packages_arch }}"
   when: ansible_facts.os_family == "Archlinux"
   tags:
     - always
@@ -115,7 +115,7 @@
     name: ovos_installer
     tasks_from: package_tracking_persist.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_performance_tuning_cpupower_marker_path }}"
   when: ansible_facts.os_family == "Archlinux"
   tags:
     - always

@@ -27,7 +27,7 @@
     name: ovos_installer
     tasks_from: package_tracking_load.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_gui_package_marker_path }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_gui_package_marker_path }}"
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.distribution == "Debian"
@@ -36,7 +36,7 @@
 
 - name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)
   ansible.builtin.apt:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     purge: true
     autoremove: true
@@ -47,7 +47,7 @@
     - ansible_facts.distribution == "Debian"
     - ansible_facts.distribution_major_version == "13"
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove GUI package ownership marker
   ansible.builtin.file:
@@ -58,7 +58,7 @@
     - ansible_facts.distribution == "Debian"
     - ansible_facts.distribution_major_version == "13"
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or ovos_virtualenv_gui_package_uninstall_result is not ansible.builtin.failed
 
 - name: Load tracked virtualenv package ownership (Linux)
@@ -66,14 +66,14 @@
     name: ovos_installer
     tasks_from: package_tracking_load.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system != "Darwin"
 
 - name: Remove tracked virtualenv package requirements (Debian family)
   ansible.builtin.apt:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     install_recommends: false
     state: absent
     purge: true
@@ -83,11 +83,11 @@
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Debian"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove tracked virtualenv package requirements (RedHat)
   ansible.builtin.dnf:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     autoremove: true
   register: ovos_virtualenv_package_uninstall_redhat
@@ -95,11 +95,11 @@
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "RedHat"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove tracked virtualenv package requirements (SUSE)
   community.general.zypper:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     clean_deps: true
   register: ovos_virtualenv_package_uninstall_suse
@@ -107,11 +107,11 @@
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Suse"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove tracked virtualenv package requirements (Archlinux)
   community.general.pacman:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     extra_args: --recursive
     remove_nosave: true
@@ -120,7 +120,7 @@
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Archlinux"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove Linux virtualenv package ownership marker
   ansible.builtin.file:
@@ -130,7 +130,7 @@
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system != "Darwin"
     - ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or not (
         (ovos_virtualenv_package_uninstall_debian.failed | default(false))
         or (ovos_virtualenv_package_uninstall_redhat.failed | default(false))
@@ -143,7 +143,7 @@
     name: ovos_installer
     tasks_from: package_tracking_load.yml
   vars:
-    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_macos }}"
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_macos }}"
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
@@ -152,7 +152,7 @@
   become: true
   become_user: "{{ ovos_installer_user }}"
   community.general.homebrew:
-    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     path: "{{ ovos_virtualenv_homebrew_path }}"
     update_homebrew: false
@@ -163,7 +163,7 @@
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
 - name: Remove macOS virtualenv package ownership marker
   ansible.builtin.file:
@@ -172,7 +172,7 @@
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
-    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or ovos_virtualenv_package_uninstall_macos is not ansible.builtin.failed
 
 - name: Check for OVOS venv activation script
