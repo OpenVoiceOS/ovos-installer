@@ -8,6 +8,7 @@
 
   vars:
     ovos_installer_reboot: false
+    ovos_installer_raspberry_pi_4_regex: '(^|\\s)Raspberry\\s+Pi\\s+4([^0-9]|$)'
 
   pre_tasks:
     - name: Gather reduced subset of facts
@@ -68,7 +69,7 @@
       when:
         - ansible_facts.distribution == "Debian"
         - ansible_facts.distribution_major_version is version('11', '>=')
-        - (ovos_installer_raspberrypi | default('')) | regex_search('(^|\\s)Raspberry\\s+Pi\\s+4([^0-9]|$)')
+        - (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)
         - "'tas5806' in ovos_installer_i2c_devices"
         - ansible_facts.architecture == "aarch64"
 

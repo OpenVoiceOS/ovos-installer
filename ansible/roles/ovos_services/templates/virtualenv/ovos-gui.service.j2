@@ -7,7 +7,7 @@ After=ovos.service ovos-gui-websocket.service ovos-phal.service
 
 [Service]
 {% set _ovos_headless_display = (ovos_installer_display_server | default('') | lower) in ['n/a', 'eglfs'] %}
-{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search('(^|\\s)Raspberry\\s+Pi\\s+4([^0-9]|$)') %}
+{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}
 {% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
 User={{ ovos_installer_user }}
 Group={{ ovos_installer_group }}

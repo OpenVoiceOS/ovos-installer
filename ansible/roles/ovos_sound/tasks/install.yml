@@ -167,7 +167,7 @@
         if (_ovos_sound_expected_server in ovos_sound_supported_alsa_defaults)
         else _ovos_sound_mark2_fallback_server
         if (
-          ((ovos_installer_raspberrypi | default('')) | regex_search('(^|\\s)Raspberry\\s+Pi\\s+4([^0-9]|$)')) and
+          ((ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)) and
           ('tas5806' in (ovos_installer_i2c_devices | default([]))) and
           (_ovos_sound_mark2_fallback_server in ovos_sound_supported_alsa_defaults)
         )

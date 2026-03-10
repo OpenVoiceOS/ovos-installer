@@ -1,4 +1,4 @@
-{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search('(^|\\s)Raspberry\\s+Pi\\s+4([^0-9]|$)') %}
+{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}
 {% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}
 hivemind-bus-client
 hivemind-voice-sat

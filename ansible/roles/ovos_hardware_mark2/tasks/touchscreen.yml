@@ -14,6 +14,6 @@
     state: "{{ item.state }}"
   loop: "{{ ovos_hardware_mark2_touchscreen_overlays }}"
   when:
-    - (ovos_installer_raspberrypi | default('')) | regex_search('(^|\\s)Raspberry\\s+Pi\\s+4([^0-9]|$)')
+    - (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
   notify: Set Reboot

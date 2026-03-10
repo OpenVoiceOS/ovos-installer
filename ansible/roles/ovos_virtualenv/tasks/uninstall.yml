@@ -56,7 +56,7 @@
   when:
     - ansible_facts.distribution == "Debian"
     - ansible_facts.distribution_major_version == "13"
-    - (ovos_installer_raspberrypi | default('')) | regex_search('(^|\\s)Raspberry\\s+Pi\\s+4([^0-9]|$)')
+    - (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
 
 - name: Remove virtualenv package requirements (Debian/Zorin)
