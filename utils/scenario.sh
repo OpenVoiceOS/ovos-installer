@@ -120,6 +120,17 @@ if [ -f "$SCENARIO_PATH" ]; then
                 fi
                 export PROFILE
                 ;;
+            hardware)
+                case "${options[$option]}" in
+                generic | mark2 | devkit)
+                    export HARDWARE_CONFIRMATION="${options[$option]}"
+                    ;;
+                *)
+                    export SCENARIO_NOT_SUPPORTED="true"
+                    break
+                    ;;
+                esac
+                ;;
             raspberry_pi_tuning)
                 if [[ "${options[$option]}" == "true" ]]; then
                     TUNING="yes"

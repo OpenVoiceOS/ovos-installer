@@ -14,4 +14,9 @@ Propriedades do sistema reconhecidas automaticamente:
 "
 TITLE="Open Voice OS Instalação - Propriedades do sistema"
 
-export CONTENT TITLE
+HARDWARE_CONFIRMATION_TITLE="Instalação do Open Voice OS - Verificação de hardware"
+HARDWARE_CONFIRMATION_MARK2_CONTENT="Foi detetado um Raspberry Pi 4 com um dispositivo de áudio TAS5806.\n\nIsto pode ser um Mycroft Mark II, mas alguns HAT genéricos expõem o mesmo sinal.\n\nEste dispositivo é realmente um Mycroft Mark II?"
+HARDWARE_CONFIRMATION_DEVKIT_CONTENT="Foi detetado um Raspberry Pi 4 com dispositivos TAS5806 e attiny1614.\n\nIsto pode ser um Mycroft DevKit, mas alguns HAT genéricos expõem o mesmo sinal.\n\nEste dispositivo é realmente um Mycroft DevKit?"
+HARDWARE_CONFIRMATION_GENERIC_NOTE="Escolha Não para continuar com o fluxo genérico de Raspberry Pi."
+
+export CONTENT TITLE HARDWARE_CONFIRMATION_TITLE HARDWARE_CONFIRMATION_MARK2_CONTENT HARDWARE_CONFIRMATION_DEVKIT_CONTENT HARDWARE_CONFIRMATION_GENERIC_NOTE

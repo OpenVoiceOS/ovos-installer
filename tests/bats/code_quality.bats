@@ -295,11 +295,27 @@ function setup() {
     local core_file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
     local sat_file="ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2"
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+    local site_file="ansible/site.yml"
 
-    run grep -F -q "{% if ansible_facts.system == 'Darwin' or 'tas5806' in (ovos_installer_i2c_devices | default([])) %}" "$core_file"
+    run grep -F -q "ovos_installer_raspberry_pi_4_regex: '(^|\\\\s)Raspberry\\\\s+Pi\\\\s+4([^0-9]|$)'" "$site_file"
     assert_success
 
-    run grep -F -q "{% if ansible_facts.system == 'Darwin' or 'tas5806' in (ovos_installer_i2c_devices | default([])) %}" "$sat_file"
+    run grep -F -q "{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}" "$core_file"
+    assert_success
+
+    run grep -F -q "{% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}" "$core_file"
+    assert_success
+
+    run grep -F -q "{% if ansible_facts.system == 'Darwin' or _ovos_is_mark2_family %}" "$core_file"
+    assert_success
+
+    run grep -F -q "{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}" "$sat_file"
+    assert_success
+
+    run grep -F -q "{% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}" "$sat_file"
+    assert_success
+
+    run grep -F -q "{% if ansible_facts.system == 'Darwin' or _ovos_is_mark2_family %}" "$sat_file"
     assert_success
 
     run grep -q "_ovos_use_sounddevice_mic" "$conf_file"
@@ -312,7 +328,13 @@ function setup() {
 @test "mycroft_conf_applies_sounddevice_tuning_for_mark2_only" {
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
-    run grep -F -q "{% set _ovos_is_mark2 = ('tas5806' in (ovos_installer_i2c_devices | default([]))) and ('attiny1614' not in (ovos_installer_i2c_devices | default([]))) %}" "$conf_file"
+    run grep -F -q "{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}" "$conf_file"
+    assert_success
+
+    run grep -F -q "{% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}" "$conf_file"
+    assert_success
+
+    run grep -F -q "{% set _ovos_is_mark2 = _ovos_is_mark2_family and ('attiny1614' not in (ovos_installer_i2c_devices | default([]))) %}" "$conf_file"
     assert_success
 
     run grep -F -q "\"module\": \"ovos-microphone-plugin-sounddevice\"{% if _ovos_is_mark2 %}" "$conf_file"
@@ -322,6 +344,13 @@ function setup() {
     assert_success
 
     run grep -F -q "\"queue_maxsize\": 32" "$conf_file"
+    assert_success
+}
+
+@test "mycroft_conf_defines_mark2_family_before_server_profile_guard" {
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run bash -c "mark2_line=\$(grep -n -F \"{% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}\" \"$conf_file\" | head -n1 | cut -d: -f1); profile_line=\$(grep -n -F '{% if ovos_installer_profile != \"server\" %}' \"$conf_file\" | head -n1 | cut -d: -f1); [ -n \"\$mark2_line\" ] && [ -n \"\$profile_line\" ] && [ \"\$mark2_line\" -lt \"\$profile_line\" ]"
     assert_success
 }
 
@@ -407,7 +436,7 @@ function setup() {
     local mark2_scoped_file
     mark2_scoped_file="$(mktemp)"
 
-    run awk "/{% if 'tas5806' in ovos_installer_i2c_devices %}/ { in_mark2=1 } in_mark2 { print } in_mark2 && /{% endif %}/ { in_mark2=0 }" "$conf_file"
+    run awk "/{% if _ovos_is_mark2_family %}/ { in_mark2=1 } in_mark2 { print } in_mark2 && /{% endif %}/ { in_mark2=0 }" "$conf_file"
     assert_success
 
     printf "%s\n" "$output" > "$mark2_scoped_file"
@@ -793,6 +822,9 @@ function setup() {
     run bash -c "grep -A40 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"autoremove: true\""
     assert_success
 
+    run grep -F -q "regex_search(ovos_installer_raspberry_pi_4_regex)" "$file"
+    assert_success
+
     run bash -c "grep -A50 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
     assert_success
 }
@@ -801,6 +833,9 @@ function setup() {
     local file="ansible/roles/ovos_installer/tasks/assert.yml"
 
     run grep -q "Assert Mark 2/DevKit-supported installer modes" "$file"
+    assert_success
+
+    run grep -F -q -- "regex_search(ovos_installer_raspberry_pi_4_regex)" "$file"
     assert_success
 
     run grep -F -q -- "'tas5806' in (ovos_installer_i2c_devices | default([]))" "$file"
@@ -918,7 +953,7 @@ function setup() {
 @test "virtualenv_mark2_uses_phal_mk2_without_pyee_pin" {
     local file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
 
-    run grep -F -q "{% if 'tas5806' in ovos_installer_i2c_devices %}" "$file"
+    run grep -F -q "{% if _ovos_is_mark2_family %}" "$file"
     assert_success
 
     run grep -F -q "pyee==8.1.0" "$file"
@@ -1543,6 +1578,9 @@ function setup() {
     run grep -q "Manage touchscreen, DevKit vs Mark II" "$file"
     assert_success
 
+    run grep -F -q "regex_search(ovos_installer_raspberry_pi_4_regex)" "$file"
+    assert_success
+
     run bash -c "grep -A10 -F -- \"- name: Manage touchscreen, DevKit vs Mark II\" \"$file\" | grep -F -q -- \"'tas5806' in (ovos_installer_i2c_devices | default([]))\""
     assert_success
 
@@ -1623,6 +1661,9 @@ function setup() {
     assert_success
 
     run bash -c "grep -A22 -F -- \"- name: Resolve ALSA default backend for .asoundrc\" \"$tasks_file\" | grep -F -q -- \"_ovos_sound_mark2_fallback_server in ovos_sound_supported_alsa_defaults\""
+    assert_success
+
+    run grep -F -q "regex_search(ovos_installer_raspberry_pi_4_regex)" "$tasks_file"
     assert_success
 
     run bash -c "grep -A10 -F -- \"- name: Generate .asoundrc based on detected sound server (Raspberry Pi only)\" \"$tasks_file\" | grep -F -q -- \"pcm.!default {{ ovos_sound_asoundrc_server }}\""
@@ -1732,7 +1773,7 @@ function setup() {
     run grep -q "SCENARIO_ALLOWED_FEATURES=(skills extra_skills homeassistant llm)" utils/constants.sh
     assert_success
 
-    run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)" utils/constants.sh
+    run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)" utils/constants.sh
     assert_success
 
     run grep -q "SCENARIO_ALLOWED_LLM_OPTIONS=(api_url key model persona max_tokens temperature top_p)" utils/constants.sh
@@ -1933,7 +1974,7 @@ function setup() {
 }
 
 @test "tui_hardware_falls_back_to_detected_model" {
-    run grep -F -q 'if [ "$HARDWARE_DETECTED" == "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then' tui/detection.sh
+    run grep -F -q 'if [ "$TUI_HARDWARE_DETECTED" = "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then' tui/hardware_state.sh
     assert_success
 }
 
@@ -1975,6 +2016,79 @@ function setup() {
     assert_success
 
     run grep -q "source tui/usage_telemetry.sh" "$file"
+    assert_success
+}
+
+@test "tui_confirms_ambiguous_mark2_hardware_before_detection" {
+    local file="tui/main.sh"
+
+    run grep -q "source tui/hardware_confirmation.sh" "$file"
+    assert_success
+
+    run bash -c "confirm_line=\$(grep -n 'source tui/hardware_confirmation.sh' '$file' | head -n1 | cut -d: -f1); detect_line=\$(grep -n 'source tui/detection.sh' '$file' | head -n1 | cut -d: -f1); [ -n \"\$confirm_line\" ] && [ -n \"\$detect_line\" ] && [ \"\$confirm_line\" -lt \"\$detect_line\" ]"
+    assert_success
+
+    run grep -q 'if \[ \"\${SCENARIO_FOUND:-false}\" != \"false\" \]; then' utils/common.sh
+    assert_success
+}
+
+@test "automation_hardware_override_avoids_raw_mark2_promotion_without_confirmation" {
+    run grep -q 'export HARDWARE_CONFIRMATION="\${HARDWARE_CONFIRMATION:-}"' utils/argparse.sh
+    assert_success
+
+    run grep -q 'declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)' utils/constants.sh
+    assert_success
+
+    run grep -q 'hardware)' utils/scenario.sh
+    assert_success
+
+    run grep -q 'export HARDWARE_CONFIRMATION="\${options\[\$option\]}"' utils/scenario.sh
+    assert_success
+
+    run grep -q 'local hardware_choice="\${HARDWARE_CONFIRMATION:-}"' utils/common.sh
+    assert_success
+
+    run grep -q 'read_persisted_hardware_confirmation_choice' utils/common.sh
+    assert_success
+
+    run grep -q 'normalize_hardware_confirmation_choice' utils/common.sh
+    assert_success
+
+    run grep -q 'hardware_choice="\$(read_persisted_hardware_confirmation_choice)"' utils/common.sh
+    assert_success
+
+    run grep -q 'apply_hardware_confirmation_choice "\$hardware_choice"' utils/common.sh
+    assert_success
+
+    run grep -q 'clear_mark2_family_detected_devices' utils/common.sh
+    assert_success
+
+    run grep -q 'hardware_confirmation_choice="\$(read_persisted_hardware_confirmation_choice)"' tui/hardware_confirmation.sh
+    assert_success
+}
+
+@test "mark2_family_pi4_checks_reject_raspberry_pi_400" {
+    run grep -F -q '[[ "${RASPBERRYPI_MODEL:-}" =~ (^|[[:space:]])Raspberry[[:space:]]Pi[[:space:]]4([^0-9]|$) ]]' utils/common.sh
+    assert_success
+
+    run grep -F -q '[[ "${RASPBERRYPI_MODEL:-}" =~ (^|[[:space:]])Raspberry[[:space:]]Pi[[:space:]]4([^0-9]|$) ]]' tui/hardware_state.sh
+    assert_success
+
+    run grep -F -q 'if is_raspberry_pi_4 && \' tui/hardware_confirmation.sh
+    assert_success
+}
+
+@test "tui_hardware_state_is_shared_across_detection_method_channel_and_feature_screens" {
+    run grep -q "source tui/hardware_state.sh" tui/detection.sh
+    assert_success
+
+    run grep -q "source tui/hardware_state.sh" tui/methods.sh
+    assert_success
+
+    run grep -q "source tui/hardware_state.sh" tui/channels.sh
+    assert_success
+
+    run grep -q "source tui/hardware_state.sh" tui/features.sh
     assert_success
 }
 

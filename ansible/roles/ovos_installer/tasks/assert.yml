@@ -14,6 +14,7 @@
     fail_msg: "On Mark 2/DevKit hardware only virtualenv mode is currently supported."
   when:
     - not (ovos_installer_is_cleaning | bool)
+    - (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
 
 - name: Assert GUI support constraints
@@ -23,6 +24,7 @@
       - ansible_facts.system == 'Linux'
       - ansible_facts.distribution == 'Debian'
       - ansible_facts.distribution_major_version == '13'
+      - (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)
       - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
     fail_msg: "GUI support is only available on Debian Trixie Mark II/DevKit virtualenv installs."
   when:

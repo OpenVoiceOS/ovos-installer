@@ -20,6 +20,10 @@ function setup() {
             SOUND_SERVER='PipeWire'
             DISPLAY_SERVER='wayland'
             source '$f'
+            test -n \"\$HARDWARE_CONFIRMATION_TITLE\"
+            test -n \"\$HARDWARE_CONFIRMATION_MARK2_CONTENT\"
+            test -n \"\$HARDWARE_CONFIRMATION_DEVKIT_CONTENT\"
+            test -n \"\$HARDWARE_CONFIRMATION_GENERIC_NOTE\"
             printf '%s\n' \"\$CONTENT\"
         "
 

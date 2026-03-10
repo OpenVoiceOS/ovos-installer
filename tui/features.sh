@@ -3,6 +3,8 @@
 source "tui/locales/$LOCALE/features.sh"
 # shellcheck source=utils/llm_defaults.sh
 source "utils/llm_defaults.sh"
+# shellcheck source=tui/hardware_state.sh
+source tui/hardware_state.sh
 
 export FEATURE_SKILLS="false"
 export FEATURE_EXTRA_SKILLS="false"
@@ -13,16 +15,9 @@ export HOMEASSISTANT_URL="${HOMEASSISTANT_URL:-}"
 export LLM_API_URL="${LLM_API_URL:-}"
 export LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"
 
-_mark2_or_devkit_detected="false"
 _gui_supported="false"
 _gui_default_state="OFF"
-for _device in "${DETECTED_DEVICES[@]}"; do
-  if [ "$_device" == "tas5806" ]; then
-    _mark2_or_devkit_detected="true"
-    break
-  fi
-done
-if [[ "$_mark2_or_devkit_detected" == "true" ]] && \
+if [[ "$TUI_MARK2_OR_DEVKIT_DETECTED" == "true" ]] && \
   [[ "${PROFILE:-}" != "server" ]] && \
   [[ "${PROFILE:-}" != "satellite" ]] && \
   [[ "${DISTRO_NAME:-}" == "debian" ]] && \

@@ -5,6 +5,7 @@
       - ansible_facts.system == "Linux"
       - ansible_facts.distribution == "Debian"
       - ansible_facts.distribution_major_version == "13"
+      - (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)
       - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
     fail_msg: "GUI build is only supported on Debian Trixie Mark II/DevKit."
 
