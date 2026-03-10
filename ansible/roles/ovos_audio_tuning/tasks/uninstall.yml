@@ -23,7 +23,7 @@
     state: absent
   notify: Restart WirePlumber
 
-- name: Remove rtkit package (Debian/Zorin)
+- name: Remove rtkit package (Debian family)
   ansible.builtin.apt:
     name: "{{ ovos_audio_tuning_rtkit_package }}"
     state: absent
@@ -32,7 +32,7 @@
   failed_when: false
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
-    - ansible_facts.os_family in ['Debian', 'Zorin OS']
+    - ansible_facts.os_family == "Debian"
 
 - name: Remove rtkit package (RedHat)
   ansible.builtin.dnf:

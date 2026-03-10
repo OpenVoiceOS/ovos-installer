@@ -1299,7 +1299,10 @@ function setup() {
     run bash -c "grep -A10 -F -- \"- name: Remove systemd-zram-generator (Arch Linux)\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (Debian/Zorin)\" \"$audio_file\" | grep -F -q -- \"autoremove: true\""
+    run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"ansible_facts.os_family == \\\"Debian\\\"\""
     assert_success
 
     run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (SUSE)\" \"$audio_file\" | grep -F -q -- \"clean_deps: true\""
