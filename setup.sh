@@ -135,6 +135,8 @@ if [ "$EXISTING_INSTANCE" == "true" ]; then
   export SHARE_USAGE_TELEMETRY="false"
 fi
 
+normalize_feature_gui_support
+
 log_info "➤ Starting Ansible playbook... ☕🍵🧋"
 
 # Execute the Ansible playbook on localhost
