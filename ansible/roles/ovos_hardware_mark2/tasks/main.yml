@@ -7,3 +7,7 @@
 - name: Include install tasks
   ansible.builtin.import_tasks: install.yml
   when: not (ovos_hardware_mark2_is_cleaning | bool)
+
+- name: Include uninstall tasks
+  ansible.builtin.import_tasks: uninstall.yml
+  when: ovos_hardware_mark2_is_cleaning | bool

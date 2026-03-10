@@ -30,6 +30,7 @@ teardown() {
     unset UNINSTALL METHOD CHANNEL PROFILE TUNING
     unset SHARE_TELEMETRY SHARE_USAGE_TELEMETRY
     unset FEATURE_SKILLS FEATURE_GUI FEATURE_EXTRA_SKILLS
+    unset HARDWARE_CONFIRMATION
     unset HIVEMIND_HOST HIVEMIND_PORT SATELLITE_KEY SATELLITE_PASSWORD
 }
 
@@ -462,6 +463,131 @@ EOF
 
     unset -f download_yq in_array source
     rm -rf "$RUN_AS_HOME"
+}
+
+@test "scenario_file_hardware_override_sets_explicit_confirmation" {
+    local scenario_file yq_mock
+    scenario_file="$(mktemp)"
+    yq_mock="$(mktemp)"
+
+    cat <<'EOF' >"$scenario_file"
+uninstall: false
+method: virtualenv
+channel: testing
+profile: ovos
+hardware: mark2
+features:
+  skills: true
+raspberry_pi_tuning: false
+share_telemetry: false
+share_usage_telemetry: false
+EOF
+
+    cat <<'EOF' >"$yq_mock"
+#!/usr/bin/env bash
+query="$1"
+if [ "$query" = 'to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    cat <<'OUT'
+uninstall=false
+method=virtualenv
+channel=testing
+profile=ovos
+hardware=mark2
+features=enabled
+raspberry_pi_tuning=false
+share_telemetry=false
+share_usage_telemetry=false
+OUT
+elif [ "$query" = '.features | to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    cat <<'OUT'
+skills=true
+OUT
+elif [ "$query" = '.hivemind | to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    :
+elif [ "$query" = '.llm | to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    :
+fi
+EOF
+    chmod +x "$yq_mock"
+
+    run bash -lc '
+        set -e
+        cd "$1"
+        source utils/constants.sh
+        source utils/common.sh
+        export SCENARIO_PATH="$2"
+        export YQ_BINARY_PATH="$3"
+        source utils/scenario.sh
+        printf "%s\n" "${HARDWARE_CONFIRMATION:-unset}"
+    ' bash "$BATS_TEST_DIRNAME/../.." "$scenario_file" "$yq_mock"
+    assert_success
+    assert_output "mark2"
+
+    rm -f "$scenario_file"
+    rm -f "$yq_mock"
+}
+
+@test "scenario_file_invalid_hardware_override_is_rejected" {
+    local scenario_file yq_mock
+    scenario_file="$(mktemp)"
+    yq_mock="$(mktemp)"
+
+    cat <<'EOF' >"$scenario_file"
+uninstall: false
+method: virtualenv
+channel: testing
+profile: ovos
+hardware: maybe
+features:
+  skills: true
+raspberry_pi_tuning: false
+share_telemetry: false
+share_usage_telemetry: false
+EOF
+
+    cat <<'EOF' >"$yq_mock"
+#!/usr/bin/env bash
+query="$1"
+if [ "$query" = 'to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    cat <<'OUT'
+uninstall=false
+method=virtualenv
+channel=testing
+profile=ovos
+hardware=maybe
+features=enabled
+raspberry_pi_tuning=false
+share_telemetry=false
+share_usage_telemetry=false
+OUT
+elif [ "$query" = '.features | to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    cat <<'OUT'
+skills=true
+OUT
+elif [ "$query" = '.hivemind | to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    :
+elif [ "$query" = '.llm | to_entries | map([.key, .value] | join("=")) | .[]' ]; then
+    :
+fi
+EOF
+    chmod +x "$yq_mock"
+
+    run bash -lc '
+        set -e
+        cd "$1"
+        source utils/constants.sh
+        source utils/common.sh
+        export SCENARIO_PATH="$2"
+        export YQ_BINARY_PATH="$3"
+        export SCENARIO_NOT_SUPPORTED="false"
+        source utils/scenario.sh
+        printf "%s\n" "${SCENARIO_NOT_SUPPORTED:-unset}"
+    ' bash "$BATS_TEST_DIRNAME/../.." "$scenario_file" "$yq_mock"
+    assert_success
+    assert_output "true"
+
+    rm -f "$scenario_file"
+    rm -f "$yq_mock"
 }
 
 @test "scenario_file_llm_top_p_reaches_llm_fast_path_and_persists_state" {

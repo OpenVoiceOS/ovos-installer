@@ -7,6 +7,7 @@ After=ovos.service ovos-gui-websocket.service ovos-phal.service
 
 [Service]
 {% set _ovos_headless_display = (ovos_installer_display_server | default('') | lower) in ['n/a', 'eglfs'] %}
+{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}
 {% if (ovos_installer_systemd_scope | default('user')) == 'system' %}
 User={{ ovos_installer_user }}
 Group={{ ovos_installer_group }}
@@ -26,7 +27,7 @@ Environment="QT_FONT_DPI=120"
 Environment="QT_QUICK_CONTROLS_STYLE=OpenVoiceStyle"
 Environment="QT_FILE_SELECTORS=ovos"
 Environment="QT_QPA_EGLFS_HIDECURSOR=1"
-{% if 'tas5806' in ovos_installer_i2c_devices %}
+{% if _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}
 Environment="QT_IM_MODULE=qtvirtualkeyboard"
 {% endif %}
 ExecStart=/usr/bin/{{ 'ovos-shell' if _ovos_headless_display else 'ovos-gui-app' }}

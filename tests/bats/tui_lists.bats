@@ -84,7 +84,9 @@ function setup() {
                 return 0
                 ;;
             --yesno)
-                printf '%s\t%s\t%s\t%s\t%s\n' "yesno" "$dialog_title" "" "" "$WHIPTAIL_FORCE_YESNO_STATUS" >>"$WHIPTAIL_DIALOG_FILE"
+                local dialog_body="${args[$(( ${#args[@]} - 3 ))]}"
+                dialog_body="${dialog_body//$'\n'/\\n}"
+                printf '%s\t%s\t%s\t%s\t%s\n' "yesno" "$dialog_title" "" "$dialog_body" "$WHIPTAIL_FORCE_YESNO_STATUS" >>"$WHIPTAIL_DIALOG_FILE"
                 return "$WHIPTAIL_FORCE_YESNO_STATUS"
                 ;;
             --msgbox)
@@ -237,6 +239,7 @@ function dialog_value() {
 
 @test "channels: hides non-alpha channels on Mark 2/DevKit hardware" {
     EXISTING_INSTANCE="false"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION="alpha"
 
@@ -264,6 +267,227 @@ function dialog_value() {
     source tui/usage_telemetry.sh
 
     assert_equal "$SHARE_USAGE_TELEMETRY" "false"
+}
+
+@test "channels: keeps testing channel on Raspberry Pi 5 tas5806 false positives" {
+    EXISTING_INSTANCE="false"
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION="testing"
+
+    # shellcheck source=tui/channels.sh
+    source tui/channels.sh
+
+    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value tags)" "testing alpha"
+}
+
+@test "detection: Raspberry Pi 400 tas5806 does not present as Mark II" {
+    RASPBERRYPI_MODEL="Raspberry Pi 400 Rev 1.0"
+    DETECTED_DEVICES=("tas5806")
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    KERNEL="6.12.0"
+    PYTHON="Python 3.11"
+    CPU_IS_CAPABLE="true"
+    VENV_PATH="/home/test/.venvs/ovos-installer"
+    SOUND_SERVER="PipeWire"
+    DISPLAY_SERVER="N/A"
+
+    # shellcheck source=tui/detection.sh
+    source tui/detection.sh
+
+    assert_equal "$HARDWARE_DETECTED" "N/A"
+}
+
+@test "hardware confirmation: declining ambiguous Pi 4 mark2 candidate keeps generic flow" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_YESNO_STATUS="1"
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    run jq -r '.hardware_confirmation' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "generic"
+
+    run jq -e '.i2c_devices == []' "$INSTALLER_STATE_FILE"
+    assert_success
+
+    run grep -F -q $'yesno\tOpen Voice OS Installation - Hardware Check' "$WHIPTAIL_DIALOG_FILE"
+    assert_success
+
+    run dialog_value "yesno" "Open Voice OS Installation - Hardware Check" response
+    assert_success
+    assert_output --partial $'A Raspberry Pi 4 with a TAS5806 audio device was detected.\n\nThis can be a Mycroft Mark II'
+
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    WHIPTAIL_FORCE_SELECTION="containers"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value tags)" "containers virtualenv"
+
+    # shellcheck source=tui/detection.sh
+    source tui/detection.sh
+    assert_equal "$HARDWARE_DETECTED" "N/A"
+}
+
+@test "hardware state: HARDWARE_MODEL fallback restores mark2 family flags" {
+    RASPBERRYPI_MODEL="N/A"
+    DETECTED_DEVICES=()
+    HARDWARE_MODEL="Mycroft DevKit"
+
+    # shellcheck source=tui/hardware_state.sh
+    source tui/hardware_state.sh
+
+    assert_equal "$TUI_HARDWARE_DETECTED" "Mycroft DevKit"
+    assert_equal "$TUI_MARK2_OR_DEVKIT_DETECTED" "true"
+    assert_equal "$TUI_DEVKIT_DETECTED" "true"
+
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    PROFILE="ovos"
+    WHIPTAIL_FORCE_SELECTION="alpha"
+
+    # shellcheck source=tui/channels.sh
+    source tui/channels.sh
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value tags)" "alpha"
+
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value tags)" "virtualenv"
+}
+
+@test "hardware confirmation: confirming devkit persists family detection before summary screens" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DETECTED_DEVICES=("attiny1614" "tas5806")
+    WHIPTAIL_FORCE_YESNO_STATUS="0"
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    run jq -r '.hardware_confirmation' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "devkit"
+
+    run jq -e '(.i2c_devices | sort) == ["attiny1614","tas5806"]' "$INSTALLER_STATE_FILE"
+    assert_success
+
+    assert_equal "$CHANNEL" "alpha"
+    assert_equal "$DISPLAY_SERVER" "eglfs"
+
+    # shellcheck source=tui/detection.sh
+    source tui/detection.sh
+    assert_equal "$HARDWARE_DETECTED" "Mycroft DevKit"
+}
+
+@test "hardware confirmation: persisted generic choice skips re-prompt and strips stale mark2 state" {
+    printf '%s\n' '{"hardware_confirmation":"generic","i2c_devices":["tas5806"]}' >"$INSTALLER_STATE_FILE"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DETECTED_DEVICES=("tas5806")
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    run grep -F -q $'yesno\tOpen Voice OS Installation - Hardware Check' "$WHIPTAIL_DIALOG_FILE"
+    assert_failure
+
+    run jq -e '.i2c_devices == []' "$INSTALLER_STATE_FILE"
+    assert_success
+
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    WHIPTAIL_FORCE_SELECTION="testing"
+
+    # shellcheck source=tui/channels.sh
+    source tui/channels.sh
+
+    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value tags)" "testing alpha"
+}
+
+@test "hardware confirmation: explicit generic override skips prompt and keeps generic flow" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DETECTED_DEVICES=("tas5806")
+    HARDWARE_CONFIRMATION="generic"
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    run grep -F -q $'yesno\tOpen Voice OS Installation - Hardware Check' "$WHIPTAIL_DIALOG_FILE"
+    assert_failure
+
+    run jq -r '.hardware_confirmation' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "generic"
+
+    run jq -e '.i2c_devices == []' "$INSTALLER_STATE_FILE"
+    assert_success
+
+    unset HARDWARE_CONFIRMATION
+}
+
+@test "hardware confirmation: invalid persisted mark2 choice on Raspberry Pi 5 is normalized back to generic" {
+    printf '%s\n' '{"hardware_confirmation":"mark2","i2c_devices":["tas5806"]}' >"$INSTALLER_STATE_FILE"
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    DETECTED_DEVICES=("tas5806")
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    run grep -F -q $'yesno\tOpen Voice OS Installation - Hardware Check' "$WHIPTAIL_DIALOG_FILE"
+    assert_failure
+
+    run jq -r '.hardware_confirmation' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "generic"
+
+    run jq -e '.i2c_devices == []' "$INSTALLER_STATE_FILE"
+    assert_success
+}
+
+@test "hardware confirmation: persisted mark2 choice restores mark2 restrictions when live probe misses" {
+    printf '%s\n' '{"hardware_confirmation":"mark2","i2c_devices":[]}' >"$INSTALLER_STATE_FILE"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DETECTED_DEVICES=()
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    assert_equal "$CHANNEL" "alpha"
+    assert_equal "$DISPLAY_SERVER" "eglfs"
+
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value tags)" "virtualenv"
+
+    # shellcheck source=tui/detection.sh
+    source tui/detection.sh
+    assert_equal "$HARDWARE_DETECTED" "Mycroft Mark II"
 }
 
 @test "profiles: shows all options when navigating back in a new install" {
@@ -334,6 +558,7 @@ function dialog_value() {
 @test "methods: hides containers on Mark 2 hardware" {
     EXISTING_INSTANCE="false"
     INSTANCE_TYPE=""
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION="virtualenv"
 
@@ -345,9 +570,24 @@ function dialog_value() {
     assert_equal "$(spy_value tags)" "virtualenv"
 }
 
+@test "methods: keeps containers on Raspberry Pi 5 tas5806 false positives" {
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "2"
+    assert_equal "$(spy_value tags)" "containers virtualenv"
+}
+
 @test "methods: keeps containers hidden on Mark 2 for existing container installs" {
     EXISTING_INSTANCE="true"
     INSTANCE_TYPE="containers"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION="virtualenv"
 
@@ -362,6 +602,7 @@ function dialog_value() {
 @test "methods: applies Mark 2 restriction to DevKit detection" {
     EXISTING_INSTANCE="false"
     INSTANCE_TYPE=""
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("attiny1614" "tas5806")
     WHIPTAIL_FORCE_SELECTION="virtualenv"
 
@@ -390,6 +631,7 @@ function dialog_value() {
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION=$'skills\ngui'
 
@@ -405,12 +647,33 @@ function dialog_value() {
     assert_equal "$FEATURE_GUI" "true"
 }
 
+@test "features: keeps GUI hidden on Raspberry Pi 5 tas5806 false positives" {
+    PROFILE="ovos"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    DETECTED_DEVICES=("tas5806")
+    WHIPTAIL_FORCE_SELECTION="skills"
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    tags="$(spy_value tags)"
+    if [[ "$tags" == *gui* ]]; then
+        echo "did not expect gui in tag list: $tags" >&2
+        return 1
+    fi
+    assert_equal "$FEATURE_GUI" "false"
+}
+
 @test "features: honors persisted GUI disabled state on Debian Trixie Mark 2 hardware" {
     printf '%s\n' '{"profile":"ovos","channel":"testing","features":["skills"],"feature_gui_selected":false}' >"$INSTALLER_STATE_FILE"
     PROFILE="ovos"
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION="skills"
 
@@ -426,6 +689,7 @@ function dialog_value() {
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION=$'skills\ngui'
 
@@ -442,6 +706,7 @@ function dialog_value() {
     DISTRO_NAME="debian"
     DISTRO_VERSION_ID="13"
     DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
     DETECTED_DEVICES=("tas5806")
     WHIPTAIL_FORCE_SELECTION=$'skills\ngui'
 

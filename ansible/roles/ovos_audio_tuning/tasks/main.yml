@@ -397,12 +397,31 @@
         - ovos_sound_detect_sound_server is defined
         - ovos_sound_detect_sound_server.stdout == "pipewire"
 
+    - name: Prepare rtkit package tracking
+      ansible.builtin.include_role:
+        name: ovos_installer
+        tasks_from: package_tracking_prepare_linux.yml
+      vars:
+        ovos_installer_package_tracking_marker_path: "{{ ovos_audio_tuning_package_marker_path }}"
+        ovos_installer_package_tracking_requested_packages: "{{ ovos_audio_tuning_tracked_packages }}"
+      when: ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
+
     - name: Install rtkit for real-time audio scheduling
       ansible.builtin.package:
         name: "{{ ovos_audio_tuning_rtkit_package }}"
         state: present
       register: ovos_audio_tuning_rtkit_install_result
       ignore_errors: true
+
+    - name: Persist tracked rtkit package ownership
+      ansible.builtin.include_role:
+        name: ovos_installer
+        tasks_from: package_tracking_persist.yml
+      vars:
+        ovos_installer_package_tracking_marker_path: "{{ ovos_audio_tuning_package_marker_path }}"
+      when:
+        - ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
+        - not (ovos_audio_tuning_rtkit_install_result.failed | default(false))
 
     - name: Remove system-wide PipeWire tuning (Cleanup)
       ansible.builtin.file:

@@ -52,6 +52,7 @@ function handle_options() {
 
     # Set default values for variables that may not be set
     export DEBUG="${DEBUG:-false}"
+    export HARDWARE_CONFIRMATION="${HARDWARE_CONFIRMATION:-}"
     export METHOD="${METHOD:-virtualenv}"
     export PROFILE="${PROFILE:-ovos}"
     export CHANNEL="${CHANNEL:-testing}"

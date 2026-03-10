@@ -5,6 +5,7 @@ ovos_installer_networkmanager_path: /etc/NetworkManager
 ovos_installer_i2c_devices: []
 ovos_installer_systemd_system_path: /etc/systemd/system
 ovos_installer_systemd_user_path: "{{ ovos_installer_user_home }}/.config/systemd/user"
+ovos_installer_package_tracking_dir: "{{ ovos_installer_user_home }}/.cache/ovos-installer/package-tracking"
 ovos_installer_pip_config_file: ""
 ovos_installer_tmp_dir: "{{ _ovos_installer_working_directory }}"
 ovos_installer_profile: "ovos"

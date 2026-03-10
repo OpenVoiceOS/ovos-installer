@@ -3,6 +3,8 @@
 source tui/dialogs.sh
 # shellcheck source=tui/locales/en-us/methods.sh
 source "tui/locales/$LOCALE/methods.sh"
+# shellcheck source=tui/hardware_state.sh
+source tui/hardware_state.sh
 
 declare -a available_methods
 active_method="virtualenv"
@@ -42,15 +44,7 @@ if [ "$EXISTING_INSTANCE" == "true" ]; then
 fi
 
 # Mark 2/DevKit devices only support virtualenv installs.
-mark2_or_devkit_detected="false"
-for device in "${DETECTED_DEVICES[@]}"; do
-  case "$device" in
-    tas5806)
-      mark2_or_devkit_detected="true"
-      ;;
-  esac
-done
-if [[ "$mark2_or_devkit_detected" == "true" ]]; then
+if [[ "$TUI_MARK2_OR_DEVKIT_DETECTED" == "true" ]]; then
   active_method="virtualenv"
   available_methods=(virtualenv)
 fi

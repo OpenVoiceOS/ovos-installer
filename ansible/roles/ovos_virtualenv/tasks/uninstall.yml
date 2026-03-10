@@ -22,153 +22,159 @@
     - "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-ovos-shell.built"
     - "{{ ovos_installer_user_home }}/.cache/ovos-installer/gui-lottie.built"
 
-- name: Remove ovos-gui package requirements (Debian Trixie Mark II/DevKit)
+- name: Load tracked GUI package ownership
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_load.yml
+  vars:
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_gui_package_marker_path }}"
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "13"
+    - (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)
+    - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
+
+- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)
   ansible.builtin.apt:
-    name:
-      - cmake
-      - gettext
-      - pkg-kde-tools
-      - qtbase5-dev
-      - qtdeclarative5-dev
-      - libkf5kio-dev
-      - libqt5websockets5-dev
-      - libkf5i18n-dev
-      - libkf5notifications-dev
-      - libkf5plasma-dev
-      - libqt5webview5-dev
-      - qtmultimedia5-dev
-      - kdeconnect
-      - kirigami2-dev
-      - libkf5dbusaddons-dev
-      - libqt5webview5
-      - libkf5configcore5
-      - qml-module-qtwebengine
-      - qml-module-qtmultimedia
-      - qml-module-qtquick-shapes
-      - qtvirtualkeyboard-plugin
-      - libqt5multimedia5
-      - libqt5virtualkeyboard5
-      - breeze-icon-theme
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     purge: true
     autoremove: true
-  failed_when: false
+  register: ovos_virtualenv_gui_package_uninstall_result
+  ignore_errors: true
   when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.distribution == "Debian"
     - ansible_facts.distribution_major_version == "13"
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
-- name: Remove virtualenv package requirements (Debian/Zorin)
-  ansible.builtin.apt:
-    name:
-      - build-essential
-      - swig
-      - libfann-dev
-      - libasound2-dev
-      - libpulse-dev
-      - libportaudio2
-      - mpg123
-      - music123
-      - sox
-      - libsox-fmt-all
-      - libespeak-ng1
-      - espeak-ng
-      - flac
-      - mpv
-      - libxslt1-dev
-      - libopenblas-dev
-      - pkg-config
-      - libicu-dev
-      - portaudio19-dev
-      - libjpeg-dev
-    install_recommends: false
+- name: Remove GUI package ownership marker
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_gui_package_marker_path }}"
     state: absent
-  failed_when: false
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
-    - ansible_facts.os_family in ['Debian', 'Zorin OS']
+    - ansible_facts.distribution == "Debian"
+    - ansible_facts.distribution_major_version == "13"
+    - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
+      or ovos_virtualenv_gui_package_uninstall_result is not ansible.builtin.failed
 
-- name: Remove virtualenv package requirements (RedHat)
-  ansible.builtin.dnf:
-    name:
-      - gcc-c++
-      - swig
-      - fann-devel
-      - alsa-lib-devel
-      - pulseaudio-libs-devel
-      - portaudio
-      - mpg123
-      - sox
-      - flac
-      - mpv
-      - openblas-serial
-      - pkgconf-pkg-config
-      - libicu-devel
-      - portaudio-devel
-      - espeak-ng
+- name: Load tracked virtualenv package ownership (Linux)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_load.yml
+  vars:
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.system != "Darwin"
+
+- name: Remove tracked virtualenv package requirements (Debian family)
+  ansible.builtin.apt:
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
+    install_recommends: false
     state: absent
-  failed_when: false
+    purge: true
+    autoremove: true
+  register: ovos_virtualenv_package_uninstall_debian
+  ignore_errors: true
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Debian"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+
+- name: Remove tracked virtualenv package requirements (RedHat)
+  ansible.builtin.dnf:
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
+    state: absent
+    autoremove: true
+  register: ovos_virtualenv_package_uninstall_redhat
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "RedHat"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
-- name: Remove virtualenv package requirements (SUSE)
+- name: Remove tracked virtualenv package requirements (SUSE)
   community.general.zypper:
-    name:
-      - gcc-c++
-      - swig
-      - libfann-devel
-      - alsa-lib-devel
-      - libpulse-devel
-      - libportaudio2
-      - libespeak-ng1
-      - espeak-ng
-      - mpg123
-      - sox
-      - flac
-      - mpv
-      - libopenblas_serial-devel
-      - portaudio-devel
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
-  failed_when: false
+    clean_deps: true
+  register: ovos_virtualenv_package_uninstall_suse
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Suse"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
-- name: Remove virtualenv package requirements (Archlinux)
+- name: Remove tracked virtualenv package requirements (Archlinux)
   community.general.pacman:
-    name:
-      - base-devel
-      - swig
-      - alsa-lib
-      - portaudio
-      - mpg123
-      - sox
-      - flac
-      - mpv
-      - libxslt
-      - openblas
-      - espeak-ng
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
-  failed_when: false
+    extra_args: --recursive
+    remove_nosave: true
+  register: ovos_virtualenv_package_uninstall_archlinux
+  ignore_errors: true
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Archlinux"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
-- name: Remove virtualenv package requirements (macOS)
-  become: true
-  become_user: "{{ ovos_installer_user }}"
-  community.general.homebrew:
-    name: "{{ ovos_virtualenv_macos_packages }}"
+- name: Remove Linux virtualenv package ownership marker
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_package_marker_path_linux }}"
     state: absent
-    path: "{{ ovos_virtualenv_homebrew_path }}"
-    update_homebrew: false
-  environment:
-    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
-  failed_when: false
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.system != "Darwin"
+    - ansible_facts.os_family in ["Debian", "RedHat", "Suse", "Archlinux"]
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
+      or not (
+        (ovos_virtualenv_package_uninstall_debian.failed | default(false))
+        or (ovos_virtualenv_package_uninstall_redhat.failed | default(false))
+        or (ovos_virtualenv_package_uninstall_suse.failed | default(false))
+        or (ovos_virtualenv_package_uninstall_archlinux.failed | default(false))
+      )
+
+- name: Load tracked virtualenv package ownership (macOS)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_load.yml
+  vars:
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_macos }}"
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
+
+- name: Remove tracked virtualenv package requirements (macOS)
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.general.homebrew:
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
+    state: absent
+    path: "{{ ovos_virtualenv_homebrew_path }}"
+    update_homebrew: false
+  register: ovos_virtualenv_package_uninstall_macos
+  environment:
+    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+  ignore_errors: true
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.system == "Darwin"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+
+- name: Remove macOS virtualenv package ownership marker
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_package_marker_path_macos }}"
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.system == "Darwin"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
+      or ovos_virtualenv_package_uninstall_macos is not ansible.builtin.failed
 
 - name: Check for OVOS venv activation script
   ansible.builtin.stat:

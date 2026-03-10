@@ -1,25 +1,10 @@
 #!/usr/bin/env bash
 # shellcheck source=tui/dialogs.sh
 source tui/dialogs.sh
-HARDWARE_DETECTED="N/A"
+# shellcheck source=tui/hardware_state.sh
+source tui/hardware_state.sh
 
-for device in "${DETECTED_DEVICES[@]}"; do
-    case ${device} in
-    tas5806)
-        HARDWARE_DETECTED="Mycroft Mark II"
-        ;;
-    atmega328p)
-        HARDWARE_DETECTED="Mycroft Mark 1"
-        ;;
-    attiny1614)
-        HARDWARE_DETECTED="Mycroft DevKit"
-        ;;
-    esac
-done
-
-if [ "$HARDWARE_DETECTED" == "N/A" ] && [ -n "${HARDWARE_MODEL:-}" ] && [ "$HARDWARE_MODEL" != "N/A" ]; then
-    HARDWARE_DETECTED="$HARDWARE_MODEL"
-fi
+HARDWARE_DETECTED="$TUI_HARDWARE_DETECTED"
 export HARDWARE_DETECTED
 
 DISPLAY_DETECTED="${DISPLAY_SERVER^}"

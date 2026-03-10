@@ -1,0 +1,49 @@
+---
+- name: Check tracked package ownership marker
+  ansible.builtin.stat:
+    path: "{{ ovos_installer_package_tracking_marker_path }}"
+  register: ovos_installer_package_tracking_marker_stat
+  changed_when: false
+
+- name: Read tracked package ownership marker
+  ansible.builtin.slurp:
+    path: "{{ ovos_installer_package_tracking_marker_path }}"
+  register: ovos_installer_package_tracking_marker_raw
+  when: ovos_installer_package_tracking_marker_stat.stat.exists | default(false) | bool
+  changed_when: false
+
+- name: Collect installed package facts for package tracking
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Resolve tracked package ownership state
+  vars:
+    _ovos_installer_package_tracking_existing_packages: >-
+      {{
+        ((ovos_installer_package_tracking_marker_raw.content | b64decode | from_json)
+         if (ovos_installer_package_tracking_marker_stat.stat.exists | default(false) | bool)
+         else [])
+        | reject('equalto', '')
+        | unique
+        | sort
+      }}
+    _ovos_installer_package_tracking_requested_packages: >-
+      {{
+        (ovos_installer_package_tracking_requested_packages | default([]))
+        | flatten
+        | reject('equalto', '')
+        | unique
+        | sort
+      }}
+    _ovos_installer_package_tracking_preinstalled_packages: >-
+      {{ _ovos_installer_package_tracking_requested_packages | intersect(ansible_facts.packages.keys() | list) | unique | sort }}
+    _ovos_installer_package_tracking_new_packages: >-
+      {{ _ovos_installer_package_tracking_requested_packages | difference(_ovos_installer_package_tracking_preinstalled_packages) | unique | sort }}
+  ansible.builtin.set_fact:
+    ovos_installer_package_tracking_existing_packages: "{{ _ovos_installer_package_tracking_existing_packages }}"
+    ovos_installer_package_tracking_requested_packages_normalized: "{{ _ovos_installer_package_tracking_requested_packages }}"
+    ovos_installer_package_tracking_preinstalled_packages: "{{ _ovos_installer_package_tracking_preinstalled_packages }}"
+    ovos_installer_package_tracking_new_packages: "{{ _ovos_installer_package_tracking_new_packages }}"
+    ovos_installer_package_tracking_tracked_packages: >-
+      {{ (_ovos_installer_package_tracking_existing_packages + _ovos_installer_package_tracking_new_packages) | unique | sort }}
+  changed_when: false

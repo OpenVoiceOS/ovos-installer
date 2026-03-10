@@ -3,6 +3,9 @@ ovos_hardware_mark2_eeprom_release: latest
 ovos_hardware_mark2_is_cleaning: "{{ ovos_installer_is_cleaning | default(ovos_installer_cleaning | default(false) | bool) | bool }}"
 ovos_hardware_mark2_shell_executable: /bin/bash
 ovos_hardware_mark2_sudo_path: /usr/bin/sudo
+ovos_hardware_mark2_kernel_headers_packages:
+  - "{{ ovos_hardware_mark2_kernel_headers_package }}"
+ovos_hardware_mark2_package_marker_path: "{{ ovos_installer_package_tracking_dir }}/hardware-mark2.json"
 ovos_hardware_mark2_vocalfusion_repo_url: https://github.com/OpenVoiceOS/VocalFusionDriver
 ovos_hardware_mark2_vocalfusion_branch: main
 ovos_hardware_mark2_vocalfusion_repo_force_sync: "{{ ovos_installer_mark2_vocalfusion_repo_force_sync | default(false) }}"

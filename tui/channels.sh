@@ -3,6 +3,8 @@
 source tui/dialogs.sh
 # shellcheck source=tui/locales/en-us/channels.sh
 source "tui/locales/$LOCALE/channels.sh"
+# shellcheck source=tui/hardware_state.sh
+source tui/hardware_state.sh
 
 active_channel="testing"
 available_channels=(testing alpha)
@@ -28,22 +30,14 @@ if [[ "${DISTRO_NAME:-}" == "macos" ]]; then
 fi
 
 # Mark 2/DevKit devices support only the alpha stream.
-mark2_or_devkit_detected="false"
-for device in "${DETECTED_DEVICES[@]}"; do
-  case "$device" in
-    tas5806)
-      mark2_or_devkit_detected="true"
-      ;;
-  esac
-done
-if [[ "$mark2_or_devkit_detected" == "true" ]]; then
+if [[ "$TUI_MARK2_OR_DEVKIT_DETECTED" == "true" ]]; then
   active_channel="alpha"
   available_channels=(alpha)
 fi
 
 list_height="${#available_channels[@]}"
 if [ "$list_height" -lt 1 ]; then
-  if [[ "${DISTRO_NAME:-}" == "macos" ]] || [[ "$mark2_or_devkit_detected" == "true" ]]; then
+  if [[ "${DISTRO_NAME:-}" == "macos" ]] || [[ "$TUI_MARK2_OR_DEVKIT_DETECTED" == "true" ]]; then
     available_channels=(alpha)
   else
     available_channels=(testing alpha)
