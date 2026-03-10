@@ -6,9 +6,12 @@ function setup() {
 }
 
 @test "dialog helper: yesno non-zero does not abort under errexit" {
-    run bash -lc '
+    local repo_root
+    repo_root="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+
+    run env REPO_ROOT="$repo_root" bash -c '
         set -e
-        cd "/home/gtrellu/Development/OpenVoiceOS/ovos-installer"
+        cd "$REPO_ROOT"
         source tui/dialogs.sh
 
         whiptail() {
@@ -29,9 +32,12 @@ function setup() {
 }
 
 @test "dialog helper: capture preserves output and status under errexit" {
-    run bash -lc '
+    local repo_root
+    repo_root="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
+
+    run env REPO_ROOT="$repo_root" bash -c '
         set -e
-        cd "/home/gtrellu/Development/OpenVoiceOS/ovos-installer"
+        cd "$REPO_ROOT"
         source tui/dialogs.sh
 
         whiptail() {
