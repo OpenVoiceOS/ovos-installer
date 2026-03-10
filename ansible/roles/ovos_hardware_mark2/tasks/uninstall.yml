@@ -1,0 +1,33 @@
+---
+- name: Load tracked kernel headers package ownership
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_load.yml
+  vars:
+    ovos_installer_package_tracking_marker_path: "{{ ovos_hardware_mark2_package_marker_path }}"
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Debian"
+
+- name: Remove tracked kernel headers package
+  ansible.builtin.apt:
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
+    state: absent
+    purge: true
+    autoremove: true
+  register: ovos_hardware_mark2_kernel_headers_uninstall_result
+  ignore_errors: true
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Debian"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+
+- name: Remove kernel headers package ownership marker
+  ansible.builtin.file:
+    path: "{{ ovos_hardware_mark2_package_marker_path }}"
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Debian"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
+      or ovos_hardware_mark2_kernel_headers_uninstall_result is not ansible.builtin.failed

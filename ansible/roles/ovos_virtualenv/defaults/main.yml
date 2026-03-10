@@ -115,6 +115,73 @@ ovos_virtualenv_macos_fann_library_path: >-
   {{ ovos_virtualenv_macos_fann_source_lib_dir }}{{ ':' ~ ovos_virtualenv_macos_fann_target_lib_dir if ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir else '' }}
 ovos_virtualenv_macos_fann_pkg_config_path: >-
   {{ ovos_virtualenv_macos_fann_source_lib_dir }}/pkgconfig{{ ':' ~ ovos_virtualenv_macos_fann_target_lib_dir ~ '/pkgconfig' if ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir else '' }}
+ovos_virtualenv_packages_debian:
+  - build-essential
+  - swig
+  - libfann-dev
+  - libasound2-dev
+  - libpulse-dev
+  - libportaudio2
+  - mpg123
+  - music123
+  - sox
+  - libsox-fmt-all
+  - libespeak-ng1
+  - espeak-ng
+  - flac
+  - mpv
+  - libxslt1-dev
+  - libopenblas-dev
+  - pkg-config
+  - libicu-dev
+  - portaudio19-dev
+  - libjpeg-dev
+ovos_virtualenv_packages_redhat:
+  - gcc-c++
+  - swig
+  - fann-devel
+  - alsa-lib-devel
+  - pulseaudio-libs-devel
+  - portaudio
+  - mpg123
+  - sox
+  - flac
+  - mpv
+  - openblas-serial
+  - pkgconf-pkg-config
+  - libicu-devel
+  - portaudio-devel
+  - espeak-ng
+ovos_virtualenv_packages_suse:
+  - gcc-c++
+  - swig
+  - libfann-devel
+  - alsa-lib-devel
+  - libpulse-devel
+  - libportaudio2
+  - libespeak-ng1
+  - espeak-ng
+  - mpg123
+  - sox
+  - flac
+  - mpv
+  - libopenblas_serial-devel
+  - portaudio-devel
+ovos_virtualenv_packages_arch:
+  - base-devel
+  - swig
+  - alsa-lib
+  - portaudio
+  - mpg123
+  - sox
+  - flac
+  - mpv
+  - libxslt
+  - openblas
+  - espeak-ng
+ovos_virtualenv_packages_arch_aur:
+  - fann
+ovos_virtualenv_packages_arch_tracked: "{{ (ovos_virtualenv_packages_arch + ovos_virtualenv_packages_arch_aur) | unique }}"
 ovos_virtualenv_macos_packages:
   - fann
   - swig
@@ -129,6 +196,34 @@ ovos_virtualenv_macos_packages:
   - icu4c
   - jpeg-turbo
   - espeak-ng
+ovos_virtualenv_gui_packages_debian:
+  - cmake
+  - gettext
+  - pkg-kde-tools
+  - qtbase5-dev
+  - qtdeclarative5-dev
+  - libkf5kio-dev
+  - libqt5websockets5-dev
+  - libkf5i18n-dev
+  - libkf5notifications-dev
+  - libkf5plasma-dev
+  - libqt5webview5-dev
+  - qtmultimedia5-dev
+  - kdeconnect
+  - kirigami2-dev
+  - libkf5dbusaddons-dev
+  - libqt5webview5
+  - libkf5configcore5
+  - qml-module-qtwebengine
+  - qml-module-qtmultimedia
+  - qml-module-qtquick-shapes
+  - qtvirtualkeyboard-plugin
+  - libqt5multimedia5
+  - libqt5virtualkeyboard5
+  - breeze-icon-theme
+ovos_virtualenv_package_marker_path_linux: "{{ ovos_installer_package_tracking_dir }}/virtualenv-linux.json"
+ovos_virtualenv_package_marker_path_macos: "{{ ovos_installer_package_tracking_dir }}/virtualenv-macos.json"
+ovos_virtualenv_gui_package_marker_path: "{{ ovos_installer_package_tracking_dir }}/virtualenv-gui-debian-trixie.json"
 ovos_virtualenv_uninstall_extra_paths:
   - "{{ ovos_hardware_mark1_working_directory | default('/opt/mark1') }}"
   - "{{ ovos_hardware_mark2_working_dir | default('/opt/sj201') }}"

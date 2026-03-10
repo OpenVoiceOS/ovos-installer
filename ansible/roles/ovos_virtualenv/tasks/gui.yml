@@ -9,35 +9,27 @@
       - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
     fail_msg: "GUI build is only supported on Debian Trixie Mark II/DevKit."
 
+- name: Prepare tracked GUI package ownership
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_linux.yml
+  vars:
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_gui_package_marker_path }}"
+    ovos_installer_package_tracking_requested_packages: "{{ ovos_virtualenv_gui_packages_debian }}"
+
 - name: Install package requirements for ovos-gui (Debian Trixie)
   ansible.builtin.apt:
-    name:
-      - cmake
-      - gettext
-      - pkg-kde-tools
-      - qtbase5-dev
-      - qtdeclarative5-dev
-      - libkf5kio-dev
-      - libqt5websockets5-dev
-      - libkf5i18n-dev
-      - libkf5notifications-dev
-      - libkf5plasma-dev
-      - libqt5webview5-dev
-      - qtmultimedia5-dev
-      - kdeconnect
-      - kirigami2-dev
-      - libkf5dbusaddons-dev
-      - libqt5webview5
-      - libkf5configcore5
-      - qml-module-qtwebengine
-      - qml-module-qtmultimedia
-      - qml-module-qtquick-shapes
-      - qtvirtualkeyboard-plugin
-      - libqt5multimedia5
-      - libqt5virtualkeyboard5
-      - breeze-icon-theme
+    name: "{{ ovos_virtualenv_gui_packages_debian }}"
     install_recommends: false
     state: present
+  register: ovos_virtualenv_gui_package_install_result
+
+- name: Persist tracked GUI package ownership
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_gui_package_marker_path }}"
 
 - name: Define GUI build components
   ansible.builtin.set_fact:

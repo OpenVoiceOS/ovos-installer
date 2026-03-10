@@ -21,3 +21,4 @@
     - "{{ ovos_audio_tuning_wireplumber_conf_dir }}"
     - "{{ ovos_audio_tuning_system_pipewire_conf_dir }}"
     - "{{ ovos_audio_tuning_usb_audio_conf_path }}"
+    - "{{ ovos_audio_tuning_package_marker_path }}"
