@@ -7,6 +7,15 @@ ovos_performance_tuning_cpu_governor_unit_name: cpu-governor.service
 ovos_performance_tuning_cpu_governor_unit_path: >-
   {{ (ovos_installer_systemd_system_path | default('/etc/systemd/system')) }}/cpu-governor.service
 ovos_performance_tuning_cpu_governor_unit_src: tuning/cpu-governor.service
+ovos_performance_tuning_cpupower_packages_debian:
+  - "{{ 'linux-tools-common' if ansible_facts.distribution != 'Debian' else 'linux-cpupower' }}"
+ovos_performance_tuning_cpupower_packages_redhat:
+  - kernel-tools
+ovos_performance_tuning_cpupower_packages_suse:
+  - kernel-tools
+ovos_performance_tuning_cpupower_packages_arch:
+  - linux-tools
+ovos_performance_tuning_cpupower_marker_path: "{{ ovos_installer_package_tracking_dir }}/performance-tuning-cpupower.json"
 
 ovos_performance_tuning_kernel_modules:
   - i2c-dev
@@ -80,6 +89,15 @@ ovos_performance_tuning_zram_packages_debian: systemd-zram-generator
 ovos_performance_tuning_zram_packages_redhat: zram-generator-defaults
 ovos_performance_tuning_zram_packages_suse: systemd-zram-generator
 ovos_performance_tuning_zram_packages_arch: systemd-zram-generator
+ovos_performance_tuning_zram_packages_debian_list:
+  - "{{ ovos_performance_tuning_zram_packages_debian }}"
+ovos_performance_tuning_zram_packages_redhat_list:
+  - "{{ ovos_performance_tuning_zram_packages_redhat }}"
+ovos_performance_tuning_zram_packages_suse_list:
+  - "{{ ovos_performance_tuning_zram_packages_suse }}"
+ovos_performance_tuning_zram_packages_arch_list:
+  - "{{ ovos_performance_tuning_zram_packages_arch }}"
+ovos_performance_tuning_zram_marker_path: "{{ ovos_installer_package_tracking_dir }}/performance-tuning-zram.json"
 ovos_performance_tuning_zram_sysctl_file: /etc/sysctl.d/98-zram.conf
 ovos_performance_tuning_zram_sysctl_settings:
   - { option: "vm.swappiness", value: 100 }

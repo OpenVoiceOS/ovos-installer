@@ -23,3 +23,5 @@
     - "{{ ovos_performance_tuning_limits_path }}"
     - "{{ ovos_performance_tuning_pam_limits_file }}"
     - "{{ ovos_performance_tuning_scheduler_rule_path }}"
+    - "{{ ovos_performance_tuning_cpupower_marker_path }}"
+    - "{{ ovos_performance_tuning_zram_marker_path }}"

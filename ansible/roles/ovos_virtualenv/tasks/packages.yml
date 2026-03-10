@@ -14,89 +14,93 @@
     - ansible_facts.os_family == "RedHat"
     - ansible_facts.distribution != "Fedora"
 
-- name: Handle virtualenv package requirements (ovos/hivemind) on Debian/Zorin
+- name: Prepare tracked virtualenv package ownership (Debian family)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_linux.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_debian }}"
+  when: ansible_facts.os_family == "Debian"
+
+- name: Handle virtualenv package requirements (ovos/hivemind) on Debian family
   ansible.builtin.apt:
-    name:
-      - build-essential
-      - swig
-      - libfann-dev
-      - libasound2-dev
-      - libpulse-dev
-      - libportaudio2
-      - mpg123
-      - music123
-      - sox
-      - libsox-fmt-all
-      - libespeak-ng1
-      - espeak-ng
-      - flac
-      - mpv
-      - libxslt1-dev
-      - libopenblas-dev
-      - pkg-config
-      - libicu-dev
-      - portaudio19-dev
-      - libjpeg-dev
+    name: "{{ ovos_virtualenv_packages_debian }}"
     install_recommends: false
     state: present
-  when: ansible_facts.os_family in ['Debian', 'Zorin OS']
+  register: ovos_virtualenv_package_install_result
+  when: ansible_facts.os_family == "Debian"
+
+- name: Persist tracked virtualenv package ownership (Debian family)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+  when: ansible_facts.os_family == "Debian"
+
+- name: Prepare tracked virtualenv package ownership (RedHat)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_linux.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_redhat }}"
+  when: ansible_facts.os_family == "RedHat"
 
 - name: Handle virtualenv package requirements (ovos/hivemind) on RedHat
   ansible.builtin.dnf:
-    name:
-      - gcc-c++
-      - swig
-      - fann-devel
-      - alsa-lib-devel
-      - pulseaudio-libs-devel
-      - portaudio
-      - mpg123
-      - sox
-      - flac
-      - mpv
-      - openblas-serial
-      - pkgconf-pkg-config
-      - libicu-devel
-      - portaudio-devel
-      - espeak-ng
+    name: "{{ ovos_virtualenv_packages_redhat }}"
     state: present
+  register: ovos_virtualenv_package_install_result
   when: ansible_facts.os_family == "RedHat"
+
+- name: Persist tracked virtualenv package ownership (RedHat)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+  when: ansible_facts.os_family == "RedHat"
+
+- name: Prepare tracked virtualenv package ownership (SUSE)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_linux.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_suse }}"
+  when: ansible_facts.os_family == "Suse"
 
 - name: Handle virtualenv package requirements (ovos/hivemind) on SUSE
   community.general.zypper:
-    name:
-      - gcc-c++
-      - swig
-      - libfann-devel
-      - alsa-lib-devel
-      - libpulse-devel
-      - libportaudio2
-      - libespeak-ng1
-      - espeak-ng
-      - mpg123
-      - sox
-      - flac
-      - mpv
-      - libopenblas_serial-devel
-      - portaudio-devel
+    name: "{{ ovos_virtualenv_packages_suse }}"
     state: present
+  register: ovos_virtualenv_package_install_result
   when: ansible_facts.os_family == "Suse"
+
+- name: Persist tracked virtualenv package ownership (SUSE)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+  when: ansible_facts.os_family == "Suse"
+
+- name: Prepare tracked virtualenv package ownership (Archlinux)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_linux.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_packages_arch_tracked }}"
+  when: ansible_facts.os_family == "Archlinux"
 
 - name: Handle virtualenv package requirements (ovos/hivemind) on Archlinux
   community.general.pacman:
-    name:
-      - base-devel
-      - swig
-      - alsa-lib
-      - portaudio
-      - mpg123
-      - sox
-      - flac
-      - mpv
-      - libxslt
-      - openblas
-      - espeak-ng
+    name: "{{ ovos_virtualenv_packages_arch }}"
     state: present
+  register: ovos_virtualenv_package_install_result
   when: ansible_facts.os_family == "Archlinux"
 
 - name: Check Xcode Command Line Tools installation (macOS)
@@ -116,6 +120,16 @@
       and rerun the installer.
   when: ansible_facts.system == "Darwin"
 
+- name: Prepare tracked virtualenv package ownership (macOS)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_macos.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_macos }}"
+    ovos_package_tracking_requested_packages: "{{ ovos_virtualenv_macos_packages }}"
+    ovos_package_tracking_homebrew_path: "{{ ovos_virtualenv_homebrew_path }}"
+  when: ansible_facts.system == "Darwin"
+
 - name: Handle virtualenv package requirements (ovos/hivemind) on macOS
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -124,8 +138,17 @@
     state: present
     path: "{{ ovos_virtualenv_homebrew_path }}"
     update_homebrew: false
+  register: ovos_virtualenv_package_install_result
   environment:
     PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+  when: ansible_facts.system == "Darwin"
+
+- name: Persist tracked virtualenv package ownership (macOS)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_macos }}"
   when: ansible_facts.system == "Darwin"
 
 - name: Ensure user local bin directory exists for build compatibility shims (macOS)
@@ -207,8 +230,17 @@
 - name: Handle fann package from AUR (Arch based only)
   become_user: "{{ ovos_installer_user }}"
   kewlfft.aur.aur:
-    name: fann
+    name: "{{ ovos_virtualenv_packages_arch_aur_packages }}"
     use: makepkg
+  register: ovos_virtualenv_aur_package_install_result
   when: ansible_facts.os_family == "Archlinux"
   tags:
     - skip_ansible_lint
+
+- name: Persist tracked virtualenv package ownership (Archlinux)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
+  when: ansible_facts.os_family == "Archlinux"

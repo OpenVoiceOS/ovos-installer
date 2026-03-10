@@ -23,47 +23,77 @@
     state: absent
   notify: Restart WirePlumber
 
-- name: Remove rtkit package (Debian family)
+- name: Load tracked rtkit package ownership
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_load.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_audio_tuning_package_marker_path }}"
+  when: ovos_installer_uninstall_remove_packages | default(false) | bool
+
+- name: Remove tracked rtkit package (Debian family)
   ansible.builtin.apt:
-    name: "{{ ovos_audio_tuning_rtkit_package }}"
+    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
     state: absent
     purge: true
     autoremove: true
+  register: ovos_audio_tuning_rtkit_uninstall_debian
   failed_when: false
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Debian"
+    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
-- name: Remove rtkit package (RedHat)
+- name: Remove tracked rtkit package (RedHat)
   ansible.builtin.dnf:
-    name: "{{ ovos_audio_tuning_rtkit_package }}"
+    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
     state: absent
     autoremove: true
+  register: ovos_audio_tuning_rtkit_uninstall_redhat
   failed_when: false
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "RedHat"
+    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
-- name: Remove rtkit package (SUSE)
+- name: Remove tracked rtkit package (SUSE)
   community.general.zypper:
-    name: "{{ ovos_audio_tuning_rtkit_package }}"
+    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
     state: absent
     clean_deps: true
+  register: ovos_audio_tuning_rtkit_uninstall_suse
   failed_when: false
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Suse"
+    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
 
-- name: Remove rtkit package (Archlinux)
+- name: Remove tracked rtkit package (Archlinux)
   community.general.pacman:
-    name: "{{ ovos_audio_tuning_rtkit_package }}"
+    name: "{{ ovos_package_tracking_tracked_packages_to_remove }}"
     state: absent
     extra_args: --recursive
     remove_nosave: true
+  register: ovos_audio_tuning_rtkit_uninstall_archlinux
   failed_when: false
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.os_family == "Archlinux"
+    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+
+- name: Remove rtkit package ownership marker
+  ansible.builtin.file:
+    path: "{{ ovos_audio_tuning_package_marker_path }}"
+    state: absent
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - (ovos_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
+      or not (
+        (ovos_audio_tuning_rtkit_uninstall_debian.failed | default(false))
+        or (ovos_audio_tuning_rtkit_uninstall_redhat.failed | default(false))
+        or (ovos_audio_tuning_rtkit_uninstall_suse.failed | default(false))
+        or (ovos_audio_tuning_rtkit_uninstall_archlinux.failed | default(false))
+      )
 
 - name: Remove USB Audio configuration
   ansible.builtin.file:

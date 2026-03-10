@@ -56,6 +56,9 @@ ovos_audio_tuning_runtime_dir: "/run/user/{{ ovos_installer_uid | default(0) }}"
 ovos_audio_tuning_dbus_address: "unix:path=/run/user/{{ ovos_installer_uid | default(0) }}/bus"
 
 ovos_audio_tuning_rtkit_package: rtkit
+ovos_audio_tuning_tracked_packages:
+  - "{{ ovos_audio_tuning_rtkit_package }}"
+ovos_audio_tuning_package_marker_path: "{{ ovos_installer_package_tracking_dir }}/audio-tuning.json"
 
 ovos_audio_tuning_system_pipewire_conf_dir: /etc/pipewire/pipewire.conf.d
 ovos_audio_tuning_system_low_latency_conf: 99-low-latency.conf

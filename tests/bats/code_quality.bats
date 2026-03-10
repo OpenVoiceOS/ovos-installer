@@ -1231,6 +1231,7 @@ function setup() {
 @test "mark2_role_stops_install_flow_while_cleaning" {
     local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
     local tasks_file="ansible/roles/ovos_hardware_mark2/tasks/main.yml"
+    local firmware_file="ansible/roles/ovos_hardware_mark2/tasks/firmware.yml"
     local uninstall_file="ansible/roles/ovos_hardware_mark2/tasks/uninstall.yml"
 
     run grep -q "ovos_hardware_mark2_is_cleaning" "$defaults_file"
@@ -1251,64 +1252,183 @@ function setup() {
     run grep -F -q "when: ovos_hardware_mark2_is_cleaning | bool" "$tasks_file"
     assert_success
 
-    run grep -F -q "Remove kernel headers package" "$uninstall_file"
+    run grep -F -q "ovos_hardware_mark2_package_marker_path" "$defaults_file"
     assert_success
 
-    run bash -c "grep -A6 -F -- \"- name: Remove kernel headers package\" \"$uninstall_file\" | grep -F -q -- \"autoremove: true\""
+    run grep -F -q "package_tracking_prepare_linux.yml" "$firmware_file"
+    assert_success
+
+    run grep -F -q "package_tracking_persist.yml" "$firmware_file"
+    assert_success
+
+    run grep -F -q "Remove tracked kernel headers package" "$uninstall_file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Remove tracked kernel headers package\" \"$uninstall_file\" | grep -F -q -- \"autoremove: true\""
     assert_success
 }
 
 @test "uninstall_package_removals_request_dependency_cleanup_across_distros" {
+    local installer_defaults="ansible/roles/ovos_installer/defaults/main.yml"
+    local audio_defaults="ansible/roles/ovos_audio_tuning/defaults/main.yml"
+    local audio_install="ansible/roles/ovos_audio_tuning/tasks/main.yml"
     local virtualenv_file="ansible/roles/ovos_virtualenv/tasks/uninstall.yml"
+    local virtualenv_defaults="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local virtualenv_packages_file="ansible/roles/ovos_virtualenv/tasks/packages.yml"
+    local virtualenv_gui_file="ansible/roles/ovos_virtualenv/tasks/gui.yml"
+    local performance_defaults="ansible/roles/ovos_performance_tuning/defaults/main.yml"
+    local performance_governor_file="ansible/roles/ovos_performance_tuning/tasks/governor.yml"
+    local performance_zram_file="ansible/roles/ovos_performance_tuning/tasks/zram.yml"
     local performance_file="ansible/roles/ovos_performance_tuning/tasks/uninstall.yml"
     local audio_file="ansible/roles/ovos_audio_tuning/tasks/uninstall.yml"
+    local mark2_firmware_file="ansible/roles/ovos_hardware_mark2/tasks/firmware.yml"
+    local mark2_uninstall_file="ansible/roles/ovos_hardware_mark2/tasks/uninstall.yml"
 
-    run bash -c "grep -A30 -F -- \"- name: Remove virtualenv package requirements (Debian/Zorin)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
+    run grep -F -q "ovos_installer_package_tracking_dir" "$installer_defaults"
     assert_success
 
-    run bash -c "grep -A30 -F -- \"- name: Remove virtualenv package requirements (Debian/Zorin)\" \"$virtualenv_file\" | grep -F -q -- \"purge: true\""
+    run test -f ansible/roles/ovos_installer/tasks/package_tracking_prepare_linux.yml
     assert_success
 
-    run bash -c "grep -A24 -F -- \"- name: Remove virtualenv package requirements (RedHat)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
+    run test -f ansible/roles/ovos_installer/tasks/package_tracking_prepare_macos.yml
     assert_success
 
-    run bash -c "grep -A24 -F -- \"- name: Remove virtualenv package requirements (SUSE)\" \"$virtualenv_file\" | grep -F -q -- \"clean_deps: true\""
+    run test -f ansible/roles/ovos_installer/tasks/package_tracking_persist.yml
     assert_success
 
-    run bash -c "grep -A24 -F -- \"- name: Remove virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"extra_args: --recursive\""
+    run test -f ansible/roles/ovos_installer/tasks/package_tracking_load.yml
     assert_success
 
-    run bash -c "grep -A24 -F -- \"- name: Remove virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"remove_nosave: true\""
+    run grep -F -q "ovos_audio_tuning_package_marker_path" "$audio_defaults"
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
+    run grep -F -q "package_tracking_prepare_linux.yml" "$audio_install"
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove cpupower package on SUSE family\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
+    run grep -F -q "package_tracking_persist.yml" "$audio_install"
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove cpupower package on Arch family\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
+    run grep -F -q "package_tracking_load.yml" "$audio_file"
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove systemd-zram-generator (Debian)\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"name: \\\"{{ ovos_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove systemd-zram-generator (SUSE)\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"autoremove: true\""
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove systemd-zram-generator (Arch Linux)\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"ansible_facts.os_family == \\\"Debian\\\"\""
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"autoremove: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (SUSE)\" \"$audio_file\" | grep -F -q -- \"clean_deps: true\""
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"ansible_facts.os_family == \\\"Debian\\\"\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Archlinux)\" \"$audio_file\" | grep -F -q -- \"remove_nosave: true\""
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (SUSE)\" \"$audio_file\" | grep -F -q -- \"clean_deps: true\""
+    run grep -F -q "ovos_virtualenv_package_marker_path_linux" "$virtualenv_defaults"
     assert_success
 
-    run bash -c "grep -A10 -F -- \"- name: Remove rtkit package (Archlinux)\" \"$audio_file\" | grep -F -q -- \"remove_nosave: true\""
+    run grep -F -q "ovos_virtualenv_gui_package_marker_path" "$virtualenv_defaults"
+    assert_success
+
+    run grep -F -q "package_tracking_prepare_linux.yml" "$virtualenv_packages_file"
+    assert_success
+
+    run grep -F -q "package_tracking_prepare_macos.yml" "$virtualenv_packages_file"
+    assert_success
+
+    run grep -F -q "package_tracking_persist.yml" "$virtualenv_packages_file"
+    assert_success
+
+    run grep -F -q "package_tracking_prepare_linux.yml" "$virtualenv_gui_file"
+    assert_success
+
+    run grep -F -q "package_tracking_persist.yml" "$virtualenv_gui_file"
+    assert_success
+
+    run grep -F -q "package_tracking_load.yml" "$virtualenv_file"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"name: \\\"{{ ovos_package_tracking_tracked_packages_to_remove }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (SUSE)\" \"$virtualenv_file\" | grep -F -q -- \"clean_deps: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"extra_args: --recursive\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"remove_nosave: true\""
+    assert_success
+
+    run bash -c "grep -A14 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"ovos_installer_uninstall_remove_packages | default(false) | bool\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"name: \\\"{{ ovos_package_tracking_tracked_packages_to_remove }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run grep -F -q "ovos_performance_tuning_cpupower_marker_path" "$performance_defaults"
+    assert_success
+
+    run grep -F -q "ovos_performance_tuning_zram_marker_path" "$performance_defaults"
+    assert_success
+
+    run grep -F -q "package_tracking_prepare_linux.yml" "$performance_governor_file"
+    assert_success
+
+    run grep -F -q "package_tracking_persist.yml" "$performance_governor_file"
+    assert_success
+
+    run grep -F -q "package_tracking_prepare_linux.yml" "$performance_zram_file"
+    assert_success
+
+    run grep -F -q "package_tracking_persist.yml" "$performance_zram_file"
+    assert_success
+
+    run grep -F -q "package_tracking_load.yml" "$performance_file"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"name: \\\"{{ ovos_package_tracking_tracked_packages_to_remove }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on SUSE family\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Arch family\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (Debian)\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (SUSE)\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (Arch Linux)\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
+    assert_success
+
+    run grep -F -q "package_tracking_prepare_linux.yml" "$mark2_firmware_file"
+    assert_success
+
+    run grep -F -q "package_tracking_persist.yml" "$mark2_firmware_file"
+    assert_success
+
+    run grep -F -q "package_tracking_load.yml" "$mark2_uninstall_file"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"name: \\\"{{ ovos_package_tracking_tracked_packages_to_remove }}\\\"\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"autoremove: true\""
     assert_success
 }
 

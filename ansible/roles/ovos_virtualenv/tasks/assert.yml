@@ -22,3 +22,6 @@
     - "{{ ovos_virtualenv_tmp_dir }}"
     - "{{ ovos_virtualenv_rust_messagebus_archive_path }}"
     - "{{ ovos_virtualenv_rust_messagebus_binary_path }}"
+    - "{{ ovos_virtualenv_package_marker_path_linux }}"
+    - "{{ ovos_virtualenv_package_marker_path_macos }}"
+    - "{{ ovos_virtualenv_gui_package_marker_path }}"

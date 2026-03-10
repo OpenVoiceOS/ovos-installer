@@ -1,0 +1,24 @@
+---
+- name: Ensure tracked package ownership directory exists
+  ansible.builtin.file:
+    path: "{{ ovos_package_tracking_marker_path | dirname }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+  when: (ovos_package_tracking_tracked_packages | default([]) | length) > 0
+
+- name: Persist tracked package ownership marker
+  ansible.builtin.copy:
+    dest: "{{ ovos_package_tracking_marker_path }}"
+    content: "{{ ovos_package_tracking_tracked_packages | default([]) | to_nice_json }}\n"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+  when: (ovos_package_tracking_tracked_packages | default([]) | length) > 0
+
+- name: Remove empty tracked package ownership marker
+  ansible.builtin.file:
+    path: "{{ ovos_package_tracking_marker_path }}"
+    state: absent
+  when: (ovos_package_tracking_tracked_packages | default([]) | length) == 0

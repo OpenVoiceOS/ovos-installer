@@ -17,3 +17,4 @@
     - "{{ ovos_hardware_mark2_sj201_unit_path }}"
     - "{{ ovos_hardware_mark2_boot_config_path }}"
     - "{{ ovos_hardware_mark2_boot_overlays_dir }}"
+    - "{{ ovos_hardware_mark2_package_marker_path }}"

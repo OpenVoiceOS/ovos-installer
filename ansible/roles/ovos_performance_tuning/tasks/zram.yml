@@ -1,34 +1,122 @@
 ---
+- name: Prepare zram package tracking on Debian
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_linux.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_debian_list }}"
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - always
+
 - name: Handle systemd-zram-generator on Debian
   ansible.builtin.apt:
-    name: "{{ ovos_performance_tuning_zram_packages_debian }}"
+    name: "{{ ovos_performance_tuning_zram_packages_debian_list }}"
     install_recommends: false
     state: present
+  register: ovos_performance_tuning_zram_install_result
   when: ansible_facts.os_family == "Debian"
+  tags:
+    - always
+
+- name: Persist tracked zram package ownership on Debian
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+  when: ansible_facts.os_family == "Debian"
+  tags:
+    - always
+
+- name: Prepare zram package tracking on RedHat
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_linux.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_redhat_list }}"
+  when: ansible_facts.os_family == "RedHat"
   tags:
     - always
 
 - name: Handle zram-generator-defaults
   ansible.builtin.dnf:
-    name: "{{ ovos_performance_tuning_zram_packages_redhat }}"
+    name: "{{ ovos_performance_tuning_zram_packages_redhat_list }}"
     state: present
+  register: ovos_performance_tuning_zram_install_result
   when: ansible_facts.os_family == "RedHat"
+  tags:
+    - always
+
+- name: Persist tracked zram package ownership on RedHat
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+  when: ansible_facts.os_family == "RedHat"
+  tags:
+    - always
+
+- name: Prepare zram package tracking on SUSE
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_linux.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_suse_list }}"
+  when: ansible_facts.os_family == "Suse"
   tags:
     - always
 
 - name: Handle systemd-zram-generator on SUSE
   community.general.zypper:
-    name: "{{ ovos_performance_tuning_zram_packages_suse }}"
+    name: "{{ ovos_performance_tuning_zram_packages_suse_list }}"
     disable_recommends: true
     state: present
+  register: ovos_performance_tuning_zram_install_result
   when: ansible_facts.os_family == "Suse"
+  tags:
+    - always
+
+- name: Persist tracked zram package ownership on SUSE
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+  when: ansible_facts.os_family == "Suse"
+  tags:
+    - always
+
+- name: Prepare zram package tracking on Arch Linux
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_linux.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
+    ovos_package_tracking_requested_packages: "{{ ovos_performance_tuning_zram_packages_arch_list }}"
+  when: ansible_facts.os_family == "Archlinux"
   tags:
     - always
 
 - name: Handle systemd-zram-generator on Arch Linux
   community.general.pacman:
-    name: "{{ ovos_performance_tuning_zram_packages_arch }}"
+    name: "{{ ovos_performance_tuning_zram_packages_arch_list }}"
     state: present
+  register: ovos_performance_tuning_zram_install_result
+  when: ansible_facts.os_family == "Archlinux"
+  tags:
+    - always
+
+- name: Persist tracked zram package ownership on Arch Linux
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_package_tracking_marker_path: "{{ ovos_performance_tuning_zram_marker_path }}"
   when: ansible_facts.os_family == "Archlinux"
   tags:
     - always

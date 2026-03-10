@@ -1,0 +1,26 @@
+---
+- name: Check tracked package ownership marker
+  ansible.builtin.stat:
+    path: "{{ ovos_package_tracking_marker_path }}"
+  register: ovos_package_tracking_marker_stat
+  changed_when: false
+
+- name: Read tracked package ownership marker
+  ansible.builtin.slurp:
+    path: "{{ ovos_package_tracking_marker_path }}"
+  register: ovos_package_tracking_marker_raw
+  when: ovos_package_tracking_marker_stat.stat.exists | default(false) | bool
+  changed_when: false
+
+- name: Resolve tracked packages to remove
+  ansible.builtin.set_fact:
+    ovos_package_tracking_tracked_packages_to_remove: >-
+      {{
+        ((ovos_package_tracking_marker_raw.content | b64decode | from_json)
+         if (ovos_package_tracking_marker_stat.stat.exists | default(false) | bool)
+         else [])
+        | reject('equalto', '')
+        | unique
+        | sort
+      }}
+  changed_when: false
