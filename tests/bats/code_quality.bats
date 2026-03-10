@@ -985,6 +985,9 @@ function setup() {
     run grep -F -q "ovos_virtualenv_padatious_cache_repo_version: dev" "$defaults_file"
     assert_success
 
+    run grep -F -q 'ovos_virtualenv_padatious_cache_repo_path: "{{ ovos_installer_user_home }}/.cache/ovos-installer/padatious_cache"' "$defaults_file"
+    assert_success
+
     run grep -F -q "ovos_virtualenv_padatious_cache_dir:" "$defaults_file"
     assert_success
 
@@ -1007,6 +1010,12 @@ function setup() {
     assert_success
 
     run bash -c "grep -A10 -F -- \"- name: Checkout padatious cache repository\" \"$cache_tasks_file\" | grep -F -q -- \"version: \\\"{{ ovos_virtualenv_padatious_cache_repo_version }}\\\"\""
+    assert_success
+
+    run grep -F -q "Ensure padatious cache repository parent directory exists" "$cache_tasks_file"
+    assert_success
+
+    run bash -c "grep -A6 -F -- \"- name: Ensure padatious cache repository parent directory exists\" \"$cache_tasks_file\" | grep -F -q -- \"{{ ovos_virtualenv_padatious_cache_repo_path | dirname }}\""
     assert_success
 
     run grep -F -q "Check staged OVOS intent cache payload exists" "$cache_tasks_file"
@@ -1046,6 +1055,12 @@ function setup() {
     assert_success
 
     run grep -F -q -- "- \"{{ ovos_virtualenv_padatious_cache_backup_dir }}\"" "$defaults_file"
+    assert_success
+
+    run grep -F -q -- "- \"{{ ovos_virtualenv_padatious_cache_repo_path }}\"" "$defaults_file"
+    assert_success
+
+    run grep -F -q -- '- "{{ ovos_virtualenv_padatious_cache_repo_path }}"' "ansible/roles/ovos_virtualenv/tasks/assert.yml"
     assert_success
 }
 
