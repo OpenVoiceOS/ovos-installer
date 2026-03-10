@@ -1398,11 +1398,11 @@ function ver() {
 
 # Check if a specific hexadecimal address exists on the I2C bus.
 # Takes an argument like "2f" which is converted to "0x2f".
-# Only used when a Raspberry Pi board is detected.
+# By default only the primary I2C bus is probed; additional buses must be
+# explicitly requested through OVOS_I2C_SCAN_BUSES.
 function i2c_get() {
     local address="$1"
     local bus=""
-    local bus_dev=""
     local -a i2c_buses=()
     local override_buses="${OVOS_I2C_SCAN_BUSES:-}"
 
@@ -1415,19 +1415,7 @@ function i2c_get() {
         # Accept either comma- or space-separated values.
         read -r -a i2c_buses <<<"${override_buses//,/ }"
     else
-        if [ -n "${I2C_BUS:-}" ]; then
-            i2c_buses+=("$I2C_BUS")
-        fi
-
-        for bus_dev in /dev/i2c-*; do
-            [ -e "$bus_dev" ] || continue
-            bus="${bus_dev##*-}"
-            [[ "$bus" =~ ^[0-9]+$ ]] || continue
-
-            if [ "$bus" != "${I2C_BUS:-}" ]; then
-                i2c_buses+=("$bus")
-            fi
-        done
+        i2c_buses+=("${I2C_BUS:-1}")
     fi
 
     for bus in "${i2c_buses[@]}"; do
@@ -1471,15 +1459,6 @@ function i2c_scan() {
             fi
         done
 
-        # If the live scan does not detect any supported devices during an
-        # existing-install rerun, recover the last known I2C device list from
-        # installer state to keep Mark II/DevKit gating deterministic.
-        if [ "${EXISTING_INSTANCE:-false}" == "true" ] && \
-            ! has_detected_device "atmega328p" && \
-            ! has_detected_device "attiny1614" && \
-            ! has_detected_device "tas5806"; then
-            restore_detected_devices_from_state || true
-        fi
         echo -e "[$done_format]"
     fi
 
@@ -1500,44 +1479,6 @@ function has_detected_device() {
             return 0
         fi
     done
-
-    return 1
-}
-
-# Restore known I2C devices from installer state when live probing did not
-# detect anything (for example, re-runs after partial installs).
-function restore_detected_devices_from_state() {
-    local run_as_home="${RUN_AS_HOME:-}"
-    local state_file="${INSTALLER_STATE_FILE:-}"
-    local cached_device=""
-    local restored_device="false"
-
-    if [ -z "$state_file" ]; then
-        if [ -z "$run_as_home" ]; then
-            return 1
-        fi
-        state_file="${run_as_home}/.local/state/ovos/installer.json"
-    fi
-
-    if [ ! -f "$state_file" ] || ! command -v jq &>>"$LOG_FILE"; then
-        return 1
-    fi
-
-    while IFS= read -r cached_device; do
-        case "$cached_device" in
-        atmega328p | attiny1614 | tas5806)
-            if ! has_detected_device "$cached_device"; then
-                DETECTED_DEVICES+=("$cached_device")
-                restored_device="true"
-            fi
-            ;;
-        esac
-    done < <(jq -r '.i2c_devices[]? // empty' "$state_file" 2>>"$LOG_FILE")
-
-    if [ "$restored_device" == "true" ]; then
-        printf '%s\n' "[info] Restored detected I2C devices from installer state: ${DETECTED_DEVICES[*]}" &>>"$LOG_FILE"
-        return 0
-    fi
 
     return 1
 }
