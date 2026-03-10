@@ -494,6 +494,49 @@ EOF
     unset HARDWARE_CONFIRMATION
 }
 
+@test "function_i2c_scan_scenario_reuses_persisted_hardware_confirmation" {
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    DISPLAY_SERVER="N/A"
+    CHANNEL="testing"
+    PROFILE="ovos"
+    FEATURE_GUI="false"
+    SCENARIO_FOUND="true"
+    unset HARDWARE_CONFIRMATION || true
+    DETECTED_DEVICES=()
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    mkdir -p "$RUN_AS_HOME/.local/state/ovos"
+    printf '%s\n' '{"hardware_confirmation":"mark2","i2c_devices":[]}' >"$RUN_AS_HOME/.local/state/ovos/installer.json"
+
+    function dtparam() {
+        return 0
+    }
+    function lsmod() {
+        return 0
+    }
+    function modprobe() {
+        return 0
+    }
+    function i2c_get() {
+        return 1
+    }
+    export -f dtparam lsmod modprobe i2c_get
+
+    i2c_scan
+    assert_equal "$?" "0"
+
+    run has_detected_device "tas5806"
+    assert_success
+    assert_equal "$CHANNEL" "alpha"
+    assert_equal "$DISPLAY_SERVER" "eglfs"
+
+    rm -rf "$RUN_AS_HOME"
+    unset -f dtparam lsmod modprobe i2c_get
+    unset HARDWARE_CONFIRMATION
+}
+
 @test "function_enforce_mark2_devkit_trixie_requirement_accepts_debian_trixie" {
     DETECTED_DEVICES=("tas5806")
     RASPBERRYPI_MODEL="Raspberry Pi 4"

@@ -1475,8 +1475,14 @@ function i2c_scan() {
     # before applying hardware-specific restrictions. Scenario installs do not
     # have that prompt, so they must use an explicit override to opt in.
     if [ "${SCENARIO_FOUND:-false}" != "false" ]; then
-        if [ -n "${HARDWARE_CONFIRMATION:-}" ]; then
-            apply_hardware_confirmation_choice "${HARDWARE_CONFIRMATION}"
+        local hardware_choice="${HARDWARE_CONFIRMATION:-}"
+
+        if [ -z "$hardware_choice" ]; then
+            hardware_choice="$(read_persisted_hardware_confirmation_choice)"
+        fi
+
+        if [ -n "$hardware_choice" ]; then
+            apply_hardware_confirmation_choice "$hardware_choice"
         else
             clear_mark2_family_detected_devices
         fi
@@ -1545,36 +1551,88 @@ function is_mark2_detected() {
     is_mark2_or_devkit_detected && ! has_detected_device "attiny1614"
 }
 
-# Apply an explicit hardware override to the current detection result.
-# Unsupported Mark II/DevKit overrides on non-Pi-4 boards are ignored.
-function apply_hardware_confirmation_choice() {
+# Normalize an explicit hardware override into a supported effective choice.
+# Unsupported Mark II/DevKit values on non-Pi-4 boards fall back to generic.
+function normalize_hardware_confirmation_choice() {
     local choice="$1"
 
+    case "$choice" in
+    generic | "")
+        printf '%s\n' "generic"
+        ;;
+    mark2)
+        if ! is_raspberry_pi_4; then
+            printf '%s\n' "[warn] Ignoring mark2 override on unsupported board: ${RASPBERRYPI_MODEL:-unknown}" >>"$LOG_FILE"
+            printf '%s\n' "generic"
+            return 0
+        fi
+        printf '%s\n' "mark2"
+        ;;
+    devkit)
+        if ! is_raspberry_pi_4; then
+            printf '%s\n' "[warn] Ignoring devkit override on unsupported board: ${RASPBERRYPI_MODEL:-unknown}" >>"$LOG_FILE"
+            printf '%s\n' "generic"
+            return 0
+        fi
+        printf '%s\n' "devkit"
+        ;;
+    *)
+        printf '%s\n' "[warn] Ignoring unsupported hardware confirmation choice: ${choice}" >>"$LOG_FILE"
+        printf '%s\n' ""
+        ;;
+    esac
+}
+
+# Return a valid persisted hardware confirmation choice from installer.json.
+function read_persisted_hardware_confirmation_choice() {
+    local state_file=""
+    local persisted_choice=""
+    local run_as_home="${RUN_AS_HOME:-}"
+
+    if ! command -v jq &>>"$LOG_FILE"; then
+        return 0
+    fi
+
+    if [ -n "${INSTALLER_STATE_FILE:-}" ]; then
+        state_file="${INSTALLER_STATE_FILE}"
+    elif [ -n "$run_as_home" ]; then
+        state_file="${run_as_home}/.local/state/ovos/installer.json"
+    else
+        return 0
+    fi
+
+    if [ ! -f "$state_file" ]; then
+        return 0
+    fi
+
+    persisted_choice="$(jq -r '.hardware_confirmation // ""' "$state_file" 2>>"$LOG_FILE" || true)"
+    case "$persisted_choice" in
+    generic | mark2 | devkit)
+        printf '%s\n' "$persisted_choice"
+        ;;
+    *)
+        printf '%s\n' ""
+        ;;
+    esac
+}
+
+# Apply an explicit hardware override to the current detection result.
+function apply_hardware_confirmation_choice() {
+    local choice=""
+
+    choice="$(normalize_hardware_confirmation_choice "$1")"
     case "$choice" in
     generic | "")
         clear_mark2_family_detected_devices
         ;;
     mark2)
-        if ! is_raspberry_pi_4; then
-            printf '%s\n' "[warn] Ignoring mark2 override on unsupported board: ${RASPBERRYPI_MODEL:-unknown}" >>"$LOG_FILE"
-            clear_mark2_family_detected_devices
-            return 0
-        fi
         clear_mark2_family_detected_devices
         add_detected_device_once "tas5806"
         ;;
     devkit)
-        if ! is_raspberry_pi_4; then
-            printf '%s\n' "[warn] Ignoring devkit override on unsupported board: ${RASPBERRYPI_MODEL:-unknown}" >>"$LOG_FILE"
-            clear_mark2_family_detected_devices
-            return 0
-        fi
         clear_mark2_family_detected_devices
         add_detected_device_once "tas5806"
         add_detected_device_once "attiny1614"
-        ;;
-    *)
-        printf '%s\n' "[warn] Ignoring unsupported hardware confirmation choice: ${choice}" >>"$LOG_FILE"
         ;;
     esac
 }

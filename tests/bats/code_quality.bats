@@ -1802,13 +1802,25 @@ function setup() {
     run grep -q 'export HARDWARE_CONFIRMATION="\${options\[\$option\]}"' utils/scenario.sh
     assert_success
 
-    run grep -q 'if \[ -n "\${HARDWARE_CONFIRMATION:-}" \]; then' utils/common.sh
+    run grep -q 'local hardware_choice="\${HARDWARE_CONFIRMATION:-}"' utils/common.sh
     assert_success
 
-    run grep -q 'apply_hardware_confirmation_choice "\${HARDWARE_CONFIRMATION}"' utils/common.sh
+    run grep -q 'read_persisted_hardware_confirmation_choice' utils/common.sh
+    assert_success
+
+    run grep -q 'normalize_hardware_confirmation_choice' utils/common.sh
+    assert_success
+
+    run grep -q 'hardware_choice="\$(read_persisted_hardware_confirmation_choice)"' utils/common.sh
+    assert_success
+
+    run grep -q 'apply_hardware_confirmation_choice "\$hardware_choice"' utils/common.sh
     assert_success
 
     run grep -q 'clear_mark2_family_detected_devices' utils/common.sh
+    assert_success
+
+    run grep -q 'hardware_confirmation_choice="\$(read_persisted_hardware_confirmation_choice)"' tui/hardware_confirmation.sh
     assert_success
 }
 

@@ -83,14 +83,8 @@ case "${HARDWARE_CONFIRMATION:-}" in
     ;;
 esac
 
-if [ -z "$hardware_confirmation_choice" ] && [ -f "$INSTALLER_STATE_FILE" ]; then
-  hardware_confirmation_choice="$(jq -r '.hardware_confirmation // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
-  case "$hardware_confirmation_choice" in
-    mark2|devkit|generic) ;;
-    *)
-      hardware_confirmation_choice=""
-      ;;
-  esac
+if [ -z "$hardware_confirmation_choice" ]; then
+  hardware_confirmation_choice="$(read_persisted_hardware_confirmation_choice)"
 fi
 
 if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]; then
@@ -98,6 +92,7 @@ if [[ "${RASPBERRYPI_MODEL:-}" == *"Raspberry Pi 4"* ]]; then
 fi
 
 if [ -n "$hardware_confirmation_choice" ]; then
+  hardware_confirmation_choice="$(normalize_hardware_confirmation_choice "$hardware_confirmation_choice")"
   apply_hardware_confirmation_choice "$hardware_confirmation_choice"
 elif [ -n "$hardware_confirmation_candidate" ]; then
   : "${HARDWARE_CONFIRMATION_TITLE:=Open Voice OS Installation - Hardware Check}"
@@ -119,6 +114,7 @@ elif [ -n "$hardware_confirmation_candidate" ]; then
     hardware_confirmation_choice="generic"
   fi
 
+  hardware_confirmation_choice="$(normalize_hardware_confirmation_choice "$hardware_confirmation_choice")"
   apply_hardware_confirmation_choice "$hardware_confirmation_choice"
 fi
 

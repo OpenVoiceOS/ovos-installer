@@ -367,6 +367,25 @@ function dialog_value() {
     unset HARDWARE_CONFIRMATION
 }
 
+@test "hardware confirmation: invalid persisted mark2 choice on Raspberry Pi 5 is normalized back to generic" {
+    printf '%s\n' '{"hardware_confirmation":"mark2","i2c_devices":["tas5806"]}' >"$INSTALLER_STATE_FILE"
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    DETECTED_DEVICES=("tas5806")
+
+    # shellcheck source=tui/hardware_confirmation.sh
+    source tui/hardware_confirmation.sh
+
+    run grep -F -q $'yesno\tOpen Voice OS Installation - Hardware Check' "$WHIPTAIL_DIALOG_FILE"
+    assert_failure
+
+    run jq -r '.hardware_confirmation' "$INSTALLER_STATE_FILE"
+    assert_success
+    assert_output "generic"
+
+    run jq -e '.i2c_devices == []' "$INSTALLER_STATE_FILE"
+    assert_success
+}
+
 @test "hardware confirmation: persisted mark2 choice restores mark2 restrictions when live probe misses" {
     printf '%s\n' '{"hardware_confirmation":"mark2","i2c_devices":[]}' >"$INSTALLER_STATE_FILE"
     RASPBERRYPI_MODEL="Raspberry Pi 4"
