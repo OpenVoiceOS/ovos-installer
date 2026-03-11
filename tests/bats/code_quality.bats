@@ -474,6 +474,9 @@ function setup() {
 }
 
 @test "rust_messagebus_download_uses_checksum_verification" {
+    run grep -q "ovos_virtualenv_rust_messagebus_version: v2.0.0" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
     run grep -q "ovos_virtualenv_rust_messagebus_archive_checksum" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
