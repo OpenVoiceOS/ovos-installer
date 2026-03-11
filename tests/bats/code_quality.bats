@@ -297,7 +297,7 @@ function setup() {
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
     local site_file="ansible/site.yml"
 
-    run grep -F -q "ovos_installer_raspberry_pi_4_regex: '(^|\\\\s)Raspberry\\\\s+Pi\\\\s+4([^0-9]|$)'" "$site_file"
+    run grep -E -q 'ovos_installer_raspberry_pi_4_regex: ["'"'"']\(\^\|\\\\s\)Raspberry\\\\s\+Pi\\\\s\+4\(\[\^0-9\]\|\$\)["'"'"']' "$site_file"
     assert_success
 
     run grep -F -q "{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}" "$core_file"
