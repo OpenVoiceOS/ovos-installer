@@ -2105,6 +2105,13 @@ function setup() {
     assert_success
 }
 
+@test "setup_successful_uninstall_clears_tui_state_directory" {
+    local file="setup.sh"
+
+    run grep -F -q 'rm -rf "${RUN_AS_HOME}/.local/state/ovos"' "$file"
+    assert_success
+}
+
 @test "telemetry_uses_existing_hardware_field_with_installer_fallback" {
     run grep -q "ovos_installer_hardware" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success

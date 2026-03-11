@@ -334,6 +334,7 @@ if [ "$ansible_rc" -eq 0 ]; then
       if [ "$(dirname "$VENV_PATH")" = "$venv_root" ]; then
         rm -rf "$venv_root"
       fi
+      rm -rf "${RUN_AS_HOME}/.local/state/ovos"
     fi
     log_info ""
     log_info "➤ Open Voice OS has been successfully uninstalled."
