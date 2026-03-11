@@ -7,7 +7,8 @@ Kies welke functies je wil activeren (meerdere opties tegelijkertijd zijn mogeli
 TITLE="OpenVoice OS Installatie - Kenmerken"
 SKILL_DESCRIPTION="Standaard OVOS skills"
 EXTRA_SKILL_DESCRIPTION="Extra OVOS skills"
-HOMEASSISTANT_DESCRIPTION="Home Assistant-integratie inschakelen (vereist URL en token)"
-LLM_DESCRIPTION="AI-gespreksfallback voor OVOS Persona inschakelen (begeleide instelling voor URL, sleutel, model, stijl en antwoordafstemming)"
+GUI_DESCRIPTION="OVOS-grafische interface inschakelen (Mark II/DevKit op Debian Trixie)"
+HOMEASSISTANT_DESCRIPTION="Home Assistant-integratie inschakelen"
+LLM_DESCRIPTION="AI-modus voor OVOS Persona inschakelen (begeleide instelling)"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION

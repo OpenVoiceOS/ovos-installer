@@ -7,7 +7,8 @@ Seleccione as funções a ativar:
 TITLE="Open Voice OS Instalação - Características"
 SKILL_DESCRIPTION="Descarregar uma seleção de skills OVOS"
 EXTRA_SKILL_DESCRIPTION="Carregar skills OVOS adicionais"
-HOMEASSISTANT_DESCRIPTION="Ativar a integração com o Home Assistant (requer URL e token)"
-LLM_DESCRIPTION="Ativar o modo de conversa por IA para o OVOS Persona (configuração guiada de URL, chave, modelo, estilo e ajuste das respostas)"
+GUI_DESCRIPTION="Ativar a interface OVOS (Mark II/DevKit em Debian Trixie)"
+HOMEASSISTANT_DESCRIPTION="Ativar a integração com o Home Assistant"
+LLM_DESCRIPTION="Ativar o modo IA para OVOS Persona (configuração guiada)"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION
