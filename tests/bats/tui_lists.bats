@@ -756,6 +756,52 @@ function dialog_value() {
     assert_equal "$FEATURE_LLM" "true"
 }
 
+@test "features: truncates long descriptions to fit checklist width" {
+    PROFILE="ovos"
+    METHOD="virtualenv"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DETECTED_DEVICES=("tas5806")
+    TUI_WINDOW_WIDTH="80"
+    WHIPTAIL_FORCE_SELECTION="skills"
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    local fitted_llm
+    local long_description
+    local max_length
+    long_description="Enable AI fallback for OVOS Persona with a deliberately overlong description that should never fit on a checklist row without truncation"
+    fitted_llm="$(tui_features_fit_checklist_text "llm" "$long_description")"
+    max_length=$(( TUI_WINDOW_WIDTH - 3 - 22 ))
+
+    if [ "${#fitted_llm}" -gt "$max_length" ]; then
+        echo "expected fitted checklist item <= ${max_length} chars, got ${#fitted_llm}: ${fitted_llm}" >&2
+        return 1
+    fi
+
+    if [ "${#fitted_llm}" -ge "${#long_description}" ]; then
+        echo "expected fitted checklist item to be truncated: ${fitted_llm}" >&2
+        return 1
+    fi
+
+    [[ "$fitted_llm" == *"..." ]]
+}
+
+@test "features: truncates UTF-8 descriptions without splitting characters" {
+    TUI_WINDOW_WIDTH="38"
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    local fitted_utf8
+    fitted_utf8="$(tui_features_fit_checklist_text "llm" "ÄÖÜéàç persona conversación guiada muy larga")"
+
+    assert_equal "$fitted_utf8" "ÄÖÜéàç persona conver..."
+}
+
 @test "llm: guided setup persists reply tuning values" {
     METHOD="virtualenv"
     queue_whiptail_response "https://llama.smartgic.io/v1"

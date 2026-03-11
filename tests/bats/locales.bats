@@ -86,6 +86,7 @@ function setup() {
             test -n \"\$CONTENT\"
             test -n \"\$SKILL_DESCRIPTION\"
             test -n \"\$EXTRA_SKILL_DESCRIPTION\"
+            test -n \"\$GUI_DESCRIPTION\"
             test -n \"\$HOMEASSISTANT_DESCRIPTION\"
             test -n \"\$LLM_DESCRIPTION\"
             printf '%s\n' \"\$TITLE\"
@@ -156,9 +157,11 @@ function setup() {
 
         run bash -euc "
             source tui/locales/en-us/features.sh
+            en_gui_description=\$GUI_DESCRIPTION
             en_llm_description=\$LLM_DESCRIPTION
             en_homeassistant_description=\$HOMEASSISTANT_DESCRIPTION
             source '$f'
+            [ \"\$GUI_DESCRIPTION\" != \"\$en_gui_description\" ]
             [ \"\$LLM_DESCRIPTION\" != \"\$en_llm_description\" ]
             [ \"\$HOMEASSISTANT_DESCRIPTION\" != \"\$en_homeassistant_description\" ]
         "

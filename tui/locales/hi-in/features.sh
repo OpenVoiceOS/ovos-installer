@@ -7,7 +7,8 @@ CONTENT="
 TITLE="Open Voice OS Installation - विशेषताएँ"
 SKILL_DESCRIPTION="डिफ़ॉल्ट OVOS कौशल लोड करें"
 EXTRA_SKILL_DESCRIPTION="अतिरिक्त OVOS कौशल लोड करें"
-HOMEASSISTANT_DESCRIPTION="Home Assistant इंटीग्रेशन सक्षम करें (URL और token आवश्यक)"
-LLM_DESCRIPTION="OVOS Persona के लिए AI बातचीत fallback सक्षम करें (URL, key, मॉडल, शैली और जवाब tuning की guided setup)"
+GUI_DESCRIPTION="OVOS GUI सक्षम करें (Debian Trixie पर Mark II/DevKit)"
+HOMEASSISTANT_DESCRIPTION="Home Assistant इंटीग्रेशन सक्षम करें"
+LLM_DESCRIPTION="OVOS Persona के लिए AI मोड सक्षम करें (निर्देशित सेटअप)"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION
