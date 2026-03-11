@@ -6,6 +6,31 @@ source "utils/llm_defaults.sh"
 # shellcheck source=tui/hardware_state.sh
 source tui/hardware_state.sh
 
+# Keep checklist row descriptions within the visible dialog width. Whiptail
+# does not wrap checklist items, so overlong text spills past the right border.
+function tui_features_fit_checklist_text() {
+  local tag="$1"
+  local text="$2"
+  local width="${TUI_WINDOW_WIDTH:-80}"
+  local max_length=$(( width - ${#tag} - 22 ))
+
+  if [ "$max_length" -lt 24 ]; then
+    max_length=24
+  fi
+
+  awk -v str="$text" -v max="$max_length" '
+    BEGIN {
+      if (length(str) <= max) {
+        print str
+      } else if (max <= 3) {
+        print substr(str, 1, max)
+      } else {
+        print substr(str, 1, max - 3) "..."
+      }
+    }
+  '
+}
+
 export FEATURE_SKILLS="false"
 export FEATURE_EXTRA_SKILLS="false"
 export FEATURE_GUI="false"
@@ -25,13 +50,17 @@ if [[ "$TUI_MARK2_OR_DEVKIT_DETECTED" == "true" ]] && \
   _gui_supported="true"
   _gui_default_state="ON"
 fi
-_gui_description="${GUI_DESCRIPTION:-Enable OVOS GUI support}"
+_skill_description="$(tui_features_fit_checklist_text "skills" "${SKILL_DESCRIPTION}")"
+_extra_skill_description="$(tui_features_fit_checklist_text "extra-skills" "${EXTRA_SKILL_DESCRIPTION}")"
+_gui_description="$(tui_features_fit_checklist_text "gui" "${GUI_DESCRIPTION:-Enable OVOS GUI support}")"
 if [ "${_gui_supported}" == "true" ]; then
-  _gui_description="${GUI_DESCRIPTION:-Enable OVOS GUI support (Mark II/DevKit on Debian Trixie)}"
+  _gui_description="$(tui_features_fit_checklist_text "gui" "${GUI_DESCRIPTION:-Enable OVOS GUI support (Mark II/DevKit on Debian Trixie)}")"
   if [ "${_gui_default_state}" == "ON" ]; then
     export FEATURE_GUI="true"
   fi
 fi
+_homeassistant_description="$(tui_features_fit_checklist_text "homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (URL + token)}")"
+_llm_description="$(tui_features_fit_checklist_text "llm" "${LLM_DESCRIPTION:-Enable AI fallback for OVOS Persona (guided setup)}")"
 
 _ha_supported="false"
 if [[ "${METHOD:-virtualenv}" == "virtualenv" || "${METHOD:-virtualenv}" == "containers" ]] && \
@@ -48,29 +77,29 @@ if [[ "${METHOD:-virtualenv}" == "virtualenv" || "${METHOD:-virtualenv}" == "con
 fi
 
 declare -a features
-features=("skills" "$SKILL_DESCRIPTION" "ON")
-features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
+features=("skills" "$_skill_description" "ON")
+features+=("extra-skills" "$_extra_skill_description" "OFF")
 if [ "${_gui_supported}" == "true" ]; then
   features+=("gui" "${_gui_description}" "${_gui_default_state}")
 fi
 if [ "${_ha_supported}" == "true" ]; then
-  features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+  features+=("homeassistant" "${_homeassistant_description}" "OFF")
 fi
 if [ "${_llm_supported}" == "true" ]; then
-  features+=("llm" "${LLM_DESCRIPTION:-Enable AI conversation fallback for OVOS Persona (guided setup for URL, key, model, style, and reply tuning)}" "OFF")
+  features+=("llm" "${_llm_description}" "OFF")
 fi
 
 if [ -f "$INSTALLER_STATE_FILE" ] && \
   jq -e '(.features? | type) == "array"' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
   if jq -e '.features|any(. == "skills")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
-    features=("skills" "$SKILL_DESCRIPTION" "ON")
+    features=("skills" "$_skill_description" "ON")
   else
-    features=("skills" "$SKILL_DESCRIPTION" "OFF")
+    features=("skills" "$_skill_description" "OFF")
   fi
   if jq -e '.features|any(. == "extra-skills")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
-    features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "ON")
+    features+=("extra-skills" "$_extra_skill_description" "ON")
   else
-    features+=("extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF")
+    features+=("extra-skills" "$_extra_skill_description" "OFF")
   fi
   if [ "${_gui_supported}" == "true" ]; then
     if jq -e '.feature_gui_selected | type == "boolean"' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
@@ -96,16 +125,16 @@ if [ -f "$INSTALLER_STATE_FILE" ] && \
   fi
   if [ "${_ha_supported}" == "true" ]; then
     if jq -e '.features|any(. == "homeassistant")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
-      features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "ON")
+      features+=("homeassistant" "${_homeassistant_description}" "ON")
     else
-      features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+      features+=("homeassistant" "${_homeassistant_description}" "OFF")
     fi
   fi
   if [ "${_llm_supported}" == "true" ]; then
     if jq -e '.features|any(. == "llm")' "$INSTALLER_STATE_FILE" >/dev/null 2>>"$LOG_FILE"; then
-      features+=("llm" "${LLM_DESCRIPTION:-Enable AI conversation fallback for OVOS Persona (guided setup for URL, key, model, style, and reply tuning)}" "ON")
+      features+=("llm" "${_llm_description}" "ON")
     else
-      features+=("llm" "${LLM_DESCRIPTION:-Enable AI conversation fallback for OVOS Persona (guided setup for URL, key, model, style, and reply tuning)}" "OFF")
+      features+=("llm" "${_llm_description}" "OFF")
     fi
   fi
 fi
@@ -114,17 +143,17 @@ fi
 # to a safe default instead of rendering a blank window.
 if [ "${#features[@]}" -lt 3 ] || [ $(( ${#features[@]} % 3 )) -ne 0 ]; then
   features=(
-    "skills" "$SKILL_DESCRIPTION" "ON"
-    "extra-skills" "$EXTRA_SKILL_DESCRIPTION" "OFF"
+    "skills" "$_skill_description" "ON"
+    "extra-skills" "$_extra_skill_description" "OFF"
   )
   if [ "${_gui_supported}" == "true" ]; then
     features+=("gui" "${_gui_description}" "${_gui_default_state}")
   fi
   if [ "${_ha_supported}" == "true" ]; then
-    features+=("homeassistant" "${HOMEASSISTANT_DESCRIPTION:-Enable Home Assistant integration (requires URL + token)}" "OFF")
+    features+=("homeassistant" "${_homeassistant_description}" "OFF")
   fi
   if [ "${_llm_supported}" == "true" ]; then
-    features+=("llm" "${LLM_DESCRIPTION:-Enable AI conversation fallback for OVOS Persona (guided setup for URL, key, model, style, and reply tuning)}" "OFF")
+    features+=("llm" "${_llm_description}" "OFF")
   fi
 fi
 
