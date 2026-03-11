@@ -12,10 +12,29 @@ function tui_features_fit_checklist_text() {
   local tag="$1"
   local text="$2"
   local width="${TUI_WINDOW_WIDTH:-80}"
+  # 22 covers whiptail checklist overhead beyond the tag itself: checkbox,
+  # status column, spacing, and the right-side padding inside the dialog.
   local max_length=$(( width - ${#tag} - 22 ))
 
   if [ "$max_length" -lt 24 ]; then
     max_length=24
+  fi
+
+  if command -v python3 >/dev/null 2>&1; then
+    python3 - "$text" "$max_length" <<'PY'
+import sys
+
+text = sys.argv[1]
+max_length = int(sys.argv[2])
+
+if len(text) <= max_length:
+    sys.stdout.write(text)
+elif max_length <= 3:
+    sys.stdout.write(text[:max_length])
+else:
+    sys.stdout.write(text[: max_length - 3] + "...")
+PY
+    return
   fi
 
   awk -v str="$text" -v max="$max_length" '

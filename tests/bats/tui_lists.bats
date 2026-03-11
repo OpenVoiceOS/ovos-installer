@@ -772,6 +772,18 @@ function dialog_value() {
     [[ "$fitted_llm" == *"..." ]]
 }
 
+@test "features: truncates UTF-8 descriptions without splitting characters" {
+    TUI_WINDOW_WIDTH="38"
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    local fitted_utf8
+    fitted_utf8="$(tui_features_fit_checklist_text "llm" "ÄÖÜéàç persona conversación guiada muy larga")"
+
+    assert_equal "$fitted_utf8" "ÄÖÜéàç persona conver..."
+}
+
 @test "llm: guided setup persists reply tuning values" {
     METHOD="virtualenv"
     queue_whiptail_response "https://llama.smartgic.io/v1"
