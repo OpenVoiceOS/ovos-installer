@@ -74,7 +74,7 @@ fi
 set -eE
 trap on_error ERR
 detect_user
-clear_stale_reboot_request
+reset_reboot_request_for_current_run
 delete_log
 detect_existing_instance
 get_os_information

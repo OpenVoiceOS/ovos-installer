@@ -118,9 +118,9 @@ function cleanup_installer_runtime() {
     release_installer_lock
 }
 
-# Clear any stale reboot request before a new installer run starts so
-# previous failures cannot force an unrelated later reboot.
-function clear_stale_reboot_request() {
+# Reset any pre-existing reboot flag before a new installer run starts.
+# The installer only honors reboot requests created by the current run.
+function reset_reboot_request_for_current_run() {
     if [ -f "$REBOOT_FILE_PATH" ]; then
         rm -f "$REBOOT_FILE_PATH"
     fi

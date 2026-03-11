@@ -190,12 +190,12 @@ EOF
     assert_output $'red\nplain'
 }
 
-@test "function_clear_stale_reboot_request_removes_existing_flag" {
+@test "function_reset_reboot_request_for_current_run_removes_existing_flag" {
     run bash -c '
         source "$1"
         source "$2"
         REBOOT_FILE_PATH="$(mktemp)"
-        clear_stale_reboot_request
+        reset_reboot_request_for_current_run
         test ! -e "$REBOOT_FILE_PATH"
     ' _ \
         "$BATS_TEST_DIRNAME/../../utils/constants.sh" \
