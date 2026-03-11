@@ -118,6 +118,32 @@ function cleanup_installer_runtime() {
     release_installer_lock
 }
 
+# Reset any pre-existing reboot flag before a new installer run starts.
+# The installer only honors reboot requests created by the current run.
+function reset_reboot_request_for_current_run() {
+    if [ -f "$REBOOT_FILE_PATH" ]; then
+        rm -f "$REBOOT_FILE_PATH"
+    fi
+}
+
+# Attempt the deferred reboot requested by the playbook and preserve the
+# reboot flag when the shutdown command fails so the failure is visible.
+function reboot_if_requested() {
+    if [ ! -f "$REBOOT_FILE_PATH" ]; then
+        return 0
+    fi
+
+    log_info ""
+    log_info "➤ Rebooting system now..."
+    if shutdown -r now; then
+        rm -f "$REBOOT_FILE_PATH"
+        return 0
+    fi
+
+    log_error "Reboot was requested but could not be started. Leaving $REBOOT_FILE_PATH in place."
+    return 1
+}
+
 function exit_with_signal_code() {
     local signal_code="$1"
     cleanup_installer_runtime

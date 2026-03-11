@@ -74,6 +74,7 @@ fi
 set -eE
 trap on_error ERR
 detect_user
+reset_reboot_request_for_current_run
 delete_log
 detect_existing_instance
 get_os_information
@@ -313,20 +314,8 @@ if [ "$ansible_rc" -eq 0 ]; then
     if [ "$SCENARIO_FOUND" == "false" ]; then
       # shellcheck source=tui/finish.sh
       source tui/finish.sh
-      rm -rf "$VENV_PATH" /root/.ansible
-      if [ -f "$LOG_FILE" ]; then
-        rm -f "$LOG_FILE"
-      fi
-      if [ -f "$REBOOT_FILE_PATH" ]; then
-        rm -f "$REBOOT_FILE_PATH"
-        log_info ""
-        log_info "➤ Rebooting Raspberry Pi now..."
-        shutdown -r now
-      fi
     fi
-    if [ "$SCENARIO_FOUND" != "false" ] && [ -f "$LOG_FILE" ]; then
-      rm -f "$LOG_FILE"
-    fi
+    rm -rf "$VENV_PATH" /root/.ansible
   else
     rm -rf "$VENV_PATH" /root/.ansible
     if [ -n "${RUN_AS_HOME:-}" ]; then
@@ -338,15 +327,14 @@ if [ "$ansible_rc" -eq 0 ]; then
     fi
     log_info ""
     log_info "➤ Open Voice OS has been successfully uninstalled."
-    if [ -f "$LOG_FILE" ]; then
-      rm -f "$LOG_FILE"
-    fi
-    if [ -f "$REBOOT_FILE_PATH" ]; then
-      rm -f "$REBOOT_FILE_PATH"
-      log_info ""
-      log_info "➤ Rebooting Raspberry Pi now..."
-      shutdown -r now
-    fi
+  fi
+
+  if ! reboot_if_requested; then
+    exit "${EXIT_FAILURE}"
+  fi
+
+  if [ -f "$LOG_FILE" ]; then
+    rm -f "$LOG_FILE"
   fi
 else
   debug_url="$(upload_logs)"
