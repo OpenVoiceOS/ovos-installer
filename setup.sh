@@ -55,8 +55,6 @@ if ! acquire_installer_lock; then
   exit "${EXIT_ALREADY_RUNNING}"
 fi
 
-clear_stale_reboot_request
-
 # Runtime cleanup is shared between normal exit and signal handling.
 trap cleanup_installer_runtime EXIT
 trap 'exit_with_signal_code 130' INT
@@ -76,6 +74,7 @@ fi
 set -eE
 trap on_error ERR
 detect_user
+clear_stale_reboot_request
 delete_log
 detect_existing_instance
 get_os_information

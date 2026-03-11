@@ -242,14 +242,17 @@ EOF
         shutdown() { return 1; }
         log_info() { :; }
         log_error() { printf "%s\n" "$*"; }
+        set +e
         reboot_if_requested
         status=$?
+        set -e
         test "$status" -eq 1
         test -e "$REBOOT_FILE_PATH"
+        rm -f "$REBOOT_FILE_PATH"
     ' _ \
         "$BATS_TEST_DIRNAME/../../utils/constants.sh" \
         "$BATS_TEST_DIRNAME/../../utils/common.sh"
-    assert_failure
+    assert_success
     assert_output --partial 'Leaving '
 }
 

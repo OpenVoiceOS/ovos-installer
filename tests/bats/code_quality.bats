@@ -2122,7 +2122,7 @@ function setup() {
     run grep -q '^function clear_stale_reboot_request()' "$common_file"
     assert_success
 
-    run bash -c "clear_line=\$(grep -n 'clear_stale_reboot_request$' '$setup_file' | head -n1 | cut -d: -f1); start_line=\$(grep -n 'log_info \"➤ Starting Ansible playbook' '$setup_file' | head -n1 | cut -d: -f1); [ -n \"\$clear_line\" ] && [ -n \"\$start_line\" ] && [ \"\$clear_line\" -lt \"\$start_line\" ]"
+    run bash -c "trap_line=\$(grep -n 'trap cleanup_installer_runtime EXIT' '$setup_file' | head -n1 | cut -d: -f1); detect_user_line=\$(grep -n '^detect_user$' '$setup_file' | head -n1 | cut -d: -f1); clear_line=\$(grep -n 'clear_stale_reboot_request$' '$setup_file' | head -n1 | cut -d: -f1); start_line=\$(grep -n 'log_info \"➤ Starting Ansible playbook' '$setup_file' | head -n1 | cut -d: -f1); [ -n \"\$trap_line\" ] && [ -n \"\$detect_user_line\" ] && [ -n \"\$clear_line\" ] && [ -n \"\$start_line\" ] && [ \"\$trap_line\" -lt \"\$clear_line\" ] && [ \"\$detect_user_line\" -lt \"\$clear_line\" ] && [ \"\$clear_line\" -lt \"\$start_line\" ]"
     assert_success
 }
 

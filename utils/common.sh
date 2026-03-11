@@ -134,7 +134,7 @@ function reboot_if_requested() {
     fi
 
     log_info ""
-    log_info "➤ Rebooting Raspberry Pi now..."
+    log_info "➤ Rebooting system now..."
     if shutdown -r now; then
         rm -f "$REBOOT_FILE_PATH"
         return 0
