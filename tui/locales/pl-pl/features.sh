@@ -7,7 +7,8 @@ Wybierz funkcje, które chcesz włączyć:
 TITLE="Instalacja Open Voice OS - Funkcje"
 SKILL_DESCRIPTION="Załaduj domyślne umiejętności OVOS"
 EXTRA_SKILL_DESCRIPTION="Załaduj dodatkowe umiejętności OVOS"
-HOMEASSISTANT_DESCRIPTION="Włącz integrację z Home Assistant (wymaga URL i tokenu)"
-LLM_DESCRIPTION="Włącz zapasowy tryb rozmowy AI dla OVOS Persona (konfiguracja krok po kroku dla URL, klucza, modelu, stylu i strojenia odpowiedzi)"
+GUI_DESCRIPTION="Włącz interfejs OVOS (Mark II/DevKit na Debianie Trixie)"
+HOMEASSISTANT_DESCRIPTION="Włącz integrację z Home Assistant"
+LLM_DESCRIPTION="Włącz tryb AI dla OVOS Persona (konfiguracja krok po kroku)"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION

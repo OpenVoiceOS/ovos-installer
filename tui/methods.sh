@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
 # shellcheck source=tui/locales/en-us/methods.sh
 source "tui/locales/$LOCALE/methods.sh"
 # shellcheck source=tui/hardware_state.sh
@@ -74,7 +76,9 @@ for method in "${available_methods[@]}"; do
   fi
 done
 
-METHOD=$(whiptail "${whiptail_args[@]}" 3>&1 1>&2 2>&3)
+if ! tui_whiptail_capture METHOD "${whiptail_args[@]}"; then
+  METHOD=""
+fi
 export METHOD
 
 if [ -z "$METHOD" ]; then

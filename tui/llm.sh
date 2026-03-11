@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# shellcheck source=tui/dialogs.sh
+source tui/dialogs.sh
 # shellcheck source=tui/locales/en-us/llm.sh
 _llm_locale_file="tui/locales/$LOCALE/llm.sh"
 if [ -f "$_llm_locale_file" ]; then
@@ -214,11 +216,9 @@ if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existi
   [ -n "$llm_existing_max_tokens" ] && [ -n "$llm_existing_temperature" ] && [ -n "$llm_existing_top_p" ]; then
   _llm_existing_prompt="${LLM_CONTENT_EXISTING//__URL__/$llm_existing_url}"
   _llm_existing_prompt="${_llm_existing_prompt//__MODEL__/$llm_existing_model}"
-  whiptail --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
-    --title "$LLM_TITLE_EXISTING" "$_llm_existing_prompt" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
-
-  exit_status=$?
-  if [ "$exit_status" -eq 0 ]; then
+  if tui_whiptail_dialog --yesno --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
+    --title "$LLM_TITLE_EXISTING" "$_llm_existing_prompt" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"; then
+    exit_status=0
     export FEATURE_LLM="true"
     export LLM_API_URL="$llm_existing_url"
     LLM_API_KEY="$llm_existing_key"
@@ -230,6 +230,8 @@ if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existi
     persist_llm_state
     restore_llm_xtrace
     return
+  else
+    exit_status=$?
   fi
   if [ "$exit_status" -eq 255 ]; then
     cancel_llm_setup
@@ -237,7 +239,7 @@ if [ -n "$llm_existing_url" ] && [ -n "$llm_existing_key" ] && [ -n "$llm_existi
   fi
 fi
 
-whiptail --msgbox --title "$LLM_TITLE_SETUP" "$LLM_CONTENT_HAVE_DETAILS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_SETUP" "$LLM_CONTENT_HAVE_DETAILS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
 
 llm_url_default=""
 if [ -n "$llm_existing_url" ]; then
@@ -300,18 +302,16 @@ if [ -z "$llm_top_p_default" ]; then
 fi
 
 while :; do
-  llm_url_input="$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
-    --title "$LLM_TITLE_URL" "$LLM_CONTENT_URL" 25 80 "$llm_url_default" 3>&1 1>&2 2>&3)"
-
-  exit_status=$?
-  if [ "$exit_status" -ne 0 ]; then
+  llm_url_input=""
+  if ! tui_whiptail_capture llm_url_input --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$LLM_TITLE_URL" "$LLM_CONTENT_URL" 25 80 "$llm_url_default"; then
     cancel_llm_setup
     return
   fi
 
   LLM_API_URL="$(normalize_llm_url "$llm_url_input")"
   if [ -z "$LLM_API_URL" ]; then
-    whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_URL" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_URL" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -327,10 +327,12 @@ while :; do
 ${LLM_CONTENT_KEY_KEEP_EXISTING}"
   fi
 
-  LLM_API_KEY="$(whiptail --passwordbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
-    --title "$LLM_TITLE_KEY" "$_llm_key_prompt" 25 80 3>&1 1>&2 2>&3)"
-
-  exit_status=$?
+  if tui_whiptail_capture LLM_API_KEY --passwordbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$LLM_TITLE_KEY" "$_llm_key_prompt" 25 80; then
+    exit_status=0
+  else
+    exit_status=$?
+  fi
   if [ "$exit_status" -eq 0 ] && [ -z "$LLM_API_KEY" ] && [ -n "$llm_existing_key" ]; then
     LLM_API_KEY="$llm_existing_key"
   fi
@@ -339,7 +341,7 @@ ${LLM_CONTENT_KEY_KEEP_EXISTING}"
     return
   fi
   if [ -z "$LLM_API_KEY" ]; then
-    whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -347,17 +349,14 @@ ${LLM_CONTENT_KEY_KEEP_EXISTING}"
 done
 
 while :; do
-  LLM_MODEL="$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
-    --title "$LLM_TITLE_MODEL" "$LLM_CONTENT_MODEL" 25 80 "$llm_model_default" 3>&1 1>&2 2>&3)"
-
-  exit_status=$?
-  if [ "$exit_status" -ne 0 ]; then
+  if ! tui_whiptail_capture LLM_MODEL --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$LLM_TITLE_MODEL" "$LLM_CONTENT_MODEL" 25 80 "$llm_model_default"; then
     cancel_llm_setup
     return
   fi
   LLM_MODEL="$(trim_llm_input "$LLM_MODEL")"
   if [ -z "$LLM_MODEL" ]; then
-    whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -367,17 +366,14 @@ while :; do
 done
 
 while :; do
-  LLM_PERSONA="$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
-    --title "$LLM_TITLE_PERSONA" "$LLM_CONTENT_PERSONA" 25 80 "$llm_persona_default" 3>&1 1>&2 2>&3)"
-
-  exit_status=$?
-  if [ "$exit_status" -ne 0 ]; then
+  if ! tui_whiptail_capture LLM_PERSONA --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$LLM_TITLE_PERSONA" "$LLM_CONTENT_PERSONA" 25 80 "$llm_persona_default"; then
     cancel_llm_setup
     return
   fi
   LLM_PERSONA="$(trim_llm_input "$LLM_PERSONA")"
   if [ -z "$LLM_PERSONA" ]; then
-    whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_MISSING_INFO" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -386,18 +382,16 @@ while :; do
 done
 
 while :; do
-  llm_max_tokens_input="$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
-    --title "$LLM_TITLE_MAX_TOKENS" "$LLM_CONTENT_MAX_TOKENS" 25 80 "$llm_max_tokens_default" 3>&1 1>&2 2>&3)"
-
-  exit_status=$?
-  if [ "$exit_status" -ne 0 ]; then
+  llm_max_tokens_input=""
+  if ! tui_whiptail_capture llm_max_tokens_input --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$LLM_TITLE_MAX_TOKENS" "$LLM_CONTENT_MAX_TOKENS" 25 80 "$llm_max_tokens_default"; then
     cancel_llm_setup
     return
   fi
 
   LLM_MAX_TOKENS="$(normalize_llm_positive_int "$llm_max_tokens_input")"
   if [ -z "$LLM_MAX_TOKENS" ]; then
-    whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_MAX_TOKENS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_MAX_TOKENS" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -407,18 +401,16 @@ while :; do
 done
 
 while :; do
-  llm_temperature_input="$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
-    --title "$LLM_TITLE_TEMPERATURE" "$LLM_CONTENT_TEMPERATURE" 25 80 "$llm_temperature_default" 3>&1 1>&2 2>&3)"
-
-  exit_status=$?
-  if [ "$exit_status" -ne 0 ]; then
+  llm_temperature_input=""
+  if ! tui_whiptail_capture llm_temperature_input --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$LLM_TITLE_TEMPERATURE" "$LLM_CONTENT_TEMPERATURE" 25 80 "$llm_temperature_default"; then
     cancel_llm_setup
     return
   fi
 
   LLM_TEMPERATURE="$(normalize_llm_decimal_in_range "$llm_temperature_input" "0" "2")"
   if [ -z "$LLM_TEMPERATURE" ]; then
-    whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_TEMPERATURE" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_TEMPERATURE" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 
@@ -428,18 +420,16 @@ while :; do
 done
 
 while :; do
-  llm_top_p_input="$(whiptail --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
-    --title "$LLM_TITLE_TOP_P" "$LLM_CONTENT_TOP_P" 25 80 "$llm_top_p_default" 3>&1 1>&2 2>&3)"
-
-  exit_status=$?
-  if [ "$exit_status" -ne 0 ]; then
+  llm_top_p_input=""
+  if ! tui_whiptail_capture llm_top_p_input --inputbox --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
+    --title "$LLM_TITLE_TOP_P" "$LLM_CONTENT_TOP_P" 25 80 "$llm_top_p_default"; then
     cancel_llm_setup
     return
   fi
 
   LLM_TOP_P="$(normalize_llm_decimal_in_range "$llm_top_p_input" "0" "1")"
   if [ -z "$LLM_TOP_P" ]; then
-    whiptail --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_TOP_P" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+    tui_whiptail_dialog_allow_escape --msgbox --title "$LLM_TITLE_INVALID" "$LLM_CONTENT_INVALID_TOP_P" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
     continue
   fi
 

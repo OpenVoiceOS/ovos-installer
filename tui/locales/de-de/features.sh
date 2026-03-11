@@ -7,7 +7,8 @@ Bitte wählen Sie die zu aktivierenden Funktionen aus:
 TITLE="Open Voice OS Funktionsauswahl"
 SKILL_DESCRIPTION="Laden Sie eine Auswahl an OVOS skills"
 EXTRA_SKILL_DESCRIPTION="Laden Sie zusätzliche OVOS-Skills"
-HOMEASSISTANT_DESCRIPTION="Home-Assistant-Integration aktivieren (benötigt URL und Token)"
-LLM_DESCRIPTION="KI-Gesprächsfallback für OVOS Persona aktivieren (geführte Einrichtung für URL, Schlüssel, Modell, Stil und Antwortabstimmung)"
+GUI_DESCRIPTION="OVOS-GUI aktivieren (Mark II/DevKit auf Debian Trixie)"
+HOMEASSISTANT_DESCRIPTION="Home-Assistant-Integration aktivieren"
+LLM_DESCRIPTION="KI-Fallback für OVOS Persona aktivieren (geführte Einrichtung)"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION

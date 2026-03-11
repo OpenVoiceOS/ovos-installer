@@ -1706,6 +1706,24 @@ function enforce_mark2_devkit_gui_support() {
     fi
 }
 
+# Normalize the requested GUI feature against the current host and install mode
+# so stale state or env/scenario overrides do not trip the later Ansible assert.
+function normalize_feature_gui_support() {
+    if [ "${FEATURE_GUI:-false}" != "true" ]; then
+        export FEATURE_GUI="false"
+        return 0
+    fi
+
+    if [ "${METHOD:-virtualenv}" != "virtualenv" ] || \
+        [ "${PROFILE:-ovos}" == "server" ] || \
+        [ "${PROFILE:-ovos}" == "satellite" ] || \
+        ! is_debian_trixie || \
+        ! is_mark2_or_devkit_detected; then
+        echo "GUI support is only available on Debian Trixie Mark II/DevKit virtualenv installs. Forcing FEATURE_GUI=false." | tee -a "$LOG_FILE"
+        export FEATURE_GUI="false"
+    fi
+}
+
 # Normalize display server for Mark II/DevKit headless setups.
 # When no compositor is detected, report eglfs before running the playbook.
 function enforce_mark2_devkit_display_server() {
