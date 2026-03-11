@@ -1621,6 +1621,9 @@ function setup() {
     run bash -c "grep -A5 -F -- \"- name: Ensure UART is enabled for SJ201 initialization\" \"$vocalfusion_file\" | grep -q -- \"notify: Set Reboot\""
     assert_success
 
+    run bash -c "grep -A8 -F -- \"- name: Create modules-load config for vocalfusion\" \"$vocalfusion_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
     run bash -c "grep -A8 -F -- \"- name: Remove Mark 2 boot config lines\" \"$uninstall_file\" | grep -q -- \"notify: Set Reboot\""
     assert_success
 
@@ -2158,6 +2161,34 @@ function setup() {
     local file="setup.sh"
 
     run grep -F -q 'rm -rf "${RUN_AS_HOME}/.local/state/ovos"' "$file"
+    assert_success
+}
+
+@test "setup_resets_previous_run_reboot_request_before_running_ansible" {
+    local setup_file="setup.sh"
+    local common_file="utils/common.sh"
+
+    run grep -q '^function reset_reboot_request_for_current_run()' "$common_file"
+    assert_success
+
+    run bash -c "trap_line=\$(grep -n 'trap cleanup_installer_runtime EXIT' '$setup_file' | head -n1 | cut -d: -f1); detect_user_line=\$(grep -n '^detect_user$' '$setup_file' | head -n1 | cut -d: -f1); clear_line=\$(grep -n 'reset_reboot_request_for_current_run$' '$setup_file' | head -n1 | cut -d: -f1); start_line=\$(grep -n 'log_info \"➤ Starting Ansible playbook' '$setup_file' | head -n1 | cut -d: -f1); [ -n \"\$trap_line\" ] && [ -n \"\$detect_user_line\" ] && [ -n \"\$clear_line\" ] && [ -n \"\$start_line\" ] && [ \"\$trap_line\" -lt \"\$clear_line\" ] && [ \"\$detect_user_line\" -lt \"\$clear_line\" ] && [ \"\$clear_line\" -lt \"\$start_line\" ]"
+    assert_success
+}
+
+@test "setup_uses_shared_reboot_helper_for_successful_runs" {
+    local setup_file="setup.sh"
+    local common_file="utils/common.sh"
+
+    run grep -q '^function reboot_if_requested()' "$common_file"
+    assert_success
+
+    run grep -F -q 'if ! reboot_if_requested; then' "$setup_file"
+    assert_success
+
+    run bash -c "[ \"\$(grep -c 'shutdown -r now' '$common_file')\" -eq 1 ]"
+    assert_success
+
+    run grep -F -q 'Leaving $REBOOT_FILE_PATH in place.' "$common_file"
     assert_success
 }
 

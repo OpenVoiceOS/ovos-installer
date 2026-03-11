@@ -86,6 +86,7 @@
     owner: root
     group: root
     mode: "0644"
+  notify: Set Reboot
 
 - name: Create sj201 Python virtualenv
   moreati.uv.pip:

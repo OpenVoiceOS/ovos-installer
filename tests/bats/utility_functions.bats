@@ -190,6 +190,72 @@ EOF
     assert_output $'red\nplain'
 }
 
+@test "function_reset_reboot_request_for_current_run_removes_existing_flag" {
+    run bash -c '
+        source "$1"
+        source "$2"
+        REBOOT_FILE_PATH="$(mktemp)"
+        reset_reboot_request_for_current_run
+        test ! -e "$REBOOT_FILE_PATH"
+    ' _ \
+        "$BATS_TEST_DIRNAME/../../utils/constants.sh" \
+        "$BATS_TEST_DIRNAME/../../utils/common.sh"
+    assert_success
+}
+
+@test "function_reboot_if_requested_returns_success_without_flag" {
+    run bash -c '
+        source "$1"
+        source "$2"
+        REBOOT_FILE_PATH="/tmp/ovos-reboot-missing.$$"
+        shutdown() { return 99; }
+        log_info() { :; }
+        log_error() { :; }
+        reboot_if_requested
+    ' _ \
+        "$BATS_TEST_DIRNAME/../../utils/constants.sh" \
+        "$BATS_TEST_DIRNAME/../../utils/common.sh"
+    assert_success
+}
+
+@test "function_reboot_if_requested_clears_flag_after_successful_shutdown" {
+    run bash -c '
+        source "$1"
+        source "$2"
+        REBOOT_FILE_PATH="$(mktemp)"
+        shutdown() { return 0; }
+        log_info() { :; }
+        log_error() { :; }
+        reboot_if_requested
+        test ! -e "$REBOOT_FILE_PATH"
+    ' _ \
+        "$BATS_TEST_DIRNAME/../../utils/constants.sh" \
+        "$BATS_TEST_DIRNAME/../../utils/common.sh"
+    assert_success
+}
+
+@test "function_reboot_if_requested_keeps_flag_when_shutdown_fails" {
+    run bash -c '
+        source "$1"
+        source "$2"
+        REBOOT_FILE_PATH="$(mktemp)"
+        shutdown() { return 1; }
+        log_info() { :; }
+        log_error() { printf "%s\n" "$*"; }
+        set +e
+        reboot_if_requested
+        status=$?
+        set -e
+        test "$status" -eq 1
+        test -e "$REBOOT_FILE_PATH"
+        rm -f "$REBOOT_FILE_PATH"
+    ' _ \
+        "$BATS_TEST_DIRNAME/../../utils/constants.sh" \
+        "$BATS_TEST_DIRNAME/../../utils/common.sh"
+    assert_success
+    assert_output --partial 'Leaving '
+}
+
 # Test local variable usage
 @test "function_detect_sound_local_variables" {
     # Set required environment variables
