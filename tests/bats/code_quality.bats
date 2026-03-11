@@ -1301,6 +1301,15 @@ function setup() {
 
     run bash -c "grep -A8 -F -- \"- name: Remove tracked kernel headers package\" \"$uninstall_file\" | grep -F -q -- \"autoremove: true\""
     assert_success
+
+    run grep -F -q "Remove Mark 2 boot config lines" "$uninstall_file"
+    assert_success
+
+    run grep -F -q "Remove copied Mark 2 boot overlay files" "$uninstall_file"
+    assert_success
+
+    run grep -F -q "Remove Mark 2 runtime artifacts" "$uninstall_file"
+    assert_success
 }
 
 @test "uninstall_package_removals_request_dependency_cleanup_across_distros" {
@@ -1589,8 +1598,10 @@ function setup() {
 }
 
 @test "mark2_boot_config_changes_flag_reboot" {
+    local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
     local touchscreen_file="ansible/roles/ovos_hardware_mark2/tasks/touchscreen.yml"
     local vocalfusion_file="ansible/roles/ovos_hardware_mark2/tasks/vocalfusion.yml"
+    local uninstall_file="ansible/roles/ovos_hardware_mark2/tasks/uninstall.yml"
 
     run bash -c "grep -A5 -F -- \"- name: Add rpi-backlight DT overlay\" \"$touchscreen_file\" | grep -q -- \"notify: Set Reboot\""
     assert_success
@@ -1602,6 +1613,44 @@ function setup() {
     assert_success
 
     run bash -c "grep -A10 -F -- \"- name: Manage sj201, buttons and PWM overlays\" \"$vocalfusion_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run grep -F -q 'ovos_hardware_mark2_enable_uart_line: "enable_uart=1"' "$defaults_file"
+    assert_success
+
+    run bash -c "grep -A5 -F -- \"- name: Ensure UART is enabled for SJ201 initialization\" \"$vocalfusion_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Remove Mark 2 boot config lines\" \"$uninstall_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Remove copied Mark 2 boot overlay files\" \"$uninstall_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
+}
+
+@test "mark2_uninstall_removes_boot_config_and_runtime_artifacts" {
+    local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
+    local uninstall_file="ansible/roles/ovos_hardware_mark2/tasks/uninstall.yml"
+
+    run grep -F -q 'ovos_hardware_mark2_enable_uart_line: "enable_uart=1"' "$defaults_file"
+    assert_success
+
+    run grep -F -q 'dtoverlay=rpi-backlight' "$defaults_file"
+    assert_success
+
+    run grep -F -q 'dtoverlay=vc4-fkms-v3d' "$defaults_file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Stop and disable SJ201 systemd unit\" \"$uninstall_file\" | grep -F -q -- 'scope: user'"
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove Mark 2 boot config lines\" \"$uninstall_file\" | grep -F -q -- 'ovos_hardware_mark2_boot_config_cleanup_lines'"
+    assert_success
+
+    run bash -c "grep -A5 -F -- \"- name: Remove copied Mark 2 boot overlay files\" \"$uninstall_file\" | grep -F -q -- 'ovos_hardware_mark2_overlay_cleanup_paths'"
+    assert_success
+
+    run bash -c "grep -A10 -F -- \"- name: Remove Mark 2 runtime artifacts\" \"$uninstall_file\" | grep -F -q -- 'ovos_hardware_mark2_uninstall_paths'"
     assert_success
 }
 

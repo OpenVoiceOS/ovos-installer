@@ -31,3 +31,39 @@
     - ansible_facts.os_family == "Debian"
     - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or ovos_hardware_mark2_kernel_headers_uninstall_result is not ansible.builtin.failed
+
+- name: Stop and disable SJ201 systemd unit
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_hardware_mark2_sj201_unit_name }}"
+    enabled: false
+    state: stopped
+    scope: user
+    daemon_reload: true
+  environment: "{{ ovos_hardware_mark2_user_bus_environment }}"
+  failed_when: false
+
+- name: Remove Mark 2 boot config lines
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_hardware_mark2_boot_config_path }}"
+    regexp: "^{{ item | regex_escape() }}$"
+    state: absent
+  loop: "{{ ovos_hardware_mark2_boot_config_cleanup_lines }}"
+  notify: Set Reboot
+
+- name: Remove copied Mark 2 boot overlay files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ ovos_hardware_mark2_overlay_cleanup_paths }}"
+  notify: Set Reboot
+
+- name: Remove Mark 2 runtime artifacts
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: "{{ ovos_hardware_mark2_uninstall_paths }}"
+  notify:
+    - Run Depmod
+    - Set Reboot

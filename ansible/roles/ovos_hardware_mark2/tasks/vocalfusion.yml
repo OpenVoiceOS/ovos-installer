@@ -54,6 +54,13 @@
   loop: "{{ ovos_hardware_mark2_vocalfusion_dtbo_overlays | map('regex_replace', '^', 'dtoverlay=') | list }}"
   notify: Set Reboot
 
+- name: Ensure UART is enabled for SJ201 initialization
+  ansible.builtin.lineinfile:
+    path: "{{ ovos_hardware_mark2_boot_config_path }}"
+    regexp: "^enable_uart="
+    line: "{{ ovos_hardware_mark2_enable_uart_line }}"
+  notify: Set Reboot
+
 - name: Build vocalfusion-soundcard.ko kernel module
   ansible.builtin.shell:
     cmd: "{{ ovos_hardware_mark2_vocalfusion_make_cmd }}"
