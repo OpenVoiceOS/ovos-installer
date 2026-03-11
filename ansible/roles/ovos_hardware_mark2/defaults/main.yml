@@ -45,6 +45,7 @@ ovos_hardware_mark2_sj201_flash_tool: xvf3510-flash
 ovos_hardware_mark2_sj201_firmware_image: app_xvf3510_int_spi_boot_v4_2_0.bin
 ovos_hardware_mark2_sj201_post_init_script: init_tas5806
 ovos_hardware_mark2_sj201_runtime_path: /usr/local/bin:/usr/sbin:/usr/bin:/bin
+ovos_hardware_mark2_enable_uart_line: "enable_uart=1"
 ovos_hardware_mark2_vocalfusion_dtbo_overlays:
   - sj201
   - sj201-buttons-overlay
@@ -54,6 +55,10 @@ ovos_hardware_mark2_pi5_model_match: "Raspberry Pi 5"
 ovos_hardware_mark2_modules_load_path: /etc/modules-load.d/vocalfusion.conf
 ovos_hardware_mark2_modules_load_content: |
   {{ ovos_hardware_mark2_vocalfusion_module_name }}
+ovos_hardware_mark2_user_runtime_dir: "/run/user/{{ ovos_installer_uid }}"
+ovos_hardware_mark2_user_bus_environment:
+  XDG_RUNTIME_DIR: "{{ ovos_hardware_mark2_user_runtime_dir }}"
+  DBUS_SESSION_BUS_ADDRESS: "unix:path={{ ovos_hardware_mark2_user_runtime_dir }}/bus"
 ovos_hardware_mark2_sj201_venv_path: "{{ ovos_installer_user_home }}/.venvs/sj201"
 ovos_hardware_mark2_sj201_venv_command: "{{ ansible_facts.python.executable }} -m venv"
 ovos_hardware_mark2_sj201_venv_packages:
@@ -89,5 +94,41 @@ ovos_hardware_mark2_backlight_overlay: "dtoverlay=rpi-backlight"
 ovos_hardware_mark2_touchscreen_overlays:
   - { overlay: "dtoverlay=vc4-kms-v3d", state: "absent" }
   - { overlay: "dtoverlay=vc4-fkms-v3d", state: "present" }
+ovos_hardware_mark2_touchscreen_present_overlays:
+  - "dtoverlay=vc4-fkms-v3d"
+ovos_hardware_mark2_boot_config_cleanup_lines: >-
+  {{
+    [ovos_hardware_mark2_enable_uart_line, ovos_hardware_mark2_backlight_overlay]
+    + ovos_hardware_mark2_touchscreen_present_overlays
+    + (ovos_hardware_mark2_vocalfusion_dtbo_overlays | map('regex_replace', '^', 'dtoverlay=') | list)
+    + (
+      ovos_hardware_mark2_vocalfusion_dtbo_overlays
+      | map('regex_replace', '^', 'dtoverlay=')
+      | map('regex_replace', '$', ovos_hardware_mark2_pi5_suffix)
+      | list
+    )
+  }}
+ovos_hardware_mark2_overlay_cleanup_paths: >-
+  {{
+    (
+      ovos_hardware_mark2_vocalfusion_dtbo_overlays
+      | map('regex_replace', '$', '.dtbo')
+      | list
+    )
+    + (
+      ovos_hardware_mark2_vocalfusion_dtbo_overlays
+      | map('regex_replace', '$', ovos_hardware_mark2_pi5_suffix ~ '.dtbo')
+      | list
+    )
+    | map('regex_replace', '^(.*)$', ovos_hardware_mark2_boot_overlays_dir ~ '/\\1')
+    | list
+  }}
+ovos_hardware_mark2_uninstall_paths:
+  - "{{ ovos_hardware_mark2_working_dir }}"
+  - "{{ ovos_hardware_mark2_sj201_venv_path }}"
+  - "{{ ovos_hardware_mark2_sj201_unit_path }}"
+  - "{{ ovos_hardware_mark2_wireplumber_conf_dir }}/{{ ovos_hardware_mark2_wireplumber_profile_conf_src }}"
+  - "{{ ovos_hardware_mark2_modules_load_path }}"
+  - "{{ ovos_hardware_mark2_vocalfusion_module_path }}"
 ovos_hardware_mark2_wireplumber_profile_conf_src: 90-sj201-profile.conf
 ovos_hardware_mark2_wireplumber_profile_conf_mode: "0644"
