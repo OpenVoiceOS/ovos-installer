@@ -297,7 +297,7 @@ function setup() {
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
     local site_file="ansible/site.yml"
 
-    run grep -F -q "ovos_installer_raspberry_pi_4_regex: '(^|\\\\s)Raspberry\\\\s+Pi\\\\s+4([^0-9]|$)'" "$site_file"
+    run grep -E -q 'ovos_installer_raspberry_pi_4_regex: ["'"'"']\(\^\|\\\\s\)Raspberry\\\\s\+Pi\\\\s\+4\(\[\^0-9\]\|\$\)["'"'"']' "$site_file"
     assert_success
 
     run grep -F -q "{% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}" "$core_file"
@@ -2496,6 +2496,22 @@ function setup() {
     assert_success
 
     run grep -F -q 'log_error "Failed to write Ansible output to $LOG_FILE."' setup.sh
+    assert_success
+}
+
+@test "setup_normalizes_gui_support_before_ansible" {
+    run grep -F -q "normalize_feature_gui_support" setup.sh
+    assert_success
+
+    run bash -c 'normalize_line=$(grep -n "normalize_feature_gui_support" setup.sh | head -1 | cut -d: -f1); ansible_line=$(grep -n "ansible_command=(" setup.sh | head -1 | cut -d: -f1); [ -n "$normalize_line" ] && [ -n "$ansible_line" ] && [ "$normalize_line" -lt "$ansible_line" ]'
+    assert_success
+
+    run grep -F -q 'ovos_installer_feature_gui=${FEATURE_GUI}' setup.sh
+    assert_success
+}
+
+@test "ansible_pi4_regex_matches_mark2_model_string" {
+    run grep -F -q 'ovos_installer_raspberry_pi_4_regex: "(^|\\s)Raspberry\\s+Pi\\s+4([^0-9]|$)"' ansible/site.yml
     assert_success
 }
 

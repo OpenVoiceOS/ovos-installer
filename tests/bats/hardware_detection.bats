@@ -651,6 +651,34 @@ EOF
     assert_equal "$FEATURE_GUI" "false"
 }
 
+@test "function_normalize_feature_gui_support_disables_generic_gui_override" {
+    DETECTED_DEVICES=()
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    METHOD="virtualenv"
+    PROFILE="ovos"
+    FEATURE_GUI="true"
+
+    normalize_feature_gui_support
+    assert_equal "$FEATURE_GUI" "false"
+}
+
+@test "function_normalize_feature_gui_support_preserves_supported_mark2_gui" {
+    DETECTED_DEVICES=("tas5806")
+    RASPBERRYPI_MODEL="Raspberry Pi 4"
+    DISTRO_NAME="debian"
+    DISTRO_VERSION_ID="13"
+    DISTRO_VERSION="Debian GNU/Linux 13 (trixie)"
+    METHOD="virtualenv"
+    PROFILE="ovos"
+    FEATURE_GUI="true"
+
+    normalize_feature_gui_support
+    assert_equal "$FEATURE_GUI" "true"
+}
+
 @test "function_enforce_mark2_devkit_display_server_sets_eglfs_for_headless" {
     DETECTED_DEVICES=("tas5806")
     RASPBERRYPI_MODEL="Raspberry Pi 4"
