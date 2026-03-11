@@ -1603,6 +1603,9 @@ function setup() {
 
     run bash -c "grep -A10 -F -- \"- name: Manage sj201, buttons and PWM overlays\" \"$vocalfusion_file\" | grep -q -- \"notify: Set Reboot\""
     assert_success
+
+    run bash -c "grep -A8 -F -- \"- name: Create modules-load config for vocalfusion\" \"$vocalfusion_file\" | grep -q -- \"notify: Set Reboot\""
+    assert_success
 }
 
 @test "mark2_sj201_service_includes_sbin_in_runtime_path" {
@@ -2102,6 +2105,34 @@ function setup() {
     assert_success
 
     run grep -q 'export SHARE_USAGE_TELEMETRY="false"' "$file"
+    assert_success
+}
+
+@test "setup_clears_stale_reboot_request_before_running_ansible" {
+    local setup_file="setup.sh"
+    local common_file="utils/common.sh"
+
+    run grep -q '^function clear_stale_reboot_request()' "$common_file"
+    assert_success
+
+    run bash -c "clear_line=\$(grep -n 'clear_stale_reboot_request$' '$setup_file' | head -n1 | cut -d: -f1); start_line=\$(grep -n 'log_info \"➤ Starting Ansible playbook' '$setup_file' | head -n1 | cut -d: -f1); [ -n \"\$clear_line\" ] && [ -n \"\$start_line\" ] && [ \"\$clear_line\" -lt \"\$start_line\" ]"
+    assert_success
+}
+
+@test "setup_uses_shared_reboot_helper_for_successful_runs" {
+    local setup_file="setup.sh"
+    local common_file="utils/common.sh"
+
+    run grep -q '^function reboot_if_requested()' "$common_file"
+    assert_success
+
+    run grep -F -q 'if ! reboot_if_requested; then' "$setup_file"
+    assert_success
+
+    run bash -c "[ \"\$(grep -c 'shutdown -r now' '$common_file')\" -eq 1 ]"
+    assert_success
+
+    run grep -F -q 'Leaving $REBOOT_FILE_PATH in place.' "$common_file"
     assert_success
 }
 
