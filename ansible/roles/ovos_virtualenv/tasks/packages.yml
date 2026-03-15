@@ -230,7 +230,7 @@
 - name: Handle fann package from AUR (Arch based only)
   become_user: "{{ ovos_installer_user }}"
   kewlfft.aur.aur:
-    name: "{{ ovos_virtualenv_packages_arch_aur_packages }}"
+    name: "{{ ovos_virtualenv_packages_arch_aur | default([]) }}"
     use: makepkg
   register: ovos_virtualenv_aur_package_install_result
   when: ansible_facts.os_family == "Archlinux"
