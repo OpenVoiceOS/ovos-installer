@@ -2020,6 +2020,27 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_requirements_explicitly_install_configured_vad_plugins" {
+    local core_file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+    local satellite_file="ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2"
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run grep -F -q 'ovos-vad-plugin-silero' "$core_file"
+    assert_success
+
+    run grep -F -q 'ovos-vad-plugin-webrtcvad' "$core_file"
+    assert_success
+
+    run grep -F -q 'ovos-vad-plugin-silero' "$satellite_file"
+    assert_success
+
+    run grep -F -q 'ovos-vad-plugin-webrtcvad' "$satellite_file"
+    assert_success
+
+    run grep -F -q '"module": "{{ '\''ovos-vad-plugin-silero'\'' if (ovos_installer_cpu_is_capable | default(false)) | bool else '\''ovos-vad-plugin-webrtcvad'\'' }}"' "$conf_file"
+    assert_success
+}
+
 @test "installer_detects_and_passes_hardware_model" {
     run grep -q "detect_hardware_model" setup.sh
     assert_success
