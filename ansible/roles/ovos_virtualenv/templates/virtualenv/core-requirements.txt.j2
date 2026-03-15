@@ -4,6 +4,13 @@
 ovos-audio[extras]
 ovos-core[lgpl,plugins]
 ovos-dinkum-listener[{{ 'extras' if ansible_facts.system == 'Darwin' else 'extras,linux' }}]
+# Keep configured VAD selection and Linux fallback installed explicitly.
+{% if (ovos_installer_cpu_is_capable | default(false)) | bool %}
+ovos-vad-plugin-silero
+{% endif %}
+{% if ansible_facts.system != 'Darwin' %}
+ovos-vad-plugin-webrtcvad
+{% endif %}
 {% if ansible_facts.system == 'Darwin' or _ovos_is_mark2_family %}
 ovos-microphone-plugin-sounddevice
 {% endif %}
