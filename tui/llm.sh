@@ -175,7 +175,9 @@ persist_llm_state() {
 export FEATURE_LLM="false"
 export LLM_API_URL="${LLM_API_URL:-}"
 export LLM_MODEL="${LLM_MODEL:-}"
-export LLM_PERSONA="$(normalize_llm_persona_default "${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}")"
+LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"
+LLM_PERSONA="$(normalize_llm_persona_default "$LLM_PERSONA")"
+export LLM_PERSONA
 export LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-$LLM_DEFAULT_MAX_TOKENS}"
 export LLM_TEMPERATURE="${LLM_TEMPERATURE:-$LLM_DEFAULT_TEMPERATURE}"
 export LLM_TOP_P="${LLM_TOP_P:-$LLM_DEFAULT_TOP_P}"
