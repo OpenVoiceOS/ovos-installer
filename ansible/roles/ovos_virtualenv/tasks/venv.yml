@@ -416,16 +416,7 @@
   changed_when: false
   when: ovos_installer_profile == "satellite"
 
-- name: Check for existing mycroft.conf
-  ansible.builtin.stat:
-    path: >-
-      {{ ovos_installer_user_home }}/{{ '.config/mycroft' if ovos_installer_method == 'virtualenv' else 'ovos/config' }}/mycroft.conf
-  register: ovos_virtualenv_mycroft_conf
-  changed_when: false
-
-- name: Run ovos-config for auto-configuration of STT and TTS based on language
-  vars:
-    _ovos_config_tts_gender: "{{ '--female' if ovos_installer_locale in ['eu-ES', 'gl-ES'] else '--male' }}"
+- name: Merge ovos-config language recommendations into mycroft.conf
   become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.command:
@@ -434,12 +425,10 @@
       - autoconfigure
       - --lang
       - "{{ ovos_installer_locale }}"
-      - "{{ _ovos_config_tts_gender }}"
+      - "{{ ovos_installer_ovos_config_tts_gender }}"
   environment:
     PATH: "{{ ovos_virtualenv_path }}/bin"
     VIRTUAL_ENV: "{{ ovos_virtualenv_path }}"
   changed_when: false
   when:
-    - ovos_installer_profile != "server"
-    - ovos_virtualenv_run_ovos_config | bool
-    - not (ovos_virtualenv_mycroft_conf.stat.exists | default(false))
+    - ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool

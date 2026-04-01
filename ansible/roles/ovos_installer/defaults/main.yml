@@ -149,6 +149,27 @@ ovos_installer_llm_persona_name: "OVOS Installer LLM"
 ovos_installer_usage_telemetry: false
 ovos_installer_telemetry: "{{ ovos_installer_usage_telemetry | bool }}"
 ovos_installer_run_ovos_config: false
+ovos_installer_ovos_config_autoconfigure_enabled: >-
+  {{
+    (ovos_installer_profile | default('ovos')) != 'server'
+    and (
+      (ovos_installer_method | default('virtualenv')) == 'containers'
+      or (
+        (ovos_installer_method | default('virtualenv')) == 'virtualenv'
+        and (
+          ovos_installer_run_ovos_config
+          | default(ovos_virtualenv_run_ovos_config | default(false))
+          | bool
+        )
+      )
+    )
+  }}
+ovos_installer_ovos_config_tts_gender: >-
+  {{
+    '--female'
+    if (ovos_installer_locale | default('') | lower) in ['eu-es', 'gl-es']
+    else '--male'
+  }}
 ovos_installer_geoip_enabled: false
 ovos_installer_geoip_url: "https://ipapi.co/json/"
 ovos_installer_mark2_network_tests_ip_url: "https://ifconfig.me/ip"

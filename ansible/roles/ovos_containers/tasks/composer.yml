@@ -60,15 +60,17 @@
     - not ansible_check_mode
     - ovos_installer_profile == "satellite"
 
-- name: Run ovos-config for auto-configuration of STT and TTS based on language
+- name: Merge ovos-config language recommendations into mounted config
   become: true
   become_user: "{{ ovos_installer_user }}"
   community.docker.docker_container_exec:
     container: "{{ ovos_containers_container_ovos_cli }}"
-    command: ovos-config autoconfigure --lang {{ ovos_installer_locale }} --male --online
+    command: >-
+      ovos-config autoconfigure --lang {{ ovos_installer_locale }}
+      {{ ovos_installer_ovos_config_tts_gender }} --online
   when:
     - not ansible_check_mode
-    - ovos_installer_profile != "server"
+    - ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool
 
 - name: Compute optional skills flags
   vars:
