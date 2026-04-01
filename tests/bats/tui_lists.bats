@@ -882,6 +882,35 @@ function dialog_value() {
     assert_equal "$(dialog_value inputbox "$LLM_TITLE_TOP_P" default)" "0.7"
 }
 
+@test "llm: localized default persona overrides english bootstrap fallback" {
+    # shellcheck source=utils/llm_defaults.sh
+    source utils/llm_defaults.sh
+    local english_default_persona="$LLM_DEFAULT_PERSONA"
+
+    LOCALE="it-it"
+    METHOD="virtualenv"
+    LLM_API_URL="https://llama.smartgic.io/v1"
+    LLM_API_KEY=""
+    LLM_MODEL="qwen3-nothink:latest"
+    LLM_PERSONA="$english_default_persona"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "sk-preseeded"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+    queue_whiptail_response "__DEFAULT__"
+
+    # shellcheck source=tui/llm.sh
+    source tui/llm.sh
+
+    assert_equal "$FEATURE_LLM" "true"
+    assert_equal "$LLM_TITLE_PERSONA" "Installazione di Open Voice OS - Stile dell'assistente LLM"
+    assert_equal "$LLM_PERSONA" "$LLM_DEFAULT_PERSONA"
+    [[ "$LLM_PERSONA" != "$english_default_persona" ]]
+    assert_equal "$(dialog_value inputbox "$LLM_TITLE_PERSONA" default)" "$LLM_DEFAULT_PERSONA"
+}
+
 @test "llm: keeping an existing persona profile also restores tuning values" {
     mkdir -p "$RUN_AS_HOME/.config/ovos_persona"
     cat <<'EOF' >"$RUN_AS_HOME/.config/ovos_persona/ovos-installer-llm.json"

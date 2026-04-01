@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # shellcheck source=tui/dialogs.sh
 source tui/dialogs.sh
+# shellcheck source=utils/llm_defaults.sh
+source "utils/llm_defaults.sh"
+_llm_bootstrap_default_persona="$LLM_DEFAULT_PERSONA"
 # shellcheck source=tui/locales/en-us/llm.sh
 _llm_locale_file="tui/locales/$LOCALE/llm.sh"
 if [ -f "$_llm_locale_file" ]; then
@@ -8,8 +11,6 @@ if [ -f "$_llm_locale_file" ]; then
 else
   source "tui/locales/en-us/llm.sh"
 fi
-# shellcheck source=utils/llm_defaults.sh
-source "utils/llm_defaults.sh"
 
 : "${LLM_TITLE_SETUP:=Open Voice OS Installation - LLM}"
 : "${LLM_TITLE_EXISTING:=Open Voice OS Installation - Existing LLM Settings}"
@@ -68,6 +69,17 @@ trim_llm_input() {
   llm_value="${llm_value#"${llm_value%%[![:space:]]*}"}"
   llm_value="${llm_value%"${llm_value##*[![:space:]]}"}"
   printf '%s' "$llm_value"
+}
+
+normalize_llm_persona_default() {
+  local llm_value="$1"
+
+  if [ -n "$llm_value" ] && [ "$llm_value" = "$_llm_bootstrap_default_persona" ] && \
+    [ "$LLM_DEFAULT_PERSONA" != "$_llm_bootstrap_default_persona" ]; then
+    printf '%s' "$LLM_DEFAULT_PERSONA"
+  else
+    printf '%s' "$llm_value"
+  fi
 }
 
 normalize_llm_url() {
@@ -163,7 +175,9 @@ persist_llm_state() {
 export FEATURE_LLM="false"
 export LLM_API_URL="${LLM_API_URL:-}"
 export LLM_MODEL="${LLM_MODEL:-}"
-export LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"
+LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"
+LLM_PERSONA="$(normalize_llm_persona_default "$LLM_PERSONA")"
+export LLM_PERSONA
 export LLM_MAX_TOKENS="${LLM_MAX_TOKENS:-$LLM_DEFAULT_MAX_TOKENS}"
 export LLM_TEMPERATURE="${LLM_TEMPERATURE:-$LLM_DEFAULT_TEMPERATURE}"
 export LLM_TOP_P="${LLM_TOP_P:-$LLM_DEFAULT_TOP_P}"
@@ -256,6 +270,7 @@ if [ -n "$llm_existing_persona" ]; then
   llm_persona_default="$llm_existing_persona"
 elif [ -f "$INSTALLER_STATE_FILE" ]; then
   llm_persona_default="$(jq -r '.llm.persona // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE" || true)"
+  llm_persona_default="$(normalize_llm_persona_default "$llm_persona_default")"
 fi
 if [ -z "$llm_persona_default" ]; then
   llm_persona_default="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"

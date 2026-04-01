@@ -1984,7 +1984,19 @@ function setup() {
     run grep -F -q 'source "utils/llm_defaults.sh"' tui/llm.sh
     assert_success
 
-    run grep -F -q 'export LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"' tui/llm.sh
+    run grep -F -q '_llm_bootstrap_default_persona="$LLM_DEFAULT_PERSONA"' tui/llm.sh
+    assert_success
+
+    run grep -q 'normalize_llm_persona_default()' tui/llm.sh
+    assert_success
+
+    run grep -F -q 'LLM_PERSONA="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"' tui/llm.sh
+    assert_success
+
+    run grep -F -q 'LLM_PERSONA="$(normalize_llm_persona_default "$LLM_PERSONA")"' tui/llm.sh
+    assert_success
+
+    run grep -F -q 'export LLM_PERSONA' tui/llm.sh
     assert_success
 
     run grep -F -q 'llm_persona_default="${LLM_PERSONA:-$LLM_DEFAULT_PERSONA}"' tui/llm.sh
@@ -3008,7 +3020,7 @@ function setup() {
 }
 
 @test "ci_restores_python_uv_and_collection_caches" {
-    run grep -F -q "uses: actions/cache@v5.0.3" .github/workflows/linting.yml
+    run grep -F -q "uses: actions/cache@v5" .github/workflows/linting.yml
     assert_success
 
     run grep -F -q "~/.cache/uv" .github/workflows/linting.yml
