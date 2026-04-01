@@ -1814,6 +1814,23 @@ function setup() {
 @test "ovos_config_autoconfigure_merges_existing_config_for_virtualenv_and_containers" {
     local virtualenv_tasks="ansible/roles/ovos_virtualenv/tasks/venv.yml"
     local container_tasks="ansible/roles/ovos_containers/tasks/composer.yml"
+    local defaults_file="$PWD/ansible/roles/ovos_installer/defaults/main.yml"
+    local gate_playbook
+
+    gate_playbook="$(mktemp)"
+    cat > "$gate_playbook" <<YAML
+- hosts: localhost
+  gather_facts: false
+  vars:
+    ovos_installer_method: virtualenv
+    ovos_virtualenv_run_ovos_config: true
+  tasks:
+    - ansible.builtin.include_vars:
+        file: "$defaults_file"
+    - ansible.builtin.assert:
+        that:
+          - ovos_installer_ovos_config_autoconfigure_enabled | bool
+YAML
 
     run grep -q "ovos_virtualenv_mycroft_conf" "$virtualenv_tasks"
     assert_failure
@@ -1831,6 +1848,10 @@ function setup() {
     assert_success
 
     run grep -F -q "ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool" "$container_tasks"
+    assert_success
+
+    run ansible-playbook -i localhost, -c local "$gate_playbook"
+    rm -f "$gate_playbook"
     assert_success
 }
 

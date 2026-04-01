@@ -157,8 +157,8 @@ ovos_installer_ovos_config_autoconfigure_enabled: >-
       or (
         (ovos_installer_method | default('virtualenv')) == 'virtualenv'
         and (
-          ovos_installer_run_ovos_config
-          | default(ovos_virtualenv_run_ovos_config | default(false))
+          ovos_virtualenv_run_ovos_config
+          | default(ovos_installer_run_ovos_config | default(false))
           | bool
         )
       )
