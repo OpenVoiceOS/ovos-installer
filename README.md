@@ -50,10 +50,11 @@ macOS installs use `launchd` service management and are currently supported with
 Prerequisites:
 
 - Homebrew installed and available in `PATH`.
+- Bash 4+ installed with Homebrew (`brew install bash`) for the installer runtime.
 - Xcode Command Line Tools installed (`xcode-select --install`).
 - Microphone permission granted to your terminal app (System Settings > Privacy & Security > Microphone).
 
-The installer also deploys a zsh wrapper (`~/.config/ovos-installer/ovos-launchd.zsh`) and sources it from `~/.zshrc` so you can manage launchd services with `ovos ...` commands.
+Your login shell can remain zsh. The installer also deploys a zsh wrapper (`~/.config/ovos-installer/ovos-launchd.zsh`) and sources it from `~/.zshrc` so you can manage launchd services with `ovos ...` commands.
 
 ## 🐧 Supported Linux distributions
 
