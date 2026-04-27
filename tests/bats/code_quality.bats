@@ -538,7 +538,7 @@ function setup() {
 }
 
 @test "macos_homebrew_installs_brightness_formula" {
-    run grep -q -- "- brightness" ansible/roles/ovos_virtualenv/defaults/main.yml
+    run grep -Eq -- '^[[:space:]]*-[[:space:]]*brightness[[:space:]]*$' ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 }
 
