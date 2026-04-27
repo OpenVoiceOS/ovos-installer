@@ -291,6 +291,30 @@ function setup() {
     assert_success
 }
 
+@test "mycroft_conf_keeps_locale_default_fallbacks_when_ovos_config_autoconfigure_is_enabled" {
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+    local tasks_file="ansible/roles/ovos_config/tasks/install.yml"
+    local defaults_file="ansible/roles/ovos_installer/defaults/main.yml"
+
+    run grep -F -q "ovos_installer_ovos_config_autoconfigure_enabled:" "$defaults_file"
+    assert_success
+
+    run grep -F -q "ovos_installer_ovos_config_tts_gender:" "$defaults_file"
+    assert_success
+
+    run grep -F -q "\"system_unit\": \"{{ ovos_config_system_unit }}\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"spoken_time_format\": \"{{ ovos_config_spoken_time_format }}\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "_ovos_use_ovos_config_autoconfigure" "$conf_file"
+    assert_failure
+
+    run grep -F -q "not (ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool)" "$tasks_file"
+    assert_success
+}
+
 @test "sounddevice_microphone_defaults_include_mark2_and_devkit" {
     local core_file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
     local sat_file="ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2"
@@ -1789,6 +1813,53 @@ function setup() {
     assert_success
 
     run grep -F -q "group: \"{{ ovos_config_mycroft_conf_group }}\"" "$tasks_file"
+    assert_success
+}
+
+@test "ovos_config_autoconfigure_merges_existing_config_for_virtualenv_and_containers" {
+    local virtualenv_tasks="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    local container_tasks="ansible/roles/ovos_containers/tasks/composer.yml"
+    local defaults_file="$PWD/ansible/roles/ovos_installer/defaults/main.yml"
+    local gate_playbook
+
+    gate_playbook="$(mktemp)"
+    cat > "$gate_playbook" <<YAML
+- hosts: localhost
+  gather_facts: false
+  vars:
+    ovos_installer_method: virtualenv
+    ovos_virtualenv_run_ovos_config: true
+  tasks:
+    - ansible.builtin.include_vars:
+        file: "$defaults_file"
+    - ansible.builtin.assert:
+        that:
+          - ovos_installer_ovos_config_autoconfigure_enabled | bool
+YAML
+
+    run grep -q "ovos_virtualenv_mycroft_conf" "$virtualenv_tasks"
+    assert_failure
+
+    run grep -q "ovos_virtualenv_mycroft_conf.stat.exists" "$virtualenv_tasks"
+    assert_failure
+
+    run grep -F -q "{{ ovos_installer_ovos_config_tts_gender }}" "$virtualenv_tasks"
+    assert_success
+
+    run grep -F -q "ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool" "$virtualenv_tasks"
+    assert_success
+
+    run grep -F -q "{{ ovos_installer_ovos_config_tts_gender }}" "$container_tasks"
+    assert_success
+
+    run bash -c "awk '/ovos-config autoconfigure --lang/ { in_command=1 } in_command { print } in_command && /ovos_installer_ovos_config_tts_gender/ { exit }' \"$container_tasks\" | grep -F -q -- '--online'"
+    assert_failure
+
+    run grep -F -q "ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool" "$container_tasks"
+    assert_success
+
+    run ansible-playbook -i localhost, -c local "$gate_playbook"
+    rm -f "$gate_playbook"
     assert_success
 }
 

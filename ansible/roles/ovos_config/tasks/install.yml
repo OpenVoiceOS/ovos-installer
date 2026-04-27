@@ -27,6 +27,7 @@
   when:
     - ovos_installer_profile != "server"
     - ovos_config_geoip_enabled | bool
+    - not (ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool)
   block:
     - name: Fetch geoip metadata
       ansible.builtin.uri:
