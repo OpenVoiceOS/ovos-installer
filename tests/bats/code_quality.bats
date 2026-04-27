@@ -537,6 +537,11 @@ function setup() {
     assert_failure
 }
 
+@test "macos_homebrew_installs_brightness_formula" {
+    run grep -Eq -- '^[[:space:]]*-[[:space:]]*brightness[[:space:]]*$' ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+}
+
 @test "macos_fann_build_env_is_exported_for_uv_install" {
     run grep -q "ovos_virtualenv_macos_fann_linker_flags" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
