@@ -196,6 +196,7 @@ ovos_virtualenv_macos_packages:
   - icu4c
   - jpeg-turbo
   - espeak-ng
+  - brightness
 ovos_virtualenv_gui_packages_debian:
   - cmake
   - gettext
