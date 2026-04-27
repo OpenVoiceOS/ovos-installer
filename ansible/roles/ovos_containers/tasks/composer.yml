@@ -67,7 +67,7 @@
     container: "{{ ovos_containers_container_ovos_cli }}"
     command: >-
       ovos-config autoconfigure --lang {{ ovos_installer_locale }}
-      {{ ovos_installer_ovos_config_tts_gender }} --online
+      {{ ovos_installer_ovos_config_tts_gender }}
   when:
     - not ansible_check_mode
     - ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool

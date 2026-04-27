@@ -1847,6 +1847,9 @@ YAML
     run grep -F -q "{{ ovos_installer_ovos_config_tts_gender }}" "$container_tasks"
     assert_success
 
+    run bash -c "awk '/ovos-config autoconfigure --lang/ { in_command=1 } in_command { print } in_command && /ovos_installer_ovos_config_tts_gender/ { exit }' \"$container_tasks\" | grep -F -q -- '--online'"
+    assert_failure
+
     run grep -F -q "ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool" "$container_tasks"
     assert_success
 
