@@ -8,6 +8,7 @@
 {% endif %}
 {% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}
 {% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}
+{% set _ovos_is_devkit = _ovos_is_mark2_family and ('attiny1614' in (ovos_installer_i2c_devices | default([]))) %}
 {% if ovos_installer_profile != "server" %}
 {% set _ovos_is_macos = (ansible_facts.system | default('')) == 'Darwin' %}
 {% set _ovos_is_mark2 = _ovos_is_mark2_family and ('attiny1614' not in (ovos_installer_i2c_devices | default([]))) %}
@@ -162,7 +163,12 @@
     },
     "ovos-phal-plugin-ipgeo": {
       "enabled": true
+    }{{ ',' if _ovos_is_devkit else '' }}
+{% if _ovos_is_devkit %}
+    "ovos-PHAL-plugin-mk2-v6-fan-control": {
+      "enabled": true
     }
+{% endif %}
 {% endif %}
   }{% if ovos_installer_usage_telemetry| bool %},
   "open_data": {
