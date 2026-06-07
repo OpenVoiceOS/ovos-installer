@@ -2919,6 +2919,29 @@ YAML
     assert_success
 }
 
+@test "services_reload_systemd_user_handler_is_defensive_against_missing_user_systemd" {
+    local handlers_file="ansible/roles/ovos_services/handlers/main.yml"
+    local runtime_file="ansible/roles/ovos_services/tasks/systemd-user-runtime.yml"
+
+    run bash -c 'awk "/^- name: Reload Systemd User$/,/^$/" "$1" | grep -q "failed_when: false"' _ "$handlers_file"
+    assert_success
+
+    run bash -c 'awk "/^- name: Reload Systemd User$/,/^$/" "$1" | grep -q "ovos_installer_systemd_scope"' _ "$handlers_file"
+    assert_success
+
+    run bash -c 'awk "/^- name: Reload Systemd User$/,/^$/" "$1" | grep -q "ovos_services_user_systemd_available"' _ "$handlers_file"
+    assert_success
+
+    run grep -q "Probe user systemd availability" "$runtime_file"
+    assert_success
+
+    run grep -q "ovos_services_user_systemd_available" "$runtime_file"
+    assert_success
+
+    run bash -c 'awk "/^- name: Ensure user systemd instance is running$/,/^$/" "$1" | grep -q "failed_when: false"' _ "$runtime_file"
+    assert_success
+}
+
 @test "services_user_runtime_setup_precedes_user_scope_cleanup_and_uninstall_skips_linger_changes" {
     local systemd_file="ansible/roles/ovos_services/tasks/systemd.yml"
     local uninstall_file="ansible/roles/ovos_services/tasks/uninstall.yml"

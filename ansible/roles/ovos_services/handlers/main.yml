@@ -113,7 +113,11 @@
   ansible.builtin.systemd_service:
     daemon_reload: true
     scope: user
-  when: ovos_services_manager == 'systemd'
+  failed_when: false
+  when:
+    - ovos_services_manager == 'systemd'
+    - (ovos_installer_systemd_scope | default('user')) == 'user'
+    - ovos_services_user_systemd_available | default(false) | bool
 
 - name: Reload Systemd
   ansible.builtin.systemd_service:
