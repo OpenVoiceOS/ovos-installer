@@ -2932,6 +2932,15 @@ YAML
     run bash -c 'awk "/^- name: Reload Systemd User$/,/^$/" "$1" | grep -q "ovos_services_user_systemd_available"' _ "$handlers_file"
     assert_success
 
+    run bash -c 'awk "/^- name: Restart OVOS services \(user\)$/,/^$/" "$1" | grep -q "ovos_services_user_systemd_available"' _ "$handlers_file"
+    assert_success
+
+    run bash -c 'awk "/^- name: Restart WirePlumber$/,/^$/" "$1" | grep -q "ovos_services_user_systemd_available"' _ "$handlers_file"
+    assert_success
+
+    run bash -c 'awk "/^- name: Restart PipeWire$/,/^$/" "$1" | grep -q "ovos_services_user_systemd_available"' _ "$handlers_file"
+    assert_success
+
     run grep -q "Probe user systemd availability" "$runtime_file"
     assert_success
 
