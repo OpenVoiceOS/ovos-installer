@@ -17,6 +17,7 @@ FAIL=0
 INFO=0
 RESULTS=()
 
+# Print a section header with underline decoration
 print_header() {
     echo ""
     echo "========================================"
@@ -24,18 +25,21 @@ print_header() {
     echo "========================================"
 }
 
+# Record and print a passing check, increment PASS counter
 pass() {
     PASS=$((PASS + 1))
     RESULTS+=("PASS|$1")
     echo "  [PASS] $1"
 }
 
+# Record and print a failing check, increment FAIL counter
 fail() {
     FAIL=$((FAIL + 1))
     RESULTS+=("FAIL|$1")
     echo "  [FAIL] $1"
 }
 
+# Record and print an informational note, increment INFO counter
 info() {
     INFO=$((INFO + 1))
     RESULTS+=("INFO|$1")
@@ -156,8 +160,17 @@ else
     info "Docker not installed on this system"
 fi
 
-# ===========================================
-# Helper: run systemctl --user as the real user (works even when script runs as root)
+# Determine the real user (not root) for user-level checks
+if [ "$(id -u)" -eq 0 ] && [ -n "${SUDO_USER:-}" ]; then
+    REAL_USER="$SUDO_USER"
+elif [ "$(id -u)" -eq 0 ] && [ -z "${SUDO_USER:-}" ]; then
+    REAL_USER="$(logname 2>/dev/null || echo 'root')"
+else
+    REAL_USER="$USER"
+fi
+
+# Run systemctl --user as the real user (works even when script runs as root).
+# Sets XDG_RUNTIME_DIR and DBUS_SESSION_BUS_ADDRESS for the target user.
 systemctl_user() {
     if [ "$(id -u)" -eq 0 ]; then
         sudo -u "$REAL_USER" XDG_RUNTIME_DIR="/run/user/$(id -u "$REAL_USER")" \
@@ -212,15 +225,6 @@ fi
 print_header "5/9: OVOS Installation Directories"
 # ===========================================
 
-# Determine the real user (not root) for user-level checks
-if [ "$(id -u)" -eq 0 ] && [ -n "${SUDO_USER:-}" ]; then
-    REAL_USER="$SUDO_USER"
-elif [ "$(id -u)" -eq 0 ] && [ -z "${SUDO_USER:-}" ]; then
-    # Running as root directly (su, not sudo)
-    REAL_USER="$(logname 2>/dev/null || echo 'root')"
-else
-    REAL_USER="$USER"
-fi
 OVOS_HOME="$(getent passwd "$REAL_USER" 2>/dev/null | cut -d: -f6 || echo "/home/$REAL_USER")"
 
 if [ -n "$OVOS_HOME" ]; then
@@ -278,8 +282,8 @@ for port in 6715 5678 8888; do
     fi
 done
 if [ "$MESSAGEBUS_PORT" -eq 0 ]; then
-    # Also check for unix socket
-    for sock in /run/user/*/bus /tmp/ovos-messagebus.sock; do
+    # Also check for OVOS messagebus unix socket
+    for sock in /tmp/ovos-messagebus.sock; do
         if [ -S "$sock" ] 2>/dev/null; then
             pass "OVOS Messagebus socket found: $sock"
             MESSAGEBUS_PORT=-1
@@ -295,7 +299,8 @@ fi
 print_header "8/9: Network & DNS"
 # ===========================================
 
-# Check DNS resolution (try multiple methods)
+# Resolve a hostname using host, getent, or ping (fallback chain).
+# Returns 0 if reachable, 1 if all methods fail.
 resolve_host() {
     host "$1" &>/dev/null && return 0
     getent hosts "$1" &>/dev/null && return 0
