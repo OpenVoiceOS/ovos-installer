@@ -78,8 +78,20 @@ elif [ -f "$HANDLERS" ] && [ -f "$RUNTIME" ]; then
         || fail "Handler: systemd_scope guard MISSING"
 
     awk "/^- name: Reload Systemd User$/,/^$/" "$HANDLERS" | grep -q "ovos_services_user_systemd_available" \
-        && pass "Handler: user_systemd_available guard present" \
-        || fail "Handler: user_systemd_available guard MISSING"
+        && pass "Handler (Reload Systemd User): user_systemd_available guard present" \
+        || fail "Handler (Reload Systemd User): user_systemd_available guard MISSING"
+
+    awk "/^- name: Restart OVOS services \(user\)$/,/^$/" "$HANDLERS" | grep -q "ovos_services_user_systemd_available" \
+        && pass "Handler (Restart OVOS services user): user_systemd_available guard present" \
+        || fail "Handler (Restart OVOS services user): user_systemd_available guard MISSING"
+
+    awk "/^- name: Restart WirePlumber$/,/^$/" "$HANDLERS" | grep -q "ovos_services_user_systemd_available" \
+        && pass "Handler (Restart WirePlumber): user_systemd_available guard present" \
+        || fail "Handler (Restart WirePlumber): user_systemd_available guard MISSING"
+
+    awk "/^- name: Restart PipeWire$/,/^$/" "$HANDLERS" | grep -q "ovos_services_user_systemd_available" \
+        && pass "Handler (Restart PipeWire): user_systemd_available guard present" \
+        || fail "Handler (Restart PipeWire): user_systemd_available guard MISSING"
 
     grep -q "Probe user systemd availability" "$RUNTIME" \
         && pass "Runtime: Probe task present" \
