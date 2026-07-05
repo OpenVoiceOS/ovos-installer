@@ -17,3 +17,18 @@
   ansible.builtin.systemd_service:
     name: "{{ ovos_services_user_systemd_unit }}"
     state: started
+  failed_when: false
+  changed_when: false
+
+- name: Probe user systemd availability  # noqa command-instead-of-module
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  environment: "{{ ovos_services_user_bus_environment }}"
+  ansible.builtin.command: systemctl --user show-environment
+  register: ovos_services_user_systemd_probe
+  changed_when: false
+  failed_when: false
+
+- name: Set user systemd availability fact
+  ansible.builtin.set_fact:
+    ovos_services_user_systemd_available: "{{ ovos_services_user_systemd_probe.rc | default(1) == 0 }}"

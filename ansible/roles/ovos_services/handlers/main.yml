@@ -17,6 +17,7 @@
     - ovos_installer_method == "virtualenv"
     - ovos_services_manager == 'systemd'
     - (ovos_installer_systemd_scope | default('user')) == 'user'
+    - ovos_services_user_systemd_available | default(false)
 
 - name: Restart OVOS services (system)
   listen: Restart OVOS services
@@ -89,6 +90,7 @@
     - ovos_services_manager == 'systemd'
     - ovos_sound_detect_sound_server is defined
     - ovos_sound_detect_sound_server.stdout == "pipewire"
+    - ovos_services_user_systemd_available | default(false)
 
 - name: Restart PipeWire
   listen: Restart PipeWire
@@ -105,6 +107,7 @@
     - ovos_services_manager == 'systemd'
     - ovos_sound_detect_sound_server is defined
     - ovos_sound_detect_sound_server.stdout == "pipewire"
+    - ovos_services_user_systemd_available | default(false)
 
 - name: Reload Systemd User
   become: true
@@ -113,7 +116,11 @@
   ansible.builtin.systemd_service:
     daemon_reload: true
     scope: user
-  when: ovos_services_manager == 'systemd'
+  failed_when: false
+  when:
+    - ovos_services_manager == 'systemd'
+    - (ovos_installer_systemd_scope | default('user')) == 'user'
+    - ovos_services_user_systemd_available | default(false) | bool
 
 - name: Reload Systemd
   ansible.builtin.systemd_service:
