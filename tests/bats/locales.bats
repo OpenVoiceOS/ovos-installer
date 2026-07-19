@@ -129,6 +129,24 @@ function setup() {
     done
 }
 
+@test "locales_usage_telemetry_scripts_are_complete_and_sourceable" {
+    for locale_dir in tui/locales/*; do
+        local locale_file="$locale_dir/usage_telemetry.sh"
+
+        if [ ! -f "$locale_file" ]; then
+            echo "Missing usage telemetry locale: $locale_file" >&2
+            return 1
+        fi
+
+        run bash -euc "
+            source '$locale_file'
+            test -n \"\$TITLE\"
+            test -n \"\$CONTENT\"
+        "
+        assert_success
+    done
+}
+
 @test "locales_llm_model_strings_are_localized_outside_en_us" {
     for f in tui/locales/*/llm.sh; do
         if [ "$f" = "tui/locales/en-us/llm.sh" ]; then

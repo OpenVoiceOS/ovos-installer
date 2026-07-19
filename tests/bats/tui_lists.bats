@@ -269,6 +269,28 @@ function dialog_value() {
     assert_equal "$SHARE_USAGE_TELEMETRY" "false"
 }
 
+@test "usage telemetry: falls back to English when the selected locale is incomplete" {
+    LOCALE="missing-locale"
+
+    # shellcheck source=tui/usage_telemetry.sh
+    source tui/usage_telemetry.sh
+
+    assert_equal "$TITLE" "Open Voice OS Installation - Usage Metrics"
+    run grep -F -q $'yesno\tOpen Voice OS Installation - Usage Metrics' "$WHIPTAIL_DIALOG_FILE"
+    assert_success
+}
+
+@test "usage telemetry: loads the Portuguese translation" {
+    LOCALE="pt-pt"
+
+    # shellcheck source=tui/usage_telemetry.sh
+    source tui/usage_telemetry.sh
+
+    assert_equal "$TITLE" "Instalação do Open Voice OS - Métricas de utilização"
+    run grep -F -q $'yesno\tInstalação do Open Voice OS - Métricas de utilização' "$WHIPTAIL_DIALOG_FILE"
+    assert_success
+}
+
 @test "channels: keeps testing channel on Raspberry Pi 5 tas5806 false positives" {
     EXISTING_INSTANCE="false"
     RASPBERRYPI_MODEL="Raspberry Pi 5"
