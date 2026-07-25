@@ -44,7 +44,7 @@
       {{ ovos_containers_docker_repo_base_url }}/{{ ovos_containers_os_distribution }}
       {{ release }} {{ ovos_containers_docker_repo_channel }}
     filename: "{{ ovos_containers_docker_repo_apt_filename }}"
-    update_cache: false
+    update_cache: true
 
 - name: Install Docker Engine
   ansible.builtin.apt:
