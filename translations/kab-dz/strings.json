@@ -1,0 +1,77 @@
+{
+  "misc.sh": {
+    "ok_button": "Uḍfiṛ",
+    "yes_button": "Ih",
+    "no_button": "Uhu",
+    "back_button": "Tuɣalin"
+  },
+  "channels.sh": {
+    "title": "Asbeddi n Open Voice OS - Ibuda n usbeddi",
+    "content": "Open Voice OS yesɛa sin n yibuda igejdanen n usuffeɣ:\n\n  - asenqed (yettwasemren)\n  - alfa (tama n usnulfu)\n\nAbadu n usenqed yettwasemren i tuget n yiseqdacen. Yegber timahilin timaynutin d yiselhiyen, yerna s wudem amatu yettwakal, maca yezmer ad yili deg-s kra n tuɣalin s deffir tikkwal.\n\nAbadu alfa d lqem armitan maḍi, yegber timahilin d yibeddilen ineggura i mazal deg usnefli. Yezmer ad ur yerkid ara yerna ur yettwasemren ara i useqdec n yal ass.\n\nTtxil-k fren abadu:"
+  },
+  "detection.sh": {
+    "title": "Asbeddi Open Voice OS - Yettwaf",
+    "content": "Ttxil-k, ha-tan ddaw-a tilɣa-nni yettwafen.\n\n    - Anagraw:       ${DISTRO_NAME^} $DISTRO_VERSION\n    - Iɣes:   $KERNEL\n    - RPi:      $RASPBERRYPI_MODEL\n    - Python:   $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Arrum: $HARDWARE_DETECTED\n    - Venv:     $VENV_PATH\n    - Ameslaw:    $SOUND_SERVER\n    - Abeqqeḍ:  ${DISPLAY_SERVER^}"
+  },
+  "features.sh": {
+    "title": "Asbeddi n Open Voice OS - Timahilin",
+    "content": "Timeẓliyin ssilin amyager s taɣect, ad yili d afessas i lecɣal am usɣiw n uxxam, tiririt n telɣut, d usenqed n tiɣawsiwin timsirin s tiluddna n tutlayt tagmawant.\n\nTtxil-k fren timeẓliyin ara tesɣiw:",
+    "skill_description": "Aɛebbi n tizemmar n OVOS timezwura",
+    "extra_skill_description": "Aɛebbi n tzemmar timernan n OVOS"
+  },
+  "finish.sh": {
+    "title": "Asbeddi n Open Voice OS - Tagara",
+    "content": "Asbeddi-nni yekfa akken iwata! 🎉\n\nAmalal-inek n taɣect yewjed ad yelḥi. Nefṛeḥ imi ay d-tesnirmeḍ tiɣawsiwin akked tzemmar n umalal-a n taɣect.\n\nMa yella tremdeḍ tamahilt n tmusniwin timezwura, tzemreḍ ad tebduḍ ad temmeslayeḍ akked umalal-ik s taɣect.\n\n- Azul a Mycroft, acḥal ssaɛa?\n- A Mycroft, anda i tewweḍ teẓɣelt?\n- A Mycroft, anwa i k-id-isnulfan?\n- A Mycroft, menhu i d Ada Lovelace?\n- A Mycroft, d acu ara d-yini Duke Nukem?\n\nIɣewwaren n umalal-ik zemren ad ttwabeddlen deg ufaylu n tawila n $CONFIG_FILE.\n\nMa teḥwajeḍ tallalt neɣ ileqman sya d asawen, ḥulfu i yiman-ik tzemreḍ ad ten-id-tnermseḍ. Faṛes tarmit-ik n Open Voice OS!"
+  },
+  "methods.sh": {
+    "title": "Asbeddi n Open Voice OS - Tarrayin",
+    "content": "Akken ad tesbeddeḍ Open Voice OS, ɣur-k snat n tarrayin timezwura.\n\n    - Amsedday n imagbaren am Docker\n    - Naɣ asbeddi deg twennaḍt tuhlist n Python\n\nImagbaren ttaken-d aɛzal d usenfali afessas, ma d tawennaḍt tuhlist n Python tettak-d ugar n tiflellit d usenqed n usbeddi.\n\nMa tettwafren tarrayt n yimagbaren, Docker ad yettwasbedd s wudem awurman ma ulac-it deg unagraw.\n\nTtxil fren tarrayt n usebded:"
+  },
+  "profiles.sh": {
+    "title": "Asbeddi n Open Voice OS - Imeɣna",
+    "content": "I wakken ad d-tesbeddeḍ anagraw amataṛ yettwafes i waṭas n yisemras, llant ṛebɛa n tferkitin yettɛejben:\n\n  - Open Voice OS Master: Tarmit tasimant n Open Voice OS\n  - HiveMind Satellite: Iferdisen n imesli n Open Voice OS yettwaqqnen ɣer HiveMind Listener\n  - HiveMind Listener: Ammas i HiveMind Satellite, iboten, d wayen nniḍen.. i wakken ad ttwaqqnen\n  - Aqeddac: Open Voice OS Core d HiveMind Core kan, ur yesɛi ara timeẓliyin n imesli\n\nYal amaɣnu seg yimeɣnasen-a yesɛa timeẓliyin d tezmara timsirin i yezmer ad yessnerni mliḥ tarmit-ik tamḍyant.\n\nAsteqsi d, anwa deg-sen i yettwafes i imeḍranen-ik d tferkit-ik?\n\nTtxil-k fren amaɣnu:"
+  },
+  "satellite.sh": {
+    "title_host": "Asbeddi n Open Voice OS - Agensa 1/4",
+    "title_port": "Asbeddi n Open Voice OS - Agensa 2/4",
+    "title_key": "Asbeddi n Open Voice OS - Agensa 3/4",
+    "title_password": "Asbeddi n Open Voice OS - Agensa 4/4",
+    "content": "S tuqqna ɣer umseflid n HiveMind, igensaten n HiveMind ad sɛun adduf ɣer uzeṭṭa n tmussniwin d tzemmar yebḍan, yesishel afares n umalal n taɣect.",
+    "content_host": "Ttxil, sekcem-d asenneftaɣ n umseflid HiveMind (DNS neɣ tansa IP):",
+    "content_port": "Ttxil, sekcem-d tawwurt n umseflid n HiveMind:",
+    "content_key": "Ttxil, sekcem-d tsarut n umesseflid n HiveMind yeqqnen ɣer ugensa-nni:",
+    "content_password": "Ttxil, sekcem-d awal n uɛeddi n umesseflid HiveMind yeqqnen ɣer ugensa-nni:"
+  },
+  "summary.sh": {
+    "title": "Asbeddi n Open Voice OS - Agzul",
+    "content": "Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS\n\n    - Tarrayt:   $METHOD\n    - Lqem:  $CHANNEL\n    - Amaɣnu:  $PROFILE\n    - Tussniwin:   $FEATURE_SKILLS\n    - Tamellit:   $TUNING\n\nIfranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.\n\nYettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren $BACK_BUTTON (neɣ sit ɣef ESC) akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ."
+  },
+  "telemetry.sh": {
+    "title": "Asbeddi n Open Voice OS - Aktili",
+    "content": "Ma tferneḍ ad tebḍuḍ yid-neɣ isefka n tilumṭa, ad teturarḍ amur axatar deg uttekki s telɣut tusligt yesɛan azal, i ɣ-yettmaggaren ad negzu ugar tirmitin n yiseqdacen yerna ad nesselhu tamellit n useɣẓan-nneɣ.\n\nIsefka-nnek n tilumṭa gebren talɣut telqayen ɣef wamek ixeddem useɣẓan deg tignatin tilawin. Isefka-a ttwaleqḍen s wudem udrig, s uḥraz n tbaḍnit-inek d tuffra-inek.\n\nTalɣut i nettleqḍu tettɛawan-aɣ ad nafen uguren i yezmer ad d-ilin, ad nesselhu timeẓliyin, yerna ad nesseḍmen tarmit n useqdec irekden ugar, ifazen ugar i yal yiwen.\n\nI ugar n telɣut ɣef yisefka i nettelqeḍ, ttxil-k rzu ɣer: https://github.com/OpenVoiceOS/ovos-installer/tree/main/docs/telemetry.md\n\nAleqḍ-a n yisefka ad yili kan deg ukala n usbeddi.\n\nTqebleḍ ad tebḍuḍ yid-neɣ isefka udrigen?"
+  },
+  "tuning.sh": {
+    "title": "Asbeddi n Open Voice OS - Tamellit",
+    "content": "Open Voice OS yettak-d amaɣnu n yiɣewwaten i yibenkan n wanaw Raspberry Pi, akken ad yettwasmeskel unagraw n wammud s wudem ifazen akk i usebded n Open Voice OS.\n\nIswi n ukala-a n yiɣewwaren ad yesselhu tamellit, ad yesneqes aseqdec n yiɣbula, yerna ad yeḍmen tarmit n useqdac irekden ugar.\n\nSnes iɣewwaren i Raspberry Pi (yettwasmetren) ?"
+  },
+  "overclock.sh": {
+    "title": "Asbeddi n Open Voice OS - Nnig n temrilt",
+    "content": "Asali n tazzla n CPU/GPU yessalay tasnamurt-nsen i tmellit tafellayt, maca yezmer ad yessenqes arkad yerna ad yessali taẓɣelt.\n\nAyen yettwasran:\n- Assemmeḍ urmid (aseffaḍ n tẓɣelt/amarway) d tazzla n wuzuf yelhan\n- Tala n tnezmert irekden iwatan i umudil-ik Pi\n- Sefqed tizesɣal yerna ḥbes ma yella asenqes n tazzla neɣ iɣelluyen\n\nTilufa:\n- Ales asenker s ugacur, tilufa n imesli, tixṣarin n yisefka\n- Aseqdec afellay n tnezmert d usenqes n teɣzi n tmeddurt\n\nOpen Voice OS ur yelli ara d amasay ɣef kra n wuguren icudden ɣer usali n tazzla.\n\nAd tremdeḍ asali n tazzla?"
+  },
+  "uninstall.sh": {
+    "title": "Asbeddi n Open Voice OS - Tukksa n usbeddi",
+    "content": "Tettwaf-d tummant yellan yakan n Open Voice OS.\n\nAcku Docker d PipeWire zemren llan ttwasbedden deg unagraw neɣ s ufus, amsebdad ur itekkes ara ikemmusen-a.\n\n  - docker-ce\n  - docker-compose-plugin\n  - docker-ce-rootless-extras\n  - docker-buildx-plugin\n  - pipewire\n  - pipewire-alsa\n\nTebɣiḍ ad tekkseḍ asbeddi n Open Voice OS?"
+  },
+  "update.sh": {
+    "title": "Asbeddi n Open Voice OS - Amucceḍ",
+    "content": "Tettwaf-d tumant yellan yakan n Open Voice OS/HiveMind.\n\nAleqqem n tumant-ik n Open Voice OS neɣ HiveMind yellan yakan ɣer lqem aneggaru yesseḍmay ad teqqimeḍ deg uqerru s timeẓliyin tinafellaḍin, ileqqman ixataren n tɣellist, aseggem n tuccḍiwin, d useggem n temlilt.\n\nAya ur yesnerni kan tawuri d tarmit n useqdec s wudem amatu, maca yesseḍmay daɣen amṣada akked yimseddiyen d yifecka ineggura, ad yeǧǧ anagraw-ik arkad, aɣelsan, yerna iheyya i yimal.\n\nTebɣiḍ ad tleqqmeḍ Open Voice OS ɣer lqem aneggaru?"
+  },
+  "usage_telemetry.sh": {
+    "title": "Asbeddi n Open Voice OS - Tidaddanin n useqdec",
+    "content": "S ufran-ik beṭṭu n yisefka n useqdec, ad tiliḍ d amettekki axatar deg wussisen-nneɣ i usnerni n tawuri d tarmit n useqdec n useɣẓan-nneɣ. Isefka ara aɣ-tefkeḍ ad qqimen d udrigen yerna sɛan azal axatar i wakken ad aɣ-ɛiwnen ad nesseggem amṣada n tmeɣriwin, i wakken ad naf tuccḍiwin n unagraw, yerna ad nefren igayen ifazen ɣef yisnefliyen n yimal.\n\nI uttekki-k, ad ak-nmud talɣut yesɛan azal ɣef tikliwin n useqdec, timeɣriwin yecḍen, d tesleḍt yudsen s ufakan amyagraw. Talɣut-a tezmer ad k-tɛiwen ad tseggmeḍ amallal akken ad iwatem ugar i yimeḍranen-ik uzzigen, ad yeǧǧ tarmit n useqdec d tumert yerna d tamellilt ugar.\n\nI ugar n telɣut ɣef usken n yisefka d tferkitin n usader, ttxil-k rzu ɣer uwwur-nneɣ n yisefka yeldin: https://opendata.tigregotico.pt\n\nNefka azal i uttekki-k yerna nessaram ad ternuḍ yid-neɣ i usnulfu n tarmit n useɣẓan ifazen i yal yiwen!\n\nTqebleḍ ad tebḍuḍ yid-neɣ isefka udrigen?"
+  },
+  "welcome.sh": {
+    "title": "Asbeddi n Open Voice OS - Ansuf",
+    "content": "Azul, ansuf yis-wen ɣer usbeddi n Open Voice OS!\n\nNefṛeḥ imi i ad ak-nesken Open Voice OS, amalal aɣectan n uɣbalu yeldin, win i yettbeddilen abrid ideg nettemlili akked tetiknulujit.\n\nAsebded n unagraw n Open Voice OS fessus am waman, yerna ad yeldi amaḍal n tzemmar i usenqed s taɣect. Ama telliḍ seg wid iḥemlen tteknulujit neɣ tettnadiḍ kan ad tesselḥuḍ lecɣal-ik n yal ass, ha-t-an ihi da Open Voice OS akken ad awen-yessishil tudert-nwen.\n\nBdu asbeddi tura, teǧǧeḍ taɣect-ik ad k-id-tmel sya d asawen imal n tetiknulujit!🌟"
+  }
+}
