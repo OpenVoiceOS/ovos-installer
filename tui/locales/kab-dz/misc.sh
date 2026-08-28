@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+OK_BUTTON="Uḍfiṛ"
+YES_BUTTON="Ih"
+NO_BUTTON="Uhu"
+BACK_BUTTON="Tuɣalin"
+
+export OK_BUTTON YES_BUTTON NO_BUTTON BACK_BUTTON
