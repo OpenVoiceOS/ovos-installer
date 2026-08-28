@@ -2,15 +2,15 @@
 CONTENT="
 Ttxil-k, ha-tan ddaw-a tilɣa-nni yettwafen.
 
-    - Anagraw:       ${DISTRO_NAME^} $DISTRO_VERSION
+    - Anagraw n wammud:       $DISTRO_LABEL
     - Iɣes:   $KERNEL
     - RPi:      $RASPBERRYPI_MODEL
     - Python:   $(echo "$PYTHON" | awk '{ print $NF }')
     - AVX/SIMD: $CPU_IS_CAPABLE
     - Arrum: $HARDWARE_DETECTED
-    - Venv:     $VENV_PATH
-    - Ameslaw:    $SOUND_SERVER
-    - Abeqqeḍ:  ${DISPLAY_SERVER^}
+    - Tawennaḍt tuhlist:     $VENV_PATH
+    - Aseqdac n umeslaw:    $SOUND_SERVER
+    - Aseqdac n ubeqqeḍ:  ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}
 "
 TITLE="Asbeddi Open Voice OS - Yettwaf"
 
