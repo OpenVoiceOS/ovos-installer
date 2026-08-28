@@ -5,7 +5,7 @@ Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ ana
     - Tarrayt:   $METHOD
     - Lqem:  $CHANNEL
     - Amaɣnu:  $PROFILE
-    - Tussniwin:   $FEATURE_SKILLS
+    - Tussniwin: ${FEATURE_SKILLS:-}
     - Tamellit:   $TUNING
 
 Ifranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.
