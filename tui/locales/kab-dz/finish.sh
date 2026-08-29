@@ -12,7 +12,7 @@ Ma yella tremdeḍ tamahilt n tmusniwin timezwura, tzemreḍ ad tebduḍ ad temm
 - A Mycroft, menhu i d Ada Lovelace?
 - A Mycroft, d acu ara d-yini Duke Nukem?
 
-Iɣewwaren n umalal-ik zemren ad ttwabeddlen deg ufaylu n tawila n $CONFIG_FILE.
+Iɣewwaren n umalal-ik zemren ad ttwabeddlen deg ufaylu n tawila n ${CONFIG_FILE:-}.
 
 Ma teḥwajeḍ tallalt neɣ ileqman sya d asawen, ḥulfu i yiman-ik tzemreḍ ad ten-id-tnermseḍ. Faṛes tarmit-ik n Open Voice OS!
 "

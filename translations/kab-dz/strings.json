@@ -11,7 +11,7 @@
   },
   "detection.sh": {
     "title": "Asbeddi Open Voice OS - Yettwaf",
-    "content": "Ttxil-k, ha-tan ddaw-a tilɣa-nni yettwafen.\n\n    - Anagraw n wammud:       $DISTRO_LABEL\n    - Iɣes:   $KERNEL\n    - RPi:      $RASPBERRYPI_MODEL\n    - Python:   $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Arrum: $HARDWARE_DETECTED\n    - Tawennaḍt tuhlist:     $VENV_PATH\n    - Aseqdac n umeslaw:    $SOUND_SERVER\n    - Aseqdac n ubeqqeḍ:  ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "content": "Ttxil-k, ha-tan ddaw-a tilɣa-nni yettwafen.\n\n    - Anagraw n wammud:       ${DISTRO_LABEL:-}\n    - Iɣes:   ${KERNEL:-}\n    - RPi:      ${RASPBERRYPI_MODEL:-}\n    - Python:   $(echo \"${PYTHON:-}\" | awk '{ print $NF }')\n    - AVX/SIMD: ${CPU_IS_CAPABLE:-}\n    - Arrum: ${HARDWARE_DETECTED:-}\n    - Tawennaḍt tuhlist:     ${VENV_PATH:-}\n    - Aseqdac n umeslaw:    ${SOUND_SERVER:-}\n    - Aseqdac n ubeqqeḍ:  ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
     "hardware_confirmation_title": "Asbeddi n Open Voice OS - Asenqed n warrum",
     "hardware_confirmation_mark2_content": "Yettwaf-d Raspberry Pi 4 akked ubeqqeḍ n umeslaw TAS5806.\\n\\nAya yezmer ad yili d Mycroft Mark II, maca kra n yiɣewwaren imezganen (HAT) zemren ad d-fkent assaɣ i icban wa.\\n\\nWarrum-a, d Mycroft Mark II s tidet?",
     "hardware_confirmation_devkit_content": "Yettwaf-d Raspberry Pi 4 akked yibeqqḍen TAS5806 d attiny1614.\\n\\nAya yezmer ad yili d Mycroft DevKit, maca kra n yiɣewwaren imezganen (HAT) zemren ad d-fkent assaɣ i icban wa.\\n\\nWarrum-a, d Mycroft DevKit s tidet?",
@@ -28,7 +28,7 @@
   },
   "finish.sh": {
     "title": "Asbeddi n Open Voice OS - Tagara",
-    "content": "Asbeddi-nni yekfa akken iwata! 🎉\n\nAmalal-inek n taɣect yewjed ad yelḥi. Nefṛeḥ imi ay d-tesnirmeḍ tiɣawsiwin akked tzemmar n umalal-a n taɣect.\n\nMa yella tremdeḍ tamahilt n tmusniwin timezwura, tzemreḍ ad tebduḍ ad temmeslayeḍ akked umalal-ik s taɣect.\n\n- Azul a Mycroft, acḥal ssaɛa?\n- A Mycroft, anda i tewweḍ teẓɣelt?\n- A Mycroft, anwa i k-id-isnulfan?\n- A Mycroft, menhu i d Ada Lovelace?\n- A Mycroft, d acu ara d-yini Duke Nukem?\n\nIɣewwaren n umalal-ik zemren ad ttwabeddlen deg ufaylu n tawila n $CONFIG_FILE.\n\nMa teḥwajeḍ tallalt neɣ ileqman sya d asawen, ḥulfu i yiman-ik tzemreḍ ad ten-id-tnermseḍ. Faṛes tarmit-ik n Open Voice OS!"
+    "content": "Asbeddi-nni yekfa akken iwata! 🎉\n\nAmalal-inek n taɣect yewjed ad yelḥi. Nefṛeḥ imi ay d-tesnirmeḍ tiɣawsiwin akked tzemmar n umalal-a n taɣect.\n\nMa yella tremdeḍ tamahilt n tmusniwin timezwura, tzemreḍ ad tebduḍ ad temmeslayeḍ akked umalal-ik s taɣect.\n\n- Azul a Mycroft, acḥal ssaɛa?\n- A Mycroft, anda i tewweḍ teẓɣelt?\n- A Mycroft, anwa i k-id-isnulfan?\n- A Mycroft, menhu i d Ada Lovelace?\n- A Mycroft, d acu ara d-yini Duke Nukem?\n\nIɣewwaren n umalal-ik zemren ad ttwabeddlen deg ufaylu n tawila n ${CONFIG_FILE:-}.\n\nMa teḥwajeḍ tallalt neɣ ileqman sya d asawen, ḥulfu i yiman-ik tzemreḍ ad ten-id-tnermseḍ. Faṛes tarmit-ik n Open Voice OS!"
   },
   "methods.sh": {
     "title": "Asbeddi n Open Voice OS - Tarrayin",
@@ -51,7 +51,7 @@
   },
   "summary.sh": {
     "title": "Asbeddi n Open Voice OS - Agzul",
-    "content": "Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS\n\n    - Tarrayt:   $METHOD\n    - Lqem:  $CHANNEL\n    - Amaɣnu:  $PROFILE\n    - Tussniwin:  $FEATURE_SKILLS_SUMMARY_STATE\n    - Tussniwin timernanin:  $FEATURE_EXTRA_SKILLS_SUMMARY_STATE\n    - Home Assistant:  $HOMEASSISTANT_SUMMARY_STATE\n    - LLM:  $LLM_SUMMARY_STATE\n    - Tamellit:   $TUNING_SUMMARY_STATE\n\nIfranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.\n\nYettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren $BACK_BUTTON (neɣ sit ɣef ESC) akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.",
+    "content": "Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS\n\n    - Tarrayt:   ${METHOD:-}\n    - Lqem:  ${CHANNEL:-}\n    - Amaɣnu:  ${PROFILE:-}\n    - Tussniwin:  ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Tussniwin timernanin:  ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:  ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:  ${LLM_SUMMARY_STATE:-}\n    - Tamellit:   ${TUNING_SUMMARY_STATE:-}\n\nIfranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.\n\nYettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren ${BACK_BUTTON:-} (neɣ sit ɣef ESC) akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.",
     "state_enabled": "d urmid",
     "state_disabled": "d arurmid",
     "state_unsupported_profile": "yettawfran (ur yettwasefrek ara deg umaɣnu-a)",

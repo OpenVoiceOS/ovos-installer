@@ -173,6 +173,27 @@ function setup() {
     done
 }
 
+@test "locales_are_sourceable_under_nounset" {
+    # The installer runs under "set -u". A locale that interpolates a bare name
+    # kills it on that screen the moment the variable happens to be unset, which
+    # is how #567 shipped: detect_existing_instance() unsets INSTANCE_TYPE, so
+    # every fresh install died on the methods screen.
+    #
+    # Whether a given variable "is always set by then" is not something a test
+    # can know, so the rule here is absolute: every locale file has to source
+    # with nothing set at all. That means every interpolation carries a default.
+    for locale_file in tui/locales/*/*.sh; do
+        run env -i PATH="$PATH" bash -euc "source '$locale_file'"
+
+        if [ "$status" -ne 0 ]; then
+            echo "$locale_file is not sourceable under nounset:" >&2
+            echo "$output" >&2
+            echo "Use \${VARIABLE:-} rather than \$VARIABLE in the locale string." >&2
+        fi
+        assert_success
+    done
+}
+
 @test "locales_methods_scripts_are_nounset_safe" {
     # detect_existing_instance() unsets INSTANCE_TYPE when it finds nothing, and
     # the installer runs under "set -u". A locale that interpolates the bare name

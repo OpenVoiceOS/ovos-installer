@@ -2,14 +2,14 @@
 CONTENT="
 Información detectada:
 
-    - SO:       $DISTRO_LABEL
-    - Kernel:   $KERNEL
-    - RPi:      $RASPBERRYPI_MODEL
-    - Python:   $(echo "$PYTHON" | awk '{ print $NF }')
-    - AVX/SIMD: $CPU_IS_CAPABLE
-    - Hardware: $HARDWARE_DETECTED
-    - Venv:     $VENV_PATH
-    - Son:      $SOUND_SERVER
+    - SO:       ${DISTRO_LABEL:-}
+    - Kernel:   ${KERNEL:-}
+    - RPi:      ${RASPBERRYPI_MODEL:-}
+    - Python:   $(echo "${PYTHON:-}" | awk '{ print $NF }')
+    - AVX/SIMD: ${CPU_IS_CAPABLE:-}
+    - Hardware: ${HARDWARE_DETECTED:-}
+    - Venv:     ${VENV_PATH:-}
+    - Son:      ${SOUND_SERVER:-}
     - Pantalla: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}
 "
 TITLE="Instalación de Open Voice OS - Detección"

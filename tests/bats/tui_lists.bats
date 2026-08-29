@@ -1359,6 +1359,25 @@ function teardown() {
     rm -rf "${SCRATCH_LOCALE_DIR:-tui/locales/zz-test}"
 }
 
+@test "methods: survives nounset on a fresh install" {
+    # A fresh install is the common case and it was the broken one: #567.
+    # detect_existing_instance() unsets INSTANCE_TYPE when it finds nothing, and
+    # the installer runs under "set -u", so the screen has to cope with the name
+    # being absent rather than merely empty.
+    EXISTING_INSTANCE="false"
+    unset INSTANCE_TYPE
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    set -u
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+    set +u
+
+    assert_equal "$METHOD" "virtualenv"
+    assert_equal "$(spy_value option_count)" "2"
+    [[ "$CONTENT" == *"you have two primary methods"* ]]
+}
+
 @test "methods: explains why an existing container instance pins the method" {
     EXISTING_INSTANCE="true"
     INSTANCE_TYPE="containers"

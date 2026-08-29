@@ -11,7 +11,7 @@
   },
   "detection.sh": {
     "title": "Installazione di Open Voice OS - Proprietà del sistema",
-    "content": "Queste sono le proprietà del sistema che sono state riconosciute automaticamente:\n\n- Sistema operativo: $DISTRO_LABEL\n- Kernel: $KERNEL\n- Raspberry Pi: $RASPBERRYPI_MODEL\n- Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n- AVX/SIMD: $CPU_IS_CAPABLE\n- Hardware: $HARDWARE_DETECTED\n- Venv: $VENV_PATH\n- Audio: $SOUND_SERVER\n- Schermo: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "content": "Queste sono le proprietà del sistema che sono state riconosciute automaticamente:\n\n- Sistema operativo: ${DISTRO_LABEL:-}\n- Kernel: ${KERNEL:-}\n- Raspberry Pi: ${RASPBERRYPI_MODEL:-}\n- Python: $(echo \"${PYTHON:-}\" | awk '{ print $NF }')\n- AVX/SIMD: ${CPU_IS_CAPABLE:-}\n- Hardware: ${HARDWARE_DETECTED:-}\n- Venv: ${VENV_PATH:-}\n- Audio: ${SOUND_SERVER:-}\n- Schermo: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
     "hardware_confirmation_title": "Installazione di Open Voice OS - Verifica hardware",
     "hardware_confirmation_mark2_content": "È stato rilevato un Raspberry Pi 4 con un dispositivo audio TAS5806.\\n\\nPotrebbe essere un Mycroft Mark II, ma alcuni HAT generici espongono lo stesso segnale.\\n\\nQuesto dispositivo è davvero un Mycroft Mark II?",
     "hardware_confirmation_devkit_content": "È stato rilevato un Raspberry Pi 4 con dispositivi TAS5806 e attiny1614.\\n\\nPotrebbe essere un Mycroft DevKit, ma alcuni HAT generici espongono lo stesso segnale.\\n\\nQuesto dispositivo è davvero un Mycroft DevKit?",
@@ -28,7 +28,7 @@
   },
   "finish.sh": {
     "title": "Installazione di Open Voice OS - Conclusione",
-    "content": "L'installazione è stata completata con successo! 🎉\n\nIl vostro assistente vocale è ora pronto per l'uso. Non vediamo l'ora di farvi esplorare l'ampia gamma di funzioni e possibilità di questo assistente vocale.\n\nSe avete attivato la funzione Competenze, potete interagire con il vostro assistente dicendo:\n\n  - Hey Mycroft, che ore sono?\n  - Hey Mycroft, che temperatura c'è?\n  - Hey Mycroft, chi ti ha fatto?\n  - Hey Mycroft, chi è Ada Lovelace?\n  - Hey Mycroft, cosa direbbe Duke Nukem?\n\nLe impostazioni della procedura guidata possono essere modificate nel file di configurazione $CONFIG_FILE.\n\nSe in futuro avrete bisogno di assistenza o di aggiornamenti, non esitate a contattarci. Buon divertimento con Open Voice OS!"
+    "content": "L'installazione è stata completata con successo! 🎉\n\nIl vostro assistente vocale è ora pronto per l'uso. Non vediamo l'ora di farvi esplorare l'ampia gamma di funzioni e possibilità di questo assistente vocale.\n\nSe avete attivato la funzione Competenze, potete interagire con il vostro assistente dicendo:\n\n  - Hey Mycroft, che ore sono?\n  - Hey Mycroft, che temperatura c'è?\n  - Hey Mycroft, chi ti ha fatto?\n  - Hey Mycroft, chi è Ada Lovelace?\n  - Hey Mycroft, cosa direbbe Duke Nukem?\n\nLe impostazioni della procedura guidata possono essere modificate nel file di configurazione ${CONFIG_FILE:-}.\n\nSe in futuro avrete bisogno di assistenza o di aggiornamenti, non esitate a contattarci. Buon divertimento con Open Voice OS!"
   },
   "methods.sh": {
     "title": "Installazione di Open Voice OS - Ambienti",
@@ -52,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Installazione di Open Voice OS - Riassunto",
-    "content": "Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:\n\n    - Distribuzione: $METHOD\n    - Versione: $CHANNEL\n    - Profilo: $PROFILE\n    - Competenze: $FEATURE_SKILLS_SUMMARY_STATE\n    - Ottimizzazione: $TUNING_SUMMARY_STATE\n\nLe decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.\n\nLe impostazioni sono corrette? In caso contrario, seleziona $BACK_BUTTON (o premi ESC) per tornare indietro e apportare modifiche."
+    "content": "Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:\n\n    - Distribuzione: ${METHOD:-}\n    - Versione: ${CHANNEL:-}\n    - Profilo: ${PROFILE:-}\n    - Competenze: ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Ottimizzazione: ${TUNING_SUMMARY_STATE:-}\n\nLe decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.\n\nLe impostazioni sono corrette? In caso contrario, seleziona ${BACK_BUTTON:-} (o premi ESC) per tornare indietro e apportare modifiche."
   },
   "telemetry.sh": {
     "title": "Installazione di Open Voice OS - Telemetria",
