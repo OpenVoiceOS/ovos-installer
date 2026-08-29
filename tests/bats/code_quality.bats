@@ -815,17 +815,49 @@ function setup() {
     assert_success
 }
 
-@test "macos_fann2_build_has_swig2_compatibility_shim" {
-    run grep -q "Resolve swig binary path for fann2 builds (macOS)" ansible/roles/ovos_virtualenv/tasks/packages.yml
+@test "fann2_build_has_swig2_compatibility_shim" {
+    local tasks="ansible/roles/ovos_virtualenv/tasks/packages.yml"
+    local shim="ansible/roles/ovos_virtualenv/templates/swig2.0-shim.sh.j2"
+
+    run grep -q "Resolve swig binary path for fann2 builds" "$tasks"
     assert_success
 
-    run bash -c "grep -A8 -F -- \"- name: Resolve swig binary path for fann2 builds (macOS)\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -- \"failed_when: false\""
+    run bash -c "grep -A8 -F -- \"- name: Resolve swig binary path for fann2 builds\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -- \"failed_when: false\""
     assert_success
 
-    run grep -q "Ensure swig2.0 compatibility shim exists (macOS)" ansible/roles/ovos_virtualenv/tasks/packages.yml
+    run grep -q "Ensure swig2.0 compatibility shim exists" "$tasks"
     assert_success
 
-    run grep -q "dest: \"{{ ovos_installer_user_home }}/.local/bin/swig2.0\"" ansible/roles/ovos_virtualenv/tasks/packages.yml
+    run grep -q "dest: \"{{ ovos_virtualenv_swig_shim_path }}\"" "$tasks"
+    assert_success
+
+    # fann2 is built from source on every platform, so the shim is not macOS only.
+    run bash -c "grep -A12 -F -- \"- name: Ensure swig2.0 compatibility shim exists\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -F -- \"ansible_facts.system in ['Linux', 'Darwin']\""
+    assert_success
+
+    # The shim has to be a wrapper script, not a symlink: swig 4.5.0 dropped the
+    # Python 2 compatibility macros that fann2 typemaps still call.
+    run bash -c "grep -A6 -F -- \"- name: Ensure swig2.0 compatibility shim exists\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -- \"src: swig2.0-shim.sh.j2\""
+    assert_success
+
+    run test -f "$shim"
+    assert_success
+
+    run grep -q "{{ ovos_virtualenv_swig_bin.stdout | trim }}" "$shim"
+    assert_success
+
+    run grep -q "define PyInt_AsLong(x) PyLong_AsLong(x)" "$shim"
+    assert_success
+
+    run grep -q "define PyInt_FromLong(x) PyLong_FromLong(x)" "$shim"
+    assert_success
+
+    # Leave wrappers alone when swig still ships the macros itself.
+    run grep -q 'grep -q "define PyInt_AsLong" "${wrapper}" && exit 0' "$shim"
+    assert_success
+
+    # The shim is installed by the role, so uninstall has to take it away again.
+    run grep -q "ovos_virtualenv_swig_shim_path" ansible/roles/ovos_virtualenv/tasks/uninstall.yml
     assert_success
 }
 
