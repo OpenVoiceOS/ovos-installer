@@ -196,6 +196,15 @@ function container_runtime_has_ovos_instance() {
     fi
 
     if [ "$runtime_status" -ne 0 ]; then
+        # The CLI is installed but the daemon did not answer, so this runtime
+        # could still be hosting an instance we are unable to see. Remember it
+        # so detect_existing_instance() can warn instead of reporting nothing.
+        if [ -n "${CONTAINER_RUNTIME_PROBE_FAILED:-}" ]; then
+            CONTAINER_RUNTIME_PROBE_FAILED="${CONTAINER_RUNTIME_PROBE_FAILED} and ${runtime_label}"
+        else
+            CONTAINER_RUNTIME_PROBE_FAILED="${runtime_label}"
+        fi
+        export CONTAINER_RUNTIME_PROBE_FAILED
         printf '%s\n' "[info] ${runtime_label} detected but daemon unavailable (${runtime_cmd} ps exit ${runtime_status})" &>>"$LOG_FILE"
     fi
 
@@ -510,6 +519,7 @@ function detect_existing_instance() {
     printf '%s' "➤ Checking for existing instance... "
     export EXISTING_INSTANCE="false"
     unset INSTANCE_TYPE || true
+    export CONTAINER_RUNTIME_PROBE_FAILED=""
     local current_system
     current_system="$(uname -s 2>>"$LOG_FILE" || true)"
     local skip_container_runtime_checks="false"
@@ -565,6 +575,13 @@ function detect_existing_instance() {
         done
     fi
     echo -e "[$done_format]"
+
+    # A runtime we could not query may still hold an instance. Staying silent
+    # here is how an install ends up layered on top of an existing one.
+    if [ -n "${CONTAINER_RUNTIME_PROBE_FAILED:-}" ]; then
+        log_warn "⚠ Unable to query ${CONTAINER_RUNTIME_PROBE_FAILED} for existing Open Voice OS containers."
+        log_warn "  An existing container instance cannot be detected while the daemon is unreachable, see ${LOG_FILE} for details."
+    fi
 }
 
 # Check is a display server is running such as X or Wayland
