@@ -33,7 +33,7 @@
   "methods.sh": {
     "title": "Instalación de Open Voice OS - Métodos",
     "content": "Para instalares Open Voice OS, tes dúas opcións principais:\n\n- Un sistema de contedores, coma o Docker\n- A configuración nun contorno virtual de Python\n\nOs contedores ofrecen illamento e unha implementación sinxela, en canto un contorno virtual de Python permite máis flexibilidade e control sobre a instalación.\n\nSe for escollida a opción de contedores, o Docker instalarase automaticamente se non estiver presente no sistema.\n\nSelecciona un método de instalación:",
-    "locked_content": "Detectouse unha instalación existente de Open Voice OS, polo que só está dispoñible o método que xa utiliza:\n\n    - Método detectado: $INSTANCE_TYPE\n\nPara instalar con outro método, desinstale primeiro a instancia existente e execute de novo o instalador.\n\nConfirme o método de instalación:"
+    "locked_content": "Detectouse unha instalación existente de Open Voice OS, polo que só está dispoñible o método que xa utiliza:\n\n    - Método detectado: ${INSTANCE_TYPE:-}\n\nPara instalar con outro método, desinstale primeiro a instancia existente e execute de novo o instalador.\n\nConfirme o método de instalación:"
   },
   "profiles.sh": {
     "title": "Instalación de Open Voice OS - Perfís",

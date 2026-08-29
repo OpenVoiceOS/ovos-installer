@@ -14,7 +14,7 @@ Seleccione um método de implantação:
 LOCKED_CONTENT="
 Foi detetada uma instalação existente do Open Voice OS, pelo que apenas o método que já utiliza está disponível:
 
-    - Método detetado: $INSTANCE_TYPE
+    - Método detetado: ${INSTANCE_TYPE:-}
 
 Para instalar com outro método, desinstale primeiro a instância existente e execute novamente o instalador.
 
