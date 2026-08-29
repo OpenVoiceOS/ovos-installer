@@ -39,6 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       run: ${{ steps.platform.outputs.run }}
+      scenarios: ${{ steps.matrix.outputs.scenarios }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -50,6 +51,32 @@ jobs:
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: ./.github/scripts/platform_changes.sh macos "$BASE_SHA" >>"$GITHUB_OUTPUT"
+
+      # macos-15-intel is the scarcest runner, so a pull request gets one
+      # Intel job rather than three, and it is the heaviest scenario, because
+      # architecture-specific breakage shows up in the build of the full
+      # stack. Between them the three still cover both architectures, both
+      # channels, both profiles and both feature sets. main and the nightly
+      # schedule run the whole grid.
+      - name: Choose the scenario matrix
+        id: matrix
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            printf 'scenarios=%s\n' '[
+              {"runner":"macos-15-intel","channel":"testing","profile":"ovos","feature_set":"all"},
+              {"runner":"macos-14","channel":"testing","profile":"ovos","feature_set":"minimal"},
+              {"runner":"macos-14","channel":"alpha","profile":"server","feature_set":"minimal"}
+            ]' | tr -d '\n ' >>"$GITHUB_OUTPUT"
+          else
+            printf 'scenarios=%s\n' '[
+              {"runner":"macos-15-intel","channel":"testing","profile":"ovos","feature_set":"minimal"},
+              {"runner":"macos-15-intel","channel":"testing","profile":"ovos","feature_set":"all"},
+              {"runner":"macos-15-intel","channel":"alpha","profile":"server","feature_set":"minimal"},
+              {"runner":"macos-14","channel":"testing","profile":"ovos","feature_set":"minimal"},
+              {"runner":"macos-14","channel":"testing","profile":"ovos","feature_set":"all"},
+              {"runner":"macos-14","channel":"alpha","profile":"server","feature_set":"minimal"}
+            ]' | tr -d '\n ' >>"$GITHUB_OUTPUT"
+          fi
 
   macos-lint-and-bats:
     needs: changes
@@ -107,31 +134,7 @@ jobs:
       fail-fast: false
       max-parallel: 4
       matrix:
-        include:
-          - runner: macos-15-intel
-            channel: testing
-            profile: ovos
-            feature_set: minimal
-          - runner: macos-15-intel
-            channel: testing
-            profile: ovos
-            feature_set: all
-          - runner: macos-15-intel
-            channel: alpha
-            profile: server
-            feature_set: minimal
-          - runner: macos-14
-            channel: testing
-            profile: ovos
-            feature_set: minimal
-          - runner: macos-14
-            channel: testing
-            profile: ovos
-            feature_set: all
-          - runner: macos-14
-            channel: alpha
-            profile: server
-            feature_set: minimal
+        include: ${{ fromJSON(needs.changes.outputs.scenarios) }}
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
