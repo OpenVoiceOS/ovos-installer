@@ -13,7 +13,7 @@ Als je de vaardigheidsfunctie hebt geactiveerd, kun je communiceren met je assis
   - Hey Mycroft, wie is Ada Lovelace?
   - Hey Mycroft, wat zou Duke Nukem zeggen?
 
-De instellingen van je wizard kun je veranderen in het configuratiebestand $CONFIG_FILE.
+De instellingen van je wizard kun je veranderen in het configuratiebestand ${CONFIG_FILE:-}.
 
 Als je in de toekomst ondersteuning of updates nodig hebt, neem dan gerust contact met ons op. Veel plezier met Open Voice OS!
 "

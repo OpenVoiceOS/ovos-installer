@@ -13,7 +13,7 @@ Wenn Sie die Skill-Funktion aktiviert haben, können Sie mit Ihrem Assistenten i
   - Hey Mycroft, wer ist Ada Lovelace?
   - Hey Mycroft, was würde Duke Nukem sagen?
 
-Die Einstellungen Ihres Assistenten können in der Konfigurationsdatei $CONFIG_FILE geändert werden.
+Die Einstellungen Ihres Assistenten können in der Konfigurationsdatei ${CONFIG_FILE:-} geändert werden.
 
 Sollten Sie in Zukunft Unterstützung oder Updates benötigen, können Sie sich gerne an uns wenden. Viel Spaß mit Open Voice OS!
 "

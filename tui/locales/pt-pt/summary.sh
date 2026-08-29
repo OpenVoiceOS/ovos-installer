@@ -2,15 +2,15 @@
 CONTENT="
 Quase a terminar. Um breve resumo:
 
-    - Implementação: $METHOD
-    - Versão:      $CHANNEL
-    - Perfil:      $PROFILE
-    - Skills:      $FEATURE_SKILLS_SUMMARY_STATE
-    - Otimização:  $TUNING_SUMMARY_STATE
+    - Implementação: ${METHOD:-}
+    - Versão:      ${CHANNEL:-}
+    - Perfil:      ${PROFILE:-}
+    - Skills:      ${FEATURE_SKILLS_SUMMARY_STATE:-}
+    - Otimização:  ${TUNING_SUMMARY_STATE:-}
 
 As decisões tomadas durante o processo de instalação do Open Voice OS foram cuidadosamente consideradas para personalizar o nosso sistema de acordo com as suas necessidades e preferências individuais.
 
-As definições estão correctas? Se não, seleccione $BACK_BUTTON (ou prima ESC) para voltar atrás e fazer alterações.
+As definições estão correctas? Se não, seleccione ${BACK_BUTTON:-} (ou prima ESC) para voltar atrás e fazer alterações.
 "
 TITLE="Open Voice OS Instalação - Resumo"
 

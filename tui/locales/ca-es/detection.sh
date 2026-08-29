@@ -2,14 +2,14 @@
 CONTENT="
 Trobeu la informació detectada:
 
-    - Sistema operatiu: $DISTRO_LABEL
-    - Nucli: $KERNEL
-    - RPi: $RASPBERRYPI_MODEL
-    - Python: $(echo "$PYTHON" | awk '{ print $NF }')
-    - AVX/SIMD: $CPU_IS_CAPABLE
-    - Maquinari: $HARDWARE_DETECTED
-    - Venv: $VENV_PATH
-    - So: $SOUND_SERVER
+    - Sistema operatiu: ${DISTRO_LABEL:-}
+    - Nucli: ${KERNEL:-}
+    - RPi: ${RASPBERRYPI_MODEL:-}
+    - Python: $(echo "${PYTHON:-}" | awk '{ print $NF }')
+    - AVX/SIMD: ${CPU_IS_CAPABLE:-}
+    - Maquinari: ${HARDWARE_DETECTED:-}
+    - Venv: ${VENV_PATH:-}
+    - So: ${SOUND_SERVER:-}
     - Pantalla: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}
 "
 TITLE="Instal·lació de l'Open Voice OS - Informació detectada"

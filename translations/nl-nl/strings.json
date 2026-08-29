@@ -11,7 +11,7 @@
   },
   "detection.sh": {
     "title": "OpenVoice OS Installatie - Systeemeigenschappen",
-    "content": "Automatisch herkende systeemeigenschappen:\n\n    - OS:                 $DISTRO_LABEL\n    - Kernel:             $KERNEL\n    - RPi:                $RASPBERRYPI_MODEL\n    - Python:             $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD:           $CPU_IS_CAPABLE\n    - Hardware:           $HARDWARE_DETECTED\n    - Venv:               $VENV_PATH\n    - Geluid:             $SOUND_SERVER\n    - Display:            ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "content": "Automatisch herkende systeemeigenschappen:\n\n    - OS:                 ${DISTRO_LABEL:-}\n    - Kernel:             ${KERNEL:-}\n    - RPi:                ${RASPBERRYPI_MODEL:-}\n    - Python:             $(echo \"${PYTHON:-}\" | awk '{ print $NF }')\n    - AVX/SIMD:           ${CPU_IS_CAPABLE:-}\n    - Hardware:           ${HARDWARE_DETECTED:-}\n    - Venv:               ${VENV_PATH:-}\n    - Geluid:             ${SOUND_SERVER:-}\n    - Display:            ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
     "hardware_confirmation_title": "Open Voice OS Installatie - Hardwarecontrole",
     "hardware_confirmation_mark2_content": "Er is een Raspberry Pi 4 met een TAS5806-audioapparaat gedetecteerd.\\n\\nDit kan een Mycroft Mark II zijn, maar sommige generieke HAT's tonen hetzelfde signaal.\\n\\nIs dit apparaat echt een Mycroft Mark II?",
     "hardware_confirmation_devkit_content": "Er is een Raspberry Pi 4 met TAS5806- en attiny1614-apparaten gedetecteerd.\\n\\nDit kan een Mycroft DevKit zijn, maar sommige generieke HAT's tonen hetzelfde signaal.\\n\\nIs dit apparaat echt een Mycroft DevKit?",
@@ -28,7 +28,7 @@
   },
   "finish.sh": {
     "title": "OpenVoice OS Installatie - Voltooid",
-    "content": "De installatie is met succes voltooid! 🎉\n\nJe stemassistent is nu klaar voor gebruik. We kijken ernaar uit om de vele functies en mogelijkheden van deze stemassistent te ontdekken.\n\nAls je de vaardigheidsfunctie hebt geactiveerd, kun je communiceren met je assistent door te zeggen:\n\n  - Hey Mycroft, hoe laat is het?\n  - Hey Mycroft, wat is de temperatuur?\n  - Hey Mycroft, zet een timer op drie minuten?\n  - Hey Mycroft, wie heeft jou gemaakt?\n  - Hey Mycroft, wie is Ada Lovelace?\n  - Hey Mycroft, wat zou Duke Nukem zeggen?\n\nDe instellingen van je wizard kun je veranderen in het configuratiebestand $CONFIG_FILE.\n\nAls je in de toekomst ondersteuning of updates nodig hebt, neem dan gerust contact met ons op. Veel plezier met Open Voice OS!"
+    "content": "De installatie is met succes voltooid! 🎉\n\nJe stemassistent is nu klaar voor gebruik. We kijken ernaar uit om de vele functies en mogelijkheden van deze stemassistent te ontdekken.\n\nAls je de vaardigheidsfunctie hebt geactiveerd, kun je communiceren met je assistent door te zeggen:\n\n  - Hey Mycroft, hoe laat is het?\n  - Hey Mycroft, wat is de temperatuur?\n  - Hey Mycroft, zet een timer op drie minuten?\n  - Hey Mycroft, wie heeft jou gemaakt?\n  - Hey Mycroft, wie is Ada Lovelace?\n  - Hey Mycroft, wat zou Duke Nukem zeggen?\n\nDe instellingen van je wizard kun je veranderen in het configuratiebestand ${CONFIG_FILE:-}.\n\nAls je in de toekomst ondersteuning of updates nodig hebt, neem dan gerust contact met ons op. Veel plezier met Open Voice OS!"
   },
   "methods.sh": {
     "title": "OpenVoice OS Installatie - Installatieomgeving",
@@ -52,7 +52,7 @@
   },
   "summary.sh": {
     "title": "OpenVoice OS Installatie - Samenvatting",
-    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving: $METHOD\n    - Versie:   $CHANNEL\n    - Profiel:  $PROFILE\n    - Skills:   $FEATURE_SKILLS_SUMMARY_STATE\n    - Tuning:   $TUNING_SUMMARY_STATE\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen zo in orde? Zo niet, kies $BACK_BUTTON (of druk op ESC) om terug te gaan en wijzigingen te maken."
+    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving: ${METHOD:-}\n    - Versie:   ${CHANNEL:-}\n    - Profiel:  ${PROFILE:-}\n    - Skills:   ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Tuning:   ${TUNING_SUMMARY_STATE:-}\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen zo in orde? Zo niet, kies ${BACK_BUTTON:-} (of druk op ESC) om terug te gaan en wijzigingen te maken."
   },
   "telemetry.sh": {
     "title": "OpenVoice OS Installatie - Telemetrie",

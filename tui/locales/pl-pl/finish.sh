@@ -12,7 +12,7 @@ Jeśli włączyłeś funkcję domyślnych umiejętności, możesz zacząć inter
 - Hej Mycroft, kim jest Ada Lovelace?
 - Hej Mycroft, co powiedziałby Duke Nukem?
 
-Ustawienia asystenta można zmienić w pliku konfiguracyjnym $CONFIG_FILE.
+Ustawienia asystenta można zmienić w pliku konfiguracyjnym ${CONFIG_FILE:-}.
 
 Jeśli w przyszłości będziesz potrzebować pomocy lub aktualizacji, skontaktuj się z nami. Ciesz się korzystaniem z Open Voice OS!
 "

@@ -2,18 +2,18 @@
 CONTENT="
 You are almost done, here is a summary of choices you made to install Open Voice OS:
 
-    - Method:   $METHOD
-    - Version:  $CHANNEL
-    - Profile:  $PROFILE
-    - Skills:   $FEATURE_SKILLS_SUMMARY_STATE
-    - Extra:    $FEATURE_EXTRA_SKILLS_SUMMARY_STATE
-    - HA:       $HOMEASSISTANT_SUMMARY_STATE
-    - LLM:      $LLM_SUMMARY_STATE
-    - Tuning:   $TUNING_SUMMARY_STATE
+    - Method:   ${METHOD:-}
+    - Version:  ${CHANNEL:-}
+    - Profile:  ${PROFILE:-}
+    - Skills:   ${FEATURE_SKILLS_SUMMARY_STATE:-}
+    - Extra:    ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}
+    - HA:       ${HOMEASSISTANT_SUMMARY_STATE:-}
+    - LLM:      ${LLM_SUMMARY_STATE:-}
+    - Tuning:   ${TUNING_SUMMARY_STATE:-}
 
 The choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.
 
-Does this summary look correct to you? If not, select $BACK_BUTTON (or press ESC) to go back and make changes.
+Does this summary look correct to you? If not, select ${BACK_BUTTON:-} (or press ESC) to go back and make changes.
 "
 TITLE="Open Voice OS Installation - Summary"
 

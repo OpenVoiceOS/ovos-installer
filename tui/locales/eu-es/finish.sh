@@ -12,7 +12,7 @@ Trebetasun-eginbide lehenetsia gaitu baduzu, zure laguntzailearekin elkarreragin
   - Hey Mycroft, nor da Ada Lovelace?
   - Hey Mycroft, zer esango luke Duke Nukemek?
 
-Zure laguntzailearen ezarpenak $CONFIG_FILE konfigurazio fitxategian alda daitezke.
+Zure laguntzailearen ezarpenak ${CONFIG_FILE:-} konfigurazio fitxategian alda daitezke.
 
 Etorkizunean laguntza edo eguneratzerik behar baduzu, jar zaitez harremanetan. Gozatu Open Voice OS esperientzia!
 "
