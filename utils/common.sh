@@ -1382,6 +1382,32 @@ function install_ansible() {
 # Downloads the yq tool from GitHub to parse YAML scenario file.
 # The binary will be downloaded based on the found operating system and CPU
 # architecture.
+# Fetch a file, retrying a few times before giving up. These downloads come
+# from release CDNs partway through an install that has already done real
+# work, so a single transient failure must not be the end of it.
+function download_with_retry() {
+    local url="$1"
+    local destination="$2"
+    local max_attempts="${DOWNLOAD_MAX_ATTEMPTS:-3}"
+    local attempt=1
+
+    while [ "$attempt" -le "$max_attempts" ]; do
+        if curl -sSfL --connect-timeout 15 --max-time 300 "$url" -o "$destination" 2>>"$LOG_FILE"; then
+            return 0
+        fi
+
+        rm -f "$destination"
+        printf '%s\n' "[warn] download failed (attempt ${attempt}/${max_attempts}): ${url}" &>>"$LOG_FILE"
+        attempt=$((attempt + 1))
+
+        if [ "$attempt" -le "$max_attempts" ]; then
+            sleep "$((attempt * 2))"
+        fi
+    done
+
+    return 1
+}
+
 function download_yq() {
     if [ -f "$YQ_BINARY_PATH" ]; then
         rm "$YQ_BINARY_PATH"
@@ -1409,7 +1435,12 @@ function download_yq() {
     esac
     kernel="$(uname -s 2>>"$LOG_FILE")"
 
-    curl -s -f -L "$YQ_URL/yq_${kernel,,}_$arch" -o "$YQ_BINARY_PATH" &>>"$LOG_FILE"
+    if ! download_with_retry "$YQ_URL/yq_${kernel,,}_$arch" "$YQ_BINARY_PATH"; then
+        echo -e "[$fail_format]"
+        log_error "➤ Unable to download yq from $YQ_URL after ${DOWNLOAD_MAX_ATTEMPTS:-3} attempts."
+        log_error "➤ Check the network connection to GitHub releases, then run the installer again."
+        return 1
+    fi
     chmod 0755 "$YQ_BINARY_PATH" &>>"$LOG_FILE"
 }
 
@@ -1888,7 +1919,7 @@ function setup_avrdude() {
         rm "$AVRDUDE_BINARY_PATH"
     fi
 
-    if ! curl -s -f -L "$avrdude_binary_url" -o "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"; then
+    if ! download_with_retry "$avrdude_binary_url" "$AVRDUDE_BINARY_PATH"; then
         printf '%s\n' "[warn] Failed to download avrdude binary for Mark 1 detection." >>"$LOG_FILE"
         return 1
     fi
@@ -1923,7 +1954,7 @@ EOF
         return 1
     fi
 
-    if ! curl -s -f -L "$avrdude_config_url" -o "$AVRDUDE_CONFIG_PATH" &>>"$LOG_FILE"; then
+    if ! download_with_retry "$avrdude_config_url" "$AVRDUDE_CONFIG_PATH"; then
         printf '%s\n' "[warn] Failed to download avrdude configuration for Mark 1 detection." >>"$LOG_FILE"
         return 1
     fi

@@ -334,3 +334,73 @@ function teardown() {
     unset PIP_CONFIG_FILE OVOS_INSTALLER_PIP_CONFIG_FILE OVOS_INSTALLER_SYSTEM_PIP_CONFIG_FILE
     unset RUN_AS SOUND_SERVER CPU_IS_CAPABLE
 }
+
+@test "function_download_with_retry_succeeds_on_first_attempt" {
+    LOG_FILE="$(mktemp)"
+    attempts_file="$(mktemp)"
+    function curl() {
+        echo "call" >>"$attempts_file"
+        printf 'payload' >"${!#}"
+        return 0
+    }
+    export -f curl
+    run download_with_retry "https://example.invalid/tool" "$BATS_TMPDIR/tool"
+    assert_success
+    assert_equal "$(wc -l <"$attempts_file" | tr -d ' ')" "1"
+    unset curl
+    rm -f "$LOG_FILE" "$attempts_file"
+}
+
+@test "function_download_with_retry_retries_a_transient_failure" {
+    LOG_FILE="$(mktemp)"
+    attempts_file="$(mktemp)"
+    # Fail once, then succeed: a blip must not end the installation.
+    function curl() {
+        echo "call" >>"$attempts_file"
+        if [ "$(wc -l <"$attempts_file" | tr -d ' ')" -lt 2 ]; then
+            return 22
+        fi
+        printf 'payload' >"${!#}"
+        return 0
+    }
+    export -f curl
+    DOWNLOAD_MAX_ATTEMPTS=3
+    run download_with_retry "https://example.invalid/tool" "$BATS_TMPDIR/tool"
+    assert_success
+    assert_equal "$(wc -l <"$attempts_file" | tr -d ' ')" "2"
+    unset curl
+    rm -f "$LOG_FILE" "$attempts_file"
+}
+
+@test "function_download_with_retry_gives_up_after_the_last_attempt" {
+    LOG_FILE="$(mktemp)"
+    attempts_file="$(mktemp)"
+    function curl() {
+        echo "call" >>"$attempts_file"
+        return 22
+    }
+    export -f curl
+    DOWNLOAD_MAX_ATTEMPTS=2
+    run download_with_retry "https://example.invalid/tool" "$BATS_TMPDIR/tool"
+    assert_failure
+    assert_equal "$(wc -l <"$attempts_file" | tr -d ' ')" "2"
+    run grep -c "download failed" "$LOG_FILE"
+    assert_output "2"
+    unset curl
+    rm -f "$LOG_FILE" "$attempts_file"
+}
+
+@test "function_download_yq_reports_a_failed_download" {
+    LOG_FILE="$(mktemp)"
+    YQ_BINARY_PATH="$BATS_TMPDIR/yq"
+    DOWNLOAD_MAX_ATTEMPTS=1
+    function curl() {
+        return 22
+    }
+    export -f curl
+    run download_yq
+    assert_failure
+    assert_output --partial "Unable to download yq"
+    unset curl
+    rm -f "$LOG_FILE"
+}
