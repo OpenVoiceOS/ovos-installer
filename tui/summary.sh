@@ -7,10 +7,10 @@ function summary_toggle_state() {
 
   case "${value,,}" in
     true|yes|enabled|on)
-      printf '%s\n' "enabled"
+      printf '%s\n' "${SUMMARY_STATE_ENABLED:-enabled}"
       ;;
     false|no|disabled|off|"")
-      printf '%s\n' "disabled"
+      printf '%s\n' "${SUMMARY_STATE_DISABLED:-disabled}"
       ;;
     *)
       printf '%s\n' "$value"
@@ -26,17 +26,17 @@ function summary_feature_state() {
   local incomplete_state="$3"
 
   if [ "$selected" != "true" ]; then
-    printf '%s\n' "disabled"
+    printf '%s\n' "${SUMMARY_STATE_DISABLED:-disabled}"
     return
   fi
 
   if [ "${PROFILE:-}" == "server" ] || [ "${PROFILE:-}" == "satellite" ]; then
-    printf '%s\n' "selected (not supported for this profile)"
+    printf '%s\n' "${SUMMARY_STATE_UNSUPPORTED_PROFILE:-selected (not supported for this profile)}"
     return
   fi
 
   if [ "$configured" == "true" ]; then
-    printf '%s\n' "enabled"
+    printf '%s\n' "${SUMMARY_STATE_ENABLED:-enabled}"
     return
   fi
 
@@ -46,13 +46,8 @@ function summary_feature_state() {
 # Recomputed on every pass: the user can go back, change a choice, and come
 # straight back to this screen.
 function summary_refresh_states() {
-  export FEATURE_SKILLS_SUMMARY_STATE
   FEATURE_SKILLS_SUMMARY_STATE="$(summary_toggle_state "${FEATURE_SKILLS:-false}")"
-
-  export FEATURE_EXTRA_SKILLS_SUMMARY_STATE
   FEATURE_EXTRA_SKILLS_SUMMARY_STATE="$(summary_toggle_state "${FEATURE_EXTRA_SKILLS:-false}")"
-
-  export TUNING_SUMMARY_STATE
   TUNING_SUMMARY_STATE="$(summary_toggle_state "${TUNING:-no}")"
 
   local homeassistant_configured="false"
@@ -60,11 +55,10 @@ function summary_refresh_states() {
     homeassistant_configured="true"
   fi
 
-  export HOMEASSISTANT_SUMMARY_STATE
   HOMEASSISTANT_SUMMARY_STATE="$(summary_feature_state \
     "${FEATURE_HOMEASSISTANT:-false}" \
     "$homeassistant_configured" \
-    "selected (missing URL; will be skipped)")"
+    "${SUMMARY_STATE_MISSING_URL:-selected (missing URL; will be skipped)}")"
 
   local llm_configured="false"
   if [ -n "${LLM_API_URL:-}" ] && [ -n "${LLM_API_KEY:-}" ] &&
@@ -72,12 +66,23 @@ function summary_refresh_states() {
     llm_configured="true"
   fi
 
-  export LLM_SUMMARY_STATE
   LLM_SUMMARY_STATE="$(summary_feature_state \
     "${FEATURE_LLM:-false}" \
     "$llm_configured" \
-    "selected (missing configuration; will be skipped)")"
+    "${SUMMARY_STATE_MISSING_CONFIGURATION:-selected (missing configuration; will be skipped)}")"
 }
+
+# The summary CONTENT interpolates these, and the locale has to be loaded before
+# the states can be computed, because the state labels are translated too.
+# Declare them first so that first load has something to interpolate.
+export FEATURE_SKILLS_SUMMARY_STATE=""
+export FEATURE_EXTRA_SKILLS_SUMMARY_STATE=""
+export TUNING_SUMMARY_STATE=""
+export HOMEASSISTANT_SUMMARY_STATE=""
+export LLM_SUMMARY_STATE=""
+
+# shellcheck source=tui/locales/en-us/summary.sh
+source "tui/locales/$LOCALE/summary.sh"
 
 while :; do
   summary_refresh_states
