@@ -154,3 +154,79 @@ function setup() {
 function teardown() {
     rm -f "$LOG_FILE"
 }
+
+@test "function_detect_existing_instance_reports_unreachable_container_runtime" {
+    RUN_AS_HOME="$BATS_TMPDIR/testuser3"
+    function uname() {
+        if [[ "$1" == "-s" ]]; then
+            echo "Linux"
+            return 0
+        fi
+        command uname "$@"
+    }
+    function docker() {
+        # Daemon down: the CLI exists but "docker ps" fails.
+        if [[ "$1" == "ps" ]]; then
+            echo "Cannot connect to the Docker daemon" >&2
+            return 1
+        fi
+    }
+    function podman() {
+        return 0
+    }
+    export -f uname docker podman
+    detect_existing_instance
+    assert_equal "$EXISTING_INSTANCE" "false"
+    assert_equal "$CONTAINER_RUNTIME_PROBE_FAILED" "Docker"
+    unset uname docker podman
+}
+
+@test "function_detect_existing_instance_warns_when_container_runtime_is_unreachable" {
+    RUN_AS_HOME="$BATS_TMPDIR/testuser3"
+    function uname() {
+        if [[ "$1" == "-s" ]]; then
+            echo "Linux"
+            return 0
+        fi
+        command uname "$@"
+    }
+    function docker() {
+        if [[ "$1" == "ps" ]]; then
+            return 1
+        fi
+    }
+    function podman() {
+        if [[ "$1" == "ps" ]]; then
+            return 125
+        fi
+    }
+    export -f uname docker podman
+    run detect_existing_instance
+    assert_success
+    assert_output --partial "Unable to query Docker and Podman"
+    unset uname docker podman
+}
+
+@test "function_detect_existing_instance_does_not_warn_when_runtimes_answer" {
+    RUN_AS_HOME="$BATS_TMPDIR/testuser3"
+    function uname() {
+        if [[ "$1" == "-s" ]]; then
+            echo "Linux"
+            return 0
+        fi
+        command uname "$@"
+    }
+    function docker() {
+        return 0
+    }
+    function podman() {
+        return 0
+    }
+    export -f uname docker podman
+    run detect_existing_instance
+    assert_success
+    refute_output --partial "Unable to query"
+    detect_existing_instance
+    assert_equal "$CONTAINER_RUNTIME_PROBE_FAILED" ""
+    unset uname docker podman
+}
