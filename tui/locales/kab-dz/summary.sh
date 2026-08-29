@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
-HOMEASSISTANT_SUMMARY_STATE="disabled"
+HOMEASSISTANT_SUMMARY_STATE="d arurmid"
 if [ "${FEATURE_HOMEASSISTANT:-false}" == "true" ]; then
     if [ "${PROFILE:-}" == "server" ] || [ "${PROFILE:-}" == "satellite" ]; then
-        HOMEASSISTANT_SUMMARY_STATE="selected (not supported for this profile)"
+        HOMEASSISTANT_SUMMARY_STATE="yettawfran (ur yettwasefrek ara deg umaɣnu-a)"
     elif [ -n "${HOMEASSISTANT_URL:-}" ]; then
-        HOMEASSISTANT_SUMMARY_STATE="enabled"
+        HOMEASSISTANT_SUMMARY_STATE="d urmid"
     else
-        HOMEASSISTANT_SUMMARY_STATE="selected (missing URL; will be skipped)"
+        HOMEASSISTANT_SUMMARY_STATE="yettwafran (txuṣṣ URL; as yettwazgal)"
     fi
 fi
 
-LLM_SUMMARY_STATE="disabled"
+LLM_SUMMARY_STATE="d arurmid"
 if [ "${FEATURE_LLM:-false}" == "true" ]; then
     if [ "${PROFILE:-}" == "server" ] || [ "${PROFILE:-}" == "satellite" ]; then
-        LLM_SUMMARY_STATE="selected (not supported for this profile)"
+        LLM_SUMMARY_STATE="yettawfran (ur yettwasefrek ara deg umaɣnu-a)"
     elif [ -n "${LLM_API_URL:-}" ] && [ -n "${LLM_API_KEY:-}" ] && [ -n "${LLM_MODEL:-}" ] && [ -n "${LLM_PERSONA:-}" ]; then
-        LLM_SUMMARY_STATE="enabled"
+        LLM_SUMMARY_STATE="d urmid"
     else
-        LLM_SUMMARY_STATE="selected (missing configuration; will be skipped)"
+        LLM_SUMMARY_STATE="yettwafran (txuṣṣ tawila; as yettwazgal)"
     fi
 fi
 
