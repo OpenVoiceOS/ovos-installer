@@ -92,7 +92,7 @@ Ttxil-k efk URL n API, tasarut n API, amudil, udem n umyager, akked wazalen n us
 LLM_CONTENT_INVALID_URL="
 URL d arameɣtu.
 
-Ttxil-k efk URL n API d arameɣtu i icban ta n OpenAI.
+Ttxil-k efk URL n API d ameɣtu i icban ta n OpenAI.
 "
 LLM_CONTENT_INVALID_MAX_TOKENS="
 Teɣzi n tririt d tarameɣtut.
