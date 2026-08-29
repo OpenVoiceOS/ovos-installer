@@ -1,81 +1,81 @@
 #!/usr/bin/env bash
 
-TITLE_HAVE_DETAILS="Open Voice OS Installation - Home Assistant"
+TITLE_HAVE_DETAILS="Asbeddi n Open Voice OS - Home Assistant"
 CONTENT_HAVE_DETAILS="
-Home Assistant integration allows OVOS to query and control entities via the Home Assistant REST API.
+Tuqqna ɣer Home Assistant tettak afus i OVOS akken ad yesteqsi yerna ad yesseḥbibir ɣef tɣawsiwin s useqdec n Home Assistant REST API.
 
-To enable it now, you will need:
-  - Your Home Assistant URL (example: http://homeassistant.local:8123)
-  - A Home Assistant Long-Lived Access Token
+Akken ad tt-rmedeḍ tura, ad teḥwaǧeḍ:
+- URL n Home Assistant-ik (amedya: http://homeassistant.local:8123)
+- Token n unekcum n Home Assistant (Long-Lived Access Token)
 
-How to create a Long-Lived Access Token in Home Assistant:
-  1) Open your Home Assistant web UI
-  2) Click your user/profile (your name) in the sidebar
-  3) Go to Security
-  4) Under Long-Lived Access Tokens, click Create Token
-  5) Copy the token and paste it here
+Amek ara tesnulfuḍ Token n unekcum deg Home Assistant:
+1) Ldi asebter-ik n Home Assistant
+2) Sit ɣef umiḍan-ik (isem-ik) deg ugalis adisan
+3) Ddu ɣer Tɣellist (Security)
+4) Seddaw Long-Lived Access Tokens, sit ɣef Create Token
+5) Nɣel token-nni yerna sekcem-it dagi
 
-Do you have these details now?
+Ɣur-k iferdisen-agi tura?
 "
 
-TITLE_EXISTING="Open Voice OS Installation - Home Assistant"
+TITLE_EXISTING="Asbeddi n Open Voice OS - Home Assistant"
 CONTENT_EXISTING="
-Home Assistant integration is already configured.
+Tuqqna ɣer Home Assistant tettwaswel yakan.
 
 URL: __URL__
-Token: (hidden)
+Token: (yeffer)
 
-Would you like to keep the existing configuration?
+Tebɣiḍ ad teṭṭfeḍ tawila-nni yellan?
 "
 
-TITLE_URL="Open Voice OS Installation - Home Assistant URL"
+TITLE_URL="Asbeddi n Open Voice OS - URL n Home Assistant"
 CONTENT_URL="
-Please enter your Home Assistant URL.
+Ttxil-k sekcem URL n Home Assistant-ik.
 
-If you use http:// and omit the port, 8123 will be used.
-If you use https:// and omit the port, no port will be appended.
-Example: http://homeassistant.local:8123
+Ma tesseqdaceḍ http:// yerna ur d-tenniḍ ara tabburt (port), 8123 ara yettwaseqdec.
+Ma tesseqdaceḍ https:// yerna ur d-tenniḍ ara tabburt, ulac tabburt ara yettwarnun.
+Amedya: http://homeassistant.local:8123
 "
 
-TITLE_TOKEN="Open Voice OS Installation - Home Assistant Token"
+TITLE_TOKEN="Asbeddi n Open Voice OS - Token n Home Assistant"
 CONTENT_TOKEN="
-Please paste a Home Assistant Long-Lived Access Token.
+Ttxil-k senṭeḍ Token n unekcum n Home Assistant (Long-Lived Access Token).
 
-Create one in Home Assistant:
-  Profile (your name) -> Security -> Long-Lived Access Tokens -> Create Token
+Snulfu-d yiwen deg Home Assistant:
+Amiḍan (isem-ik) -> Tɣellist -> Long-Lived Access Tokens -> Create Token
 "
 
 CONTENT_TOKEN_KEEP_EXISTING="
-Leave empty to keep your existing token.
+Eǧǧ-it d ilem akken ad teṭṭfeḍ token-ik yellan.
 "
 
-TITLE_INVALID="Open Voice OS Installation - Home Assistant"
+TITLE_INVALID="Asbeddi n Open Voice OS - Home Assistant"
 CONTENT_INVALID_URL="
-Invalid URL.
+URL d arameɣtu.
 
-The Home Assistant URL must start with http:// or https://
-Example: http://homeassistant.local:8123
+URL n Home Assistant ilaq ad yebdu s http:// neɣ https://
+Amedya: http://homeassistant.local:8123
 "
 
 CONTENT_INVALID_PORT="
-Invalid URL.
+URL d arameɣtu.
 
-If you specify a port, it must be numeric.
-Example: http://homeassistant.local:8123
+Ma tenniḍ-d tabburt (port), ilaq ad tili d uṭṭun.
+Amedya: http://homeassistant.local:8123
 "
 
 CONTENT_MISSING_INFO="
-Missing information.
+Talɣut ur tecfi ara.
 
-Please provide the required value to enable Home Assistant integration.
+Ttxil-k efk azal ilaqen akken ad tremdeḍ tuqqna ɣer Home Assistant.
 "
 
 export \
-  TITLE_HAVE_DETAILS CONTENT_HAVE_DETAILS \
-  TITLE_EXISTING CONTENT_EXISTING \
-  TITLE_URL CONTENT_URL \
-  TITLE_TOKEN CONTENT_TOKEN \
-  TITLE_INVALID CONTENT_INVALID_URL \
-  CONTENT_INVALID_PORT \
-  CONTENT_TOKEN_KEEP_EXISTING \
-  CONTENT_MISSING_INFO
+TITLE_HAVE_DETAILS CONTENT_HAVE_DETAILS \
+TITLE_EXISTING CONTENT_EXISTING \
+TITLE_URL CONTENT_URL \
+TITLE_TOKEN CONTENT_TOKEN \
+TITLE_INVALID CONTENT_INVALID_URL \
+CONTENT_INVALID_PORT \
+CONTENT_TOKEN_KEEP_EXISTING \
+CONTENT_MISSING_INFO
