@@ -1,5 +1,9 @@
 name: Run script on merge to dev by gitlocalize-app
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
 on:
   workflow_dispatch:
   push:
