@@ -173,6 +173,35 @@ function setup() {
     done
 }
 
+@test "locales_are_regenerated_by_sync_translations_without_changes" {
+    if ! command -v python3 >/dev/null 2>&1; then
+        skip "python3 is not available"
+    fi
+
+    # scripts/sync_translations.py runs on every gitlocalize-app merge to main
+    # and commits what it produces. Anything the templates cannot emit is lost
+    # at that point, so regenerating has to be a no-op against what is checked in.
+    local workdir
+    workdir="$(mktemp -d)"
+    cp -R scripts translations tui "$workdir/"
+
+    run bash -c "cd '$workdir' && python3 scripts/sync_translations.py"
+    assert_success
+
+    for locale_dir in tui/locales/*; do
+        local locale="${locale_dir##*/}"
+
+        run diff -r "$locale_dir" "$workdir/tui/locales/$locale"
+        if [ "$status" -ne 0 ]; then
+            echo "sync_translations.py would rewrite $locale_dir:" >&2
+            echo "$output" >&2
+        fi
+        assert_success
+    done
+
+    rm -rf "$workdir"
+}
+
 @test "locales_llm_model_strings_are_localized_outside_en_us" {
     for f in tui/locales/*/llm.sh; do
         if [ "$f" = "tui/locales/en-us/llm.sh" ]; then

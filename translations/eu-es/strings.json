@@ -11,13 +11,20 @@
   },
   "detection.sh": {
     "title": "Ireki Voice OS instalazioa - Detektatua",
-    "content": "Mesedez, aurkitu detektatutako informazioa:\n\n    - OS: ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardwarea: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - Soinua: $SOUND_SERVER\n    - Pantaila: ${DISPLAY_SERVER^}"
+    "content": "Mesedez, aurkitu detektatutako informazioa:\n\n    - OS: $DISTRO_LABEL\n    - Kernel: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardwarea: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - Soinua: $SOUND_SERVER\n    - Pantaila: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "hardware_confirmation_title": "Open Voice OS instalazioa - Hardware egiaztapena",
+    "hardware_confirmation_mark2_content": "TAS5806 audio gailu bat duen Raspberry Pi 4 bat detektatu da.\\n\\nMycroft Mark II bat izan daiteke, baina HAT generiko batzuek seinale bera erakusten dute.\\n\\nGailu hau benetan Mycroft Mark II bat al da?",
+    "hardware_confirmation_devkit_content": "TAS5806 eta attiny1614 gailuak dituen Raspberry Pi 4 bat detektatu da.\\n\\nMycroft DevKit bat izan daiteke, baina HAT generiko batzuek seinale bera erakusten dute.\\n\\nGailu hau benetan Mycroft DevKit bat al da?",
+    "hardware_confirmation_generic_note": "Aukeratu Ez Raspberry Pi fluxu generikoarekin jarraitzeko."
   },
   "features.sh": {
     "title": "Ireki Voice OS Instalazioa - Ezaugarriak",
     "content": "Trebetasunek hizkeraren bidez interakzioa ahalbidetzen dute, eta eraginkorra egiten dute etxeko automatizazioa, informazioa berreskuratzea eta gailu adimendunak kontrolatzea hizkuntza naturaleko komandoak erabiliz.\n\nMesedez, aukeratu gaitzeko eginbideak:",
     "skill_description": "Kargatu OVOS trebetasun lehenetsiak",
-    "extra_skill_description": "Kargatu OVOS trebetasun gehigarriak"
+    "extra_skill_description": "Kargatu OVOS trebetasun gehigarriak",
+    "gui_description": "Gaitu OVOS interfazea (Mark II/DevKit Debian Trixie-n)",
+    "homeassistant_description": "Gaitu Home Assistant integrazioa",
+    "llm_description": "Gaitu IA modua OVOS Personarako (konfigurazio gidatua)"
   },
   "finish.sh": {
     "title": "Ireki Voice OS instalazioa - Amaitu",
@@ -45,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Ireki Voice OS instalazioa - Laburpena",
-    "content": "Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:\n\n    - Metodoa: $METHOD\n    - Bertsioa: $CHANNEL\n    - Profila: $PROFILE\n    - Trebetasunak: $FEATURE_SKILLS\n    - Afinazioa: $TUNING\n\nOpen Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.\n\nLaburpen hau zuzena iruditzen zaizu? Hala ez bada, hautatu $BACK_BUTTON (edo sakatu ESC) atzera egiteko eta aldaketak egiteko."
+    "content": "Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:\n\n    - Metodoa: $METHOD\n    - Bertsioa: $CHANNEL\n    - Profila: $PROFILE\n    - Trebetasunak: $FEATURE_SKILLS_SUMMARY_STATE\n    - Afinazioa: $TUNING_SUMMARY_STATE\n\nOpen Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.\n\nLaburpen hau zuzena iruditzen zaizu? Hala ez bada, hautatu $BACK_BUTTON (edo sakatu ESC) atzera egiteko eta aldaketak egiteko."
   },
   "telemetry.sh": {
     "title": "Ireki Voice OS instalazioa - Telemetria",

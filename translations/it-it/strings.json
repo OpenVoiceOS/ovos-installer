@@ -11,13 +11,20 @@
   },
   "detection.sh": {
     "title": "Installazione di Open Voice OS - Proprietà del sistema",
-    "content": "Queste sono le proprietà del sistema che sono state riconosciute automaticamente:\n\n- Sistema operativo: ${DISTRO_NAME^} $DISTRO_VERSION\n- Kernel: $KERNEL\n- Raspberry Pi: $RASPBERRYPI_MODEL\n- Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n- AVX/SIMD: $CPU_IS_CAPABLE\n- Hardware: $HARDWARE_DETECTED\n- Venv: $VENV_PATH\n- Audio: $SOUND_SERVER\n- Schermo: ${DISPLAY_SERVER^}"
+    "content": "Queste sono le proprietà del sistema che sono state riconosciute automaticamente:\n\n- Sistema operativo: $DISTRO_LABEL\n- Kernel: $KERNEL\n- Raspberry Pi: $RASPBERRYPI_MODEL\n- Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n- AVX/SIMD: $CPU_IS_CAPABLE\n- Hardware: $HARDWARE_DETECTED\n- Venv: $VENV_PATH\n- Audio: $SOUND_SERVER\n- Schermo: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "hardware_confirmation_title": "Installazione di Open Voice OS - Verifica hardware",
+    "hardware_confirmation_mark2_content": "È stato rilevato un Raspberry Pi 4 con un dispositivo audio TAS5806.\\n\\nPotrebbe essere un Mycroft Mark II, ma alcuni HAT generici espongono lo stesso segnale.\\n\\nQuesto dispositivo è davvero un Mycroft Mark II?",
+    "hardware_confirmation_devkit_content": "È stato rilevato un Raspberry Pi 4 con dispositivi TAS5806 e attiny1614.\\n\\nPotrebbe essere un Mycroft DevKit, ma alcuni HAT generici espongono lo stesso segnale.\\n\\nQuesto dispositivo è davvero un Mycroft DevKit?",
+    "hardware_confirmation_generic_note": "Scegli No per continuare con il flusso generico Raspberry Pi."
   },
   "features.sh": {
     "title": "Installazione di Open Voice OS - Funzioni",
     "content": "Le competenze consentono l'interazione attraverso la voce, rendendole efficienti per attività quali la domotica, il reperimento di informazioni e il controllo di dispositivi intelligenti tramite comandi vocali.\n\nSeleziona le funzioni da attivare:",
     "skill_description": "Scarica le competenze predefinite per OVOS",
-    "extra_skill_description": "Scarica delle competenze extra per OVOS"
+    "extra_skill_description": "Scarica delle competenze extra per OVOS",
+    "gui_description": "Abilita l'interfaccia OVOS (Mark II/DevKit su Debian Trixie)",
+    "homeassistant_description": "Abilita l'integrazione con Home Assistant",
+    "llm_description": "Abilita la modalità IA per OVOS Persona (configurazione guidata)"
   },
   "finish.sh": {
     "title": "Installazione di Open Voice OS - Conclusione",
@@ -45,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Installazione di Open Voice OS - Riassunto",
-    "content": "Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:\n\n    - Distribuzione: $METHOD\n    - Versione: $CHANNEL\n    - Profilo: $PROFILE\n    - Competenze: $FEATURE_SKILLS\n    - Ottimizzazione: $TUNING\n\nLe decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.\n\nLe impostazioni sono corrette? In caso contrario, seleziona $BACK_BUTTON (o premi ESC) per tornare indietro e apportare modifiche."
+    "content": "Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:\n\n    - Distribuzione: $METHOD\n    - Versione: $CHANNEL\n    - Profilo: $PROFILE\n    - Competenze: $FEATURE_SKILLS_SUMMARY_STATE\n    - Ottimizzazione: $TUNING_SUMMARY_STATE\n\nLe decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.\n\nLe impostazioni sono corrette? In caso contrario, seleziona $BACK_BUTTON (o premi ESC) per tornare indietro e apportare modifiche."
   },
   "telemetry.sh": {
     "title": "Installazione di Open Voice OS - Telemetria",
