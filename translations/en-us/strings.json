@@ -11,17 +11,24 @@
   },
   "detection.sh": {
     "title": "Open Voice OS Installation - Detected",
-    "content": "Please find the detected information:\n\n    - OS:       ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel:   $KERNEL\n    - RPi:      $RASPBERRYPI_MODEL\n    - Python:   $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardware: $HARDWARE_DETECTED\n    - Venv:     $VENV_PATH\n    - Sound:    $SOUND_SERVER\n    - Display:  ${DISPLAY_SERVER^}"
+    "content": "Please find the detected information:\n\n    - OS:       $DISTRO_LABEL\n    - Kernel:   $KERNEL\n    - RPi:      $RASPBERRYPI_MODEL\n    - Python:   $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardware: $HARDWARE_DETECTED\n    - Venv:     $VENV_PATH\n    - Sound:    $SOUND_SERVER\n    - Display:  ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "hardware_confirmation_title": "Open Voice OS Installation - Hardware Check",
+    "hardware_confirmation_mark2_content": "A Raspberry Pi 4 with a TAS5806 audio device was detected.\\n\\nThis can be a Mycroft Mark II, but some generic HATs expose the same signal.\\n\\nIs this device actually a Mycroft Mark II?",
+    "hardware_confirmation_devkit_content": "A Raspberry Pi 4 with TAS5806 and attiny1614 devices was detected.\\n\\nThis can be a Mycroft DevKit, but some generic HATs expose the same signal.\\n\\nIs this device actually a Mycroft DevKit?",
+    "hardware_confirmation_generic_note": "Choose No to continue with the generic Raspberry Pi flow."
   },
   "features.sh": {
     "title": "Open Voice OS Installation - Features",
     "content": "Skills enable interaction through speech, making it efficient for tasks like home automation, information retrieval, and controlling smart devices using natural language commands.\n\nPlease choose the features to enable:",
     "skill_description": "Load default OVOS skills",
-    "extra_skill_description": "Load extra OVOS skills"
+    "extra_skill_description": "Load extra OVOS skills",
+    "gui_description": "Enable OVOS GUI (Mark II/DevKit on Debian Trixie)",
+    "homeassistant_description": "Enable Home Assistant integration",
+    "llm_description": "Enable AI fallback for OVOS Persona (guided setup)"
   },
   "finish.sh": {
     "title": "Open Voice OS Installation - Finish",
-    "content": "The installation has been successfully completed! 🎉\n\nYour voice assistant is ready to go. We're excited for you to explore the wide array of features and capabilities this voice assistant has to offer.\n\nIf you enabled the default skills feature then you can start to interact with your assistant by saying:\n\n  - Hey Mycroft, what time is it?\n  - Hey Mycroft, what is the temperature?\n  - Hey Mycroft, who made you?\n  - Hey Mycroft, who is Ada Lovelace?\n  - Hey Mycroft, what would Duke Nukem say?\n\nThe settings of your assistant could be changed in the $CONFIG_FILE configuration file.\n\nShould you need any assistance or updates in the future, feel free to reach out. Enjoy your Open Voice OS experience!"
+    "content": "The installation has been successfully completed! 🎉\n\nYour voice assistant is ready to go. We're excited for you to explore the wide array of features and capabilities this voice assistant has to offer.\n\n$OVOS_SERVICE_SCOPE_HINT\n\nIf you enabled the default skills feature then you can start to interact with your assistant by saying:\n\n  - Hey Mycroft, what time is it?\n  - Hey Mycroft, what is the temperature?\n  - Hey Mycroft, who made you?\n  - Hey Mycroft, who is Ada Lovelace?\n  - Hey Mycroft, what would Duke Nukem say?\n\nThe settings of your assistant could be changed in the $CONFIG_FILE configuration file.\n\nShould you need any assistance or updates in the future, feel free to reach out. Enjoy your Open Voice OS experience!\n\nPress OK to exit the installer."
   },
   "methods.sh": {
     "title": "Open Voice OS Installation - Methods",
@@ -45,7 +52,12 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Summary",
-    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   $METHOD\n    - Version:  $CHANNEL\n    - Profile:  $PROFILE\n    - Skills:   $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, select $BACK_BUTTON (or press ESC) to go back and make changes."
+    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   $METHOD\n    - Version:  $CHANNEL\n    - Profile:  $PROFILE\n    - Skills:   $FEATURE_SKILLS_SUMMARY_STATE\n    - Extra:    $FEATURE_EXTRA_SKILLS_SUMMARY_STATE\n    - HA:       $HOMEASSISTANT_SUMMARY_STATE\n    - LLM:      $LLM_SUMMARY_STATE\n    - Tuning:   $TUNING_SUMMARY_STATE\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, select $BACK_BUTTON (or press ESC) to go back and make changes.",
+    "state_enabled": "enabled",
+    "state_disabled": "disabled",
+    "state_unsupported_profile": "selected (not supported for this profile)",
+    "state_missing_url": "selected (missing URL; will be skipped)",
+    "state_missing_configuration": "selected (missing configuration; will be skipped)"
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Telemetry",

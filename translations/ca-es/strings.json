@@ -11,13 +11,20 @@
   },
   "detection.sh": {
     "title": "Instal·lació de l'Open Voice OS - Informació detectada",
-    "content": "Trobeu la informació detectada:\n\n    - Sistema operatiu: ${DISTRO_NAME^} $DISTRO_VERSION\n    - Nucli: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Maquinari: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - So: $SOUND_SERVER\n    - Pantalla: ${DISPLAY_SERVER^}"
+    "content": "Trobeu la informació detectada:\n\n    - Sistema operatiu: $DISTRO_LABEL\n    - Nucli: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Maquinari: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - So: $SOUND_SERVER\n    - Pantalla: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "hardware_confirmation_title": "Instal·lació de l'Open Voice OS - Verificació del maquinari",
+    "hardware_confirmation_mark2_content": "S'ha detectat un Raspberry Pi 4 amb un dispositiu d'àudio TAS5806.\\n\\nAixò pot ser un Mycroft Mark II, però alguns HAT genèrics exposen el mateix senyal.\\n\\nAquest dispositiu és realment un Mycroft Mark II?",
+    "hardware_confirmation_devkit_content": "S'ha detectat un Raspberry Pi 4 amb dispositius TAS5806 i attiny1614.\\n\\nAixò pot ser un Mycroft DevKit, però alguns HAT genèrics exposen el mateix senyal.\\n\\nAquest dispositiu és realment un Mycroft DevKit?",
+    "hardware_confirmation_generic_note": "Trieu No per continuar amb el flux genèric de Raspberry Pi."
   },
   "features.sh": {
     "title": "Instal·lació de l'Open Voice OS - Característiques",
     "content": "Les habilitats permeten la interacció a través de la parla, i la fan eficient per a tasques com la domòtica, la recuperació d'informació i el control de dispositius intel·ligents mitjançant ordres de llenguatge natural.\n\nSi us plau, trieu les funcions que voleu activar:",
     "skill_description": "Carrega les habilitats d'OVOS predeterminades",
-    "extra_skill_description": "Carrega habilitats d'OVOS addicionals"
+    "extra_skill_description": "Carrega habilitats d'OVOS addicionals",
+    "gui_description": "Activa la interfície gràfica d'OVOS (Mark II/DevKit a Debian Trixie)",
+    "homeassistant_description": "Activa la integració amb Home Assistant",
+    "llm_description": "Activa el mode IA per a OVOS Persona (configuració guiada)"
   },
   "finish.sh": {
     "title": "Instal·lació de l'Open Voice OS - Finalització",
@@ -45,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Resum",
-    "content": "Gairebé heu acabat, aquí teniu un resum de les opcions que heu triat en instal·lar l'Open Voice OS:\n\n    - Mètode: $METHOD\n    - Versió: $CHANNEL\n    - Perfil: $PROFILE\n    - Habilitats: $FEATURE_SKILLS\n    - Afinació: $TUNING\n\nLes opcions seleccionades durant el procés d'instal·lació de l'Open Voice OS s'han considerat acuradament per a adaptar el nostre sistema a les vostres necessitats i preferències úniques.\n\nUs sembla correcte aquest resum? Si no, selecciona $BACK_BUTTON (o prem ESC) per tornar enrere i fer canvis."
+    "content": "Gairebé heu acabat, aquí teniu un resum de les opcions que heu triat en instal·lar l'Open Voice OS:\n\n    - Mètode: $METHOD\n    - Versió: $CHANNEL\n    - Perfil: $PROFILE\n    - Habilitats: $FEATURE_SKILLS_SUMMARY_STATE\n    - Afinació: $TUNING_SUMMARY_STATE\n\nLes opcions seleccionades durant el procés d'instal·lació de l'Open Voice OS s'han considerat acuradament per a adaptar el nostre sistema a les vostres necessitats i preferències úniques.\n\nUs sembla correcte aquest resum? Si no, selecciona $BACK_BUTTON (o prem ESC) per tornar enrere i fer canvis."
   },
   "telemetry.sh": {
     "title": "Instal·lació de l'Open Voice OS - Telemetria",

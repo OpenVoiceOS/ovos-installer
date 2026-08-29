@@ -1289,6 +1289,44 @@ EOF
     [[ "$finish_body" == *"sudo systemctl status ovos.service ovos-gui.service"* ]]
 }
 
+@test "summary: renders the state labels the locale provides" {
+    # kab-dz translated these labels, so a locale that defines them has to win
+    # over the English defaults in tui/summary.sh.
+    mkdir -p "$SCRATCH_LOCALE_DIR"
+    cat >"$SCRATCH_LOCALE_DIR/summary.sh" <<'LOCALE'
+#!/usr/bin/env bash
+CONTENT="
+    - Skills:   $FEATURE_SKILLS_SUMMARY_STATE
+    - HA:       $HOMEASSISTANT_SUMMARY_STATE
+    - LLM:      $LLM_SUMMARY_STATE
+"
+TITLE="Localized summary"
+
+SUMMARY_STATE_ENABLED="ON"
+SUMMARY_STATE_DISABLED="OFF"
+SUMMARY_STATE_UNSUPPORTED_PROFILE="not for this profile"
+SUMMARY_STATE_MISSING_URL="no url"
+SUMMARY_STATE_MISSING_CONFIGURATION="no config"
+
+export CONTENT TITLE SUMMARY_STATE_ENABLED SUMMARY_STATE_DISABLED SUMMARY_STATE_UNSUPPORTED_PROFILE SUMMARY_STATE_MISSING_URL SUMMARY_STATE_MISSING_CONFIGURATION
+LOCALE
+
+    LOCALE="zz-test"
+    PROFILE="ovos"
+    FEATURE_SKILLS="true"
+    FEATURE_HOMEASSISTANT="true"
+    HOMEASSISTANT_URL=""
+    FEATURE_LLM="false"
+    WHIPTAIL_FORCE_YESNO_STATUS="0"
+
+    # shellcheck source=tui/summary.sh
+    source tui/summary.sh
+
+    [[ "$CONTENT" == *"- Skills:   ON"* ]]
+    [[ "$CONTENT" == *"- HA:       no url"* ]]
+    [[ "$CONTENT" == *"- LLM:      OFF"* ]]
+}
+
 @test "summary: normalizes mixed boolean-like states" {
     METHOD="virtualenv"
     CHANNEL="alpha"

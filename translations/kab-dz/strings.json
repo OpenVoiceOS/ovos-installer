@@ -11,13 +11,20 @@
   },
   "detection.sh": {
     "title": "Asbeddi Open Voice OS - Yettwaf",
-    "content": "Ttxil-k, ha-tan ddaw-a tilɣa-nni yettwafen.\n\n    - Anagraw:       ${DISTRO_NAME^} $DISTRO_VERSION\n    - Iɣes:   $KERNEL\n    - RPi:      $RASPBERRYPI_MODEL\n    - Python:   $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Arrum: $HARDWARE_DETECTED\n    - Venv:     $VENV_PATH\n    - Ameslaw:    $SOUND_SERVER\n    - Abeqqeḍ:  ${DISPLAY_SERVER^}"
+    "content": "Ttxil-k, ha-tan ddaw-a tilɣa-nni yettwafen.\n\n    - Anagraw n wammud:       $DISTRO_LABEL\n    - Iɣes:   $KERNEL\n    - RPi:      $RASPBERRYPI_MODEL\n    - Python:   $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Arrum: $HARDWARE_DETECTED\n    - Tawennaḍt tuhlist:     $VENV_PATH\n    - Aseqdac n umeslaw:    $SOUND_SERVER\n    - Aseqdac n ubeqqeḍ:  ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "hardware_confirmation_title": "Asbeddi n Open Voice OS - Asenqed n warrum",
+    "hardware_confirmation_mark2_content": "Yettwaf-d Raspberry Pi 4 akked ubeqqeḍ n umeslaw TAS5806.\\n\\nAya yezmer ad yili d Mycroft Mark II, maca kra n yiɣewwaren imezganen (HAT) zemren ad d-fkent assaɣ i icban wa.\\n\\nWarrum-a, d Mycroft Mark II s tidet?",
+    "hardware_confirmation_devkit_content": "Yettwaf-d Raspberry Pi 4 akked yibeqqḍen TAS5806 d attiny1614.\\n\\nAya yezmer ad yili d Mycroft DevKit, maca kra n yiɣewwaren imezganen (HAT) zemren ad d-fkent assaɣ i icban wa.\\n\\nWarrum-a, d Mycroft DevKit s tidet?",
+    "hardware_confirmation_generic_note": "Fren Uhu akken ad tkemmleḍ s webrid amatu n Raspberry Pi."
   },
   "features.sh": {
     "title": "Asbeddi n Open Voice OS - Timahilin",
     "content": "Timeẓliyin ssilin amyager s taɣect, ad yili d afessas i lecɣal am usɣiw n uxxam, tiririt n telɣut, d usenqed n tiɣawsiwin timsirin s tiluddna n tutlayt tagmawant.\n\nTtxil-k fren timeẓliyin ara tesɣiw:",
     "skill_description": "Aɛebbi n tizemmar n OVOS timezwura",
-    "extra_skill_description": "Aɛebbi n tzemmar timernan n OVOS"
+    "extra_skill_description": "Aɛebbi n tzemmar timernan n OVOS",
+    "gui_description": "Rmed OVOS GUI (Mark II/DevKit ɣef Debian Trixie)",
+    "homeassistant_description": "Rmed tuqqna ɣer Home Assistant",
+    "llm_description": "Rmed AI (LLM) i OVOS Persona"
   },
   "finish.sh": {
     "title": "Asbeddi n Open Voice OS - Tagara",
@@ -44,7 +51,12 @@
   },
   "summary.sh": {
     "title": "Asbeddi n Open Voice OS - Agzul",
-    "content": "Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS\n\n    - Tarrayt:   $METHOD\n    - Lqem:  $CHANNEL\n    - Amaɣnu:  $PROFILE\n    - Tussniwin:   $FEATURE_SKILLS\n    - Tamellit:   $TUNING\n\nIfranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.\n\nYettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren $BACK_BUTTON (neɣ sit ɣef ESC) akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ."
+    "content": "Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS\n\n    - Tarrayt:   $METHOD\n    - Lqem:  $CHANNEL\n    - Amaɣnu:  $PROFILE\n    - Tussniwin:  $FEATURE_SKILLS_SUMMARY_STATE\n    - Tussniwin timernanin:  $FEATURE_EXTRA_SKILLS_SUMMARY_STATE\n    - Home Assistant:  $HOMEASSISTANT_SUMMARY_STATE\n    - LLM:  $LLM_SUMMARY_STATE\n    - Tamellit:   $TUNING_SUMMARY_STATE\n\nIfranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.\n\nYettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren $BACK_BUTTON (neɣ sit ɣef ESC) akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.",
+    "state_enabled": "d urmid",
+    "state_disabled": "d arurmid",
+    "state_unsupported_profile": "yettawfran (ur yettwasefrek ara deg umaɣnu-a)",
+    "state_missing_url": "yettwafran (txuṣṣ URL; as yettwazgal)",
+    "state_missing_configuration": "yettwafran (txuṣṣ tawila; as yettwazgal)"
   },
   "telemetry.sh": {
     "title": "Asbeddi n Open Voice OS - Aktili",
