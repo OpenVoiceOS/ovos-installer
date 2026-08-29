@@ -3150,6 +3150,37 @@ YAML
 
     run grep -F -q "cancel-in-progress: true" .github/workflows/scenarios-ubuntu2404.yml
     assert_success
+
+    run grep -F -q "cancel-in-progress: true" .github/workflows/scenarios-archlinux.yml
+    assert_success
+}
+
+@test "archlinux_ci_covers_fann2_build_on_swig_4_5" {
+    local workflow=".github/workflows/scenarios-archlinux.yml"
+    local runner=".github/scripts/run_virtualenv_role.sh"
+
+    run test -f "$workflow"
+    assert_success
+
+    # Ubuntu 24.04 still ships swig 4.2, so only a rolling distribution can
+    # catch a regression in the swig2.0 shim fann2 1.0.7 needs.
+    run grep -F -q "image: ghcr.io/archlinux/archlinux:base-devel" "$workflow"
+    assert_success
+
+    run grep -F -q "OVOS_SWIG_PY2_COMPAT" "$workflow"
+    assert_success
+
+    run grep -F -q "from fann2 import libfann" "$workflow"
+    assert_success
+
+    run test -x "$runner"
+    assert_success
+
+    run grep -F -q -- "--tags ovos_virtualenv" "$runner"
+    assert_success
+
+    run grep -F -q "ovos_installer_cleaning=\${cleaning}" "$runner"
+    assert_success
 }
 
 @test "ci_uses_profile_tasks_callback_and_runtime_thresholds" {
