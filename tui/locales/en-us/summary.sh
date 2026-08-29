@@ -1,26 +1,4 @@
 #!/usr/bin/env bash
-HOMEASSISTANT_SUMMARY_STATE="disabled"
-if [ "${FEATURE_HOMEASSISTANT:-false}" == "true" ]; then
-    if [ "${PROFILE:-}" == "server" ] || [ "${PROFILE:-}" == "satellite" ]; then
-        HOMEASSISTANT_SUMMARY_STATE="selected (not supported for this profile)"
-    elif [ -n "${HOMEASSISTANT_URL:-}" ]; then
-        HOMEASSISTANT_SUMMARY_STATE="enabled"
-    else
-        HOMEASSISTANT_SUMMARY_STATE="selected (missing URL; will be skipped)"
-    fi
-fi
-
-LLM_SUMMARY_STATE="disabled"
-if [ "${FEATURE_LLM:-false}" == "true" ]; then
-    if [ "${PROFILE:-}" == "server" ] || [ "${PROFILE:-}" == "satellite" ]; then
-        LLM_SUMMARY_STATE="selected (not supported for this profile)"
-    elif [ -n "${LLM_API_URL:-}" ] && [ -n "${LLM_API_KEY:-}" ] && [ -n "${LLM_MODEL:-}" ] && [ -n "${LLM_PERSONA:-}" ]; then
-        LLM_SUMMARY_STATE="enabled"
-    else
-        LLM_SUMMARY_STATE="selected (missing configuration; will be skipped)"
-    fi
-fi
-
 CONTENT="
 You are almost done, here is a summary of choices you made to install Open Voice OS:
 
@@ -39,4 +17,10 @@ Does this summary look correct to you? If not, select $BACK_BUTTON (or press ESC
 "
 TITLE="Open Voice OS Installation - Summary"
 
-export CONTENT TITLE
+SUMMARY_STATE_ENABLED="enabled"
+SUMMARY_STATE_DISABLED="disabled"
+SUMMARY_STATE_UNSUPPORTED_PROFILE="selected (not supported for this profile)"
+SUMMARY_STATE_MISSING_URL="selected (missing URL; will be skipped)"
+SUMMARY_STATE_MISSING_CONFIGURATION="selected (missing configuration; will be skipped)"
+
+export CONTENT TITLE SUMMARY_STATE_ENABLED SUMMARY_STATE_DISABLED SUMMARY_STATE_UNSUPPORTED_PROFILE SUMMARY_STATE_MISSING_URL SUMMARY_STATE_MISSING_CONFIGURATION

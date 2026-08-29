@@ -11,13 +11,20 @@
   },
   "detection.sh": {
     "title": "Open Voice OS Installation - Détecté",
-    "content": "Veuillez trouver ci-dessous les information détectées:\n\n    - Système d'exploitation:  ${DISTRO_NAME^} $DISTRO_VERSION\n    - Noyau:                   $KERNEL\n    - RPi:                     $RASPBERRYPI_MODEL\n    - Python:                  $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD:                $CPU_IS_CAPABLE\n    - Matériel:                $HARDWARE_DETECTED\n    - Environnement virtuel:   $VENV_PATH\n    - Serveur de son:          $SOUND_SERVER\n    - Serveur graphique:       ${DISPLAY_SERVER^}"
+    "content": "Veuillez trouver ci-dessous les information détectées:\n\n    - Système d'exploitation:  $DISTRO_LABEL\n    - Noyau:                   $KERNEL\n    - RPi:                     $RASPBERRYPI_MODEL\n    - Python:                  $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD:                $CPU_IS_CAPABLE\n    - Matériel:                $HARDWARE_DETECTED\n    - Environnement virtuel:   $VENV_PATH\n    - Serveur de son:          $SOUND_SERVER\n    - Serveur graphique:       ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "hardware_confirmation_title": "Installation d'Open Voice OS - Vérification du matériel",
+    "hardware_confirmation_mark2_content": "Un Raspberry Pi 4 avec un périphérique audio TAS5806 a été détecté.\\n\\nCela peut être un Mycroft Mark II, mais certains HAT génériques exposent le même signal.\\n\\nCet appareil est-il réellement un Mycroft Mark II ?",
+    "hardware_confirmation_devkit_content": "Un Raspberry Pi 4 avec des périphériques TAS5806 et attiny1614 a été détecté.\\n\\nCela peut être un Mycroft DevKit, mais certains HAT génériques exposent le même signal.\\n\\nCet appareil est-il réellement un Mycroft DevKit ?",
+    "hardware_confirmation_generic_note": "Choisissez Non pour continuer avec le flux Raspberry Pi générique."
   },
   "features.sh": {
     "title": "Open Voice OS Installation - Fonctionnalités",
     "content": "Les compétences permettent le déclenchement d'actions par la parole, ce qui rend des tâches telles que la domotique, les nouvelles, la météo, etc. simples et intuitives.\n\nVeuillez sélectionner les fonctionnalités à activer :",
     "skill_description": "Chargement des compétences par défaut d'OVOS",
-    "extra_skill_description": "Chargement des compétences OVOS supplémentaires"
+    "extra_skill_description": "Chargement des compétences OVOS supplémentaires",
+    "gui_description": "Activer l'interface OVOS (Mark II/DevKit sur Debian Trixie)",
+    "homeassistant_description": "Activer l'intégration Home Assistant",
+    "llm_description": "Activer le mode IA pour OVOS Persona (configuration guidée)"
   },
   "finish.sh": {
     "title": "Open Voice OS Installation - Clap de fin",
@@ -25,7 +32,8 @@
   },
   "methods.sh": {
     "title": "Open Voice OS Installation - Méthodes d'installation",
-    "content": "Il existe deux méthodes pour installer Open Voice OS :\n\n    - Au travers d'un moteur de conteneurisation tel que Docker\n    - Au travers d'un environnement virtuel Python\n\nLes conteneurs offrent une isolation et un déploiement facile, tandis qu'un environnement virtuel Python offre plus de flexibilité et de contrôle sur l'installation.\n\nSi la méthode conteneurs est sélectionnée, Docker sera installé automatiquement s'il n'est pas présent sur le système.\n\nVeuillez sélectionner une méthode d'installation :"
+    "content": "Il existe deux méthodes pour installer Open Voice OS :\n\n    - Au travers d'un moteur de conteneurisation tel que Docker\n    - Au travers d'un environnement virtuel Python\n\nLes conteneurs offrent une isolation et un déploiement facile, tandis qu'un environnement virtuel Python offre plus de flexibilité et de contrôle sur l'installation.\n\nSi la méthode conteneurs est sélectionnée, Docker sera installé automatiquement s'il n'est pas présent sur le système.\n\nVeuillez sélectionner une méthode d'installation :",
+    "locked_content": "Une installation existante d'Open Voice OS a été détectée, seule la méthode qu'elle utilise déjà est donc disponible :\n\n    - Méthode détectée : $INSTANCE_TYPE\n\nPour installer avec une autre méthode, désinstallez d'abord l'instance existante, puis relancez l'installateur.\n\nVeuillez confirmer la méthode d'installation :"
   },
   "profiles.sh": {
     "title": "Open Voice OS Installation - Profil d'installation",
@@ -44,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Résumé",
-    "content": "Vous y êtes presque ! Voici un résumé des choix que vous avez effectués pour l'installation d'Open Voice OS :\n\n    - Méthode d'installation :   $METHOD\n    - Canal de déploiement :      $CHANNEL\n    - Profil d'installation :    $PROFILE\n    - Compétences par défaut :   $FEATURE_SKILLS\n    - Réglages Raspberry Pi :    $TUNING\n\nLes choix effectués lors du processus d'installation d'Open Voice OS ont été soigneusement étudiés pour adapter notre système à vos besoins et préférences.\n\nEst-ce que tout cela vous semble correct ? Sinon, sélectionnez $BACK_BUTTON (ou appuyez sur ESC) pour revenir en arrière et modifier vos choix."
+    "content": "Vous y êtes presque ! Voici un résumé des choix que vous avez effectués pour l'installation d'Open Voice OS :\n\n    - Méthode d'installation :   $METHOD\n    - Canal de déploiement :      $CHANNEL\n    - Profil d'installation :    $PROFILE\n    - Compétences par défaut :   $FEATURE_SKILLS_SUMMARY_STATE\n    - Réglages Raspberry Pi :    $TUNING_SUMMARY_STATE\n\nLes choix effectués lors du processus d'installation d'Open Voice OS ont été soigneusement étudiés pour adapter notre système à vos besoins et préférences.\n\nEst-ce que tout cela vous semble correct ? Sinon, sélectionnez $BACK_BUTTON (ou appuyez sur ESC) pour revenir en arrière et modifier vos choix."
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Télémétrie",

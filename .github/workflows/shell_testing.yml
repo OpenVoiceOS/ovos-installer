@@ -13,6 +13,8 @@ on:
       - .github/workflows/shell_testing.yml
       - .github/scripts/**
       - setup.sh
+      - scripts/**
+      - translations/**
       - utils/**
       - tui/**
       - tests/bats/**
@@ -21,6 +23,8 @@ on:
       - .github/workflows/shell_testing.yml
       - .github/scripts/**
       - setup.sh
+      - scripts/**
+      - translations/**
       - utils/**
       - tui/**
       - tests/bats/**

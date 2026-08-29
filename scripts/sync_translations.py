@@ -33,6 +33,50 @@ BACK_BUTTON="{back_button}"
 export OK_BUTTON YES_BUTTON NO_BUTTON BACK_BUTTON
 """
 
+METHODS_TEMPLATE = """
+#!/usr/bin/env bash
+CONTENT="
+{content}
+"
+LOCKED_CONTENT="
+{locked_content}
+"
+TITLE="{title}"
+
+export CONTENT LOCKED_CONTENT TITLE
+"""
+
+DETECTION_TEMPLATE = """
+#!/usr/bin/env bash
+CONTENT="
+{content}
+"
+TITLE="{title}"
+
+HARDWARE_CONFIRMATION_TITLE="{hardware_confirmation_title}"
+HARDWARE_CONFIRMATION_MARK2_CONTENT="{hardware_confirmation_mark2_content}"
+HARDWARE_CONFIRMATION_DEVKIT_CONTENT="{hardware_confirmation_devkit_content}"
+HARDWARE_CONFIRMATION_GENERIC_NOTE="{hardware_confirmation_generic_note}"
+
+export CONTENT TITLE HARDWARE_CONFIRMATION_TITLE HARDWARE_CONFIRMATION_MARK2_CONTENT HARDWARE_CONFIRMATION_DEVKIT_CONTENT HARDWARE_CONFIRMATION_GENERIC_NOTE
+"""
+
+SUMMARY_TEMPLATE = """
+#!/usr/bin/env bash
+CONTENT="
+{content}
+"
+TITLE="{title}"
+
+SUMMARY_STATE_ENABLED="{state_enabled}"
+SUMMARY_STATE_DISABLED="{state_disabled}"
+SUMMARY_STATE_UNSUPPORTED_PROFILE="{state_unsupported_profile}"
+SUMMARY_STATE_MISSING_URL="{state_missing_url}"
+SUMMARY_STATE_MISSING_CONFIGURATION="{state_missing_configuration}"
+
+export CONTENT TITLE SUMMARY_STATE_ENABLED SUMMARY_STATE_DISABLED SUMMARY_STATE_UNSUPPORTED_PROFILE SUMMARY_STATE_MISSING_URL SUMMARY_STATE_MISSING_CONFIGURATION
+"""
+
 FEATURES_TEMPLATE = """
 #!/usr/bin/env bash
 CONTENT="
@@ -41,8 +85,11 @@ CONTENT="
 TITLE="{title}"
 SKILL_DESCRIPTION="{skill_description}"
 EXTRA_SKILL_DESCRIPTION="{extra_skill_description}"
+GUI_DESCRIPTION="{gui_description}"
+HOMEASSISTANT_DESCRIPTION="{homeassistant_description}"
+LLM_DESCRIPTION="{llm_description}"
 
-export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION
+export CONTENT TITLE SKILL_DESCRIPTION EXTRA_SKILL_DESCRIPTION GUI_DESCRIPTION HOMEASSISTANT_DESCRIPTION LLM_DESCRIPTION
 """
 
 SAT_TEMPLATE = """
@@ -90,14 +137,14 @@ export CONTENT_HOST CONTENT_PORT CONTENT_KEY CONTENT_PASSWORD TITLE_HOST TITLE_P
 TEMPLATES = {
     "misc.sh": MISC_TEMPLATE,
     "channels.sh": TEMPLATE,
-    "detection.sh": TEMPLATE,
+    "detection.sh": DETECTION_TEMPLATE,
     "features.sh": FEATURES_TEMPLATE,
     "finish.sh": TEMPLATE,
-    "methods.sh": TEMPLATE,
+    "methods.sh": METHODS_TEMPLATE,
     "overclock.sh": OVERCLOCK_TEMPLATE,
     "profiles.sh": TEMPLATE,
     "satellite.sh": SAT_TEMPLATE,
-    "summary.sh": TEMPLATE,
+    "summary.sh": SUMMARY_TEMPLATE,
     "telemetry.sh": TEMPLATE,
     "tuning.sh": TEMPLATE,
     "uninstall.sh": TEMPLATE,
@@ -116,12 +163,19 @@ def load_lang_data(lang):
     return data
 
 
+EN_DATA = load_lang_data("en-us")
+
+
 def update_locale(lang):
     data = load_lang_data(lang)
     for f, template in TEMPLATES.items():
         if f not in data:
             continue
         keys = {k.lower(): v for k, v in data[f].items()}
+        # A locale lags behind en-us until a new string is translated. Fill the
+        # gap with English instead of failing the whole sync on a KeyError.
+        for key, value in EN_DATA.get(f, {}).items():
+            keys.setdefault(key.lower(), value)
         os.makedirs(f"{LOCALE_FOLDER}/{lang}", exist_ok=True)
         with open(f"{LOCALE_FOLDER}/{lang}/{f}", "w") as f:
             f.write(template.format(**keys).strip()+"\n")

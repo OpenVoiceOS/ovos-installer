@@ -14,4 +14,10 @@ Stimmen die Einstellungen? Falls nicht, wählen Sie $BACK_BUTTON (oder drücken 
 "
 TITLE="Open Voice OS Installation - Zusammenfassung"
 
-export CONTENT TITLE
+SUMMARY_STATE_ENABLED="enabled"
+SUMMARY_STATE_DISABLED="disabled"
+SUMMARY_STATE_UNSUPPORTED_PROFILE="selected (not supported for this profile)"
+SUMMARY_STATE_MISSING_URL="selected (missing URL; will be skipped)"
+SUMMARY_STATE_MISSING_CONFIGURATION="selected (missing configuration; will be skipped)"
+
+export CONTENT TITLE SUMMARY_STATE_ENABLED SUMMARY_STATE_DISABLED SUMMARY_STATE_UNSUPPORTED_PROFILE SUMMARY_STATE_MISSING_URL SUMMARY_STATE_MISSING_CONFIGURATION

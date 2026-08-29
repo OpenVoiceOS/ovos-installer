@@ -11,13 +11,20 @@
   },
   "detection.sh": {
     "title": "Open Voice OS Installation - सिस्टम जानकारी की पहचान",
-    "content": "कृपया पता लगाई गई जानकारी को सत्यापित करें:\n\n    - OS:       ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel:   $KERNEL\n    - RPi:      $RASPBERRYPI_MODEL\n    - Python:   $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardware: $HARDWARE_DETECTED\n    - Venv:     $VENV_PATH\n    - Sound:    $SOUND_SERVER\n    - Display:  ${DISPLAY_SERVER^}"
+    "content": "कृपया पता लगाई गई जानकारी को सत्यापित करें:\n\n    - OS:       $DISTRO_LABEL\n    - Kernel:   $KERNEL\n    - RPi:      $RASPBERRYPI_MODEL\n    - Python:   $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardware: $HARDWARE_DETECTED\n    - Venv:     $VENV_PATH\n    - Sound:    $SOUND_SERVER\n    - Display:  ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "hardware_confirmation_title": "Open Voice OS Installation - हार्डवेयर जाँच",
+    "hardware_confirmation_mark2_content": "TAS5806 ऑडियो डिवाइस वाला Raspberry Pi 4 मिला है।\\n\\nयह Mycroft Mark II हो सकता है, लेकिन कुछ सामान्य HAT वही सिग्नल दिखाते हैं।\\n\\nक्या यह डिवाइस वास्तव में Mycroft Mark II है?",
+    "hardware_confirmation_devkit_content": "TAS5806 और attiny1614 डिवाइस वाला Raspberry Pi 4 मिला है।\\n\\nयह Mycroft DevKit हो सकता है, लेकिन कुछ सामान्य HAT वही सिग्नल दिखाते हैं।\\n\\nक्या यह डिवाइस वास्तव में Mycroft DevKit है?",
+    "hardware_confirmation_generic_note": "सामान्य Raspberry Pi प्रवाह के साथ आगे बढ़ने के लिए नहीं चुनें।"
   },
   "features.sh": {
     "title": "Open Voice OS Installation - विशेषताएँ",
     "content": "कौशल भाषण के माध्यम से बातचीत को सक्षम बनाते हैं, जिससे यह होम ऑटोमेशन, सूचना पुनर्प्राप्ति और प्राकृतिक भाषा कमांड का उपयोग करके स्मार्ट उपकरणों को नियंत्रित करने जैसे कार्यों के लिए कुशल बन जाता है।\n\nसक्षम करने के लिए कृपया सुविधाएँ चुनें:",
     "skill_description": "डिफ़ॉल्ट OVOS कौशल लोड करें",
-    "extra_skill_description": "अतिरिक्त OVOS कौशल लोड करें"
+    "extra_skill_description": "अतिरिक्त OVOS कौशल लोड करें",
+    "gui_description": "OVOS GUI सक्षम करें (Debian Trixie पर Mark II/DevKit)",
+    "homeassistant_description": "Home Assistant इंटीग्रेशन सक्षम करें",
+    "llm_description": "OVOS Persona के लिए AI मोड सक्षम करें (निर्देशित सेटअप)"
   },
   "finish.sh": {
     "title": "Open Voice OS Installation - अन्त",
@@ -25,7 +32,8 @@
   },
   "methods.sh": {
     "title": "Open Voice OS Installation - विधि",
-    "content": "Open Voice OS इंस्टालेशन (install) करने के लिए, आपके पास दो प्राथमिक विधियाँ हैं:\n\n    - Containers engine such as Docker\n    - Setting it up in a Python virtual environment\n\nContainers (कंटेनर) अलगाव और आसान तैनाती प्रदान करते हैं, जबकि पायथन वर्चुअल वातावरण (Python virtual environment) इंस्टॉलेशन पर अधिक लचीलापन और नियंत्रण प्रदान करता है।\n\nयदि Container (कंटेनर) विधि का चयन किया गया है, सिस्टम पर मौजूद नहीं होने पर Docker(डॉकर) खुद ब खुद से इंस्टॉल हो जाएगा।\n\nकृपया एक इंस्टालेशन (install) विधि चुनें:"
+    "content": "Open Voice OS इंस्टालेशन (install) करने के लिए, आपके पास दो प्राथमिक विधियाँ हैं:\n\n    - Containers engine such as Docker\n    - Setting it up in a Python virtual environment\n\nContainers (कंटेनर) अलगाव और आसान तैनाती प्रदान करते हैं, जबकि पायथन वर्चुअल वातावरण (Python virtual environment) इंस्टॉलेशन पर अधिक लचीलापन और नियंत्रण प्रदान करता है।\n\nयदि Container (कंटेनर) विधि का चयन किया गया है, सिस्टम पर मौजूद नहीं होने पर Docker(डॉकर) खुद ब खुद से इंस्टॉल हो जाएगा।\n\nकृपया एक इंस्टालेशन (install) विधि चुनें:",
+    "locked_content": "Open Voice OS की एक मौजूदा स्थापना का पता चला है, इसलिए केवल वही विधि उपलब्ध है जिसका वह पहले से उपयोग करती है:\n\n    - पहचानी गई विधि: $INSTANCE_TYPE\n\nकिसी अन्य विधि से स्थापित करने के लिए, पहले मौजूदा इंस्टेंस को अनइंस्टॉल करें, फिर इंस्टॉलर को दोबारा चलाएँ।\n\nकृपया स्थापना विधि की पुष्टि करें:"
   },
   "profiles.sh": {
     "title": "Open Voice OS Installation - प्रोफाइल",
@@ -44,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - सारांश",
-    "content": "आपका काम लगभग पूरा हो चुका है, ओपन वॉयस ओएस (Open Voice OS) स्थापित करने के लिए आपके द्वारा चुने गए विकल्पों का सारांश यहां दिया गया है:\n    - विधि:     $METHOD            \n    - संस्करण:  $CHANNEL            \n    - प्रोफाइल:  $PROFILE           \n    - कौशल:   $FEATURE_SKILLS\n    - ट्यूनिंग:   $TUNING\n\nओपन वॉयस ओएस (Open Voice OS) इंस्टॉलेशन प्रक्रिया के दौरान चुने गए विकल्पों पर हमारे सिस्टम (System) को आपकी विशिष्ट आवश्यकताओं और प्राथमिकताओं के अनुरूप बनाने के लिए सावधानीपूर्वक विचार किया गया है।\nक्या आपको यह सही लगता है? यदि नहीं, तो वापस जाने और बदलाव करने के लिए $BACK_BUTTON चुनें (या ESC दबाएँ)।"
+    "content": "आपका काम लगभग पूरा हो चुका है, ओपन वॉयस ओएस (Open Voice OS) स्थापित करने के लिए आपके द्वारा चुने गए विकल्पों का सारांश यहां दिया गया है:\n    - विधि:     $METHOD            \n    - संस्करण:  $CHANNEL            \n    - प्रोफाइल:  $PROFILE           \n    - कौशल:   $FEATURE_SKILLS_SUMMARY_STATE\n    - ट्यूनिंग:   $TUNING_SUMMARY_STATE\n\nओपन वॉयस ओएस (Open Voice OS) इंस्टॉलेशन प्रक्रिया के दौरान चुने गए विकल्पों पर हमारे सिस्टम (System) को आपकी विशिष्ट आवश्यकताओं और प्राथमिकताओं के अनुरूप बनाने के लिए सावधानीपूर्वक विचार किया गया है।\nक्या आपको यह सही लगता है? यदि नहीं, तो वापस जाने और बदलाव करने के लिए $BACK_BUTTON चुनें (या ESC दबाएँ)।"
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - टेलीमेटरी",

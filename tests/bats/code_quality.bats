@@ -815,17 +815,57 @@ function setup() {
     assert_success
 }
 
-@test "macos_fann2_build_has_swig2_compatibility_shim" {
-    run grep -q "Resolve swig binary path for fann2 builds (macOS)" ansible/roles/ovos_virtualenv/tasks/packages.yml
+@test "fann2_build_has_swig2_compatibility_shim" {
+    local tasks="ansible/roles/ovos_virtualenv/tasks/packages.yml"
+    local shim="ansible/roles/ovos_virtualenv/templates/swig2.0-shim.sh.j2"
+
+    run grep -q "Resolve swig binary path for fann2 builds" "$tasks"
     assert_success
 
-    run bash -c "grep -A8 -F -- \"- name: Resolve swig binary path for fann2 builds (macOS)\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -- \"failed_when: false\""
+    run bash -c "grep -A12 -F -- \"- name: Resolve swig binary path for fann2 builds\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -- \"failed_when: false\""
     assert_success
 
-    run grep -q "Ensure swig2.0 compatibility shim exists (macOS)" ansible/roles/ovos_virtualenv/tasks/packages.yml
+    # command -v is a shell builtin, which(1) is a package that minimal images
+    # do not always ship. Resolving through it must not regress to which.
+    run bash -c "grep -A12 -F -- \"- name: Resolve swig binary path for fann2 builds\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -F -- \"command -v swig\""
     assert_success
 
-    run grep -q "dest: \"{{ ovos_installer_user_home }}/.local/bin/swig2.0\"" ansible/roles/ovos_virtualenv/tasks/packages.yml
+    run bash -c "grep -A12 -F -- \"- name: Resolve swig binary path for fann2 builds\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -F -- \"which swig\""
+    assert_failure
+
+    run grep -q "Ensure swig2.0 compatibility shim exists" "$tasks"
+    assert_success
+
+    run grep -q "dest: \"{{ ovos_virtualenv_swig_shim_path }}\"" "$tasks"
+    assert_success
+
+    # fann2 is built from source on every platform, so the shim is not macOS only.
+    run bash -c "grep -A12 -F -- \"- name: Ensure swig2.0 compatibility shim exists\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -F -- \"ansible_facts.system in ['Linux', 'Darwin']\""
+    assert_success
+
+    # The shim has to be a wrapper script, not a symlink: swig 4.5.0 dropped the
+    # Python 2 compatibility macros that fann2 typemaps still call.
+    run bash -c "grep -A6 -F -- \"- name: Ensure swig2.0 compatibility shim exists\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -- \"src: swig2.0-shim.sh.j2\""
+    assert_success
+
+    run test -f "$shim"
+    assert_success
+
+    run grep -q "{{ ovos_virtualenv_swig_bin.stdout | trim }}" "$shim"
+    assert_success
+
+    run grep -q "define PyInt_AsLong(x) PyLong_AsLong(x)" "$shim"
+    assert_success
+
+    run grep -q "define PyInt_FromLong(x) PyLong_FromLong(x)" "$shim"
+    assert_success
+
+    # Leave wrappers alone when swig still ships the macros itself.
+    run grep -q 'grep -q "define PyInt_AsLong" "${wrapper}" && exit 0' "$shim"
+    assert_success
+
+    # The shim is installed by the role, so uninstall has to take it away again.
+    run grep -q "ovos_virtualenv_swig_shim_path" ansible/roles/ovos_virtualenv/tasks/uninstall.yml
     assert_success
 }
 
@@ -3117,6 +3157,37 @@ YAML
     assert_success
 
     run grep -F -q "cancel-in-progress: true" .github/workflows/scenarios-ubuntu2404.yml
+    assert_success
+
+    run grep -F -q "cancel-in-progress: true" .github/workflows/scenarios-archlinux.yml
+    assert_success
+}
+
+@test "archlinux_ci_covers_fann2_build_on_swig_4_5" {
+    local workflow=".github/workflows/scenarios-archlinux.yml"
+    local runner=".github/scripts/run_virtualenv_role.sh"
+
+    run test -f "$workflow"
+    assert_success
+
+    # Ubuntu 24.04 still ships swig 4.2, so only a rolling distribution can
+    # catch a regression in the swig2.0 shim fann2 1.0.7 needs.
+    run grep -F -q "image: ghcr.io/archlinux/archlinux:base-devel" "$workflow"
+    assert_success
+
+    run grep -F -q "OVOS_SWIG_PY2_COMPAT" "$workflow"
+    assert_success
+
+    run grep -F -q "from fann2 import libfann" "$workflow"
+    assert_success
+
+    run test -x "$runner"
+    assert_success
+
+    run grep -F -q -- "--tags ovos_virtualenv" "$runner"
+    assert_success
+
+    run grep -F -q "ovos_installer_cleaning=\${cleaning}" "$runner"
     assert_success
 }
 

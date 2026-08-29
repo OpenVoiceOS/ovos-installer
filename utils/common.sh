@@ -165,37 +165,81 @@ function run_with_errexit_guard() {
     return "$status"
 }
 
-# Return success when an OCI runtime contains OVOS/HiveMind related containers.
+# Return success when an OCI runtime hosts an instance the installer deployed.
 function container_runtime_has_ovos_instance() {
     local runtime_cmd="$1"
     local runtime_label="$2"
     local name_regex="$3"
     local runtime_names=""
     local runtime_status=0
+    local project=""
+    local errexit_set=0
+
+    # The compose projects the installer deploys under, same list the
+    # uninstall role tears down.
+    local -a compose_projects=(ovos hivemind)
 
     if ! command -v "$runtime_cmd" &>>"$LOG_FILE"; then
         return 1
     fi
 
-    local errexit_set=0
     [[ $- == *e* ]] && errexit_set=1
-    set +e
-    runtime_names="$("$runtime_cmd" ps -a --format '{{.Names}}' 2>>"$LOG_FILE")"
-    runtime_status=$?
-    if [ "$errexit_set" -eq 1 ]; then
-        set -e
-    else
-        set +e
-    fi
 
-    if [ "$runtime_status" -eq 0 ] && printf '%s\n' "$runtime_names" | grep -Eq "$name_regex"; then
-        export EXISTING_INSTANCE="true"
-        export INSTANCE_TYPE="containers"
-        printf '%s\n' "[info] Existing OVOS instance detected via ${runtime_label} containers" &>>"$LOG_FILE"
-        return 0
+    # Match the compose project rather than the container name. Plenty of
+    # unrelated images are called ovos-something, an ovos-tts-server or an
+    # ovos-stt-server next to an unrelated stack is not a deployed instance.
+    for project in "${compose_projects[@]}"; do
+        set +e
+        runtime_names="$("$runtime_cmd" ps -a --filter "label=com.docker.compose.project=${project}" --format '{{.Names}}' 2>>"$LOG_FILE")"
+        runtime_status=$?
+        if [ "$errexit_set" -eq 1 ]; then
+            set -e
+        else
+            set +e
+        fi
+
+        if [ "$runtime_status" -ne 0 ]; then
+            break
+        fi
+
+        if [ -n "${runtime_names//[[:space:]]/}" ]; then
+            export EXISTING_INSTANCE="true"
+            export INSTANCE_TYPE="containers"
+            printf '%s\n' "[info] Existing OVOS instance detected via ${runtime_label} compose project ${project}" &>>"$LOG_FILE"
+            return 0
+        fi
+    done
+
+    # Anything started outside compose carries no project label, so fall back
+    # to the exact names the installer gives its own containers.
+    if [ "$runtime_status" -eq 0 ]; then
+        set +e
+        runtime_names="$("$runtime_cmd" ps -a --format '{{.Names}}' 2>>"$LOG_FILE")"
+        runtime_status=$?
+        if [ "$errexit_set" -eq 1 ]; then
+            set -e
+        else
+            set +e
+        fi
+
+        if [ "$runtime_status" -eq 0 ] && printf '%s\n' "$runtime_names" | grep -Eq "$name_regex"; then
+            export EXISTING_INSTANCE="true"
+            export INSTANCE_TYPE="containers"
+            printf '%s\n' "[info] Existing OVOS instance detected via ${runtime_label} containers" &>>"$LOG_FILE"
+            return 0
+        fi
     fi
 
     if [ "$runtime_status" -ne 0 ]; then
+        # The CLI is installed but the daemon did not answer, so this runtime
+        # could still be hosting an instance we are unable to see. Remember it
+        # so detect_existing_instance() can warn instead of reporting nothing.
+        if [ -n "${CONTAINER_RUNTIME_PROBE_FAILED:-}" ]; then
+            CONTAINER_RUNTIME_PROBE_FAILED="${CONTAINER_RUNTIME_PROBE_FAILED} and ${runtime_label}"
+        else
+            CONTAINER_RUNTIME_PROBE_FAILED="${runtime_label}"
+        fi
+        export CONTAINER_RUNTIME_PROBE_FAILED
         printf '%s\n' "[info] ${runtime_label} detected but daemon unavailable (${runtime_cmd} ps exit ${runtime_status})" &>>"$LOG_FILE"
     fi
 
@@ -510,6 +554,7 @@ function detect_existing_instance() {
     printf '%s' "➤ Checking for existing instance... "
     export EXISTING_INSTANCE="false"
     unset INSTANCE_TYPE || true
+    export CONTAINER_RUNTIME_PROBE_FAILED=""
     local current_system
     current_system="$(uname -s 2>>"$LOG_FILE" || true)"
     local skip_container_runtime_checks="false"
@@ -521,11 +566,11 @@ function detect_existing_instance() {
         skip_container_runtime_checks="true"
     fi
 
-    # Containers: detect by name (not ID), and only if the runtime exists.
-    # Compose project names are typically "ovos" or "hivemind" (container names
-    # become ovos_* / ovos-* or hivemind_* / hivemind-* depending on compose
-    # version). Keep legacy exact names too.
-    local name_regex='^(ovos[_-].*|hivemind[_-].*|ovos_cli|hivemind_cli|ovos_core|ovos_messagebus)$'
+    # Containers: detect by compose project first, see
+    # container_runtime_has_ovos_instance(). This list is only the fallback for
+    # containers started outside compose, so it stays exact. A prefix match
+    # here reports every unrelated ovos-* image as a deployed instance.
+    local name_regex='^(ovos_cli|hivemind_cli|ovos_core|ovos_messagebus)$'
 
     if [ "$skip_container_runtime_checks" != "true" ]; then
         if container_runtime_has_ovos_instance docker "Docker" "$name_regex"; then
@@ -565,6 +610,13 @@ function detect_existing_instance() {
         done
     fi
     echo -e "[$done_format]"
+
+    # A runtime we could not query may still hold an instance. Staying silent
+    # here is how an install ends up layered on top of an existing one.
+    if [ -n "${CONTAINER_RUNTIME_PROBE_FAILED:-}" ]; then
+        log_warn "⚠ Unable to query ${CONTAINER_RUNTIME_PROBE_FAILED} for existing Open Voice OS containers."
+        log_warn "  An existing container instance cannot be detected while the daemon is unreachable, see ${LOG_FILE} for details."
+    fi
 }
 
 # Check is a display server is running such as X or Wayland

@@ -261,7 +261,8 @@
       {{ _remove_venv_paths
          + _requirements_paths
          + ovos_virtualenv_uninstall_extra_paths
-         + [ovos_virtualenv_messagebus_path, ovos_virtualenv_rust_messagebus_binary_path]
+         + [ovos_virtualenv_messagebus_path, ovos_virtualenv_rust_messagebus_binary_path,
+            ovos_virtualenv_swig_shim_path]
          | unique }}
   ansible.builtin.file:
     path: "{{ item }}"

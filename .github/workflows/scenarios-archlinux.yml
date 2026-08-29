@@ -1,0 +1,123 @@
+name: Arch Linux installer CI
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/scenarios-archlinux.yml
+      - .github/scripts/run_virtualenv_role.sh
+      - ansible.cfg
+      - ansible/**
+  push:
+    paths:
+      - .github/workflows/scenarios-archlinux.yml
+      - .github/scripts/run_virtualenv_role.sh
+      - ansible.cfg
+      - ansible/**
+  schedule:
+    - cron: "40 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  # Arch is the only released distribution shipping swig 4.5.0, which dropped
+  # the Python 2 compatibility macros that fann2 1.0.7 typemaps still call, so
+  # it is where the swig2.0 build shim has to keep working. Ubuntu 24.04 still
+  # ships swig 4.2 and cannot catch a regression here.
+  #
+  # GitHub has no Arch runner and a container has no init system for the
+  # systemd work setup.sh performs, so this drives the ovos_virtualenv role
+  # directly instead of the full installer.
+  archlinux-virtualenv-role:
+    runs-on: ubuntu-24.04
+    container:
+      image: ghcr.io/archlinux/archlinux:base-devel
+    timeout-minutes: 45
+
+    env:
+      OVOS_CI_INSTALL_USER: ovosci
+      OVOS_CI_INSTALL_HOME: /home/ovosci
+      # Keep in sync with ANSIBLE_VERSION in utils/common.sh.
+      OVOS_CI_ANSIBLE_VERSION: 10.7.0
+
+    steps:
+      - name: Install container prerequisites
+        run: pacman -Syu --noconfirm --needed base-devel git python python-pip sudo
+
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Report distribution toolchain
+        run: |
+          python3 --version
+          pacman -Si swig | awk '/^Version/ { print "swig: " $3; exit }'
+          pacman -Si gcc | awk '/^Version/ { print "gcc: " $3; exit }'
+
+      - name: Create installer user
+        run: |
+          useradd -m -s /bin/bash "$OVOS_CI_INSTALL_USER"
+          printf '%s ALL=(ALL) NOPASSWD: ALL\n' "$OVOS_CI_INSTALL_USER" \
+            > "/etc/sudoers.d/$OVOS_CI_INSTALL_USER"
+          chmod 0440 "/etc/sudoers.d/$OVOS_CI_INSTALL_USER"
+
+      - name: Install Ansible, collections and uv
+        run: |
+          python3 -m venv /opt/ansible-venv
+          /opt/ansible-venv/bin/pip install --quiet "ansible==${OVOS_CI_ANSIBLE_VERSION}"
+          /opt/ansible-venv/bin/ansible-galaxy collection install -r ansible/requirements.yml
+          sudo -u "$OVOS_CI_INSTALL_USER" \
+            python3 -m pip install --quiet --user --break-system-packages uv
+
+      - name: Run ovos_virtualenv role
+        run: .github/scripts/run_virtualenv_role.sh false
+
+      - name: Validate swig2.0 build shim
+        run: |
+          shim="${OVOS_CI_INSTALL_HOME}/.local/bin/swig2.0"
+
+          if [ -L "$shim" ]; then
+            echo "The shim is a symlink to swig; it cannot restore the macros swig 4.5.0 removed."
+            exit 1
+          fi
+
+          test -x "$shim"
+          grep -q "OVOS_SWIG_PY2_COMPAT" "$shim"
+
+      - name: Validate fann2 built against the installed swig
+        run: |
+          sudo -u "$OVOS_CI_INSTALL_USER" \
+            "${OVOS_CI_INSTALL_HOME}/.venvs/ovos/bin/python" - <<'PY'
+          from fann2 import libfann
+
+          network = libfann.neural_net()
+          network.create_standard_array([2, 3, 1])
+
+          assert network.get_num_input() == 2, network.get_num_input()
+          print("fann2 usable, num_input =", network.get_num_input())
+          PY
+
+      - name: Run ovos_virtualenv uninstall
+        run: .github/scripts/run_virtualenv_role.sh true
+
+      - name: Validate uninstall removed the build shim
+        run: |
+          shim="${OVOS_CI_INSTALL_HOME}/.local/bin/swig2.0"
+
+          if [ -e "$shim" ]; then
+            echo "The swig2.0 shim survived the uninstall."
+            exit 1
+          fi
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          cat "${OVOS_CI_INSTALL_HOME}/.local/bin/swig2.0" || true
+          ls -la "${OVOS_CI_INSTALL_HOME}/.local/bin" || true
+          ls -la "${OVOS_CI_INSTALL_HOME}/.venvs/ovos/bin" || true
+          swig -version || true
+          pacman -Q swig fann gcc || true

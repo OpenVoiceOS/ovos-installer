@@ -1,0 +1,103 @@
+#!/bin/sh
+# Managed by ovos-installer - do not edit.
+#
+# fann2 1.0.7 prefers a "swig2.0" binary and its typemaps still call the
+# Python 2 C API (PyInt_AsLong, PyInt_FromLong). Until SWIG 4.5.0 the
+# generated wrapper carried compatibility macros that mapped those onto the
+# Python 3 API; 4.5.0 removed them, so the wrapper no longer compiles. Run the
+# real swig, then put the removed macros back when the generated wrapper still
+# needs them.
+
+set -u
+
+swig_bin="{{ ovos_virtualenv_swig_bin.stdout | trim }}"
+
+"${swig_bin}" "$@"
+swig_status=$?
+[ "${swig_status}" -eq 0 ] || exit "${swig_status}"
+
+# Work out which wrapper swig just generated: an explicit -o wins, otherwise
+# swig writes <input>_wrap.cxx (C++) or <input>_wrap.c next to the interface.
+wrapper=""
+interface=""
+extension="c"
+expect_output=0
+
+for arg in "$@"; do
+    if [ "${expect_output}" -eq 1 ]; then
+        wrapper="${arg}"
+        expect_output=0
+        continue
+    fi
+    case "${arg}" in
+        -c++) extension="cxx" ;;
+        -o) expect_output=1 ;;
+        *.i) interface="${arg}" ;;
+    esac
+done
+
+if [ -z "${wrapper}" ]; then
+    [ -n "${interface}" ] || exit 0
+    wrapper="${interface%.i}_wrap.${extension}"
+fi
+
+[ -f "${wrapper}" ] || exit 0
+
+# Nothing to do when this swig still ships the macros, or we already patched.
+grep -q "OVOS_SWIG_PY2_COMPAT" "${wrapper}" && exit 0
+grep -q "define PyInt_AsLong" "${wrapper}" && exit 0
+grep -q -E "PyInt_|PyString_|PyClass_Check|Py_TPFLAGS_HAVE_CLASS|_PyLong_FromSsize_t" "${wrapper}" || exit 0
+
+patched="${wrapper}.ovos-swig-compat"
+cat > "${patched}" <<'EOF'
+/* OVOS_SWIG_PY2_COMPAT - Python 2 C API macros dropped from SWIG's pyhead.swg
+   in 4.5.0, restored for interface files whose typemaps still call them.
+   Macro definitions only, so this needs no Python.h of its own: swig still
+   includes it (with PY_SSIZE_T_CLEAN) further down the generated wrapper. */
+#ifndef PyClass_Check
+#define PyClass_Check(obj) PyObject_IsInstance(obj, (PyObject *)&PyType_Type)
+#endif
+#ifndef PyInt_Check
+#define PyInt_Check(x) PyLong_Check(x)
+#endif
+#ifndef PyInt_AsLong
+#define PyInt_AsLong(x) PyLong_AsLong(x)
+#endif
+#ifndef PyInt_FromLong
+#define PyInt_FromLong(x) PyLong_FromLong(x)
+#endif
+#ifndef PyInt_FromSize_t
+#define PyInt_FromSize_t(x) PyLong_FromSize_t(x)
+#endif
+#ifndef PyString_Check
+#define PyString_Check(name) PyBytes_Check(name)
+#endif
+#ifndef PyString_FromString
+#define PyString_FromString(x) PyUnicode_FromString(x)
+#endif
+#ifndef PyString_Format
+#define PyString_Format(fmt, args) PyUnicode_Format(fmt, args)
+#endif
+#ifndef PyString_AsString
+#define PyString_AsString(str) PyBytes_AsString(str)
+#endif
+#ifndef PyString_Size
+#define PyString_Size(str) PyBytes_Size(str)
+#endif
+#ifndef PyString_InternFromString
+#define PyString_InternFromString(key) PyUnicode_InternFromString(key)
+#endif
+#ifndef Py_TPFLAGS_HAVE_CLASS
+#define Py_TPFLAGS_HAVE_CLASS Py_TPFLAGS_BASETYPE
+#endif
+#ifndef _PyLong_FromSsize_t
+#define _PyLong_FromSsize_t(x) PyLong_FromSsize_t(x)
+#endif
+EOF
+
+if cat "${wrapper}" >> "${patched}"; then
+    mv "${patched}" "${wrapper}"
+else
+    rm -f "${patched}"
+    exit 1
+fi

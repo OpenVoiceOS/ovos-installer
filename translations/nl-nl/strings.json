@@ -11,13 +11,20 @@
   },
   "detection.sh": {
     "title": "OpenVoice OS Installatie - Systeemeigenschappen",
-    "content": "Automatisch herkende systeemeigenschappen:\n\n    - OS:                 ${DISTRO_NAME^} $DISTRO_VERSION\n    - Kernel:             $KERNEL\n    - RPi:                $RASPBERRYPI_MODEL\n    - Python:             $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD:           $CPU_IS_CAPABLE\n    - Hardware:           $HARDWARE_DETECTED\n    - Venv:               $VENV_PATH\n    - Geluid:             $SOUND_SERVER\n    - Display:            ${DISPLAY_SERVER^}"
+    "content": "Automatisch herkende systeemeigenschappen:\n\n    - OS:                 $DISTRO_LABEL\n    - Kernel:             $KERNEL\n    - RPi:                $RASPBERRYPI_MODEL\n    - Python:             $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD:           $CPU_IS_CAPABLE\n    - Hardware:           $HARDWARE_DETECTED\n    - Venv:               $VENV_PATH\n    - Geluid:             $SOUND_SERVER\n    - Display:            ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "hardware_confirmation_title": "Open Voice OS Installatie - Hardwarecontrole",
+    "hardware_confirmation_mark2_content": "Er is een Raspberry Pi 4 met een TAS5806-audioapparaat gedetecteerd.\\n\\nDit kan een Mycroft Mark II zijn, maar sommige generieke HAT's tonen hetzelfde signaal.\\n\\nIs dit apparaat echt een Mycroft Mark II?",
+    "hardware_confirmation_devkit_content": "Er is een Raspberry Pi 4 met TAS5806- en attiny1614-apparaten gedetecteerd.\\n\\nDit kan een Mycroft DevKit zijn, maar sommige generieke HAT's tonen hetzelfde signaal.\\n\\nIs dit apparaat echt een Mycroft DevKit?",
+    "hardware_confirmation_generic_note": "Kies Nee om door te gaan met de generieke Raspberry Pi-stroom."
   },
   "features.sh": {
     "title": "OpenVoice OS Installatie - Kenmerken",
     "content": "Skills maken interactie via spraak mogelijk, waardoor ze efficiënt zijn voor taken zoals domotica, informatie ophalen en slimme apparaten bedienen via spraakopdrachten.\n\nKies welke functies je wil activeren (meerdere opties tegelijkertijd zijn mogelijk):",
     "skill_description": "Standaard OVOS skills",
-    "extra_skill_description": "Extra OVOS skills"
+    "extra_skill_description": "Extra OVOS skills",
+    "gui_description": "OVOS-grafische interface inschakelen (Mark II/DevKit op Debian Trixie)",
+    "homeassistant_description": "Home Assistant-integratie inschakelen",
+    "llm_description": "AI-modus voor OVOS Persona inschakelen (begeleide instelling)"
   },
   "finish.sh": {
     "title": "OpenVoice OS Installatie - Voltooid",
@@ -25,7 +32,8 @@
   },
   "methods.sh": {
     "title": "OpenVoice OS Installatie - Installatieomgeving",
-    "content": "Er zijn twee omgevingen voor de installatie van OpenVoice OS:\n\n    - Container-methode zoals Docker\n    - Installatie in een virtuele Python-omgeving\n\nContainers zorgen voor isolatie en eenvoudige installatie, terwijl een virtuele Python-omgeving meer flexibiliteit en controle over de installatie biedt.\n\nAls de containermethode is geselecteerd, wordt Docker automatisch geïnstalleerd als het niet aanwezig is op je systeem.\n\nSelecteer een installatieomgeving:"
+    "content": "Er zijn twee omgevingen voor de installatie van OpenVoice OS:\n\n    - Container-methode zoals Docker\n    - Installatie in een virtuele Python-omgeving\n\nContainers zorgen voor isolatie en eenvoudige installatie, terwijl een virtuele Python-omgeving meer flexibiliteit en controle over de installatie biedt.\n\nAls de containermethode is geselecteerd, wordt Docker automatisch geïnstalleerd als het niet aanwezig is op je systeem.\n\nSelecteer een installatieomgeving:",
+    "locked_content": "Er is een bestaande installatie van Open Voice OS gedetecteerd, daarom is alleen de methode beschikbaar die al wordt gebruikt:\n\n    - Gedetecteerde methode: $INSTANCE_TYPE\n\nOm met een andere methode te installeren, verwijder eerst de bestaande instantie en voer het installatieprogramma opnieuw uit.\n\nBevestig de installatiemethode:"
   },
   "profiles.sh": {
     "title": "OpenVoice OS Installatie - Profiel",
@@ -44,7 +52,7 @@
   },
   "summary.sh": {
     "title": "OpenVoice OS Installatie - Samenvatting",
-    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving: $METHOD\n    - Versie:   $CHANNEL\n    - Profiel:  $PROFILE\n    - Skills:   $FEATURE_SKILLS\n    - Tuning:   $TUNING\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen zo in orde? Zo niet, kies $BACK_BUTTON (of druk op ESC) om terug te gaan en wijzigingen te maken."
+    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving: $METHOD\n    - Versie:   $CHANNEL\n    - Profiel:  $PROFILE\n    - Skills:   $FEATURE_SKILLS_SUMMARY_STATE\n    - Tuning:   $TUNING_SUMMARY_STATE\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen zo in orde? Zo niet, kies $BACK_BUTTON (of druk op ESC) om terug te gaan en wijzigingen te maken."
   },
   "telemetry.sh": {
     "title": "OpenVoice OS Installatie - Telemetrie",

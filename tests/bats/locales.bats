@@ -147,6 +147,61 @@ function setup() {
     done
 }
 
+@test "locales_methods_scripts_expose_locked_content" {
+    for locale_dir in tui/locales/*; do
+        local locale_file="$locale_dir/methods.sh"
+
+        if [ ! -f "$locale_file" ]; then
+            echo "Missing methods locale: $locale_file" >&2
+            return 1
+        fi
+
+        # Mirror the load order in tui/methods.sh: English first, then the
+        # selected locale. A locale contributed by hand, or not translated yet,
+        # still resolves the locked description that way.
+        run bash -euc "
+            INSTANCE_TYPE=containers
+            source tui/locales/en-us/methods.sh
+            source '$locale_file'
+            test -n \"\$TITLE\"
+            test -n \"\$CONTENT\"
+            test -n \"\$LOCKED_CONTENT\"
+            printf '%s\\n' \"\$LOCKED_CONTENT\"
+        "
+        assert_success
+        assert_output --partial "containers"
+    done
+}
+
+@test "locales_are_regenerated_by_sync_translations_without_changes" {
+    if ! command -v python3 >/dev/null 2>&1; then
+        skip "python3 is not available"
+    fi
+
+    # scripts/sync_translations.py runs on every gitlocalize-app merge to main
+    # and commits what it produces. Anything the templates cannot emit is lost
+    # at that point, so regenerating has to be a no-op against what is checked in.
+    local workdir
+    workdir="$(mktemp -d)"
+    cp -R scripts translations tui "$workdir/"
+
+    run bash -c "cd '$workdir' && python3 scripts/sync_translations.py"
+    assert_success
+
+    for locale_dir in tui/locales/*; do
+        local locale="${locale_dir##*/}"
+
+        run diff -r "$locale_dir" "$workdir/tui/locales/$locale"
+        if [ "$status" -ne 0 ]; then
+            echo "sync_translations.py would rewrite $locale_dir:" >&2
+            echo "$output" >&2
+        fi
+        assert_success
+    done
+
+    rm -rf "$workdir"
+}
+
 @test "locales_llm_model_strings_are_localized_outside_en_us" {
     for f in tui/locales/*/llm.sh; do
         if [ "$f" = "tui/locales/en-us/llm.sh" ]; then
