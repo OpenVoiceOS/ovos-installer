@@ -18,14 +18,93 @@ function setup() {
         command uname "$@"
     }
     function docker() {
-        # Match the name-based detection in utils/common.sh
+        # A compose stack the installer deployed carries the project label.
         if [[ "$1" == "ps" ]]; then
-            echo "ovos_core"
+            if [[ "$*" == *"label=com.docker.compose.project=ovos"* ]]; then
+                echo "ovos-ovos_core-1"
+            fi
         fi
     }
     export -f uname docker
     detect_existing_instance
     assert_equal "$EXISTING_INSTANCE" "true"
+    assert_equal "$INSTANCE_TYPE" "containers"
+    unset uname docker
+}
+
+@test "function_detect_existing_instance_ignores_unrelated_ovos_containers" {
+    # Standalone ovos-tts-server / ovos-stt-server containers are not an
+    # instance the installer deployed, see issue #561.
+    RUN_AS_HOME="$BATS_TMPDIR/testuser4"
+    function uname() {
+        if [[ "$1" == "-s" ]]; then
+            echo "Linux"
+            return 0
+        fi
+        command uname "$@"
+    }
+    function docker() {
+        if [[ "$1" == "ps" ]]; then
+            if [[ "$*" == *"label=com.docker.compose.project="* ]]; then
+                return 0
+            fi
+            printf '%s\n' "ovos-tts-server" "ovos-stt-server" "ovos_tts_plugin"
+        fi
+    }
+    function podman() {
+        return 0
+    }
+    export -f uname docker podman
+    detect_existing_instance
+    assert_equal "$EXISTING_INSTANCE" "false"
+    unset uname docker podman
+}
+
+@test "function_detect_existing_instance_detects_hivemind_compose_project" {
+    RUN_AS_HOME="$BATS_TMPDIR/testuser4"
+    function uname() {
+        if [[ "$1" == "-s" ]]; then
+            echo "Linux"
+            return 0
+        fi
+        command uname "$@"
+    }
+    function docker() {
+        if [[ "$1" == "ps" ]]; then
+            if [[ "$*" == *"label=com.docker.compose.project=hivemind"* ]]; then
+                echo "hivemind-hivemind_listener-1"
+            fi
+        fi
+    }
+    export -f uname docker
+    detect_existing_instance
+    assert_equal "$EXISTING_INSTANCE" "true"
+    assert_equal "$INSTANCE_TYPE" "containers"
+    unset uname docker
+}
+
+@test "function_detect_existing_instance_detects_unlabelled_legacy_names" {
+    # Started outside compose, so no project label to match on.
+    RUN_AS_HOME="$BATS_TMPDIR/testuser4"
+    function uname() {
+        if [[ "$1" == "-s" ]]; then
+            echo "Linux"
+            return 0
+        fi
+        command uname "$@"
+    }
+    function docker() {
+        if [[ "$1" == "ps" ]]; then
+            if [[ "$*" == *"label=com.docker.compose.project="* ]]; then
+                return 0
+            fi
+            printf '%s\n' "ovos_messagebus"
+        fi
+    }
+    export -f uname docker
+    detect_existing_instance
+    assert_equal "$EXISTING_INSTANCE" "true"
+    assert_equal "$INSTANCE_TYPE" "containers"
     unset uname docker
 }
 
