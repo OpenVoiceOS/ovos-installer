@@ -281,3 +281,7 @@ jobs:
           launchctl list | grep -E 'ovos|hivemind' || true
           ls -la "$HOME/Library/LaunchAgents" || true
           ls -la "$HOME/.local/state/mycroft/logs" || true
+          # The installer tells you to read this file when it gives up, so it
+          # belongs in the job output. Without it a CI failure is undebuggable.
+          sudo tail -n 200 /var/log/ovos-installer.log || true
+          sudo tail -n 200 /var/log/ovos-ansible.log || true
