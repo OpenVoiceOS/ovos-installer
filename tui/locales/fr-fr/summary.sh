@@ -2,11 +2,14 @@
 CONTENT="
 Vous y êtes presque ! Voici un résumé des choix que vous avez effectués pour l'installation d'Open Voice OS :
 
-    - Méthode d'installation :   ${METHOD:-}
-    - Canal de déploiement :      ${CHANNEL:-}
-    - Profil d'installation :    ${PROFILE:-}
-    - Compétences par défaut :   ${FEATURE_SKILLS_SUMMARY_STATE:-}
-    - Réglages Raspberry Pi :    ${TUNING_SUMMARY_STATE:-}
+    - Méthode d'installation :      ${METHOD:-}
+    - Canal de déploiement :        ${CHANNEL:-}
+    - Profil d'installation :       ${PROFILE:-}
+    - Compétences par défaut :      ${FEATURE_SKILLS_SUMMARY_STATE:-}
+    - Compétences supplémentaires : ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}
+    - Home Assistant :              ${HOMEASSISTANT_SUMMARY_STATE:-}
+    - LLM :                         ${LLM_SUMMARY_STATE:-}
+    - Réglages Raspberry Pi :       ${TUNING_SUMMARY_STATE:-}
 
 Les choix effectués lors du processus d'installation d'Open Voice OS ont été soigneusement étudiés pour adapter notre système à vos besoins et préférences.
 

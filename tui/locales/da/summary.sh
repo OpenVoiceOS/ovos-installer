@@ -2,11 +2,14 @@
 CONTENT="
 Du er næsten færdig, her er en oversigt over de valg, du har truffet for at installere Open Voice OS:
 
-    - Metode: ${METHOD:-}
-    - Version: ${CHANNEL:-}
-    - Profil: ${PROFILE:-}
-    - Færdigheder: ${FEATURE_SKILLS_SUMMARY_STATE:-}
-    - Tuning: ${TUNING_SUMMARY_STATE:-}
+    - Metode:             ${METHOD:-}
+    - Version:            ${CHANNEL:-}
+    - Profil:             ${PROFILE:-}
+    - Færdigheder:        ${FEATURE_SKILLS_SUMMARY_STATE:-}
+    - Ekstra færdigheder: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}
+    - Home Assistant:     ${HOMEASSISTANT_SUMMARY_STATE:-}
+    - LLM:                ${LLM_SUMMARY_STATE:-}
+    - Tuning:             ${TUNING_SUMMARY_STATE:-}
 
 De valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.
 

@@ -219,6 +219,33 @@ function setup() {
     done
 }
 
+@test "locales_summary_renders_every_computed_state" {
+    # tui/summary.sh computes five states. A locale that leaves one out of
+    # CONTENT hides that choice from the user on the confirmation screen.
+    for locale_dir in tui/locales/*; do
+        local locale_file="$locale_dir/summary.sh"
+
+        if [ ! -f "$locale_file" ]; then
+            echo "Missing summary locale: $locale_file" >&2
+            return 1
+        fi
+
+        # Only CONTENT reaches the screen. A state named in a comment, or in
+        # the export line, must not stand in for a row the user never sees.
+        local rendered
+        rendered="$(sed -n '/^CONTENT="/,/^"$/p' "$locale_file")"
+
+        local state
+        for state in FEATURE_SKILLS FEATURE_EXTRA_SKILLS HOMEASSISTANT LLM TUNING; do
+            run grep -qF "${state}_SUMMARY_STATE" <<<"$rendered"
+            if [ "$status" -ne 0 ]; then
+                echo "$locale_file does not render ${state}_SUMMARY_STATE in CONTENT" >&2
+            fi
+            assert_success
+        done
+    done
+}
+
 @test "locales_are_regenerated_by_sync_translations_without_changes" {
     if ! command -v python3 >/dev/null 2>&1; then
         skip "python3 is not available"

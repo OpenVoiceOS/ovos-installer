@@ -2,11 +2,14 @@
 CONTENT="
 Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:
 
-    - Metodoa: ${METHOD:-}
-    - Bertsioa: ${CHANNEL:-}
-    - Profila: ${PROFILE:-}
-    - Trebetasunak: ${FEATURE_SKILLS_SUMMARY_STATE:-}
-    - Afinazioa: ${TUNING_SUMMARY_STATE:-}
+    - Metodoa:                ${METHOD:-}
+    - Bertsioa:               ${CHANNEL:-}
+    - Profila:                ${PROFILE:-}
+    - Trebetasunak:           ${FEATURE_SKILLS_SUMMARY_STATE:-}
+    - Trebetasun gehigarriak: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}
+    - Home Assistant:         ${HOMEASSISTANT_SUMMARY_STATE:-}
+    - LLM:                    ${LLM_SUMMARY_STATE:-}
+    - Afinazioa:              ${TUNING_SUMMARY_STATE:-}
 
 Open Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.
 
