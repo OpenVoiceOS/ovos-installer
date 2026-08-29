@@ -25,7 +25,8 @@
   },
   "methods.sh": {
     "title": "Ireki Voice OS Instalazioa - Metodoak",
-    "content": "Open Voice OS instalatzeko, bi metodo nagusi dituzu:\n\n    - Docker bezalako edukiontzien motorra\n    - Python ingurune birtualean konfiguratzea\n\nEdukiontziek isolamendua eta inplementazio erraza eskaintzen dituzte, eta Python ingurune birtual batek instalazioaren gaineko malgutasun eta kontrol gehiago eskaintzen du.\n\nEdukiontzien metodoa hautatzen bada, Docker automatikoki instalatuko da sisteman ez badago.\n\nMesedez, hautatu instalazio metodo bat:"
+    "content": "Open Voice OS instalatzeko, bi metodo nagusi dituzu:\n\n    - Docker bezalako edukiontzien motorra\n    - Python ingurune birtualean konfiguratzea\n\nEdukiontziek isolamendua eta inplementazio erraza eskaintzen dituzte, eta Python ingurune birtual batek instalazioaren gaineko malgutasun eta kontrol gehiago eskaintzen du.\n\nEdukiontzien metodoa hautatzen bada, Docker automatikoki instalatuko da sisteman ez badago.\n\nMesedez, hautatu instalazio metodo bat:",
+    "locked_content": "Open Voice OS-en lehendik dagoen instalazio bat hauteman da, beraz, dagoeneko erabiltzen duen metodoa baino ez dago erabilgarri:\n\n    - Hautemandako metodoa: $INSTANCE_TYPE\n\nBeste metodo batekin instalatzeko, desinstalatu lehenik lehendik dagoen instantzia eta exekutatu instalatzailea berriro.\n\nBerretsi instalazio-metodoa:"
   },
   "profiles.sh": {
     "title": "Ireki Voice OS Instalazioa - Profilak",

@@ -25,7 +25,8 @@
   },
   "methods.sh": {
     "title": "Open Voice OS Installation - Méthodes d'installation",
-    "content": "Il existe deux méthodes pour installer Open Voice OS :\n\n    - Au travers d'un moteur de conteneurisation tel que Docker\n    - Au travers d'un environnement virtuel Python\n\nLes conteneurs offrent une isolation et un déploiement facile, tandis qu'un environnement virtuel Python offre plus de flexibilité et de contrôle sur l'installation.\n\nSi la méthode conteneurs est sélectionnée, Docker sera installé automatiquement s'il n'est pas présent sur le système.\n\nVeuillez sélectionner une méthode d'installation :"
+    "content": "Il existe deux méthodes pour installer Open Voice OS :\n\n    - Au travers d'un moteur de conteneurisation tel que Docker\n    - Au travers d'un environnement virtuel Python\n\nLes conteneurs offrent une isolation et un déploiement facile, tandis qu'un environnement virtuel Python offre plus de flexibilité et de contrôle sur l'installation.\n\nSi la méthode conteneurs est sélectionnée, Docker sera installé automatiquement s'il n'est pas présent sur le système.\n\nVeuillez sélectionner une méthode d'installation :",
+    "locked_content": "Une installation existante d'Open Voice OS a été détectée, seule la méthode qu'elle utilise déjà est donc disponible :\n\n    - Méthode détectée : $INSTANCE_TYPE\n\nPour installer avec une autre méthode, désinstallez d'abord l'instance existante, puis relancez l'installateur.\n\nVeuillez confirmer la méthode d'installation :"
   },
   "profiles.sh": {
     "title": "Open Voice OS Installation - Profil d'installation",

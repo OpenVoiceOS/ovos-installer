@@ -11,6 +11,15 @@ Se for escollida a opción de contedores, o Docker instalarase automaticamente s
 
 Selecciona un método de instalación:
 "
+LOCKED_CONTENT="
+Detectouse unha instalación existente de Open Voice OS, polo que só está dispoñible o método que xa utiliza:
+
+    - Método detectado: $INSTANCE_TYPE
+
+Para instalar con outro método, desinstale primeiro a instancia existente e execute de novo o instalador.
+
+Confirme o método de instalación:
+"
 TITLE="Instalación de Open Voice OS - Métodos"
 
-export CONTENT TITLE
+export CONTENT LOCKED_CONTENT TITLE

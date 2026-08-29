@@ -33,6 +33,19 @@ BACK_BUTTON="{back_button}"
 export OK_BUTTON YES_BUTTON NO_BUTTON BACK_BUTTON
 """
 
+METHODS_TEMPLATE = """
+#!/usr/bin/env bash
+CONTENT="
+{content}
+"
+LOCKED_CONTENT="
+{locked_content}
+"
+TITLE="{title}"
+
+export CONTENT LOCKED_CONTENT TITLE
+"""
+
 FEATURES_TEMPLATE = """
 #!/usr/bin/env bash
 CONTENT="
@@ -93,7 +106,7 @@ TEMPLATES = {
     "detection.sh": TEMPLATE,
     "features.sh": FEATURES_TEMPLATE,
     "finish.sh": TEMPLATE,
-    "methods.sh": TEMPLATE,
+    "methods.sh": METHODS_TEMPLATE,
     "overclock.sh": OVERCLOCK_TEMPLATE,
     "profiles.sh": TEMPLATE,
     "satellite.sh": SAT_TEMPLATE,
@@ -116,12 +129,19 @@ def load_lang_data(lang):
     return data
 
 
+EN_DATA = load_lang_data("en-us")
+
+
 def update_locale(lang):
     data = load_lang_data(lang)
     for f, template in TEMPLATES.items():
         if f not in data:
             continue
         keys = {k.lower(): v for k, v in data[f].items()}
+        # A locale lags behind en-us until a new string is translated. Fill the
+        # gap with English instead of failing the whole sync on a KeyError.
+        for key, value in EN_DATA.get(f, {}).items():
+            keys.setdefault(key.lower(), value)
         os.makedirs(f"{LOCALE_FOLDER}/{lang}", exist_ok=True)
         with open(f"{LOCALE_FOLDER}/{lang}/{f}", "w") as f:
             f.write(template.format(**keys).strip()+"\n")

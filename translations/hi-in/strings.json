@@ -25,7 +25,8 @@
   },
   "methods.sh": {
     "title": "Open Voice OS Installation - विधि",
-    "content": "Open Voice OS इंस्टालेशन (install) करने के लिए, आपके पास दो प्राथमिक विधियाँ हैं:\n\n    - Containers engine such as Docker\n    - Setting it up in a Python virtual environment\n\nContainers (कंटेनर) अलगाव और आसान तैनाती प्रदान करते हैं, जबकि पायथन वर्चुअल वातावरण (Python virtual environment) इंस्टॉलेशन पर अधिक लचीलापन और नियंत्रण प्रदान करता है।\n\nयदि Container (कंटेनर) विधि का चयन किया गया है, सिस्टम पर मौजूद नहीं होने पर Docker(डॉकर) खुद ब खुद से इंस्टॉल हो जाएगा।\n\nकृपया एक इंस्टालेशन (install) विधि चुनें:"
+    "content": "Open Voice OS इंस्टालेशन (install) करने के लिए, आपके पास दो प्राथमिक विधियाँ हैं:\n\n    - Containers engine such as Docker\n    - Setting it up in a Python virtual environment\n\nContainers (कंटेनर) अलगाव और आसान तैनाती प्रदान करते हैं, जबकि पायथन वर्चुअल वातावरण (Python virtual environment) इंस्टॉलेशन पर अधिक लचीलापन और नियंत्रण प्रदान करता है।\n\nयदि Container (कंटेनर) विधि का चयन किया गया है, सिस्टम पर मौजूद नहीं होने पर Docker(डॉकर) खुद ब खुद से इंस्टॉल हो जाएगा।\n\nकृपया एक इंस्टालेशन (install) विधि चुनें:",
+    "locked_content": "Open Voice OS की एक मौजूदा स्थापना का पता चला है, इसलिए केवल वही विधि उपलब्ध है जिसका वह पहले से उपयोग करती है:\n\n    - पहचानी गई विधि: $INSTANCE_TYPE\n\nकिसी अन्य विधि से स्थापित करने के लिए, पहले मौजूदा इंस्टेंस को अनइंस्टॉल करें, फिर इंस्टॉलर को दोबारा चलाएँ।\n\nकृपया स्थापना विधि की पुष्टि करें:"
   },
   "profiles.sh": {
     "title": "Open Voice OS Installation - प्रोफाइल",

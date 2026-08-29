@@ -11,6 +11,15 @@ Si se selecciona el mètode de contenidors, Docker s'instal·larà automàticame
 
 Seleccioneu un mètode d'instal·lació:
 "
+LOCKED_CONTENT="
+S'ha detectat una instal·lació existent d'Open Voice OS, per la qual cosa només està disponible el mètode que ja utilitza:
+
+    - Mètode detectat: $INSTANCE_TYPE
+
+Per instal·lar amb un altre mètode, desinstal·leu primer la instància existent i torneu a executar l'instal·lador.
+
+Confirmeu el mètode d'instal·lació:
+"
 TITLE="Instal·lació de l'Open Voice OS - Mètodes"
 
-export CONTENT TITLE
+export CONTENT LOCKED_CONTENT TITLE

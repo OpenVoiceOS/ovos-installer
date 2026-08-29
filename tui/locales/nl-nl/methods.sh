@@ -11,6 +11,15 @@ Als de containermethode is geselecteerd, wordt Docker automatisch geïnstalleerd
 
 Selecteer een installatieomgeving:
 "
+LOCKED_CONTENT="
+Er is een bestaande installatie van Open Voice OS gedetecteerd, daarom is alleen de methode beschikbaar die al wordt gebruikt:
+
+    - Gedetecteerde methode: $INSTANCE_TYPE
+
+Om met een andere methode te installeren, verwijder eerst de bestaande instantie en voer het installatieprogramma opnieuw uit.
+
+Bevestig de installatiemethode:
+"
 TITLE="OpenVoice OS Installatie - Installatieomgeving"
 
-export CONTENT TITLE
+export CONTENT LOCKED_CONTENT TITLE
