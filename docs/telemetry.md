@@ -8,7 +8,7 @@ Usage data helps improve software. To get this data, some information passes fro
 
 The installer sends one payload to `https://telemetry.smartgic.io/ovos-installer/metrics/` while it runs. It collects nothing after the installation ends.
 
-To fill the `country` field, the installer asks `http://ip-api.com/json` to look up the location of the host. That request tells a third-party service your IP address. Decline installer telemetry if you do not want that lookup to happen.
+To fill the `country` field, the installer asks `http://ip-api.com/json` to look up the location of the host. That request tells a third-party service your IP address, and it goes over plain HTTP, so anything on the path can read it. Decline installer telemetry if you do not want that lookup to happen.
 
 The table below lists the collected data. See the [Ansible task](https://github.com/OpenVoiceOS/ovos-installer/blob/main/ansible/roles/ovos_telemetry/tasks/main.yml) that builds and sends the telemetry payload.
 
@@ -56,7 +56,12 @@ If you accept them, the installer writes this into your `mycroft.conf`:
 }
 ```
 
-Your assistant then reports the intents it matches to that address, for as long as the setting stays in the configuration file. To stop it later, remove the `open_data` block from `~/.config/mycroft/mycroft.conf` and restart the OVOS services.
+Your assistant then reports the intents it matches to that address, for as long as the setting stays in the configuration file. To stop it later, remove the `open_data` block and restart the OVOS services. The file is in a different place for each install method:
+
+| Method | Configuration file |
+| ---------- | ------------------------------ |
+| virtualenv | `~/.config/mycroft/mycroft.conf` |
+| containers | `~/ovos/config/mycroft.conf`     |
 
 The collected data is published on the [Open Data portal](https://opendata.tigregotico.pt), where it can be viewed and downloaded.
 
