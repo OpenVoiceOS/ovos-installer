@@ -50,7 +50,14 @@ if [ -z "$changed" ]; then
 fi
 
 # Run as soon as one changed file is not exclusive to the other platform.
-if printf '%s\n' "$changed" | grep -qvE "$(printf '%s' "$other_platform_only" | paste -sd'|' -)"; then
+#
+# The list is fed in as a here-string rather than through a pipe. grep -q
+# stops at its first match, which leaves the writer of a pipe holding a
+# closed pipe, and under pipefail that SIGPIPE becomes the status of the
+# whole pipeline. On a large enough change set that turned "a shared file
+# was touched" into run=false, which is the one answer this must never give
+# by accident.
+if grep -qvE "$(printf '%s' "$other_platform_only" | paste -sd'|' -)" <<<"$changed"; then
     printf 'run=true\n'
 else
     printf 'run=false\n'

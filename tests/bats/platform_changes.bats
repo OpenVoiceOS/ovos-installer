@@ -69,6 +69,26 @@ function decide() {
     assert_output "run=true"
 }
 
+@test "platform_changes_still_sees_a_shared_file_in_a_large_change_set" {
+    # grep -q stops at its first match. Behind a pipe that leaves the writer
+    # with a closed pipe, and pipefail turns the SIGPIPE into the status of
+    # the pipeline, which used to flip this answer to run=false once the list
+    # outgrew the pipe buffer.
+    # git diff --name-only sorts, so the shared file has to sort early for
+    # grep to reach its verdict while input is still coming.
+    mkdir -p "$REPO/ansible/roles/ovos_config/tasks" "$REPO/ansible/roles/ovos_containers/tasks"
+    printf 'change\n' >>"$REPO/ansible/roles/ovos_config/tasks/install.yml"
+    local i
+    for i in $(seq 1 2000); do
+        printf 'change\n' >"$REPO/ansible/roles/ovos_containers/tasks/file_$i.yml"
+    done
+    git -C "$REPO" add -A
+    git -C "$REPO" commit -qm "large change set"
+
+    run bash -c "cd '$REPO' && bash '$SCRIPT' macos '$BASE'"
+    assert_output "run=true"
+}
+
 @test "platform_changes_runs_when_there_is_no_base_to_compare" {
     run bash -c "cd '$REPO' && bash '$SCRIPT' macos"
     assert_output "run=true"
