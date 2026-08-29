@@ -157,8 +157,8 @@ function setup() {
     }
     export -f whiptail whiptail_queue_has_response whiptail_dequeue_response
 
-    # Scratch locale used by the untranslated-locale test.
-    UNTRANSLATED_LOCALE_DIR="tui/locales/zz-test"
+    # Scratch locale directory for tests that need a locale of their own.
+    SCRATCH_LOCALE_DIR="tui/locales/zz-test"
 }
 
 function spy_value() {
@@ -1318,7 +1318,7 @@ EOF
 
 function teardown() {
     rm -rf "$LOG_FILE" "$INSTALLER_STATE_FILE" "$WHIPTAIL_SPY_FILE" "$WHIPTAIL_DIALOG_FILE" "$WHIPTAIL_INPUT_QUEUE_FILE" "$RUN_AS_HOME"
-    rm -rf "${UNTRANSLATED_LOCALE_DIR:-tui/locales/zz-test}"
+    rm -rf "${SCRATCH_LOCALE_DIR:-tui/locales/zz-test}"
 }
 
 @test "methods: explains why an existing container instance pins the method" {
@@ -1376,8 +1376,8 @@ function teardown() {
 
 @test "methods: falls back to English when the locale has no locked description" {
     # A locale that has not been translated yet exports no LOCKED_CONTENT.
-    mkdir -p "$UNTRANSLATED_LOCALE_DIR"
-    cat >"$UNTRANSLATED_LOCALE_DIR/methods.sh" <<'LOCALE'
+    mkdir -p "$SCRATCH_LOCALE_DIR"
+    cat >"$SCRATCH_LOCALE_DIR/methods.sh" <<'LOCALE'
 #!/usr/bin/env bash
 CONTENT="
 Untranslated placeholder
