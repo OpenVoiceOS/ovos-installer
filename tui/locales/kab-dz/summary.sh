@@ -1,26 +1,4 @@
 #!/usr/bin/env bash
-HOMEASSISTANT_SUMMARY_STATE="d arurmid"
-if [ "${FEATURE_HOMEASSISTANT:-false}" == "true" ]; then
-    if [ "${PROFILE:-}" == "server" ] || [ "${PROFILE:-}" == "satellite" ]; then
-        HOMEASSISTANT_SUMMARY_STATE="yettawfran (ur yettwasefrek ara deg umaɣnu-a)"
-    elif [ -n "${HOMEASSISTANT_URL:-}" ]; then
-        HOMEASSISTANT_SUMMARY_STATE="d urmid"
-    else
-        HOMEASSISTANT_SUMMARY_STATE="yettwafran (txuṣṣ URL; as yettwazgal)"
-    fi
-fi
-
-LLM_SUMMARY_STATE="d arurmid"
-if [ "${FEATURE_LLM:-false}" == "true" ]; then
-    if [ "${PROFILE:-}" == "server" ] || [ "${PROFILE:-}" == "satellite" ]; then
-        LLM_SUMMARY_STATE="yettawfran (ur yettwasefrek ara deg umaɣnu-a)"
-    elif [ -n "${LLM_API_URL:-}" ] && [ -n "${LLM_API_KEY:-}" ] && [ -n "${LLM_MODEL:-}" ] && [ -n "${LLM_PERSONA:-}" ]; then
-        LLM_SUMMARY_STATE="d urmid"
-    else
-        LLM_SUMMARY_STATE="yettwafran (txuṣṣ tawila; as yettwazgal)"
-    fi
-fi
-
 CONTENT="
 Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS
 
@@ -39,4 +17,10 @@ Yettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren $BACK_BUTTON (neɣ sit ɣef ESC
 "
 TITLE="Asbeddi n Open Voice OS - Agzul"
 
-export CONTENT TITLE
+SUMMARY_STATE_ENABLED="d urmid"
+SUMMARY_STATE_DISABLED="d arurmid"
+SUMMARY_STATE_UNSUPPORTED_PROFILE="yettawfran (ur yettwasefrek ara deg umaɣnu-a)"
+SUMMARY_STATE_MISSING_URL="yettwafran (txuṣṣ URL; as yettwazgal)"
+SUMMARY_STATE_MISSING_CONFIGURATION="yettwafran (txuṣṣ tawila; as yettwazgal)"
+
+export CONTENT TITLE SUMMARY_STATE_ENABLED SUMMARY_STATE_DISABLED SUMMARY_STATE_UNSUPPORTED_PROFILE SUMMARY_STATE_MISSING_URL SUMMARY_STATE_MISSING_CONFIGURATION
