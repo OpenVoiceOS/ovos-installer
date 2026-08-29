@@ -1389,10 +1389,24 @@ function download_with_retry() {
     local url="$1"
     local destination="$2"
     local max_attempts="${DOWNLOAD_MAX_ATTEMPTS:-3}"
+    local budget="${DOWNLOAD_TIMEOUT:-300}"
     local attempt=1
+    local deadline
+    local remaining
+    local backoff
+
+    # One deadline for the whole call, not per attempt: retrying a stalled
+    # download must not multiply the time the installer sits there.
+    deadline=$(($(date +%s) + budget))
 
     while [ "$attempt" -le "$max_attempts" ]; do
-        if curl -sSfL --connect-timeout 15 --max-time 300 "$url" -o "$destination" 2>>"$LOG_FILE"; then
+        remaining=$((deadline - $(date +%s)))
+        if [ "$remaining" -le 0 ]; then
+            printf '%s\n' "[warn] download budget of ${budget}s exhausted: ${url}" &>>"$LOG_FILE"
+            return 1
+        fi
+
+        if curl -sSfL --connect-timeout 15 --max-time "$remaining" "$url" -o "$destination" 2>>"$LOG_FILE"; then
             return 0
         fi
 
@@ -1401,7 +1415,14 @@ function download_with_retry() {
         attempt=$((attempt + 1))
 
         if [ "$attempt" -le "$max_attempts" ]; then
-            sleep "$((attempt * 2))"
+            backoff=$((attempt * 2))
+            remaining=$((deadline - $(date +%s)))
+            if [ "$backoff" -gt "$remaining" ]; then
+                backoff="$remaining"
+            fi
+            if [ "$backoff" -gt 0 ]; then
+                sleep "$backoff"
+            fi
         fi
     done
 

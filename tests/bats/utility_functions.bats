@@ -404,3 +404,44 @@ function teardown() {
     unset curl
     rm -f "$LOG_FILE"
 }
+
+@test "function_download_with_retry_passes_the_remaining_budget_to_curl" {
+    LOG_FILE="$(mktemp)"
+    args_file="$(mktemp)"
+    function curl() {
+        printf '%s\n' "$*" >>"$args_file"
+        return 22
+    }
+    export -f curl
+    DOWNLOAD_MAX_ATTEMPTS=2
+    DOWNLOAD_TIMEOUT=120
+    run download_with_retry "https://example.invalid/tool" "$BATS_TMPDIR/tool"
+    assert_failure
+
+    # Each attempt gets what is left of the one budget, never a fresh 120s.
+    first="$(sed -n '1p' "$args_file" | sed -E 's/.*--max-time ([0-9]+).*/\1/')"
+    second="$(sed -n '2p' "$args_file" | sed -E 's/.*--max-time ([0-9]+).*/\1/')"
+    [ "$first" -le 120 ]
+    [ "$second" -le "$first" ]
+    unset curl
+    rm -f "$LOG_FILE" "$args_file"
+}
+
+@test "function_download_with_retry_stops_when_the_budget_is_gone" {
+    LOG_FILE="$(mktemp)"
+    attempts_file="$(mktemp)"
+    function curl() {
+        echo "call" >>"$attempts_file"
+        return 22
+    }
+    export -f curl
+    DOWNLOAD_MAX_ATTEMPTS=3
+    DOWNLOAD_TIMEOUT=0
+    run download_with_retry "https://example.invalid/tool" "$BATS_TMPDIR/tool"
+    assert_failure
+    assert_equal "$(wc -l <"$attempts_file" | tr -d ' ')" "0"
+    run grep -c "budget of 0s exhausted" "$LOG_FILE"
+    assert_output "1"
+    unset curl
+    rm -f "$LOG_FILE" "$attempts_file"
+}
