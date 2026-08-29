@@ -159,6 +159,12 @@ function setup() {
 
     # Scratch locale directory for tests that need a locale of their own.
     SCRATCH_LOCALE_DIR="tui/locales/zz-test"
+
+    # setup.sh leaves nounset on for the whole TUI, so the screens have to be
+    # exercised the way the installer actually runs them. Without this the
+    # tests only ever see variables the test itself has set, which is how the
+    # INSTANCE_TYPE crash in #567 reached users.
+    set -u
 }
 
 function spy_value() {
@@ -1457,4 +1463,47 @@ LOCALE
     assert_equal "$TITLE" "Untranslated"
     [[ "$CONTENT" == *"An existing installation of Open Voice OS was detected"* ]]
     [[ "$CONTENT" == *"Detected method: containers"* ]]
+}
+
+@test "tui: a fresh install walks every screen under nounset" {
+    # The screens were only ever exercised one at a time, with the variables
+    # the test itself had set. That is why #567 shipped: nothing ran the flow
+    # the way setup.sh does, under nounset, with INSTANCE_TYPE absent because
+    # detect_existing_instance() found nothing.
+    #
+    # This drives tui/main.sh end to end with only what the detect_* stages
+    # actually export on a plain machine with no instance installed.
+    LOCALE="en-us"
+    EXISTING_INSTANCE="false"
+    unset INSTANCE_TYPE
+
+    ARCH="x86_64"
+    DISTRO_NAME="ubuntu"
+    DISTRO_VERSION="Ubuntu 24.04"
+    DISTRO_VERSION_ID="24"
+    DISTRO_LABEL="Ubuntu 24.04"
+    KERNEL="6.8.0"
+    PYTHON="Python 3.12.3"
+    CPU_IS_CAPABLE="true"
+    SOUND_SERVER="PipeWire"
+    DISPLAY_SERVER="wayland"
+    VENV_PATH="$RUN_AS_HOME/.venvs/ovos"
+    RASPBERRYPI_MODEL="N/A"
+    HARDWARE_MODEL="N/A"
+    DETECTED_DEVICES=()
+
+    # Let every dialog take its own first option, so the walk does not depend
+    # on choices this test would have to keep in step with the screens.
+    WHIPTAIL_FORCE_SELECTION=""
+    WHIPTAIL_FORCE_YESNO_STATUS="0"
+
+    set -u
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+    set +u
+
+    # Reaching the end means every screen sourced its locale and rendered.
+    assert_equal "$METHOD" "containers"
+    [ -n "$CHANNEL" ]
+    [ -n "$PROFILE" ]
 }
