@@ -14,7 +14,7 @@ Selezionare un ambiente per l'installazione:
 LOCKED_CONTENT="
 È stata rilevata un'installazione esistente di Open Voice OS, quindi è disponibile solo il metodo che utilizza già:
 
-    - Metodo rilevato: $INSTANCE_TYPE
+    - Metodo rilevato: ${INSTANCE_TYPE:-}
 
 Per installare con un altro metodo, disinstalla prima l'istanza esistente, quindi esegui di nuovo il programma di installazione.
 

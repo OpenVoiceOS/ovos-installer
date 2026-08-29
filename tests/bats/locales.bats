@@ -173,6 +173,31 @@ function setup() {
     done
 }
 
+@test "locales_methods_scripts_are_nounset_safe" {
+    # detect_existing_instance() unsets INSTANCE_TYPE when it finds nothing, and
+    # the installer runs under "set -u". A locale that interpolates the bare name
+    # aborts the install on the methods screen, see issue #567.
+    for locale_dir in tui/locales/*; do
+        local locale_file="$locale_dir/methods.sh"
+
+        if [ ! -f "$locale_file" ]; then
+            echo "Missing methods locale: $locale_file" >&2
+            return 1
+        fi
+
+        run bash -euc "
+            unset INSTANCE_TYPE
+            source '$locale_file'
+            printf '%s' \"\$LOCKED_CONTENT\"
+        "
+        if [ "$status" -ne 0 ]; then
+            echo "$locale_file is not sourceable with INSTANCE_TYPE unset" >&2
+            echo "$output" >&2
+        fi
+        assert_success
+    done
+}
+
 @test "locales_are_regenerated_by_sync_translations_without_changes" {
     if ! command -v python3 >/dev/null 2>&1; then
         skip "python3 is not available"

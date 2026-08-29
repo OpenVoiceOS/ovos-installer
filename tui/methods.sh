@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # shellcheck source=tui/dialogs.sh
 source tui/dialogs.sh
+# The locked description interpolates INSTANCE_TYPE, which detect_existing_instance
+# leaves unset when it finds nothing. Sourcing a locale under nounset would abort
+# the installer there, so give it a value before any locale is read.
+export INSTANCE_TYPE="${INSTANCE_TYPE:-}"
+
 # Load English first so a locale that is missing, or not translated yet, still
 # has every string defined, then let the selected locale override what it has.
 # shellcheck source=tui/locales/en-us/methods.sh

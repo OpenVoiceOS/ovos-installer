@@ -14,7 +14,7 @@ Selecciona un entorno de instalación:
 LOCKED_CONTENT="
 Se ha detectado una instalación existente de Open Voice OS, por lo que solo está disponible el método que ya utiliza:
 
-    - Método detectado: $INSTANCE_TYPE
+    - Método detectado: ${INSTANCE_TYPE:-}
 
 Para instalar con otro método, desinstale primero la instancia existente y vuelva a ejecutar el instalador.
 

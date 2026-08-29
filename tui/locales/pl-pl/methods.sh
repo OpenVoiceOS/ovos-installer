@@ -14,7 +14,7 @@ Wybierz metodę instalacji:
 LOCKED_CONTENT="
 Wykryto istniejącą instalację Open Voice OS, dlatego dostępna jest tylko metoda, której już używa:
 
-    - Wykryta metoda: $INSTANCE_TYPE
+    - Wykryta metoda: ${INSTANCE_TYPE:-}
 
 Aby zainstalować inną metodą, najpierw odinstaluj istniejącą instancję, a następnie ponownie uruchom instalator.
 

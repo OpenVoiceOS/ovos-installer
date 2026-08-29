@@ -33,7 +33,7 @@
   "methods.sh": {
     "title": "Open Voice OS Installation - Installationsumgebung",
     "content": "Für die Installation von Open Voice OS gibt es zwei Umgebungen:\n\n    - Container-Engine wie z.B. Docker\n    - Einrichten in einer virtuellen Python-Umgebung\n\nContainer bieten Isolierung und einfache Bereitstellung, während eine virtuelle Python-Umgebung mehr Flexibilität und Kontrolle über die Installation bietet.\n\nWenn die Container-Methode gewählt wird, wird Docker automatisch installiert, wenn es nicht auf dem System vorhanden ist.\n\nBitte wählen Sie eine Installationsumgebung aus:",
-    "locked_content": "Eine vorhandene Installation von Open Voice OS wurde erkannt, daher ist nur die bereits verwendete Methode verfügbar:\n\n    - Erkannte Methode: $INSTANCE_TYPE\n\nUm mit einer anderen Methode zu installieren, deinstallieren Sie zuerst die vorhandene Instanz und starten Sie das Installationsprogramm erneut.\n\nBitte bestätigen Sie die Installationsmethode:"
+    "locked_content": "Eine vorhandene Installation von Open Voice OS wurde erkannt, daher ist nur die bereits verwendete Methode verfügbar:\n\n    - Erkannte Methode: ${INSTANCE_TYPE:-}\n\nUm mit einer anderen Methode zu installieren, deinstallieren Sie zuerst die vorhandene Instanz und starten Sie das Installationsprogramm erneut.\n\nBitte bestätigen Sie die Installationsmethode:"
   },
   "profiles.sh": {
     "title": "Open Voice OS Installation - Profil",

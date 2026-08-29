@@ -14,7 +14,7 @@ Selecteer een installatieomgeving:
 LOCKED_CONTENT="
 Er is een bestaande installatie van Open Voice OS gedetecteerd, daarom is alleen de methode beschikbaar die al wordt gebruikt:
 
-    - Gedetecteerde methode: $INSTANCE_TYPE
+    - Gedetecteerde methode: ${INSTANCE_TYPE:-}
 
 Om met een andere methode te installeren, verwijder eerst de bestaande instantie en voer het installatieprogramma opnieuw uit.
 
