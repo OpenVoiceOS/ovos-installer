@@ -35,7 +35,25 @@ on:
   workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.platform.outputs.run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Decide whether macOS jobs are needed
+        id: platform
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: ./.github/scripts/platform_changes.sh macos "$BASE_SHA" >>"$GITHUB_OUTPUT"
+
   macos-lint-and-bats:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -83,6 +101,8 @@ jobs:
         run: bats tests/bats --verbose-run --print-output-on-failure
 
   macos-scenario-matrix:
+    needs: changes
+    if: needs.changes.outputs.run == 'true'
     strategy:
       fail-fast: false
       max-parallel: 4

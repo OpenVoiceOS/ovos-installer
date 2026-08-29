@@ -39,8 +39,27 @@ on:
   workflow_dispatch:
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.platform.outputs.run }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Decide whether Linux jobs are needed
+        id: platform
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: ./.github/scripts/platform_changes.sh linux "$BASE_SHA" >>"$GITHUB_OUTPUT"
+
   linux-installer-scenarios-pr-smoke:
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    needs: changes
+    if: >-
+      needs.changes.outputs.run == 'true'
+      && (github.event_name == 'pull_request' || github.event_name == 'push')
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -614,7 +633,10 @@ jobs:
           ls -la "$HOME/.config/ovos-installer" || true
 
   linux-negative-scenarios:
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    needs: changes
+    if: >-
+      needs.changes.outputs.run == 'true'
+      && (github.event_name == 'pull_request' || github.event_name == 'push')
     strategy:
       fail-fast: false
       matrix:
