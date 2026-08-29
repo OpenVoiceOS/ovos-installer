@@ -52,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Resume",
-    "content": "Du er næsten færdig, her er en oversigt over de valg, du har truffet for at installere Open Voice OS:\n\n    - Metode: ${METHOD:-}\n    - Version: ${CHANNEL:-}\n    - Profil: ${PROFILE:-}\n    - Færdigheder: ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Tuning: ${TUNING_SUMMARY_STATE:-}\n\nDe valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.\n\nSer denne oversigt korrekt ud for dig? Hvis ikke, vælg ${BACK_BUTTON:-} (eller tryk ESC) for at gå tilbage og foretage ændringer."
+    "content": "Du er næsten færdig, her er en oversigt over de valg, du har truffet for at installere Open Voice OS:\n\n    - Metode:             ${METHOD:-}\n    - Version:            ${CHANNEL:-}\n    - Profil:             ${PROFILE:-}\n    - Færdigheder:        ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Ekstra færdigheder: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:     ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:                ${LLM_SUMMARY_STATE:-}\n    - Tuning:             ${TUNING_SUMMARY_STATE:-}\n\nDe valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.\n\nSer denne oversigt korrekt ud for dig? Hvis ikke, vælg ${BACK_BUTTON:-} (eller tryk ESC) for at gå tilbage og foretage ændringer."
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Telemetri",

@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 CONTENT="
 आपका काम लगभग पूरा हो चुका है, ओपन वॉयस ओएस (Open Voice OS) स्थापित करने के लिए आपके द्वारा चुने गए विकल्पों का सारांश यहां दिया गया है:
-    - विधि:     ${METHOD:-}            
-    - संस्करण:  ${CHANNEL:-}            
-    - प्रोफाइल:  ${PROFILE:-}           
-    - कौशल:   ${FEATURE_SKILLS_SUMMARY_STATE:-}
-    - ट्यूनिंग:   ${TUNING_SUMMARY_STATE:-}
+    - विधि:           ${METHOD:-}
+    - संस्करण:        ${CHANNEL:-}
+    - प्रोफाइल:       ${PROFILE:-}
+    - कौशल:           ${FEATURE_SKILLS_SUMMARY_STATE:-}
+    - अतिरिक्त कौशल:  ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}
+    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}
+    - LLM:            ${LLM_SUMMARY_STATE:-}
+    - ट्यूनिंग:       ${TUNING_SUMMARY_STATE:-}
 
 ओपन वॉयस ओएस (Open Voice OS) इंस्टॉलेशन प्रक्रिया के दौरान चुने गए विकल्पों पर हमारे सिस्टम (System) को आपकी विशिष्ट आवश्यकताओं और प्राथमिकताओं के अनुरूप बनाने के लिए सावधानीपूर्वक विचार किया गया है।
 क्या आपको यह सही लगता है? यदि नहीं, तो वापस जाने और बदलाव करने के लिए ${BACK_BUTTON:-} चुनें (या ESC दबाएँ)।

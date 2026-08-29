@@ -52,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Installazione di Open Voice OS - Riassunto",
-    "content": "Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:\n\n    - Distribuzione: ${METHOD:-}\n    - Versione: ${CHANNEL:-}\n    - Profilo: ${PROFILE:-}\n    - Competenze: ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Ottimizzazione: ${TUNING_SUMMARY_STATE:-}\n\nLe decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.\n\nLe impostazioni sono corrette? In caso contrario, seleziona ${BACK_BUTTON:-} (o premi ESC) per tornare indietro e apportare modifiche."
+    "content": "Abbiamo quasi finito. Qui c'è un riassunto delle opzioni scelte per installare Open Voice OS:\n\n    - Distribuzione:    ${METHOD:-}\n    - Versione:         ${CHANNEL:-}\n    - Profilo:          ${PROFILE:-}\n    - Competenze:       ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Competenze extra: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:   ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:              ${LLM_SUMMARY_STATE:-}\n    - Ottimizzazione:   ${TUNING_SUMMARY_STATE:-}\n\nLe decisioni prese durante il processo di installazione di Open Voice OS sono state attentamente valutate per personalizzare il nostro sistema in base alle tue esigenze e preferenze individuali.\n\nLe impostazioni sono corrette? In caso contrario, seleziona ${BACK_BUTTON:-} (o premi ESC) per tornare indietro e apportare modifiche."
   },
   "telemetry.sh": {
     "title": "Installazione di Open Voice OS - Telemetria",
