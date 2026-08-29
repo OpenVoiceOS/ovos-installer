@@ -11,6 +11,15 @@ Ma tettwafren tarrayt n yimagbaren, Docker ad yettwasbedd s wudem awurman ma ula
 
 Ttxil fren tarrayt n usebded:
 "
+LOCKED_CONTENT="
+An existing installation of Open Voice OS was detected, so only the method it already uses is available:
+
+    - Detected method: $INSTANCE_TYPE
+
+To install with another method, uninstall the existing instance first, then run the installer again.
+
+Please confirm the installation method:
+"
 TITLE="Asbeddi n Open Voice OS - Tarrayin"
 
-export CONTENT TITLE
+export CONTENT LOCKED_CONTENT TITLE
