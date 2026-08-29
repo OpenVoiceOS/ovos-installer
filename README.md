@@ -8,7 +8,7 @@ Open Voice OS (OVOS) is an open-source voice assistant platform focused on priva
 
 ## Quickstart
 
-The installer needs `curl`, `git`, and `sudo`. Run:
+The installer needs `curl`, `git`, `sudo`, and Bash 4 or later. Run:
 
 ```shell
 sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
@@ -38,7 +38,7 @@ sudo env REUSE_CACHED_ARTIFACTS=true sh -c "$(curl -fsSL https://raw.githubuserc
 sudo env HTTPS_PROXY=http://proxy.example:3128 HTTP_PROXY=http://proxy.example:3128 NO_PROXY=localhost,127.0.0.1 sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
 ```
 
-Guide: [Howto - Begin your Open Voice OS journey with the OVOS installer](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
+Guide: [Begin your Open Voice OS journey with the OVOS installer](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
 
 ## macOS support (Intel and Apple Silicon)
 
@@ -116,7 +116,7 @@ ovos list
 
 When the `virtualenv` method is chosen (the default), the installer creates systemd unit files to manage OVOS services. Some installs run services in system scope for performance or realtime tuning; use the matching commands below.
 
-### List the systemd unit files
+### List the systemd units
 
 User scope (default):
 
