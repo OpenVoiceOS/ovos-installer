@@ -156,6 +156,9 @@ function setup() {
         return 0
     }
     export -f whiptail whiptail_queue_has_response whiptail_dequeue_response
+
+    # Scratch locale directory for tests that need a locale of their own.
+    SCRATCH_LOCALE_DIR="tui/locales/zz-test"
 }
 
 function spy_value() {
@@ -1315,4 +1318,86 @@ EOF
 
 function teardown() {
     rm -rf "$LOG_FILE" "$INSTALLER_STATE_FILE" "$WHIPTAIL_SPY_FILE" "$WHIPTAIL_DIALOG_FILE" "$WHIPTAIL_INPUT_QUEUE_FILE" "$RUN_AS_HOME"
+    rm -rf "${SCRATCH_LOCALE_DIR:-tui/locales/zz-test}"
+}
+
+@test "methods: explains why an existing container instance pins the method" {
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="containers"
+    WHIPTAIL_FORCE_SELECTION="containers"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "1"
+    assert_equal "$(spy_value tags)" "containers"
+    [[ "$CONTENT" == *"An existing installation of Open Voice OS was detected"* ]]
+    [[ "$CONTENT" == *"Detected method: containers"* ]]
+    [[ "$CONTENT" == *"uninstall the existing instance first"* ]]
+}
+
+@test "methods: explains why an existing virtualenv instance pins the method" {
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="virtualenv"
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value tags)" "virtualenv"
+    [[ "$CONTENT" == *"Detected method: virtualenv"* ]]
+}
+
+@test "methods: keeps the regular description when both methods are offered" {
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value option_count)" "2"
+    [[ "$CONTENT" == *"you have two primary methods"* ]]
+    [[ "$CONTENT" != *"An existing installation of Open Voice OS was detected"* ]]
+}
+
+@test "methods: keeps the regular description when hardware pins the method" {
+    EXISTING_INSTANCE="false"
+    INSTANCE_TYPE=""
+    DISTRO_NAME="macos"
+    WHIPTAIL_FORCE_SELECTION="virtualenv"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value tags)" "virtualenv"
+    [[ "$CONTENT" != *"An existing installation of Open Voice OS was detected"* ]]
+}
+
+@test "methods: falls back to English when the locale has no locked description" {
+    # A locale that has not been translated yet exports no LOCKED_CONTENT.
+    mkdir -p "$SCRATCH_LOCALE_DIR"
+    cat >"$SCRATCH_LOCALE_DIR/methods.sh" <<'LOCALE'
+#!/usr/bin/env bash
+CONTENT="
+Untranslated placeholder
+"
+TITLE="Untranslated"
+
+export CONTENT TITLE
+LOCALE
+
+    LOCALE="zz-test"
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="containers"
+    WHIPTAIL_FORCE_SELECTION="containers"
+
+    # shellcheck source=tui/methods.sh
+    source tui/methods.sh
+
+    assert_equal "$(spy_value tags)" "containers"
+    # The locale still wins for the strings it does translate.
+    assert_equal "$TITLE" "Untranslated"
+    [[ "$CONTENT" == *"An existing installation of Open Voice OS was detected"* ]]
+    [[ "$CONTENT" == *"Detected method: containers"* ]]
 }

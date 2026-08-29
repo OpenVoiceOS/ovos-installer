@@ -25,7 +25,8 @@
   },
   "methods.sh": {
     "title": "OpenVoice OS Installatie - Installatieomgeving",
-    "content": "Er zijn twee omgevingen voor de installatie van OpenVoice OS:\n\n    - Container-methode zoals Docker\n    - Installatie in een virtuele Python-omgeving\n\nContainers zorgen voor isolatie en eenvoudige installatie, terwijl een virtuele Python-omgeving meer flexibiliteit en controle over de installatie biedt.\n\nAls de containermethode is geselecteerd, wordt Docker automatisch geïnstalleerd als het niet aanwezig is op je systeem.\n\nSelecteer een installatieomgeving:"
+    "content": "Er zijn twee omgevingen voor de installatie van OpenVoice OS:\n\n    - Container-methode zoals Docker\n    - Installatie in een virtuele Python-omgeving\n\nContainers zorgen voor isolatie en eenvoudige installatie, terwijl een virtuele Python-omgeving meer flexibiliteit en controle over de installatie biedt.\n\nAls de containermethode is geselecteerd, wordt Docker automatisch geïnstalleerd als het niet aanwezig is op je systeem.\n\nSelecteer een installatieomgeving:",
+    "locked_content": "Er is een bestaande installatie van Open Voice OS gedetecteerd, daarom is alleen de methode beschikbaar die al wordt gebruikt:\n\n    - Gedetecteerde methode: $INSTANCE_TYPE\n\nOm met een andere methode te installeren, verwijder eerst de bestaande instantie en voer het installatieprogramma opnieuw uit.\n\nBevestig de installatiemethode:"
   },
   "profiles.sh": {
     "title": "OpenVoice OS Installatie - Profiel",

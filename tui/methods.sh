@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 # shellcheck source=tui/dialogs.sh
 source tui/dialogs.sh
+# Load English first so a locale that is missing, or not translated yet, still
+# has every string defined, then let the selected locale override what it has.
 # shellcheck source=tui/locales/en-us/methods.sh
-source "tui/locales/$LOCALE/methods.sh"
+source tui/locales/en-us/methods.sh
+_methods_locale_file="tui/locales/$LOCALE/methods.sh"
+if [ "$_methods_locale_file" != "tui/locales/en-us/methods.sh" ] && [ -f "$_methods_locale_file" ]; then
+  # shellcheck source=tui/locales/en-us/methods.sh
+  source "$_methods_locale_file"
+fi
 # shellcheck source=tui/hardware_state.sh
 source tui/hardware_state.sh
 
@@ -47,6 +54,17 @@ fi
 if [[ "$TUI_MARK2_OR_DEVKIT_DETECTED" == "true" ]]; then
   active_method="virtualenv"
   available_methods=(virtualenv)
+fi
+
+# When an existing instance pins the method, the radiolist would otherwise show
+# a single entry under a description of a choice the user no longer has. Say why
+# the list is limited and how to change it.
+if [ "$EXISTING_INSTANCE" == "true" ] &&
+  [ "${#available_methods[@]}" -eq 1 ] &&
+  [ "${available_methods[0]}" == "${INSTANCE_TYPE:-}" ]; then
+  if [ -n "${LOCKED_CONTENT:-}" ]; then
+    CONTENT="$LOCKED_CONTENT"
+  fi
 fi
 
 list_height="${#available_methods[@]}"

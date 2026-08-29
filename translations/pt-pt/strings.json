@@ -25,7 +25,8 @@
   },
   "methods.sh": {
     "title": "Open Voice OS Instalação - Implementação",
-    "content": "Existem dois ambientes para a instalação do Open Voice OS:\n\n    - Contentores como o Docker\n    - Configuração num ambiente Python virtual\n\nOs contentores proporcionam isolamento e facilidade de implementação, enquanto um ambiente Python virtual proporciona mais flexibilidade e controlo sobre a instalação.\n\nSe o método de contentor for selecionado, o Docker será instalado automaticamente se não estiver presente no sistema.\n\nSeleccione um método de implantação:"
+    "content": "Existem dois ambientes para a instalação do Open Voice OS:\n\n    - Contentores como o Docker\n    - Configuração num ambiente Python virtual\n\nOs contentores proporcionam isolamento e facilidade de implementação, enquanto um ambiente Python virtual proporciona mais flexibilidade e controlo sobre a instalação.\n\nSe o método de contentor for selecionado, o Docker será instalado automaticamente se não estiver presente no sistema.\n\nSeleccione um método de implantação:",
+    "locked_content": "Foi detetada uma instalação existente do Open Voice OS, pelo que apenas o método que já utiliza está disponível:\n\n    - Método detetado: $INSTANCE_TYPE\n\nPara instalar com outro método, desinstale primeiro a instância existente e execute novamente o instalador.\n\nConfirme o método de instalação:"
   },
   "profiles.sh": {
     "title": "Open Voice OS Instalação - Perfil",

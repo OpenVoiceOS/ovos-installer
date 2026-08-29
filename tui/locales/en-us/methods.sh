@@ -11,6 +11,15 @@ If the containers method is selected, Docker will be installed automatically if 
 
 Please select an installation method:
 "
+LOCKED_CONTENT="
+An existing installation of Open Voice OS was detected, so only the method it already uses is available:
+
+    - Detected method: $INSTANCE_TYPE
+
+To install with another method, uninstall the existing instance first, then run the installer again.
+
+Please confirm the installation method:
+"
 TITLE="Open Voice OS Installation - Methods"
 
-export CONTENT TITLE
+export CONTENT LOCKED_CONTENT TITLE

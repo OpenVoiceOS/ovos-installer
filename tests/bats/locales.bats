@@ -147,6 +147,32 @@ function setup() {
     done
 }
 
+@test "locales_methods_scripts_expose_locked_content" {
+    for locale_dir in tui/locales/*; do
+        local locale_file="$locale_dir/methods.sh"
+
+        if [ ! -f "$locale_file" ]; then
+            echo "Missing methods locale: $locale_file" >&2
+            return 1
+        fi
+
+        # Mirror the load order in tui/methods.sh: English first, then the
+        # selected locale. A locale contributed by hand, or not translated yet,
+        # still resolves the locked description that way.
+        run bash -euc "
+            INSTANCE_TYPE=containers
+            source tui/locales/en-us/methods.sh
+            source '$locale_file'
+            test -n \"\$TITLE\"
+            test -n \"\$CONTENT\"
+            test -n \"\$LOCKED_CONTENT\"
+            printf '%s\\n' \"\$LOCKED_CONTENT\"
+        "
+        assert_success
+        assert_output --partial "containers"
+    done
+}
+
 @test "locales_llm_model_strings_are_localized_outside_en_us" {
     for f in tui/locales/*/llm.sh; do
         if [ "$f" = "tui/locales/en-us/llm.sh" ]; then
