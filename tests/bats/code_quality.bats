@@ -822,8 +822,16 @@ function setup() {
     run grep -q "Resolve swig binary path for fann2 builds" "$tasks"
     assert_success
 
-    run bash -c "grep -A8 -F -- \"- name: Resolve swig binary path for fann2 builds\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -- \"failed_when: false\""
+    run bash -c "grep -A12 -F -- \"- name: Resolve swig binary path for fann2 builds\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -- \"failed_when: false\""
     assert_success
+
+    # command -v is a shell builtin, which(1) is a package that minimal images
+    # do not always ship. Resolving through it must not regress to which.
+    run bash -c "grep -A12 -F -- \"- name: Resolve swig binary path for fann2 builds\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -F -- \"command -v swig\""
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"- name: Resolve swig binary path for fann2 builds\" ansible/roles/ovos_virtualenv/tasks/packages.yml | grep -q -F -- \"which swig\""
+    assert_failure
 
     run grep -q "Ensure swig2.0 compatibility shim exists" "$tasks"
     assert_success

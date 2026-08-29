@@ -224,11 +224,17 @@
     mode: "0755"
   when: ansible_facts.system in ['Linux', 'Darwin']
 
+# "command -v" is a shell builtin, unlike which(1), which is a separate package
+# that minimal images do not always carry. Resolving through it means a missing
+# which cannot silently skip the shim and break the fann2 build.
 - name: Resolve swig binary path for fann2 builds
   become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.command:
-    cmd: "which swig"
+    argv:
+      - /bin/sh
+      - -c
+      - command -v swig
   register: ovos_virtualenv_swig_bin
   changed_when: false
   failed_when: false
