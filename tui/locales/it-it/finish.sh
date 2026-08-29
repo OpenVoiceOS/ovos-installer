@@ -12,7 +12,7 @@ Se avete attivato la funzione Competenze, potete interagire con il vostro assist
   - Hey Mycroft, chi è Ada Lovelace?
   - Hey Mycroft, cosa direbbe Duke Nukem?
 
-Le impostazioni della procedura guidata possono essere modificate nel file di configurazione $CONFIG_FILE.
+Le impostazioni della procedura guidata possono essere modificate nel file di configurazione ${CONFIG_FILE:-}.
 
 Se in futuro avrete bisogno di assistenza o di aggiornamenti, non esitate a contattarci. Buon divertimento con Open Voice OS!
 "

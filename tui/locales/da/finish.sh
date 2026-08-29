@@ -12,7 +12,7 @@ Hvis du har aktiveret standardfærdighedsfunktionen, kan du begynde at interager
   - Hej Mycroft, hvem er Ada Lovelace?
   - Hej Mycroft, hvad ville Duke Nukem sige?
 
-Indstillingerne for din assistent kunne ændres i $CONFIG_FILE-konfigurationsfilen.
+Indstillingerne for din assistent kunne ændres i ${CONFIG_FILE:-}-konfigurationsfilen.
 
 Hvis du har brug for hjælp eller opdateringer i fremtiden, er du velkommen til at kontakte os. Nyd din Open Voice OS-oplevelse!
 "

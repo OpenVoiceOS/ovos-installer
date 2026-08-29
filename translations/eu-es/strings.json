@@ -11,7 +11,7 @@
   },
   "detection.sh": {
     "title": "Ireki Voice OS instalazioa - Detektatua",
-    "content": "Mesedez, aurkitu detektatutako informazioa:\n\n    - OS: $DISTRO_LABEL\n    - Kernel: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardwarea: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - Soinua: $SOUND_SERVER\n    - Pantaila: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "content": "Mesedez, aurkitu detektatutako informazioa:\n\n    - OS: ${DISTRO_LABEL:-}\n    - Kernel: ${KERNEL:-}\n    - RPi: ${RASPBERRYPI_MODEL:-}\n    - Python: $(echo \"${PYTHON:-}\" | awk '{ print $NF }')\n    - AVX/SIMD: ${CPU_IS_CAPABLE:-}\n    - Hardwarea: ${HARDWARE_DETECTED:-}\n    - Venv: ${VENV_PATH:-}\n    - Soinua: ${SOUND_SERVER:-}\n    - Pantaila: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
     "hardware_confirmation_title": "Open Voice OS instalazioa - Hardware egiaztapena",
     "hardware_confirmation_mark2_content": "TAS5806 audio gailu bat duen Raspberry Pi 4 bat detektatu da.\\n\\nMycroft Mark II bat izan daiteke, baina HAT generiko batzuek seinale bera erakusten dute.\\n\\nGailu hau benetan Mycroft Mark II bat al da?",
     "hardware_confirmation_devkit_content": "TAS5806 eta attiny1614 gailuak dituen Raspberry Pi 4 bat detektatu da.\\n\\nMycroft DevKit bat izan daiteke, baina HAT generiko batzuek seinale bera erakusten dute.\\n\\nGailu hau benetan Mycroft DevKit bat al da?",
@@ -28,7 +28,7 @@
   },
   "finish.sh": {
     "title": "Ireki Voice OS instalazioa - Amaitu",
-    "content": "Instalazioa behar bezala amaitu da! 🎉\n\nZure ahots-laguntzailea prest dago. Pozik gaude ahots-laguntzaile honek eskaintzen dituen funtzio eta gaitasun sorta zabala arakatzeko.\n\nTrebetasun-eginbide lehenetsia gaitu baduzu, zure laguntzailearekin elkarreraginean has zaitezke esanez:\n\n  - Hey Mycroft, zer ordu da?\n  - Hey Mycroft, zein da tenperatura?\n  - Hey Mycroft, nork egin zaitu?\n  - Hey Mycroft, nor da Ada Lovelace?\n  - Hey Mycroft, zer esango luke Duke Nukemek?\n\nZure laguntzailearen ezarpenak $CONFIG_FILE konfigurazio fitxategian alda daitezke.\n\nEtorkizunean laguntza edo eguneratzerik behar baduzu, jar zaitez harremanetan. Gozatu Open Voice OS esperientzia!"
+    "content": "Instalazioa behar bezala amaitu da! 🎉\n\nZure ahots-laguntzailea prest dago. Pozik gaude ahots-laguntzaile honek eskaintzen dituen funtzio eta gaitasun sorta zabala arakatzeko.\n\nTrebetasun-eginbide lehenetsia gaitu baduzu, zure laguntzailearekin elkarreraginean has zaitezke esanez:\n\n  - Hey Mycroft, zer ordu da?\n  - Hey Mycroft, zein da tenperatura?\n  - Hey Mycroft, nork egin zaitu?\n  - Hey Mycroft, nor da Ada Lovelace?\n  - Hey Mycroft, zer esango luke Duke Nukemek?\n\nZure laguntzailearen ezarpenak ${CONFIG_FILE:-} konfigurazio fitxategian alda daitezke.\n\nEtorkizunean laguntza edo eguneratzerik behar baduzu, jar zaitez harremanetan. Gozatu Open Voice OS esperientzia!"
   },
   "methods.sh": {
     "title": "Ireki Voice OS Instalazioa - Metodoak",
@@ -52,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Ireki Voice OS instalazioa - Laburpena",
-    "content": "Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:\n\n    - Metodoa: $METHOD\n    - Bertsioa: $CHANNEL\n    - Profila: $PROFILE\n    - Trebetasunak: $FEATURE_SKILLS_SUMMARY_STATE\n    - Afinazioa: $TUNING_SUMMARY_STATE\n\nOpen Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.\n\nLaburpen hau zuzena iruditzen zaizu? Hala ez bada, hautatu $BACK_BUTTON (edo sakatu ESC) atzera egiteko eta aldaketak egiteko."
+    "content": "Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:\n\n    - Metodoa: ${METHOD:-}\n    - Bertsioa: ${CHANNEL:-}\n    - Profila: ${PROFILE:-}\n    - Trebetasunak: ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Afinazioa: ${TUNING_SUMMARY_STATE:-}\n\nOpen Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.\n\nLaburpen hau zuzena iruditzen zaizu? Hala ez bada, hautatu ${BACK_BUTTON:-} (edo sakatu ESC) atzera egiteko eta aldaketak egiteko."
   },
   "telemetry.sh": {
     "title": "Ireki Voice OS instalazioa - Telemetria",

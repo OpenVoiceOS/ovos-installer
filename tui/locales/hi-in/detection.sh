@@ -2,14 +2,14 @@
 CONTENT="
 कृपया पता लगाई गई जानकारी को सत्यापित करें:
 
-    - OS:       $DISTRO_LABEL
-    - Kernel:   $KERNEL
-    - RPi:      $RASPBERRYPI_MODEL
-    - Python:   $(echo "$PYTHON" | awk '{ print $NF }')
-    - AVX/SIMD: $CPU_IS_CAPABLE
-    - Hardware: $HARDWARE_DETECTED
-    - Venv:     $VENV_PATH
-    - Sound:    $SOUND_SERVER
+    - OS:       ${DISTRO_LABEL:-}
+    - Kernel:   ${KERNEL:-}
+    - RPi:      ${RASPBERRYPI_MODEL:-}
+    - Python:   $(echo "${PYTHON:-}" | awk '{ print $NF }')
+    - AVX/SIMD: ${CPU_IS_CAPABLE:-}
+    - Hardware: ${HARDWARE_DETECTED:-}
+    - Venv:     ${VENV_PATH:-}
+    - Sound:    ${SOUND_SERVER:-}
     - Display:  ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}
 "
 TITLE="Open Voice OS Installation - सिस्टम जानकारी की पहचान"

@@ -12,7 +12,7 @@ Si heu activat la característica d'habilitats predeterminades, podeu començar 
   - Ei Mycroft, qui és l'Ada Lovelace?
   - Ei Mycroft, què diria Duke Nukem?
 
-La configuració del vostre assistent es pot canviar al fitxer de configuració $CONFIG_FILE.
+La configuració del vostre assistent es pot canviar al fitxer de configuració ${CONFIG_FILE:-}.
 
 Si us cal ajuda o actualitzacions en el futur, no dubteu a posar-vos en contacte amb nosaltres. Gaudiu de l'experiència amb Open Voice OS!
 "

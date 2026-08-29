@@ -12,7 +12,7 @@ Si vous avez activé la fonctionnalité de compétences par défaut, vous pouvez
   - Hey Mycroft, qui est Ada Lovelace ?
   - Hey Mycroft, qu'est-ce que Duke Nukem dirait ?
 
-Les paramètres de votre assistant peuvent être modifiés dans le fichier de configuration $CONFIG_FILE.
+Les paramètres de votre assistant peuvent être modifiés dans le fichier de configuration ${CONFIG_FILE:-}.
 
 Si vous avez besoin d'aide ou d'informations, n'hésitez pas à nous contacter. Profitez de votre expérience Open Voice OS !
 "

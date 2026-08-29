@@ -13,7 +13,7 @@ Si has activado la función de habilidades (skills), puedes interactuar con tu a
   - Hey Mycroft, ¿quién es Ada Lovelace?
   - Hey Mycroft, ¿qué diría Duke Nukem?
 
-Los ajustes de tu asistente pueden modificarse en el fichero de configuración $CONFIG_FILE.
+Los ajustes de tu asistente pueden modificarse en el fichero de configuración ${CONFIG_FILE:-}.
 
 Si necesitas soporte o actualizaciones en el futuro, no dudes en ponerte en contacto con nosotros. ¡Diviértete con Open Voice OS!
 "

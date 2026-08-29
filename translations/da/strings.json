@@ -11,7 +11,7 @@
   },
   "detection.sh": {
     "title": "Open Voice OS-installation - fundet",
-    "content": "Find de fundne oplysninger:\n\n    - OS: $DISTRO_LABEL\n    - Kernel: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Hardware: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - Lyd: $SOUND_SERVER\n    - Skærm: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "content": "Find de fundne oplysninger:\n\n    - OS: ${DISTRO_LABEL:-}\n    - Kernel: ${KERNEL:-}\n    - RPi: ${RASPBERRYPI_MODEL:-}\n    - Python: $(echo \"${PYTHON:-}\" | awk '{ print $NF }')\n    - AVX/SIMD: ${CPU_IS_CAPABLE:-}\n    - Hardware: ${HARDWARE_DETECTED:-}\n    - Venv: ${VENV_PATH:-}\n    - Lyd: ${SOUND_SERVER:-}\n    - Skærm: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
     "hardware_confirmation_title": "Open Voice OS-installation - Hardwarekontrol",
     "hardware_confirmation_mark2_content": "En Raspberry Pi 4 med en TAS5806-lydenhed blev fundet.\\n\\nDet kan være en Mycroft Mark II, men nogle generiske HAT'er viser det samme signal.\\n\\nEr denne enhed faktisk en Mycroft Mark II?",
     "hardware_confirmation_devkit_content": "En Raspberry Pi 4 med TAS5806- og attiny1614-enheder blev fundet.\\n\\nDet kan være en Mycroft DevKit, men nogle generiske HAT'er viser det samme signal.\\n\\nEr denne enhed faktisk en Mycroft DevKit?",
@@ -28,7 +28,7 @@
   },
   "finish.sh": {
     "title": "Open Voice OS Installation - Afslut",
-    "content": "Installationen er gennemført med succes! 🎉\n\nDin stemmeassistent er klar til at gå. Vi glæder os til, at du skal udforske den brede vifte af funktioner og muligheder, som denne stemmeassistent har at tilbyde.\n\nHvis du har aktiveret standardfærdighedsfunktionen, kan du begynde at interagere med din assistent ved at sige:\n\n  - Hej Mycroft, hvad er klokken?\n  - Hej Mycroft, hvad er temperaturen?\n  - Hej Mycroft, hvem har lavet dig?\n  - Hej Mycroft, hvem er Ada Lovelace?\n  - Hej Mycroft, hvad ville Duke Nukem sige?\n\nIndstillingerne for din assistent kunne ændres i $CONFIG_FILE-konfigurationsfilen.\n\nHvis du har brug for hjælp eller opdateringer i fremtiden, er du velkommen til at kontakte os. Nyd din Open Voice OS-oplevelse!"
+    "content": "Installationen er gennemført med succes! 🎉\n\nDin stemmeassistent er klar til at gå. Vi glæder os til, at du skal udforske den brede vifte af funktioner og muligheder, som denne stemmeassistent har at tilbyde.\n\nHvis du har aktiveret standardfærdighedsfunktionen, kan du begynde at interagere med din assistent ved at sige:\n\n  - Hej Mycroft, hvad er klokken?\n  - Hej Mycroft, hvad er temperaturen?\n  - Hej Mycroft, hvem har lavet dig?\n  - Hej Mycroft, hvem er Ada Lovelace?\n  - Hej Mycroft, hvad ville Duke Nukem sige?\n\nIndstillingerne for din assistent kunne ændres i ${CONFIG_FILE:-}-konfigurationsfilen.\n\nHvis du har brug for hjælp eller opdateringer i fremtiden, er du velkommen til at kontakte os. Nyd din Open Voice OS-oplevelse!"
   },
   "methods.sh": {
     "title": "Open Voice OS Installation - Methoder",
@@ -52,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Resume",
-    "content": "Du er næsten færdig, her er en oversigt over de valg, du har truffet for at installere Open Voice OS:\n\n    - Metode: $METHOD\n    - Version: $CHANNEL\n    - Profil: $PROFILE\n    - Færdigheder: $FEATURE_SKILLS_SUMMARY_STATE\n    - Tuning: $TUNING_SUMMARY_STATE\n\nDe valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.\n\nSer denne oversigt korrekt ud for dig? Hvis ikke, vælg $BACK_BUTTON (eller tryk ESC) for at gå tilbage og foretage ændringer."
+    "content": "Du er næsten færdig, her er en oversigt over de valg, du har truffet for at installere Open Voice OS:\n\n    - Metode: ${METHOD:-}\n    - Version: ${CHANNEL:-}\n    - Profil: ${PROFILE:-}\n    - Færdigheder: ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Tuning: ${TUNING_SUMMARY_STATE:-}\n\nDe valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.\n\nSer denne oversigt korrekt ud for dig? Hvis ikke, vælg ${BACK_BUTTON:-} (eller tryk ESC) for at gå tilbage og foretage ændringer."
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Telemetri",

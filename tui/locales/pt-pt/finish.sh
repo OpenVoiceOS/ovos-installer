@@ -13,7 +13,7 @@ Se tiver ativado a função Skill, pode interagir com o seu assistente dizendo:
   - Hey Mycroft, quem é Ada Lovelace?
   - Hey Mycroft, o que é que o Duke Nukem diria?
 
-As definições do seu assistente podem ser alteradas no ficheiro de configuração $CONFIG_FILE.
+As definições do seu assistente podem ser alteradas no ficheiro de configuração ${CONFIG_FILE:-}.
 
 Se precisar de suporte ou actualizações no futuro, não hesite em contactar-nos. Divirta-se com o Open Voice OS!
 "

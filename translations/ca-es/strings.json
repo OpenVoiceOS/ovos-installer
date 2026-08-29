@@ -11,7 +11,7 @@
   },
   "detection.sh": {
     "title": "Instal·lació de l'Open Voice OS - Informació detectada",
-    "content": "Trobeu la informació detectada:\n\n    - Sistema operatiu: $DISTRO_LABEL\n    - Nucli: $KERNEL\n    - RPi: $RASPBERRYPI_MODEL\n    - Python: $(echo \"$PYTHON\" | awk '{ print $NF }')\n    - AVX/SIMD: $CPU_IS_CAPABLE\n    - Maquinari: $HARDWARE_DETECTED\n    - Venv: $VENV_PATH\n    - So: $SOUND_SERVER\n    - Pantalla: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
+    "content": "Trobeu la informació detectada:\n\n    - Sistema operatiu: ${DISTRO_LABEL:-}\n    - Nucli: ${KERNEL:-}\n    - RPi: ${RASPBERRYPI_MODEL:-}\n    - Python: $(echo \"${PYTHON:-}\" | awk '{ print $NF }')\n    - AVX/SIMD: ${CPU_IS_CAPABLE:-}\n    - Maquinari: ${HARDWARE_DETECTED:-}\n    - Venv: ${VENV_PATH:-}\n    - So: ${SOUND_SERVER:-}\n    - Pantalla: ${DISPLAY_DETECTED:-${DISPLAY_SERVER:-N/A}}",
     "hardware_confirmation_title": "Instal·lació de l'Open Voice OS - Verificació del maquinari",
     "hardware_confirmation_mark2_content": "S'ha detectat un Raspberry Pi 4 amb un dispositiu d'àudio TAS5806.\\n\\nAixò pot ser un Mycroft Mark II, però alguns HAT genèrics exposen el mateix senyal.\\n\\nAquest dispositiu és realment un Mycroft Mark II?",
     "hardware_confirmation_devkit_content": "S'ha detectat un Raspberry Pi 4 amb dispositius TAS5806 i attiny1614.\\n\\nAixò pot ser un Mycroft DevKit, però alguns HAT genèrics exposen el mateix senyal.\\n\\nAquest dispositiu és realment un Mycroft DevKit?",
@@ -28,7 +28,7 @@
   },
   "finish.sh": {
     "title": "Instal·lació de l'Open Voice OS - Finalització",
-    "content": "La instal·lació s'ha completat correctament! 🎉\n\nL'assistent de veu ja està a punt. Ens complau que exploreu l'ampli ventall de funcions i capacitats que ofereix aquest assistent de veu.\n\nSi heu activat la característica d'habilitats predeterminades, podeu començar a interactuar amb el vostre assistent dient:\n\n  - Ei Mycroft, quina hora és?\n  - Ei Mycroft, quina temperatura fa?\n  - Ei Mycroft, qui et va fer?\n  - Ei Mycroft, qui és l'Ada Lovelace?\n  - Ei Mycroft, què diria Duke Nukem?\n\nLa configuració del vostre assistent es pot canviar al fitxer de configuració $CONFIG_FILE.\n\nSi us cal ajuda o actualitzacions en el futur, no dubteu a posar-vos en contacte amb nosaltres. Gaudiu de l'experiència amb Open Voice OS!"
+    "content": "La instal·lació s'ha completat correctament! 🎉\n\nL'assistent de veu ja està a punt. Ens complau que exploreu l'ampli ventall de funcions i capacitats que ofereix aquest assistent de veu.\n\nSi heu activat la característica d'habilitats predeterminades, podeu començar a interactuar amb el vostre assistent dient:\n\n  - Ei Mycroft, quina hora és?\n  - Ei Mycroft, quina temperatura fa?\n  - Ei Mycroft, qui et va fer?\n  - Ei Mycroft, qui és l'Ada Lovelace?\n  - Ei Mycroft, què diria Duke Nukem?\n\nLa configuració del vostre assistent es pot canviar al fitxer de configuració ${CONFIG_FILE:-}.\n\nSi us cal ajuda o actualitzacions en el futur, no dubteu a posar-vos en contacte amb nosaltres. Gaudiu de l'experiència amb Open Voice OS!"
   },
   "methods.sh": {
     "title": "Instal·lació de l'Open Voice OS - Mètodes",
@@ -52,7 +52,7 @@
   },
   "summary.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Resum",
-    "content": "Gairebé heu acabat, aquí teniu un resum de les opcions que heu triat en instal·lar l'Open Voice OS:\n\n    - Mètode: $METHOD\n    - Versió: $CHANNEL\n    - Perfil: $PROFILE\n    - Habilitats: $FEATURE_SKILLS_SUMMARY_STATE\n    - Afinació: $TUNING_SUMMARY_STATE\n\nLes opcions seleccionades durant el procés d'instal·lació de l'Open Voice OS s'han considerat acuradament per a adaptar el nostre sistema a les vostres necessitats i preferències úniques.\n\nUs sembla correcte aquest resum? Si no, selecciona $BACK_BUTTON (o prem ESC) per tornar enrere i fer canvis."
+    "content": "Gairebé heu acabat, aquí teniu un resum de les opcions que heu triat en instal·lar l'Open Voice OS:\n\n    - Mètode: ${METHOD:-}\n    - Versió: ${CHANNEL:-}\n    - Perfil: ${PROFILE:-}\n    - Habilitats: ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Afinació: ${TUNING_SUMMARY_STATE:-}\n\nLes opcions seleccionades durant el procés d'instal·lació de l'Open Voice OS s'han considerat acuradament per a adaptar el nostre sistema a les vostres necessitats i preferències úniques.\n\nUs sembla correcte aquest resum? Si no, selecciona ${BACK_BUTTON:-} (o prem ESC) per tornar enrere i fer canvis."
   },
   "telemetry.sh": {
     "title": "Instal·lació de l'Open Voice OS - Telemetria",

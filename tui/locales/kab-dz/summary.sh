@@ -2,18 +2,18 @@
 CONTENT="
 Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS
 
-    - Tarrayt:   $METHOD
-    - Lqem:  $CHANNEL
-    - Amaɣnu:  $PROFILE
-    - Tussniwin:  $FEATURE_SKILLS_SUMMARY_STATE
-    - Tussniwin timernanin:  $FEATURE_EXTRA_SKILLS_SUMMARY_STATE
-    - Home Assistant:  $HOMEASSISTANT_SUMMARY_STATE
-    - LLM:  $LLM_SUMMARY_STATE
-    - Tamellit:   $TUNING_SUMMARY_STATE
+    - Tarrayt:   ${METHOD:-}
+    - Lqem:  ${CHANNEL:-}
+    - Amaɣnu:  ${PROFILE:-}
+    - Tussniwin:  ${FEATURE_SKILLS_SUMMARY_STATE:-}
+    - Tussniwin timernanin:  ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}
+    - Home Assistant:  ${HOMEASSISTANT_SUMMARY_STATE:-}
+    - LLM:  ${LLM_SUMMARY_STATE:-}
+    - Tamellit:   ${TUNING_SUMMARY_STATE:-}
 
 Ifranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.
 
-Yettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren $BACK_BUTTON (neɣ sit ɣef ESC) akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.
+Yettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren ${BACK_BUTTON:-} (neɣ sit ɣef ESC) akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.
 "
 TITLE="Asbeddi n Open Voice OS - Agzul"
 
