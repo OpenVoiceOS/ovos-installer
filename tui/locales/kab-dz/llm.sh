@@ -1,113 +1,113 @@
 #!/usr/bin/env bash
-LLM_TITLE_SETUP="Open Voice OS Installation - LLM"
+LLM_TITLE_SETUP="Asbeddi n Open Voice OS - LLM"
 LLM_CONTENT_HAVE_DETAILS="
-You selected the LLM feature for ovos-persona.
+Tferneḍ tamahilt LLM i ovos-persona.
 
-This lets OVOS use an AI assistant when normal skills do not have a good answer.
+Aya ad yeǧǧ OVOS ad yesseqdec amyager n AI ticki timahilin timezwura ur nesɛi ara tiririt yelhan.
 
-You will be asked for:
-  - API URL: where OVOS sends AI requests
-  - API key: your private access key for that service
-  - Model: which AI model to use
-  - Assistant style: how the assistant should sound
-  - Reply length: how much room the model gets to answer
-  - Creativity: lower is safer, higher is more imaginative
-  - Focus: lower keeps answers tighter and more predictable
+Ad ak-d-nessuter:
+  - URL n API: anda ara d-yazen OVOS isuturen-is ɣer AI
+  - Tasarut n API: tasarut tusligt-ik i useqdec-a
+  - Amudil: anwa amudil n AI ara yettwaseqdec
+  - Udem n umyager: amek ara yemmeslay umyager
+  - Teɣzi n tririt: acḥal n wemkan i yettunefk i umudil akken ad d-yerr
+  - Asnulfu: azal amecṭuḥ yelha ugar, azal ameqqran yesnulfu ugar
+  - Tuzzugt: azal amecṭuḥ yeǧǧa tiririyin ugar n telqey
 
-Safe defaults are pre-filled for the advanced options.
+Lxetyarat ifazen ttusekcamen s wazal amezwaru i tɣawsiwin yerkiden.
 "
-LLM_TITLE_EXISTING="Open Voice OS Installation - Existing LLM Settings"
+LLM_TITLE_EXISTING="Asbeddi n Open Voice OS - Iɣewwaren n LLM yellan"
 LLM_CONTENT_EXISTING="
-Existing LLM persona configuration detected.
+Tettwaf-d twila n LLM persona yellan yakan.
 
-API URL: __URL__
-Model: __MODEL__
+URL n API: __URL__
+Amudil: __MODEL__
 
-Would you like to keep the existing configuration?
+Tebɣiḍ ad teṭṭfeḍ tawila-nni yellan?
 "
-LLM_TITLE_URL="Open Voice OS Installation - LLM API URL"
+LLM_TITLE_URL="Asbeddi n Open Voice OS - URL n API n LLM"
 LLM_CONTENT_URL="
-Enter the OpenAI-compatible API URL used by your provider.
+Sekcem URL n API i icban ta n OpenAI, i d-ittunefken sɣur useqdac-ik.
 
-Example: https://llama.smartgic.io/v1
+Amedya: https://llama.smartgic.io/v1
 
-Tip: many compatible servers need the /v1 part.
+Talɣut: aṭas n iqeddacen i icban wa ḥwaǧen tikci n /v1.
 "
-LLM_TITLE_KEY="Open Voice OS Installation - LLM API Key"
+LLM_TITLE_KEY="Asbeddi n Open Voice OS - Tasarut n API n LLM"
 LLM_CONTENT_KEY="
-Enter the API key for your AI provider.
+Sekcem tasarut n API n useqdac-ik n AI.
 
-This is kept private and is not shown in the installer summary.
+Tasarut-a tettwaḍfer d tusligt yerna ur d-ttbanent ara deg ugzul n usbeddi.
 "
 LLM_CONTENT_KEY_KEEP_EXISTING="
-Leave empty to keep your existing key.
+Eǧǧ-it d ilem akken ad teṭṭfeḍ tasarut-ik yellan.
 "
-LLM_TITLE_MODEL="Open Voice OS Installation - LLM Model"
+LLM_TITLE_MODEL="Asbeddi n Open Voice OS - Amudil n LLM"
 LLM_CONTENT_MODEL="
-Enter the model name OVOS should use for conversations.
+Sekcem isem n umudil ara yesseqdec OVOS i tmeslayin.
 
-Examples: gpt-4o-mini, llama3.1:8b, qwen3-nothink:latest
+Imedyaten: gpt-4o-mini, llama3.1:8b, qwen3-nothink:latest
 "
-LLM_TITLE_PERSONA="Open Voice OS Installation - LLM Assistant Style"
-LLM_DEFAULT_PERSONA="Respond in the same language as the user in a plain spoken style for a voice assistant. No emojis. No markdown. No bullet points. No parenthetical asides. Keep replies concise, usually one or two short sentences. Start directly with the answer and sound natural when spoken aloud."
+LLM_TITLE_PERSONA="Asbeddi n Open Voice OS - Udem n umyager n LLM"
+LLM_DEFAULT_PERSONA="Err-ed s tutlayt i deg d-yemmeslay useqdac s udem sslamu i umyager s taɣect. Ulac imujis. Ulac markdown. Ulac tibdarin. Ulac awalen ger tirni. Eǧǧ tiririyin d timecṭuḥin, s umata yiwet neɣ snat n tefyar. Bdu srid s tririt yerna eǧǧ-itt d tanaturt ticki tettwaɛqel s uwal."
 LLM_CONTENT_PERSONA="
-Describe how the assistant should speak and behave.
+Glem amek ara yemmeslay yerna amek ara yili wamyager.
 
-The default is tuned for short, voice-friendly replies.
-Example: Respond in plain spoken English for a voice assistant. No emojis. Keep replies concise.
+Azal amezwaru yettwaheggi i tririyin timecṭuḥin i icban ameslaw.
+Amedya: Err-ed s tutlayt taglizit sslamant i umyager s taɣect. Ulac imujis. Eǧǧ tiririyin d timecṭuḥin.
 "
-LLM_TITLE_MAX_TOKENS="Open Voice OS Installation - LLM Reply Length"
+LLM_TITLE_MAX_TOKENS="Asbeddi n Open Voice OS - Teɣzi n tririt n LLM"
 LLM_CONTENT_MAX_TOKENS="
-Choose how much room the model gets for each answer.
+Fren acḥal n wemkan i yettunefk i umudil i yal tiririt.
 
-Higher numbers allow fuller replies but may be slower.
-Lower numbers are shorter and faster.
+Iṭṭuqan imeqqranen ttaǧǧan tiririyin ččuṛen maca zemren ad ilint sluɣent.
+Iṭṭuqan imecṭuḥen d timecṭuḥin yerna d timɣaren.
 
-Recommended for voice use: 300
+Yettwamagr i useqdec s taɣect: 300
 "
-LLM_TITLE_TEMPERATURE="Open Voice OS Installation - LLM Creativity"
+LLM_TITLE_TEMPERATURE="Asbeddi n Open Voice OS - Asnulfu n LLM"
 LLM_CONTENT_TEMPERATURE="
-Choose how creative the replies should be.
+Fren acḥal ara yili wesnulfu deg tiririyin.
 
-Lower values are calmer and more predictable.
-Higher values are more playful and varied.
+Azalen imecṭuḥen d irkiden yerna ttusnen sya ɣer da.
+Azalen imeqqranen d imecṭaḥ ugar yerna mgaraden ugar.
 
-Recommended for voice use: 0.2
+Yettwamagr i useqdec s taɣect: 0.2
 "
-LLM_TITLE_TOP_P="Open Voice OS Installation - LLM Focus"
+LLM_TITLE_TOP_P="Asbeddi n Open Voice OS - Tuzzugt n LLM"
 LLM_CONTENT_TOP_P="
-Choose how tightly the model should stay on the most likely words.
+Fren acḥal ara yeṭṭef umudil ɣer wawalen ittuɣalen s waṭas.
 
-Lower values keep replies more focused and consistent.
-Higher values allow more variety.
+Azalen imecṭuḥen ṭṭfen tiririyin ugar n telqey d urkid.
+Azalen imeqqranen ttaǧǧan ugar n tmegga.
 
-Recommended for voice use: 0.1
+Yettwamagr i useqdec s taɣect: 0.1
 "
-LLM_TITLE_INVALID="Open Voice OS Installation - Invalid LLM Configuration"
+LLM_TITLE_INVALID="Asbeddi n Open Voice OS - Twila n LLM d tarameɣtut"
 LLM_CONTENT_MISSING_INFO="
-Some required LLM information is missing.
+Kra n telɣut n LLM ilaqen ur telli ara.
 
-Please provide API URL, API key, model, assistant style, and the tuning values.
+Ttxil-k efk URL n API, tasarut n API, amudil, udem n umyager, akked wazalen n usellek.
 "
 LLM_CONTENT_INVALID_URL="
-Invalid URL.
+URL d arameɣtu.
 
-Please provide a valid OpenAI-compatible API URL.
+Ttxil-k efk URL n API d arameɣtu i icban ta n OpenAI.
 "
 LLM_CONTENT_INVALID_MAX_TOKENS="
-Invalid reply length.
+Teɣzi n tririt d tarameɣtut.
 
-Please enter a whole number greater than 0.
+Ttxil-k sekcem uṭṭun ummid yugaren 0.
 "
 LLM_CONTENT_INVALID_TEMPERATURE="
-Invalid creativity level.
+Aswir n usnulfu d arameɣtu.
 
-Please enter a number between 0 and 2.
+Ttxil-k sekcem uṭṭun gar 0 d 2.
 "
 LLM_CONTENT_INVALID_TOP_P="
-Invalid focus level.
+Aswir n tuzzugt d arameɣtu.
 
-Please enter a number between 0 and 1.
+Ttxil-k sekcem uṭṭun gar 0 d 1.
 "
 
 export LLM_TITLE_SETUP LLM_CONTENT_HAVE_DETAILS
