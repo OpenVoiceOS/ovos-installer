@@ -20,6 +20,8 @@ on:
       - tests/bats/**
       - tui/**
   push:
+    branches:
+      - main
     paths:
       - .github/workflows/macos_ci.yml
       - .github/scripts/**

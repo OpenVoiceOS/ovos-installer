@@ -21,6 +21,8 @@ on:
       - tui/**
       - tests/bats/**
   push:
+    branches:
+      - main
     paths:
       - .github/workflows/scenarios-ubuntu2404.yml
       - .github/scripts/**
