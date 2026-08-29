@@ -156,8 +156,12 @@ function setup() {
             return 1
         fi
 
+        # Mirror the load order in tui/methods.sh: English first, then the
+        # selected locale. A locale contributed by hand, or not translated yet,
+        # still resolves the locked description that way.
         run bash -euc "
             INSTANCE_TYPE=containers
+            source tui/locales/en-us/methods.sh
             source '$locale_file'
             test -n \"\$TITLE\"
             test -n \"\$CONTENT\"
