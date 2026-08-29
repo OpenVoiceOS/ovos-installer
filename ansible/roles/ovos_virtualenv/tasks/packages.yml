@@ -151,39 +151,6 @@
     ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_macos }}"
   when: ansible_facts.system == "Darwin"
 
-- name: Ensure user local bin directory exists for build compatibility shims (macOS)
-  ansible.builtin.file:
-    path: "{{ ovos_installer_user_home }}/.local/bin"
-    state: directory
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    mode: "0755"
-  when: ansible_facts.system == "Darwin"
-
-- name: Resolve swig binary path for fann2 builds (macOS)
-  become: true
-  become_user: "{{ ovos_installer_user }}"
-  ansible.builtin.command:
-    cmd: "which swig"
-  register: ovos_virtualenv_macos_swig_bin
-  changed_when: false
-  failed_when: false
-  environment:
-    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
-  when: ansible_facts.system == "Darwin"
-
-- name: Ensure swig2.0 compatibility shim exists (macOS)
-  ansible.builtin.file:
-    src: "{{ ovos_virtualenv_macos_swig_bin.stdout | trim }}"
-    dest: "{{ ovos_installer_user_home }}/.local/bin/swig2.0"
-    state: link
-    force: true
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-  when:
-    - ansible_facts.system == "Darwin"
-    - (ovos_virtualenv_macos_swig_bin.stdout | default('') | trim | length) > 0
-
 - name: Check Homebrew fann lib directory for compatibility
   ansible.builtin.stat:
     path: "{{ ovos_virtualenv_macos_fann_source_lib_dir }}"
@@ -244,3 +211,48 @@
   vars:
     ovos_installer_package_tracking_marker_path: "{{ ovos_virtualenv_package_marker_path_linux }}"
   when: ansible_facts.os_family == "Archlinux"
+
+# Every platform builds fann2 from source (ovos-core[lgpl] pulls it in) and
+# fann2 1.0.7 prefers a "swig2.0" binary, so these run wherever swig was just
+# installed - the shim has to come after the package tasks above.
+- name: Ensure user local bin directory exists for build compatibility shims
+  ansible.builtin.file:
+    path: "{{ ovos_installer_user_home }}/.local/bin"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+  when: ansible_facts.system in ['Linux', 'Darwin']
+
+# "command -v" is a shell builtin, unlike which(1), which is a separate package
+# that minimal images do not always carry. Resolving through it means a missing
+# which cannot silently skip the shim and break the fann2 build.
+- name: Resolve swig binary path for fann2 builds
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv:
+      - /bin/sh
+      - -c
+      - command -v swig
+  register: ovos_virtualenv_swig_bin
+  changed_when: false
+  failed_when: false
+  environment:
+    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+  when: ansible_facts.system in ['Linux', 'Darwin']
+
+# swig 4.5.0 dropped the Python 2 compatibility macros from its generated
+# wrappers, which fann2 1.0.7 typemaps still call. The shim runs the real swig
+# and restores those macros, so it is a wrapper script rather than a symlink.
+- name: Ensure swig2.0 compatibility shim exists
+  ansible.builtin.template:
+    src: swig2.0-shim.sh.j2
+    dest: "{{ ovos_virtualenv_swig_shim_path }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+    follow: false
+  when:
+    - ansible_facts.system in ['Linux', 'Darwin']
+    - (ovos_virtualenv_swig_bin.stdout | default('') | trim | length) > 0
