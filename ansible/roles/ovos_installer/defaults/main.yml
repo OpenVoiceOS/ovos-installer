@@ -63,7 +63,7 @@ ovos_installer_xhost_package_default: xorg-x11-server-utils
 ovos_installer_x11_xserver_utils_package: x11-xserver-utils
 ovos_installer_ovos_docker_repo_url: https://github.com/OpenVoiceOS/ovos-docker.git
 # Pinned to an ovos-docker release so containers-mode installs are reproducible; bump on new releases.
-ovos_installer_ovos_docker_repo_branch: v2.0.1
+ovos_installer_ovos_docker_repo_branch: v2.0.2
 ovos_installer_hivemind_docker_repo_url: https://github.com/JarbasHiveMind/hivemind-docker.git
 ovos_installer_hivemind_docker_repo_branch: feat/initial
 ovos_installer_docker_image_tag: "{{ ovos_installer_channel | default('testing') }}"
