@@ -27,6 +27,7 @@ function setup() {
 
     # Whiptail spy values (written from subshells via $WHIPTAIL_SPY_FILE)
     WHIPTAIL_FORCE_SELECTION=""
+    WHIPTAIL_PREFERRED_TAGS=""
     WHIPTAIL_FORCE_YESNO_STATUS="0"
     printf '%s\n' "list_height=0" "option_count=0" "tags=" >"$WHIPTAIL_SPY_FILE"
     : >"$WHIPTAIL_DIALOG_FILE"
@@ -145,7 +146,27 @@ function setup() {
                         printf 'statuses=%s\n' "${parsed_statuses[*]}"
                     } >"$WHIPTAIL_SPY_FILE"
 
-                    local selection="${WHIPTAIL_FORCE_SELECTION:-${parsed_tags[0]}}"
+                    # A walk through several screens cannot use one forced
+                    # selection, and hard-coding a sequence would break every
+                    # time a screen is added. Name the tags a walk wants and
+                    # take the first one a given screen actually offers.
+                    local selection=""
+                    if [ -n "${WHIPTAIL_FORCE_SELECTION:-}" ]; then
+                        selection="$WHIPTAIL_FORCE_SELECTION"
+                    elif [ -n "${WHIPTAIL_PREFERRED_TAGS:-}" ]; then
+                        local preferred
+                        for preferred in $WHIPTAIL_PREFERRED_TAGS; do
+                            for tag in "${parsed_tags[@]}"; do
+                                if [ "$tag" == "$preferred" ]; then
+                                    selection="$tag"
+                                    break 2
+                                fi
+                            done
+                        done
+                    fi
+                    if [ -z "$selection" ]; then
+                        selection="${parsed_tags[0]}"
+                    fi
                     printf '%s\n' "$selection" >&2
                     return 0
                 fi
@@ -1506,4 +1527,82 @@ LOCALE
     assert_equal "$METHOD" "containers"
     [ -n "$CHANNEL" ]
     [ -n "$PROFILE" ]
+}
+
+function fresh_install_environment() {
+    LOCALE="en-us"
+    EXISTING_INSTANCE="false"
+    unset INSTANCE_TYPE
+
+    ARCH="x86_64"
+    DISTRO_NAME="ubuntu"
+    DISTRO_VERSION="Ubuntu 24.04"
+    DISTRO_VERSION_ID="24"
+    DISTRO_LABEL="Ubuntu 24.04"
+    KERNEL="6.8.0"
+    PYTHON="Python 3.12.3"
+    CPU_IS_CAPABLE="true"
+    SOUND_SERVER="PipeWire"
+    DISPLAY_SERVER="wayland"
+    VENV_PATH="$RUN_AS_HOME/.venvs/ovos"
+    RASPBERRYPI_MODEL="N/A"
+    HARDWARE_MODEL="N/A"
+    DETECTED_DEVICES=()
+
+    WHIPTAIL_FORCE_SELECTION=""
+    WHIPTAIL_FORCE_YESNO_STATUS="0"
+}
+
+@test "tui: the Raspberry Pi walk reaches the tuning screen under nounset" {
+    fresh_install_environment
+    # A board switches on tuning.sh, which the generic walk never sources.
+    RASPBERRYPI_MODEL="Raspberry Pi 5"
+    ARCH="aarch64"
+    WHIPTAIL_PREFERRED_TAGS="virtualenv testing ovos"
+
+    set -u
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+    set +u
+
+    assert_equal "$METHOD" "virtualenv"
+    [ -n "$TUNING" ]
+}
+
+@test "tui: the satellite walk reaches the hivemind prompts under nounset" {
+    fresh_install_environment
+    # satellite skips features.sh and runs tui/satellite/main.sh instead.
+    WHIPTAIL_PREFERRED_TAGS="virtualenv testing satellite"
+    queue_whiptail_response "192.168.1.10"
+    queue_whiptail_response "5678"
+    queue_whiptail_response "hivemind-key"
+    queue_whiptail_response "hivemind-password"
+
+    set -u
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+    set +u
+
+    assert_equal "$PROFILE" "satellite"
+    assert_equal "$HIVEMIND_HOST" "192.168.1.10"
+    assert_equal "$HIVEMIND_PORT" "5678"
+    assert_equal "$SATELLITE_KEY" "hivemind-key"
+    assert_equal "$SATELLITE_PASSWORD" "hivemind-password"
+}
+
+@test "tui: the existing-instance uninstall prompt survives nounset" {
+    # setup.sh sends an existing install here instead of tui/main.sh, and this
+    # is the one screen a reinstall always sees.
+    fresh_install_environment
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="containers"
+    # shellcheck source=tui/locales/en-us/misc.sh
+    source tui/locales/en-us/misc.sh
+
+    set -u
+    # shellcheck source=tui/uninstall.sh
+    source tui/uninstall.sh
+    set +u
+
+    assert_equal "$CONFIRM_UNINSTALL" "true"
 }
