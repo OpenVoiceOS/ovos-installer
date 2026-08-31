@@ -54,6 +54,15 @@
     version: "{{ item.branch }}"
     update: "{{ _repo_update_required | bool }}"
     force: "{{ ovos_containers_repo_force_checkout | bool }}"
+  environment:
+    # Both repositories are public, so git never needs credentials. Should the URL
+    # answer 401/404 anyway (an overridden fork, a proxy or DNS filter intercepting
+    # github.com), git would ask for a username on the terminal and the installer
+    # would sit there forever; these make it fail immediately with that reason
+    # instead. Credential helpers are still consulted, so a private fork configured
+    # with one keeps working.
+    GIT_TERMINAL_PROMPT: "0"
+    GIT_ASKPASS: ""
   loop: "{{ ovos_containers_repo_definitions }}"
   loop_control:
     label: "{{ item.dest }}"
