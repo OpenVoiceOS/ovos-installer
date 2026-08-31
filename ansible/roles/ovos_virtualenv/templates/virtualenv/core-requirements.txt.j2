@@ -4,13 +4,21 @@
 ovos-audio[extras]
 ovos-core[lgpl,plugins]
 ovos-dinkum-listener[{{ 'extras' if ansible_facts.system == 'Darwin' else 'extras,linux' }}]
-# Keep configured VAD selection and Linux fallback installed explicitly.
+# Keep configured VAD selection and its fallback installed explicitly.
 {% if (ovos_installer_cpu_is_capable | default(false)) | bool %}
 ovos-vad-plugin-silero
 {% endif %}
 {% if ansible_facts.system != 'Darwin' %}
 ovos-vad-plugin-webrtcvad
 {% endif %}
+# OVOSVADFactory falls back to this plugin when the configured one fails to
+# load. ovos-dinkum-listener used to pull it in through [extras] and no longer
+# does, so install it here: without it a VAD failure is fatal to the listener.
+ovos-vad-plugin-noise
+# ovos-plugin-manager and webrtcvad import pkg_resources, which setuptools 82
+# removed and Python no longer ships. Pinning the ceiling here enforces it on
+# every run, not only when the venv is first bootstrapped.
+{{ ovos_virtualenv_setuptools_package }}
 {% if ansible_facts.system == 'Darwin' or _ovos_is_mark2_family %}
 ovos-microphone-plugin-sounddevice
 {% endif %}
