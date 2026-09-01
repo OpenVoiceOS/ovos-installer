@@ -93,24 +93,30 @@
       {% if excludes | length > 0 %}
       {% set exclude_re = '^/?(' ~ (excludes | map('regex_escape') | join('|')) ~ ')' %}
       {% endif %}
-      {% set ns = namespace(ids=[], images=[], kept_images=[]) %}
+      {% set ns = namespace(ids=[], targets=[], kept_image_ids=[], kept_image_refs=[], images=[]) %}
       {% for c in (ovos_containers_host_info.containers | default([])) %}
       {% set names = c.Names | default([]) %}
       {% set labels = c.Labels | default({}) or {} %}
       {% set project = labels.get(ovos_containers_uninstall_compose_project_label, '') %}
-      {% set image = (c.Image | default('')) or (c.ImageID | default('')) %}
+      {% set image_ref = (c.Image | default('')) or (c.ImageID | default('')) %}
+      {% set image_id = (c.ImageID | default('')) or (c.Image | default('')) %}
       {% set match_project = (projects | length > 0 and project | length > 0 and project in projects) %}
       {% set match_prefix = (prefix_re | length > 0 and (names | select('match', prefix_re) | list | length > 0)) %}
       {% set excluded = (exclude_re | length > 0 and (names | select('match', exclude_re) | list | length > 0)) %}
       {% if (match_project or match_prefix) and not excluded %}
       {% set _ = ns.ids.append(c.Id) %}
-      {% if image | length > 0 %}{% set _ = ns.images.append(image) %}{% endif %}
-      {% elif image | length > 0 %}
-      {% set _ = ns.kept_images.append(image) %}
+      {% if image_ref | length > 0 %}{% set _ = ns.targets.append([image_id, image_ref]) %}{% endif %}
+      {% else %}
+      {% if image_id | length > 0 %}{% set _ = ns.kept_image_ids.append(image_id) %}{% endif %}
+      {% if image_ref | length > 0 %}{% set _ = ns.kept_image_refs.append(image_ref) %}{% endif %}
       {% endif %}
       {% endfor %}
-      {{ {'ids': ns.ids | unique | list,
-          'images': ns.images | unique | difference(ns.kept_images | unique) | list} }}
+      {% for target in ns.targets %}
+      {% if target[0] not in ns.kept_image_ids and target[1] not in ns.kept_image_refs %}
+      {% set _ = ns.images.append(target[1]) %}
+      {% endif %}
+      {% endfor %}
+      {{ {'ids': ns.ids | unique | list, 'images': ns.images | unique | list} }}
   ansible.builtin.set_fact:
     ovos_containers_uninstall_target_ids: "{{ (_ovos_containers_uninstall_selection_raw | from_yaml).ids }}"
     ovos_containers_uninstall_target_images: "{{ (_ovos_containers_uninstall_selection_raw | from_yaml).images }}"
@@ -163,8 +169,11 @@
   loop: "{{ ovos_containers_uninstall_target_ids | default([]) }}"
   when: ovos_containers_uninstall_target_ids | default([]) | length > 0
 
-# A leftover image is not worth failing the uninstall for, it can still be
-# referenced by another repository/tag or by a container created in between.
+# Removal uses the image reference the container was created from, so only that
+# reference is untagged, but an image is retained by ID as well as by reference,
+# because a container which stays can hold the same image under a different
+# reference. A leftover image is not worth failing the uninstall for either, it
+# can still be referenced by another tag or by a container created in between.
 - name: Remove container images
   become: true
   community.docker.docker_image_remove:
