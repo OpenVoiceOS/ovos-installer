@@ -34,8 +34,9 @@ Every question screen has a **Next** button and a **Back** button.
 
 Ctrl-C does not work while a screen is open: the installer draws its screens
 with `whiptail`, which puts the terminal in raw mode and never sees the key.
-The ESC key does nothing either, because newt dropped it as a form hotkey in
-0.52.5. Use **Back** and **Exit** instead.
+ESC is not dependable either — newt dropped it as a form hotkey in 0.52.5, so
+on some builds it acts as **Back** and on others it does nothing at all. Use
+the buttons.
 
 The screens size themselves to the terminal. On a window too small for a
 screen's text the text scrolls, and whiptail then starts with the focus in the

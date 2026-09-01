@@ -362,11 +362,13 @@ function rendered_titles() {
     assert_line --index 11 "Open Voice OS Installation - Telemetry"
 }
 
-@test "tui: leaving from the language picker confirms first and then quits" {
+@test "tui: leaving the language picker on the way back confirms first" {
     run bash -c '
         set -u
         source utils/constants.sh
         LOG_FILE="$(mktemp)"
+        # Reached from the flow, so there are answers to lose.
+        export TUI_LANGUAGE_REVISITED="true"
 
         whiptail() {
             local args=("$@")
@@ -405,6 +407,7 @@ function rendered_titles() {
         set -u
         source utils/constants.sh
         LOG_FILE="$(mktemp)"
+        export TUI_LANGUAGE_REVISITED="true"
 
         # whiptail runs in a command substitution for list dialogs, so the
         # call counter has to survive a subshell.
@@ -446,6 +449,62 @@ function rendered_titles() {
     assert_success
     assert_output --partial "LOCALE=en-us"
     assert_equal "$(grep -c "Open Voice OS Installation - Language" <<<"$output")" "2"
+}
+
+@test "tui: leaving the language picker on the first pass does not ask twice" {
+    # Nothing has been answered yet, so a confirmation would only be in the way.
+    run bash -c '
+        set -u
+        source utils/constants.sh
+        LOG_FILE="$(mktemp)"
+
+        whiptail() {
+            local args=("$@")
+            local j title=""
+            for ((j = 0; j < ${#args[@]}; j++)); do
+                if [ "${args[$j]}" == "--title" ]; then
+                    title="${args[$((j + 1))]}"
+                fi
+            done
+            printf "%s\n" "$title"
+            # The user presses Exit.
+            return 1
+        }
+
+        source tui/language.sh
+        printf "unreachable\n"
+    '
+
+    assert_success
+    assert_output "Open Voice OS Installation - Language"
+    refute_output --partial "Open Voice OS Installation - Quit"
+    refute_output --partial "unreachable"
+}
+
+@test "tui: a picker that cannot be drawn stops asking instead of looping" {
+    run timeout 20 bash -c '
+        set -u
+        source utils/constants.sh
+        LOG_FILE="$(mktemp)"
+        export TUI_LANGUAGE_REVISITED="true"
+
+        calls=0
+        whiptail() {
+            calls=$((calls + 1))
+            if [ "$calls" -gt 50 ]; then
+                printf "RUNAWAY\n"
+                exit 9
+            fi
+            return 255
+        }
+
+        source tui/language.sh
+        printf "unreachable\n"
+    '
+
+    assert_success
+    refute_output --partial "RUNAWAY"
+    refute_output --partial "unreachable"
 }
 
 @test "tui: an existing install can walk back through its own prompts" {

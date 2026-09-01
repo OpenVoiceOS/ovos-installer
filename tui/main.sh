@@ -105,7 +105,9 @@ while [ "$tui_step_index" -lt "${#TUI_FLOW[@]}" ]; do
 
         if [ "$tui_previous_index" -lt 0 ]; then
             # Nothing precedes the first screen but the language picker, and
-            # its own cancel button leaves the installer.
+            # its own cancel button leaves the installer. Tell it this is a
+            # return visit, so that leaving asks for confirmation.
+            export TUI_LANGUAGE_REVISITED="true"
             # shellcheck source=tui/language.sh
             source tui/language.sh
             tui_nav_load_strings

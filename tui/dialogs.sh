@@ -43,7 +43,8 @@ function tui_whiptail_fit() {
     lines="${size%% *}"
     columns="${size##* }"
 
-    # One row for the shadow, one so the box is not flush against the edge.
+    # One row for the backtitle, which newt draws above the box, and one for the
+    # drop shadow below it. Ask for more and newt has nowhere to put the box.
     if [ "$fitted_height" -gt "$((lines - 2))" ]; then
       fitted_height="$((lines - 2))"
     fi
@@ -136,7 +137,13 @@ function tui_whiptail_size_indices() {
       ;;
   esac
 
-  printf '%s %s %s %s' "${positional[0]}" "${positional[1]}" "${positional[2]}" "$list_height_index"
+  local options=0
+  if [ "$list_height_index" -ge 0 ]; then
+    options=$(( (${#positional[@]} - 4) / 3 ))
+  fi
+
+  printf '%s %s %s %s %s' \
+    "${positional[0]}" "${positional[1]}" "${positional[2]}" "$list_height_index" "$options"
 }
 
 # The locale templates end every body with a blank line. whiptail anchors the
@@ -192,6 +199,7 @@ function tui_whiptail_run() {
   local width_index=""
   local list_height_index="-1"
   local list_height="0"
+  local options="0"
   local fitted=""
 
   if indices="$(tui_whiptail_size_indices args)"; then
@@ -200,6 +208,7 @@ function tui_whiptail_run() {
     height_index="${size_index[1]}"
     width_index="${size_index[2]}"
     list_height_index="${size_index[3]}"
+    options="${size_index[4]}"
     if [ "$list_height_index" -ge 0 ]; then
       list_height="${args[$list_height_index]}"
     fi
@@ -213,6 +222,18 @@ function tui_whiptail_run() {
     fitted="$(tui_whiptail_fit "${args[$height_index]}" "${args[$width_index]}")" || true
     args[height_index]="${fitted%% *}"
     args[width_index]="${fitted##* }"
+
+    # The screens ask for a list four rows tall even when they offer two
+    # options, which looks fine with room to spare and wastes rows there is no
+    # room for. Give the spare rows back to the body rather than to blank list
+    # entries, but only when the body needs them.
+    if [ "$list_height_index" -ge 0 ] && [ "$options" -ge 1 ] &&
+      [ "$list_height" -gt "$options" ] &&
+      tui_whiptail_body_overflows "${args[$text_index]}" \
+        "${args[$height_index]}" "${args[$width_index]}" "$list_height"; then
+      args[list_height_index]="$options"
+      list_height="$options"
+    fi
 
     # Only give the body a scrollbar when it genuinely does not fit. It costs
     # the user a Tab to reach the buttons, because whiptail puts the focus in

@@ -136,6 +136,7 @@ function setup() {
     '
 
     assert_success
+    # One row for the backtitle, one for the shadow, two columns each side.
     assert_output "22 76 shrunk"
 }
 
@@ -166,8 +167,8 @@ function setup() {
     '
 
     assert_success
-    # text, height, width, and -1 for a box with no list; then the list box.
-    assert_output "7 8 9 -1|3 6 7 8"
+    # text, height, width, list height and option count; -1 and 0 without a list.
+    assert_output "7 8 9 -1 0|3 6 7 8 1"
 }
 
 @test "dialog sizing: a body that fits keeps the buttons focused" {

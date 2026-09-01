@@ -81,18 +81,17 @@ function drive() {
     assert_line --index 2 $'tab,tab,enter\tOpen Voice OS Installation - Quit'
 }
 
-@test "whiptail: ESC is not a way out, which is why the buttons are" {
-    # newt dropped ESC as a default form hotkey in 0.52.5 (Debian #584098), so
-    # a design that leaned on it would leave users with no way to leave at all.
-    run drive 45 110 esc esc
+@test "whiptail: ESC is never a way forward, whatever this newt does with it" {
+    # newt dropped ESC as a default form hotkey in 0.52.5 (Debian #584098), but
+    # not every build agrees: on Fedora's 0.52.25 the key does nothing, on
+    # Ubuntu's it cancels the dialog. A design that leaned on ESC would work on
+    # one and strand the user on the other, which is why the buttons carry the
+    # navigation. What has to hold everywhere is that ESC never confirms a
+    # screen the user has not answered.
+    run drive 45 110 esc
 
     assert_success
     assert_line --index 0 $'start\tOpen Voice OS Installation - Welcome'
-    # Nothing is redrawn, because nothing happened: the screen does not
-    # advance, does not go back, and no quit prompt appears.
-    assert_line --index 1 $'esc\t'
-    assert_line --index 2 $'esc\t'
-    refute_output --partial "Open Voice OS Installation - Quit"
     refute_output --partial "Open Voice OS Installation - Detected"
     refute_output --partial "REACHED_END"
 }

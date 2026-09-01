@@ -25,9 +25,9 @@ for language in "${available_languages[@]}"; do
 done
 
 # This is the first screen of the installer, and the one every other screen
-# eventually goes back to, so its cancel button is the way out of the whole
-# run. Confirm it: a user who reaches it from the far end of the flow has a
-# screenful of answers to lose.
+# eventually goes back to, so its cancel button is the way out of the whole run.
+language_attempts=0
+
 while :; do
   language_status=0
   # Retrieve language and make it lower case with ",,"
@@ -41,10 +41,17 @@ while :; do
     break
   fi
 
-  # Only a press of the cancel button is worth confirming. Any other status is
-  # whiptail failing to draw, and the confirmation would fail the same way: ask
-  # again and the installer would never stop asking.
-  if [ "$language_status" -ne 1 ]; then
+  # On the first pass nothing has been answered yet, so leaving costs the user
+  # nothing and a confirmation would only be in the way. Arriving here from the
+  # far end of the flow is different: that is a screenful of answers to lose.
+  if [ "${TUI_LANGUAGE_REVISITED:-false}" != "true" ]; then
+    tui_nav_quit
+  fi
+
+  # A terminal that cannot draw the picker cannot draw the confirmation either,
+  # and the installer would ask forever. Give up rather than spin.
+  language_attempts=$((language_attempts + 1))
+  if [ "$language_attempts" -ge 3 ]; then
     tui_nav_quit
   fi
 
