@@ -13,7 +13,9 @@ source tui/hardware_state.sh
 function tui_features_fit_checklist_text() {
   local tag="$1"
   local text="$2"
-  local width="${TUI_WINDOW_WIDTH:-80}"
+  # The width the checklist is actually drawn at, which on a small terminal is
+  # narrower than the preferred one.
+  local width="${TUI_EFFECTIVE_WIDTH:-${TUI_WINDOW_WIDTH:-80}}"
   # 22 covers whiptail checklist overhead beyond the tag itself: checkbox,
   # status column, spacing, and the right-side padding inside the dialog.
   local max_length=$(( width - ${#tag} - 22 ))

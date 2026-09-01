@@ -58,7 +58,20 @@ function tui_nav_load_strings() {
   export TUI_BACKTITLE
 }
 
+# The size the dialogs will actually be drawn at. Screens that lay text out
+# themselves, rather than handing it to whiptail to wrap, have to measure
+# against this and not against the preferred size.
+function tui_nav_fit_window() {
+  local fitted=""
+
+  fitted="$(tui_whiptail_fit "${TUI_WINDOW_HEIGHT:-35}" "${TUI_WINDOW_WIDTH:-90}")" || true
+  TUI_EFFECTIVE_HEIGHT="${fitted%% *}"
+  TUI_EFFECTIVE_WIDTH="${fitted##* }"
+  export TUI_EFFECTIVE_HEIGHT TUI_EFFECTIVE_WIDTH
+}
+
 tui_nav_load_strings
+tui_nav_fit_window
 
 function tui_nav_set() {
   TUI_NAV="$1"
