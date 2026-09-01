@@ -13,7 +13,7 @@ Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ ana
 
 Ifranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.
 
-Yettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren ${BACK_BUTTON:-} (neɣ sit ɣef ESC) akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.
+Yettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren ${BACK_BUTTON:-} akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.
 "
 TITLE="Asbeddi n Open Voice OS - Agzul"
 

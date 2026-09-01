@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 
 # shellcheck source=tui/locales/en-us/tuning.sh
 source "tui/locales/$LOCALE/tuning.sh"
@@ -114,11 +114,17 @@ while true; do
     --radiolist "$CONTENT"
     --cancel-button "$BACK_BUTTON"
     --ok-button "$OK_BUTTON"
+    --notags
     "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height"
   )
 
   for option in "${available_options[@]}"; do
-    whiptail_args+=("$option" "")
+    # The tag stays the value, the item is the translated label.
+    if [ "$option" == "yes" ]; then
+      whiptail_args+=("$option" "$YES_BUTTON")
+    else
+      whiptail_args+=("$option" "$NO_BUTTON")
+    fi
     if [[ $option = "$active_option" ]]; then
       whiptail_args+=("ON")
     else
@@ -127,7 +133,7 @@ while true; do
   done
 
   tuning_choice=""
-  if tui_whiptail_capture tuning_choice "${whiptail_args[@]}"; then
+  if tui_nav_capture tuning_choice "${whiptail_args[@]}"; then
     TUNING="$tuning_choice"
     if [ "$TUNING" == "yes" ]; then
       overclock_option="${TUNING_OVERCLOCK:-no}"
@@ -144,11 +150,16 @@ while true; do
         --radiolist "$OVERCLOCK_CONTENT"
         --cancel-button "$BACK_BUTTON"
         --ok-button "$OK_BUTTON"
+        --notags
         "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$overclock_list_height"
       )
 
       for option in "${overclock_options[@]}"; do
-        overclock_args+=("$option" "")
+        if [ "$option" == "yes" ]; then
+          overclock_args+=("$option" "$YES_BUTTON")
+        else
+          overclock_args+=("$option" "$NO_BUTTON")
+        fi
         if [[ $option = "$overclock_option" ]]; then
           overclock_args+=("ON")
         else
@@ -157,7 +168,7 @@ while true; do
       done
 
       overclock_choice=""
-      if tui_whiptail_capture overclock_choice "${overclock_args[@]}"; then
+      if tui_nav_capture overclock_choice "${overclock_args[@]}"; then
         TUNING_OVERCLOCK="$overclock_choice"
         export TUNING
         export TUNING_OVERCLOCK
@@ -178,10 +189,5 @@ while true; do
     TUNING="$active_option"
     export TUNING
   fi
-  if [[ "${PROFILE:-}" == "satellite" ]]; then
-    source tui/satellite/main.sh
-  else
-    source tui/features.sh
-  fi
-  break
+  return 0
 done

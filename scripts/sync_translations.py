@@ -29,8 +29,12 @@ OK_BUTTON="{ok_button}"
 YES_BUTTON="{yes_button}"
 NO_BUTTON="{no_button}"
 BACK_BUTTON="{back_button}"
+QUIT_BUTTON="{quit_button}"
+QUIT_TITLE="{quit_title}"
+QUIT_CONTENT="{quit_content}"
+NAV_HINT="{nav_hint}"
 
-export OK_BUTTON YES_BUTTON NO_BUTTON BACK_BUTTON
+export OK_BUTTON YES_BUTTON NO_BUTTON BACK_BUTTON QUIT_BUTTON QUIT_TITLE QUIT_CONTENT NAV_HINT
 """
 
 METHODS_TEMPLATE = """

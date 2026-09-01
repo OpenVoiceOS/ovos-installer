@@ -3,7 +3,11 @@
     "ok_button": "अगला",
     "yes_button": "हाँ",
     "no_button": "नहीं",
-    "back_button": "पीछे"
+    "back_button": "पीछे",
+    "quit_button": "बाहर निकलें",
+    "quit_title": "Open Voice OS स्थापना - बाहर निकलें",
+    "quit_content": "क्या आप वाकई इंस्टॉलर से बाहर निकलना चाहते हैं? अभी तक कुछ भी इंस्टॉल या बदला नहीं गया है, और आप इसे कभी भी दोबारा चला सकते हैं।",
+    "nav_hint": "पीछे: पिछली स्क्रीन  -  बाहर निकलने के लिए पीछे जाते रहें"
   },
   "channels.sh": {
     "title": "Open Voice OS Installation - चैनल",
@@ -52,7 +56,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - सारांश",
-    "content": "आपका काम लगभग पूरा हो चुका है, ओपन वॉयस ओएस (Open Voice OS) स्थापित करने के लिए आपके द्वारा चुने गए विकल्पों का सारांश यहां दिया गया है:\n    - विधि:           ${METHOD:-}\n    - संस्करण:        ${CHANNEL:-}\n    - प्रोफाइल:       ${PROFILE:-}\n    - कौशल:           ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - अतिरिक्त कौशल:  ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - ट्यूनिंग:       ${TUNING_SUMMARY_STATE:-}\n\nओपन वॉयस ओएस (Open Voice OS) इंस्टॉलेशन प्रक्रिया के दौरान चुने गए विकल्पों पर हमारे सिस्टम (System) को आपकी विशिष्ट आवश्यकताओं और प्राथमिकताओं के अनुरूप बनाने के लिए सावधानीपूर्वक विचार किया गया है।\nक्या आपको यह सही लगता है? यदि नहीं, तो वापस जाने और बदलाव करने के लिए ${BACK_BUTTON:-} चुनें (या ESC दबाएँ)।"
+    "content": "आपका काम लगभग पूरा हो चुका है, ओपन वॉयस ओएस (Open Voice OS) स्थापित करने के लिए आपके द्वारा चुने गए विकल्पों का सारांश यहां दिया गया है:\n    - विधि:           ${METHOD:-}\n    - संस्करण:        ${CHANNEL:-}\n    - प्रोफाइल:       ${PROFILE:-}\n    - कौशल:           ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - अतिरिक्त कौशल:  ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - ट्यूनिंग:       ${TUNING_SUMMARY_STATE:-}\n\nओपन वॉयस ओएस (Open Voice OS) इंस्टॉलेशन प्रक्रिया के दौरान चुने गए विकल्पों पर हमारे सिस्टम (System) को आपकी विशिष्ट आवश्यकताओं और प्राथमिकताओं के अनुरूप बनाने के लिए सावधानीपूर्वक विचार किया गया है।\nक्या आपको यह सही लगता है? यदि नहीं, तो वापस जाने और बदलाव करने के लिए ${BACK_BUTTON:-} चुनें।"
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - टेलीमेटरी",

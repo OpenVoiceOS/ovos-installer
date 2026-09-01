@@ -3,7 +3,11 @@
     "ok_button": "Nächster",
     "yes_button": "Ja",
     "no_button": "Nein",
-    "back_button": "Zurück"
+    "back_button": "Zurück",
+    "quit_button": "Beenden",
+    "quit_title": "Open Voice OS Installation - Beenden",
+    "quit_content": "Möchten Sie das Installationsprogramm wirklich beenden? Es wurde noch nichts installiert oder geändert, und Sie können es jederzeit erneut starten.",
+    "nav_hint": "Zurück: vorheriger Schritt  -  weiter zurück zum Beenden"
   },
   "channels.sh": {
     "title": "Open Voice OS-Installationskanäle",
@@ -52,7 +56,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Zusammenfassung",
-    "content": "Fast fertig. Eine kurze Zusammenfassung:\n\n    - Umgebung:       ${METHOD:-}\n    - Version:        ${CHANNEL:-}\n    - Profil:         ${PROFILE:-}\n    - Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra-Skills:   ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - Tuning:         ${TUNING_SUMMARY_STATE:-}\n\nDie Entscheidungen, die während des Installationsprozesses von Open Voice OS getroffen werden, wurden sorgfältig abgewogen, um unser System an Ihre individuellen Bedürfnisse und Vorlieben anzupassen.\n\nStimmen die Einstellungen? Falls nicht, wählen Sie ${BACK_BUTTON:-} (oder drücken Sie ESC), um zurückzugehen und Änderungen vorzunehmen."
+    "content": "Fast fertig. Eine kurze Zusammenfassung:\n\n    - Umgebung:       ${METHOD:-}\n    - Version:        ${CHANNEL:-}\n    - Profil:         ${PROFILE:-}\n    - Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra-Skills:   ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - Tuning:         ${TUNING_SUMMARY_STATE:-}\n\nDie Entscheidungen, die während des Installationsprozesses von Open Voice OS getroffen werden, wurden sorgfältig abgewogen, um unser System an Ihre individuellen Bedürfnisse und Vorlieben anzupassen.\n\nStimmen die Einstellungen? Falls nicht, wählen Sie ${BACK_BUTTON:-}, um zurückzugehen und Änderungen vorzunehmen."
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Telemetrie",

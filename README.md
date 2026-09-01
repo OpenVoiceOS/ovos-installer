@@ -20,6 +20,30 @@ This command downloads and runs the installer interactively.
 
 Note: OVOS targets a supported Python runtime in its virtual environment (default `3.11`). The installer uses `uv` to provision that version if it is not already available. Set `OVOS_VENV_PYTHON` to use a different version that is available on your system.
 
+### Moving around the installer screens
+
+Every question screen has a **Next** button and a **Back** button.
+
+- **Back** returns to the previous screen. It keeps working all the way to the
+  start, so a wrong answer several screens ago is one you can still change.
+  On an existing installation that includes the uninstall and update questions.
+- Keep pressing **Back** past the first screen and you reach the language
+  selection, whose **Exit** button leaves the installer. It asks for
+  confirmation first. Nothing is installed or changed until every screen has
+  been answered, so quitting there leaves the system untouched.
+
+Ctrl-C does not work while a screen is open: the installer draws its screens
+with `whiptail`, which puts the terminal in raw mode and never sees the key.
+ESC is not dependable either — newt dropped it as a form hotkey in 0.52.5, so
+on some builds it acts as **Back** and on others it does nothing at all. Use
+the buttons.
+
+The screens size themselves to the terminal, down to 80x24. On a window too
+small to show a screen's text and its paragraph spacing, the spacing is dropped
+so the text still fits. If even that is not enough the text scrolls, and
+whiptail then starts with the focus in the text rather than on a button, so
+**Tab** moves to **Next** and **Back**.
+
 ### Pass environment variables to the `curl` one-liner
 
 To set environment variables when you use the `curl` one-liner, use `sudo env ...` so the variables reach the installer:
@@ -262,16 +286,21 @@ sudo env DEBUG=true sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVo
 
 ## Screenshots
 
-![Screenshot 1](docs/images/screenshot_1.png)
+The installer walks through these screens in order. They are rendered from the
+TUI itself by `scripts/render_screenshots.py`, so they stay in step with it.
 
-![Screenshot 2](docs/images/screenshot_3.png)
+![Welcome](docs/images/screenshot_1.png)
 
-![Screenshot 3](docs/images/screenshot_4.png)
+![Detected hardware](docs/images/screenshot_2.png)
 
-![Screenshot 4](docs/images/screenshot_5.png)
+![Installation method](docs/images/screenshot_3.png)
 
-![Screenshot 5](docs/images/screenshot_6.png)
+![Release channel](docs/images/screenshot_4.png)
 
-![Screenshot 6](docs/images/screenshot_7.png)
+![Profile](docs/images/screenshot_5.png)
 
-![Screenshot 7](docs/images/screenshot_8.png)
+![Features](docs/images/screenshot_6.png)
+
+![Summary](docs/images/screenshot_7.png)
+
+![Finish](docs/images/screenshot_8.png)

@@ -167,6 +167,7 @@ function setup() {
                     if [ -z "$selection" ]; then
                         selection="${parsed_tags[0]}"
                     fi
+                    printf '%s\t%s\t%s\t%s\t%s\n' "${dialog_type#--}" "$dialog_title" "" "$selection" "0" >>"$WHIPTAIL_DIALOG_FILE"
                     printf '%s\n' "$selection" >&2
                     return 0
                 fi
@@ -282,7 +283,7 @@ function dialog_value() {
 }
 
 @test "telemetry: declining prompt keeps installer flow alive and disables telemetry" {
-    WHIPTAIL_FORCE_YESNO_STATUS="1"
+    WHIPTAIL_FORCE_SELECTION="no"
 
     # shellcheck source=tui/telemetry.sh
     source tui/telemetry.sh
@@ -291,7 +292,7 @@ function dialog_value() {
 }
 
 @test "usage telemetry: declining prompt keeps installer flow alive and disables usage telemetry" {
-    WHIPTAIL_FORCE_YESNO_STATUS="1"
+    WHIPTAIL_FORCE_SELECTION="no"
 
     # shellcheck source=tui/usage_telemetry.sh
     source tui/usage_telemetry.sh
@@ -306,7 +307,7 @@ function dialog_value() {
     source tui/usage_telemetry.sh
 
     assert_equal "$TITLE" "Open Voice OS Installation - Usage Metrics"
-    run grep -F -q $'yesno\tOpen Voice OS Installation - Usage Metrics' "$WHIPTAIL_DIALOG_FILE"
+    run grep -F -q $'radiolist\tOpen Voice OS Installation - Usage Metrics' "$WHIPTAIL_DIALOG_FILE"
     assert_success
 }
 
@@ -317,7 +318,7 @@ function dialog_value() {
     source tui/usage_telemetry.sh
 
     assert_equal "$TITLE" "Instalação do Open Voice OS - Métricas de utilização"
-    run grep -F -q $'yesno\tInstalação do Open Voice OS - Métricas de utilização' "$WHIPTAIL_DIALOG_FILE"
+    run grep -F -q $'radiolist\tInstalação do Open Voice OS - Métricas de utilização' "$WHIPTAIL_DIALOG_FILE"
     assert_success
 }
 
@@ -1036,6 +1037,41 @@ EOF
     assert_equal "$(dialog_value yesno "$LLM_TITLE_EXISTING" status)" "255"
 }
 
+@test "features: backing out of the guided LLM setup redraws the checklist" {
+    # The guided setups are entered from the checklist, so backing out of one
+    # has to land back on the checklist rather than on the screen before it.
+    mkdir -p "$RUN_AS_HOME/.config/ovos_persona"
+    cat <<'EOF' >"$RUN_AS_HOME/.config/ovos_persona/ovos-installer-llm.json"
+{
+  "name": "OVOS Installer LLM",
+  "ovos-solver-openai-plugin": {
+    "api_url": "https://llama.smartgic.io/v1",
+    "key": "sk-existing",
+    "model": "qwen3-nothink:latest",
+    "system_prompt": "Respond in plain spoken English.",
+    "max_tokens": 320,
+    "temperature": 0.2,
+    "top_p": 0.1
+  },
+  "solvers": [
+    "ovos-solver-openai-plugin"
+  ]
+}
+EOF
+    METHOD="virtualenv"
+    PROFILE="ovos"
+    WHIPTAIL_FORCE_SELECTION="llm"
+    WHIPTAIL_FORCE_YESNO_STATUS="255"
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    assert_equal "$TUI_NAV" "repeat"
+    assert_equal "$FEATURE_LLM" "false"
+    # The checklist selection is not persisted on the way out.
+    [ ! -f "$INSTALLER_STATE_FILE" ]
+}
+
 @test "llm: invalid preseeded tuning values fall back to validated prompt defaults" {
     METHOD="virtualenv"
     LLM_API_URL="https://llama.smartgic.io/v1"
@@ -1599,10 +1635,41 @@ function fresh_install_environment() {
     # shellcheck source=tui/locales/en-us/misc.sh
     source tui/locales/en-us/misc.sh
 
+    WHIPTAIL_FORCE_SELECTION="yes"
+
     set -u
     # shellcheck source=tui/uninstall.sh
     source tui/uninstall.sh
     set +u
 
     assert_equal "$CONFIRM_UNINSTALL" "true"
+    # "No" is preselected: uninstalling is not the answer to give by accident.
+    assert_equal "$(spy_value tags)" "no yes"
+    assert_equal "$(spy_value statuses)" "ON OFF"
+}
+
+@test "uninstall: the --uninstall flag preselects uninstalling" {
+    fresh_install_environment
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="virtualenv"
+    CONFIRM_UNINSTALL_CLI="true"
+    WHIPTAIL_FORCE_SELECTION="yes"
+
+    # shellcheck source=tui/uninstall.sh
+    source tui/uninstall.sh
+
+    assert_equal "$(spy_value tags)" "no yes"
+    assert_equal "$(spy_value statuses)" "OFF ON"
+}
+
+@test "uninstall: declining leaves the answer as no" {
+    fresh_install_environment
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="containers"
+    WHIPTAIL_FORCE_SELECTION="no"
+
+    # shellcheck source=tui/uninstall.sh
+    source tui/uninstall.sh
+
+    assert_equal "$CONFIRM_UNINSTALL" "false"
 }

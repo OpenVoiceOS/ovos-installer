@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 # shellcheck source=tui/locales/en-us/homeassistant.sh
 _homeassistant_locale_file="tui/locales/$LOCALE/homeassistant.sh"
 if [ -f "$_homeassistant_locale_file" ]; then

@@ -2,18 +2,18 @@
 CONTENT="
 ¡Ya casi has terminado! Aquí tienes un resumen de las opciones que has elegido para instalar Open Voice OS:
 
-- Method:         ${METHOD:-}
-- Version:        ${CHANNEL:-}
-- Profile:        ${PROFILE:-}
-- Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}
-- Extra:          ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}
+- Método:         ${METHOD:-}
+- Versión:        ${CHANNEL:-}
+- Perfil:         ${PROFILE:-}
+- Habilidades:    ${FEATURE_SKILLS_SUMMARY_STATE:-}
+- Extras:         ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}
 - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}
 - LLM:            ${LLM_SUMMARY_STATE:-}
-- Tuning:         ${TUNING_SUMMARY_STATE:-}
+- Ajustes:        ${TUNING_SUMMARY_STATE:-}
 
 Las decisiones que has tomado durante el proceso de instalación de Open Voice OS han sido cuidadosamente consideradas para adaptar el sistema a tus necesidades y preferencias.
 
-¿Este resumen es correcto? Si no, selecciona ${BACK_BUTTON:-} (o pulsa ESC) para volver atrás y hacer cambios.
+¿Este resumen es correcto? Si no, selecciona ${BACK_BUTTON:-} para volver atrás y hacer cambios.
 "
 TITLE="Instalación de Open Voice OS - Resumen"
 

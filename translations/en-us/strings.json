@@ -3,7 +3,11 @@
     "ok_button": "Next",
     "yes_button": "Yes",
     "no_button": "No",
-    "back_button": "Back"
+    "back_button": "Back",
+    "quit_button": "Quit",
+    "quit_title": "Open Voice OS Installation - Quit",
+    "quit_content": "Do you really want to quit the installer? Nothing has been installed or changed yet, and you can run the installer again at any time.",
+    "nav_hint": "Back: previous screen  -  keep going back to leave"
   },
   "channels.sh": {
     "title": "Open Voice OS Installation - Channels",
@@ -52,7 +56,7 @@
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Summary",
-    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   ${METHOD:-}\n    - Version:  ${CHANNEL:-}\n    - Profile:  ${PROFILE:-}\n    - Skills:   ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra:    ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - HA:       ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:      ${LLM_SUMMARY_STATE:-}\n    - Tuning:   ${TUNING_SUMMARY_STATE:-}\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, select ${BACK_BUTTON:-} (or press ESC) to go back and make changes.",
+    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   ${METHOD:-}\n    - Version:  ${CHANNEL:-}\n    - Profile:  ${PROFILE:-}\n    - Skills:   ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra:    ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - HA:       ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:      ${LLM_SUMMARY_STATE:-}\n    - Tuning:   ${TUNING_SUMMARY_STATE:-}\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, select ${BACK_BUTTON:-} to go back and make changes.",
     "state_enabled": "enabled",
     "state_disabled": "disabled",
     "state_unsupported_profile": "selected (not supported for this profile)",

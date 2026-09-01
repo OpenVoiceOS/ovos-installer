@@ -62,6 +62,10 @@ function setup() {
     [[ "${NEWT_COLORS}" == *"root=white,black"* ]]
     [[ "${NEWT_COLORS}" == *"border=black,lightgray"* ]]
     [[ "${NEWT_COLORS}" == *"window=lightgray,lightgray"* ]]
+    # newt only knows "lightgray"; "lightgrey" is silently ignored and the
+    # backtitle comes out in newt's default yellow on green.
+    [[ "${NEWT_COLORS}" == *"roottext=lightgray,black"* ]]
+    [[ "${NEWT_COLORS}" != *"lightgrey"* ]]
 }
 
 

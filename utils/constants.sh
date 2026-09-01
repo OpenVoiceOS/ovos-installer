@@ -44,7 +44,7 @@ export NEWT_COLORS="
     emptyscale=,gray
     fullscale=,cyan
     helpline=white,black
-    roottext=lightgrey,black
+    roottext=lightgray,black
 "
 export OS_RELEASE=/etc/os-release
 if [ -d /run/lock ] && [ -w /run/lock ]; then

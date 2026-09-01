@@ -3,7 +3,11 @@
     "ok_button": "Następny",
     "yes_button": "Tak",
     "no_button": "NIE",
-    "back_button": "Z powrotem"
+    "back_button": "Z powrotem",
+    "quit_button": "Zakończ",
+    "quit_title": "Instalacja Open Voice OS - Zakończ",
+    "quit_content": "Czy na pewno chcesz zamknąć instalator? Nic nie zostało jeszcze zainstalowane ani zmienione i możesz uruchomić go ponownie w dowolnej chwili.",
+    "nav_hint": "Wstecz: poprzedni ekran  -  cofaj dalej, aby zakończyć"
   },
   "channels.sh": {
     "title": "Instalacja Open Voice OS - Kanały",
@@ -52,7 +56,7 @@
   },
   "summary.sh": {
     "title": "Instalacja Open Voice OS – Podsumowanie",
-    "content": "Już prawie skończyłeś, oto podsumowanie wyborów dokonanych podczas instalacji Open Voice OS:\n\n- Metoda:                 ${METHOD:-}\n- Wersja:                 ${CHANNEL:-}\n- Profil:                 ${PROFILE:-}\n- Umiejętności:           ${FEATURE_SKILLS_SUMMARY_STATE:-}\n- Dodatkowe umiejętności: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n- Home Assistant:         ${HOMEASSISTANT_SUMMARY_STATE:-}\n- LLM:                    ${LLM_SUMMARY_STATE:-}\n- Strojenie:              ${TUNING_SUMMARY_STATE:-}\n\nWybory dokonane podczas instalacji Open Voice OS zostały starannie rozważone, aby dostosować nasz system do Twoich unikalnych potrzeb i preferencji.\n\nCzy to podsumowanie wydaje Ci się poprawne? Jeśli nie, wybierz ${BACK_BUTTON:-} (lub naciśnij ESC), aby wrócić i wprowadzić zmiany."
+    "content": "Już prawie skończyłeś, oto podsumowanie wyborów dokonanych podczas instalacji Open Voice OS:\n\n- Metoda:                 ${METHOD:-}\n- Wersja:                 ${CHANNEL:-}\n- Profil:                 ${PROFILE:-}\n- Umiejętności:           ${FEATURE_SKILLS_SUMMARY_STATE:-}\n- Dodatkowe umiejętności: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n- Home Assistant:         ${HOMEASSISTANT_SUMMARY_STATE:-}\n- LLM:                    ${LLM_SUMMARY_STATE:-}\n- Strojenie:              ${TUNING_SUMMARY_STATE:-}\n\nWybory dokonane podczas instalacji Open Voice OS zostały starannie rozważone, aby dostosować nasz system do Twoich unikalnych potrzeb i preferencji.\n\nCzy to podsumowanie wydaje Ci się poprawne? Jeśli nie, wybierz ${BACK_BUTTON:-}, aby wrócić i wprowadzić zmiany."
   },
   "telemetry.sh": {
     "title": "Instalacja Open Voice OS - Telemetria",

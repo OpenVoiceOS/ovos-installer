@@ -3,7 +3,11 @@
     "ok_button": "Uḍfiṛ",
     "yes_button": "Ih",
     "no_button": "Uhu",
-    "back_button": "Tuɣalin"
+    "back_button": "Tuɣalin",
+    "quit_button": "Ffeɣ",
+    "quit_title": "Asbeddi n Open Voice OS - Tuffɣa",
+    "quit_content": "Tebɣiḍ s tidet ad teffɣeḍ seg usbeddi? Ulac ayen yettwasbedden neɣ yettwabeddlen ar tura, tzemreḍ ad t-tesnekreḍ tikkelt nniḍen melmi tebɣiḍ.",
+    "nav_hint": "Tuɣalin: agdil yezrin  -  kemmel ɣer deffir akken ad teffɣeḍ"
   },
   "channels.sh": {
     "title": "Asbeddi n Open Voice OS - Ibuda n usbeddi",
@@ -51,7 +55,7 @@
   },
   "summary.sh": {
     "title": "Asbeddi n Open Voice OS - Agzul",
-    "content": "Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS\n\n    - Tarrayt:   ${METHOD:-}\n    - Lqem:  ${CHANNEL:-}\n    - Amaɣnu:  ${PROFILE:-}\n    - Tussniwin:  ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Tussniwin timernanin:  ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:  ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:  ${LLM_SUMMARY_STATE:-}\n    - Tamellit:   ${TUNING_SUMMARY_STATE:-}\n\nIfranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.\n\nYettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren ${BACK_BUTTON:-} (neɣ sit ɣef ESC) akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.",
+    "content": "Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS\n\n    - Tarrayt:   ${METHOD:-}\n    - Lqem:  ${CHANNEL:-}\n    - Amaɣnu:  ${PROFILE:-}\n    - Tussniwin:  ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Tussniwin timernanin:  ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:  ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:  ${LLM_SUMMARY_STATE:-}\n    - Tamellit:   ${TUNING_SUMMARY_STATE:-}\n\nIfranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.\n\nYettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren ${BACK_BUTTON:-} akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.",
     "state_enabled": "d urmid",
     "state_disabled": "d arurmid",
     "state_unsupported_profile": "yettawfran (ur yettwasefrek ara deg umaɣnu-a)",

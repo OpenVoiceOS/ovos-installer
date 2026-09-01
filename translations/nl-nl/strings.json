@@ -3,7 +3,11 @@
     "ok_button": "Volgende",
     "yes_button": "Ja",
     "no_button": "Nee",
-    "back_button": "Terug"
+    "back_button": "Terug",
+    "quit_button": "Afsluiten",
+    "quit_title": "OpenVoice OS Installatie - Afsluiten",
+    "quit_content": "Wil je het installatieprogramma echt afsluiten? Er is nog niets geïnstalleerd of gewijzigd, en je kunt het altijd opnieuw starten.",
+    "nav_hint": "Terug: vorige scherm  -  blijf teruggaan om af te sluiten"
   },
   "channels.sh": {
     "title": "OpenVoice OS Installatie - Versies",
@@ -52,7 +56,7 @@
   },
   "summary.sh": {
     "title": "OpenVoice OS Installatie - Samenvatting",
-    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving:       ${METHOD:-}\n    - Versie:         ${CHANNEL:-}\n    - Profiel:        ${PROFILE:-}\n    - Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra skills:   ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - Tuning:         ${TUNING_SUMMARY_STATE:-}\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen zo in orde? Zo niet, kies ${BACK_BUTTON:-} (of druk op ESC) om terug te gaan en wijzigingen te maken."
+    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving:       ${METHOD:-}\n    - Versie:         ${CHANNEL:-}\n    - Profiel:        ${PROFILE:-}\n    - Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra skills:   ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - Tuning:         ${TUNING_SUMMARY_STATE:-}\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen zo in orde? Zo niet, kies ${BACK_BUTTON:-} om terug te gaan en wijzigingen te maken."
   },
   "telemetry.sh": {
     "title": "OpenVoice OS Installatie - Telemetrie",

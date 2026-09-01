@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 # shellcheck source=tui/locales/en-us/features.sh
 source "tui/locales/$LOCALE/features.sh"
 # shellcheck source=utils/llm_defaults.sh
@@ -13,7 +13,9 @@ source tui/hardware_state.sh
 function tui_features_fit_checklist_text() {
   local tag="$1"
   local text="$2"
-  local width="${TUI_WINDOW_WIDTH:-80}"
+  # The width the checklist is actually drawn at, which on a small terminal is
+  # narrower than the preferred one.
+  local width="${TUI_EFFECTIVE_WIDTH:-${TUI_WINDOW_WIDTH:-80}}"
   # 22 covers whiptail checklist overhead beyond the tag itself: checkbox,
   # status column, spacing, and the right-side padding inside the dialog.
   local max_length=$(( width - ${#tag} - 22 ))
@@ -193,18 +195,10 @@ if [ "${DEBUG:-false}" == "true" ]; then
   } >>"$LOG_FILE" 2>/dev/null || true
 fi
 
-if ! tui_whiptail_capture OVOS_FEATURES --separate-output --title "$TITLE" \
+if ! tui_nav_capture OVOS_FEATURES --separate-output --title "$TITLE" \
   --checklist "$CONTENT" --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
   "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height" "${features[@]}"; then
-  source tui/profiles.sh
-  if [[ "$PROFILE" == "satellite" ]]; then
-    # Satellite doesn't have selectable features; collect satellite settings next.
-    export FEATURE_GUI="false" FEATURE_SKILLS="false" FEATURE_EXTRA_SKILLS="false" FEATURE_LLM="false"
-    source tui/satellite/main.sh
-    return
-fi
-  source tui/features.sh
-  return
+  return 0
 fi
 
 FEATURES_STATE=()
@@ -234,8 +228,10 @@ for FEATURE in $OVOS_FEATURES; do
     source tui/homeassistant.sh
     if [ "${HOMEASSISTANT_BACK:-false}" == "true" ]; then
       unset HOMEASSISTANT_BACK
-      source tui/features.sh
-      return
+      # Back out of the guided setup lands on the checklist, not the screen
+      # before it.
+      tui_nav_set "repeat"
+      return 0
     fi
     if [ "${FEATURE_HOMEASSISTANT}" == "true" ]; then
       FEATURES_STATE+=("homeassistant")
@@ -247,8 +243,8 @@ for FEATURE in $OVOS_FEATURES; do
     source tui/llm.sh
     if [ "${LLM_BACK:-false}" == "true" ]; then
       unset LLM_BACK
-      source tui/features.sh
-      return
+      tui_nav_set "repeat"
+      return 0
     fi
     if [ "${FEATURE_LLM}" == "true" ]; then
       FEATURES_STATE+=("llm")

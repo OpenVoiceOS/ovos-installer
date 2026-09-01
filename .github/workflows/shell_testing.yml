@@ -17,7 +17,7 @@ on:
       - translations/**
       - utils/**
       - tui/**
-      - tests/bats/**
+      - tests/**
   push:
     branches:
       - main
@@ -29,7 +29,7 @@ on:
       - translations/**
       - utils/**
       - tui/**
-      - tests/bats/**
+      - tests/**
   workflow_dispatch:
 
 jobs:
@@ -50,7 +50,9 @@ jobs:
       - name: Install BATS requirements
         run: |
           sudo apt-get update
-          sudo apt-get --no-install-recommends install -y bats git ca-certificates
+          # whiptail so the TUI can be walked through the real binary, not just
+          # the stub the rest of the suite uses.
+          sudo apt-get --no-install-recommends install -y bats git ca-certificates whiptail
 
       - name: Install BATS helper libraries
         run: ./.github/scripts/install_bats_helpers.sh

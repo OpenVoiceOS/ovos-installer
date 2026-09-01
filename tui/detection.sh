@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 # shellcheck source=tui/hardware_state.sh
 source tui/hardware_state.sh
 
@@ -29,4 +29,7 @@ export DISTRO_LABEL
 # shellcheck source=tui/locales/en-us/detection.sh
 source "tui/locales/$LOCALE/detection.sh"
 
-tui_whiptail_dialog_allow_escape --msgbox --ok-button "$OK_BUTTON" --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"
+# A yes/no box rather than a message box: the extra button is what lets the
+# user step back to the welcome screen from here.
+tui_nav_dialog --yesno --yes-button "$OK_BUTTON" --no-button "$BACK_BUTTON" \
+    --title "$TITLE" "$CONTENT" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" || true
