@@ -454,5 +454,5 @@ function rendered_titles() {
     source tui/main.sh
 
     run sort -u "$WHIPTAIL_BACKTITLE_LOG"
-    assert_output "Open Voice OS Installer  |  Back: previous screen  -  keep going back to leave"
+    assert_output "Back: previous screen  -  keep going back to leave"
 }

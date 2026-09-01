@@ -52,7 +52,9 @@ function tui_nav_load_strings() {
 
   # Keep the navigation hint on screen at every step. Nothing else tells a user
   # over SSH that the cancel button is how they go back, and how they get out.
-  TUI_BACKTITLE="Open Voice OS Installer${NAV_HINT:+  |  ${NAV_HINT}}"
+  # It gets the whole line: every dialog title already names the installer, and
+  # a hint clipped by an 80 column terminal is the one that stops being read.
+  TUI_BACKTITLE="${NAV_HINT:-}"
   export TUI_BACKTITLE
 }
 
