@@ -1648,6 +1648,20 @@ function fresh_install_environment() {
     assert_equal "$(spy_value statuses)" "ON OFF"
 }
 
+@test "uninstall: the --uninstall flag preselects uninstalling" {
+    fresh_install_environment
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="virtualenv"
+    CONFIRM_UNINSTALL_CLI="true"
+    WHIPTAIL_FORCE_SELECTION="yes"
+
+    # shellcheck source=tui/uninstall.sh
+    source tui/uninstall.sh
+
+    assert_equal "$(spy_value tags)" "no yes"
+    assert_equal "$(spy_value statuses)" "OFF ON"
+}
+
 @test "uninstall: declining leaves the answer as no" {
     fresh_install_environment
     EXISTING_INSTANCE="true"

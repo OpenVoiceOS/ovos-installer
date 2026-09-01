@@ -139,6 +139,25 @@ function tui_whiptail_size_indices() {
   printf '%s %s %s %s' "${positional[0]}" "${positional[1]}" "${positional[2]}" "$list_height_index"
 }
 
+# The locale templates end every body with a blank line. whiptail anchors the
+# buttons to the bottom of the box, so those rows buy nothing and only push the
+# text towards a scrollbar on a small terminal. The blank line at the top is
+# left alone: that one is the padding between the border and the first line.
+function tui_whiptail_trim_body() {
+  local text="$1"
+  local line=""
+
+  while [ -n "$text" ]; do
+    line="${text##*$'\n'}"
+    if [ "$line" == "$text" ] || [ -n "${line//[[:space:]]/}" ]; then
+      break
+    fi
+    text="${text%$'\n'*}"
+  done
+
+  printf '%s' "$text"
+}
+
 # whiptail gives the body every row of the box but six - two for the border, two
 # for the padding around the text and two for the button row - and a list box
 # takes its own rows on top of that. Wrap the text the way it will be drawn and
@@ -184,6 +203,12 @@ function tui_whiptail_run() {
     if [ "$list_height_index" -ge 0 ]; then
       list_height="${args[$list_height_index]}"
     fi
+
+    # --textbox takes a file name here, not text to lay out.
+    case " ${args[*]} " in
+      *" --textbox "* | *" --gauge "*) ;;
+      *) args[text_index]="$(tui_whiptail_trim_body "${args[$text_index]}")" ;;
+    esac
 
     fitted="$(tui_whiptail_fit "${args[$height_index]}" "${args[$width_index]}")" || true
     args[height_index]="${fitted%% *}"

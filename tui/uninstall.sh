@@ -10,7 +10,9 @@ source "tui/locales/$LOCALE/uninstall.sh"
 # an existing installation runs into.
 uninstall_options=(no yes)
 uninstall_active_option="no"
-if [ "${CONFIRM_UNINSTALL:-false}" == "true" ]; then
+# --uninstall says what the user came here for, so start on that answer.
+if [ "${CONFIRM_UNINSTALL:-false}" == "true" ] ||
+  [ "${CONFIRM_UNINSTALL_CLI:-false}" == "true" ]; then
   uninstall_active_option="yes"
 fi
 

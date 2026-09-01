@@ -186,3 +186,20 @@ function setup() {
     assert_success
     assert_output "plain scrolls"
 }
+
+@test "dialog sizing: the trailing blank lines of a body are not spent on rows" {
+    # The locale templates end every body with a blank line, and whiptail
+    # anchors the buttons to the bottom of the box, so those rows buy nothing.
+    # The one at the top is the padding under the border and has to survive.
+    run env REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)" bash -c '
+        cd "$REPO_ROOT"
+        source tui/dialogs.sh
+        body="$(printf "\nfirst line\nlast line\n\n  \n")"
+        tui_whiptail_trim_body "$body" | od -c | head -4
+    '
+
+    assert_success
+    # Leading newline kept, trailing blank lines gone.
+    assert_output --partial '\n   f   i   r   s   t'
+    refute_output --partial 'e  \n  \n'
+}

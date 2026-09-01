@@ -40,7 +40,7 @@ The ESC key does nothing either, because newt dropped it as a form hotkey in
 The screens size themselves to the terminal. On a window too small for a
 screen's text the text scrolls, and whiptail then starts with the focus in the
 text rather than on a button, so **Tab** moves to **Next** and **Back**. A
-terminal of about 33 rows or more never needs that.
+terminal of about 30 rows or more never needs that.
 
 ### Pass environment variables to the `curl` one-liner
 
