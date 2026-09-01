@@ -34,7 +34,10 @@ export PYTHON="Python 3.12.3"
 export CPU_IS_CAPABLE="true"
 export SOUND_SERVER="PipeWire"
 export DISPLAY_SERVER="wayland"
-export VENV_PATH="${RUN_AS_HOME}/.venvs/ovos"
+# Shown on the detection screen, so it is a stable, plausible path rather than
+# the temporary directory: the screenshots are rendered from this harness and
+# would otherwise change on every run.
+export VENV_PATH="/home/user/.venvs/ovos-installer"
 export RASPBERRYPI_MODEL="N/A"
 export HARDWARE_MODEL="N/A"
 declare -a DETECTED_DEVICES=()

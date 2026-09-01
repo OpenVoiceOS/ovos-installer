@@ -316,11 +316,11 @@ def capture(harness, keys, environment=None):
     fcntl.ioctl(descriptor, termios.TIOCSWINSZ, struct.pack("HHHH", ROWS, COLUMNS, 0, 0))
 
     try:
-        drain(descriptor, screen, 2.5)
+        drain(descriptor, screen, 10)
         for key in keys:
             os.write(descriptor, b"\r" if key == "enter" else b"\t")
             time.sleep(0.25)
-            drain(descriptor, screen, 1.4)
+            drain(descriptor, screen, 10)
     finally:
         try:
             os.kill(pid, signal.SIGKILL)
@@ -330,11 +330,20 @@ def capture(harness, keys, environment=None):
     return screen
 
 
-def drain(descriptor, screen, seconds):
+def drain(descriptor, screen, seconds, quiet=0.5):
+    """Read until the screen stops changing, so a capture is reproducible.
+
+    Waiting a fixed time catches whiptail mid-paint often enough to make the
+    screenshots differ from one run to the next.
+    """
     deadline = time.time() + seconds
+    last_output = time.time()
+
     while time.time() < deadline:
-        readable, _, _ = select.select([descriptor], [], [], 0.15)
+        readable, _, _ = select.select([descriptor], [], [], 0.1)
         if not readable:
+            if time.time() - last_output >= quiet:
+                return
             continue
         try:
             chunk = os.read(descriptor, 65536)
@@ -343,6 +352,7 @@ def drain(descriptor, screen, seconds):
         if not chunk:
             return
         screen.feed(chunk.decode(errors="replace"))
+        last_output = time.time()
 
 
 # Each screenshot is the flow walked forward with Enter until it lands there.
