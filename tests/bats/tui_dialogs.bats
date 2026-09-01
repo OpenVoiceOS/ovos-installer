@@ -205,3 +205,48 @@ function setup() {
     assert_output --partial '\n   f   i   r   s   t'
     refute_output --partial 'e  \n  \n'
 }
+
+@test "dialog sizing: paragraph spacing is kept while there is room for it" {
+    run env REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)" bash -c '
+        cd "$REPO_ROOT"
+        source tui/dialogs.sh
+        TUI_TTY=/dev/null
+        whiptail() { printf "%s" "$4"; }
+        body="$(printf "one\n\ntwo\n\nthree")"
+        tui_whiptail_run --title T --yesno "$body" 35 90
+    '
+
+    assert_success
+    assert_output $'one\n\ntwo\n\nthree'
+}
+
+@test "dialog sizing: paragraph spacing is dropped before the body is" {
+    # A box with room for four rows of text cannot show five, but it can show
+    # the three that are left once the blank lines go. Losing the spacing beats
+    # losing the text behind a scrollbar that also takes the focus.
+    run env REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)" bash -c '
+        cd "$REPO_ROOT"
+        source tui/dialogs.sh
+        TUI_TTY=/dev/null
+        whiptail() { printf "%s|scrolltext=%s" "$4" "$(case " $* " in *" --scrolltext "*) printf yes ;; *) printf no ;; esac)"; }
+        body="$(printf "one\n\ntwo\n\nthree")"
+        tui_whiptail_run --title T --yesno "$body" 10 40
+    '
+
+    assert_success
+    assert_output $'one\ntwo\nthree|scrolltext=no'
+}
+
+@test "dialog sizing: a body too long even without its spacing still scrolls" {
+    run env REPO_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)" bash -c '
+        cd "$REPO_ROOT"
+        source tui/dialogs.sh
+        TUI_TTY=/dev/null
+        whiptail() { case " $* " in *" --scrolltext "*) printf scrolls ;; *) printf plain ;; esac; }
+        body="$(for i in $(seq 1 30); do printf "line %s\n" "$i"; done)"
+        tui_whiptail_run --title T --yesno "$body" 10 40
+    '
+
+    assert_success
+    assert_output "scrolls"
+}

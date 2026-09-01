@@ -38,10 +38,11 @@ ESC is not dependable either — newt dropped it as a form hotkey in 0.52.5, so
 on some builds it acts as **Back** and on others it does nothing at all. Use
 the buttons.
 
-The screens size themselves to the terminal. On a window too small for a
-screen's text the text scrolls, and whiptail then starts with the focus in the
-text rather than on a button, so **Tab** moves to **Next** and **Back**. A
-terminal of about 30 rows or more never needs that.
+The screens size themselves to the terminal, down to 80x24. On a window too
+small to show a screen's text and its paragraph spacing, the spacing is dropped
+so the text still fits. If even that is not enough the text scrolls, and
+whiptail then starts with the focus in the text rather than on a button, so
+**Tab** moves to **Next** and **Back**.
 
 ### Pass environment variables to the `curl` one-liner
 

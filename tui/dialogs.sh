@@ -166,6 +166,16 @@ function tui_whiptail_trim_body() {
   printf '%s' "$text"
 }
 
+# Blank lines between paragraphs cost a row each. That is worth paying while
+# there is room, and not worth paying when the alternative is a scrollbar: the
+# text would then be behind a scroll region whiptail puts the focus in, so the
+# screen loses both the spacing and the single keystroke that answers it.
+function tui_whiptail_compact_body() {
+  local text="$1"
+
+  printf '%s' "$text" | grep -v '^[[:space:]]*$' || true
+}
+
 # whiptail gives the body every row of the box but six - two for the border, two
 # for the padding around the text and two for the button row - and a list box
 # takes its own rows on top of that. Wrap the text the way it will be drawn and
@@ -202,6 +212,7 @@ function tui_whiptail_run() {
   local list_height="0"
   local options="0"
   local fitted=""
+  local compacted=""
 
   if indices="$(tui_whiptail_size_indices args)"; then
     read -r -a size_index <<<"$indices"
@@ -236,16 +247,22 @@ function tui_whiptail_run() {
       list_height="$options"
     fi
 
-    # Only give the body a scrollbar when it genuinely does not fit. It costs
-    # the user a Tab to reach the buttons, because whiptail puts the focus in
-    # the scrollable region, so it is worth it only when the alternative is
-    # text they cannot see at all.
     if tui_whiptail_body_overflows "${args[$text_index]}" \
       "${args[$height_index]}" "${args[$width_index]}" "$list_height"; then
-      case " ${args[*]} " in
-        *" --textbox "* | *" --gauge "* | *" --infobox "*) ;;
-        *) args=(--scrolltext "${args[@]}") ;;
-      esac
+      # Give up the paragraph spacing before giving up the whole body.
+      compacted="$(tui_whiptail_compact_body "${args[$text_index]}")"
+      if ! tui_whiptail_body_overflows "$compacted" \
+        "${args[$height_index]}" "${args[$width_index]}" "$list_height"; then
+        args[text_index]="$compacted"
+      else
+        # Even without the spacing it does not fit, so it has to scroll. Keep
+        # the spacing in that case: it costs nothing once the text is behind a
+        # scrollbar either way.
+        case " ${args[*]} " in
+          *" --textbox "* | *" --gauge "* | *" --infobox "*) ;;
+          *) args=(--scrolltext "${args[@]}") ;;
+        esac
+      fi
     fi
   fi
 
