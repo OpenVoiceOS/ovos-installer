@@ -24,6 +24,8 @@ export TUI_NAV
 # run are stepped over in both directions, so "back" always lands on the
 # previous screen the user actually saw.
 declare -a TUI_FLOW=(
+  uninstall
+  update
   welcome
   hardware_confirmation
   detection
@@ -156,6 +158,14 @@ function tui_flow_step_enabled() {
       ;;
     telemetry | usage_telemetry)
       [[ "${EXISTING_INSTANCE:-false}" != "true" ]]
+      ;;
+    uninstall)
+      [[ "${EXISTING_INSTANCE:-false}" == "true" ]]
+      ;;
+    update)
+      # Only worth asking when the user has just declined to uninstall.
+      [[ "${EXISTING_INSTANCE:-false}" == "true" ]] &&
+        [[ "${CONFIRM_UNINSTALL:-false}" != "true" ]]
       ;;
     *)
       return 0

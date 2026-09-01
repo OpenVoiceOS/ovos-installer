@@ -1635,10 +1635,27 @@ function fresh_install_environment() {
     # shellcheck source=tui/locales/en-us/misc.sh
     source tui/locales/en-us/misc.sh
 
+    WHIPTAIL_FORCE_SELECTION="yes"
+
     set -u
     # shellcheck source=tui/uninstall.sh
     source tui/uninstall.sh
     set +u
 
     assert_equal "$CONFIRM_UNINSTALL" "true"
+    # "No" is preselected: uninstalling is not the answer to give by accident.
+    assert_equal "$(spy_value tags)" "no yes"
+    assert_equal "$(spy_value statuses)" "ON OFF"
+}
+
+@test "uninstall: declining leaves the answer as no" {
+    fresh_install_environment
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="containers"
+    WHIPTAIL_FORCE_SELECTION="no"
+
+    # shellcheck source=tui/uninstall.sh
+    source tui/uninstall.sh
+
+    assert_equal "$CONFIRM_UNINSTALL" "false"
 }

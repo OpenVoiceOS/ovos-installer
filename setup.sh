@@ -109,25 +109,19 @@ if [ "$SCENARIO_FOUND" == "false" ]; then
   source tui/language.sh
 fi
 
-if [ "$EXISTING_INSTANCE" == "false" ] && [ "$SCENARIO_FOUND" == "false" ]; then
+# tui/main.sh asks the uninstall and update questions itself when an instance
+# already exists, so that going back reaches them like any other screen.
+if [ "$SCENARIO_FOUND" == "false" ]; then
   # shellcheck source=tui/main.sh
   source tui/main.sh
+fi
 
+if [ "$EXISTING_INSTANCE" == "false" ] && [ "$SCENARIO_FOUND" == "false" ]; then
   ansible_cleaning="false"
 else
-  if [ "$SCENARIO_FOUND" == "false" ]; then
-    # shellcheck source=tui/uninstall.sh
-    source tui/uninstall.sh
-  fi
-
   if [ "$CONFIRM_UNINSTALL" == "true" ] || [ "$CONFIRM_UNINSTALL_CLI" == "true" ]; then
     ansible_tags=(--tags uninstall)
     ansible_cleaning="true"
-  else
-    if [ "$SCENARIO_FOUND" == "false" ]; then
-      # shellcheck source=tui/main.sh
-      source tui/main.sh
-    fi
   fi
 fi
 

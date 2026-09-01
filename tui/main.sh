@@ -32,6 +32,14 @@ while [ "$tui_step_index" -lt "${#TUI_FLOW[@]}" ]; do
     tui_nav_reset
 
     case "$tui_step" in
+    uninstall)
+        # shellcheck source=tui/uninstall.sh
+        source tui/uninstall.sh
+        ;;
+    update)
+        # shellcheck source=tui/update.sh
+        source tui/update.sh
+        ;;
     welcome)
         # shellcheck source=tui/welcome.sh
         source tui/welcome.sh
@@ -85,6 +93,11 @@ while [ "$tui_step_index" -lt "${#TUI_FLOW[@]}" ]; do
         source tui/usage_telemetry.sh
         ;;
     esac
+
+    # Uninstalling asks nothing else: there is no install to configure.
+    if [ "${CONFIRM_UNINSTALL:-false}" == "true" ] && [ "${TUI_NAV:-next}" == "next" ]; then
+        break
+    fi
 
     case "${TUI_NAV:-next}" in
     back)

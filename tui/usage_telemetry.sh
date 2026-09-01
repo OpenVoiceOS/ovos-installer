@@ -31,11 +31,18 @@ usage_telemetry_args=(
   --radiolist "$CONTENT"
   --cancel-button "$BACK_BUTTON"
   --ok-button "$OK_BUTTON"
+  --notags
   "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$usage_telemetry_list_height"
 )
 
 for usage_telemetry_option in "${usage_telemetry_options[@]}"; do
-  usage_telemetry_args+=("$usage_telemetry_option" "")
+  # The tag is the value the screen reads back, the item is what the user
+  # sees, so the choice can be translated without translating the value.
+  if [ "$usage_telemetry_option" == "yes" ]; then
+    usage_telemetry_args+=("$usage_telemetry_option" "$YES_BUTTON")
+  else
+    usage_telemetry_args+=("$usage_telemetry_option" "$NO_BUTTON")
+  fi
   if [ "$usage_telemetry_option" == "$usage_telemetry_active_option" ]; then
     usage_telemetry_args+=("ON")
   else

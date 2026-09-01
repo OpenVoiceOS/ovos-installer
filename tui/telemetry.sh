@@ -28,11 +28,18 @@ telemetry_args=(
   --radiolist "$CONTENT"
   --cancel-button "$BACK_BUTTON"
   --ok-button "$OK_BUTTON"
+  --notags
   "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$telemetry_list_height"
 )
 
 for telemetry_option in "${telemetry_options[@]}"; do
-  telemetry_args+=("$telemetry_option" "")
+  # The tag is the value the screen reads back, the item is what the user
+  # sees, so the choice can be translated without translating the value.
+  if [ "$telemetry_option" == "yes" ]; then
+    telemetry_args+=("$telemetry_option" "$YES_BUTTON")
+  else
+    telemetry_args+=("$telemetry_option" "$NO_BUTTON")
+  fi
   if [ "$telemetry_option" == "$telemetry_active_option" ]; then
     telemetry_args+=("ON")
   else

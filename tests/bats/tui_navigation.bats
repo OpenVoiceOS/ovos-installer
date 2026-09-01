@@ -59,6 +59,7 @@ function setup() {
         local dialog_title=""
         local backtitle=""
         local call_number=""
+        local preselected=""
         local -a tags=()
 
         call_number="$(( $(cat "$WHIPTAIL_CALL_COUNTER") + 1 ))"
@@ -109,6 +110,9 @@ function setup() {
                 if (( remaining >= 3 && remaining % 3 == 0 )); then
                     for ((k = options_start; k < ${#args[@]}; k += 3)); do
                         tags+=("${args[$k]}")
+                        if [ "${args[$((k + 2))]^^}" == "ON" ] && [ -z "$preselected" ]; then
+                            preselected="${args[$k]}"
+                        fi
                     done
                     break
                 fi
@@ -116,7 +120,9 @@ function setup() {
         done
 
         if [ "${#tags[@]}" -gt 0 ]; then
-            local selection="${tags[0]}"
+            # whiptail hands back the selected row, which is the one the screen
+            # marked ON unless the user moves.
+            local selection="${preselected:-${tags[0]}}"
             local preferred tag
             for preferred in $WHIPTAIL_PREFERRED_TAGS; do
                 for tag in "${tags[@]}"; do
@@ -197,7 +203,7 @@ function rendered_titles() {
     RASPBERRYPI_MODEL="N/A"
     EXISTING_INSTANCE="false"
 
-    local profiles_index=5
+    local profiles_index=7
     assert_equal "${TUI_FLOW[$profiles_index]}" "profiles"
 
     # features is skipped for a satellite, tuning for a non-Raspberry Pi host.
@@ -208,7 +214,7 @@ function rendered_titles() {
 @test "navigation: going back never lands on the hardware confirmation" {
     source tui/navigation.sh
 
-    local detection_index=2
+    local detection_index=4
     assert_equal "${TUI_FLOW[$detection_index]}" "detection"
 
     # hardware_confirmation sits between the two, but it remembers its answer
@@ -219,7 +225,33 @@ function rendered_titles() {
 @test "navigation: nothing precedes the first screen" {
     source tui/navigation.sh
 
+    # welcome is the first screen of a fresh install; the two screens before it
+    # in the list only run when an instance already exists.
+    EXISTING_INSTANCE="false"
+    assert_equal "$(tui_flow_previous_index 2)" "-1"
+}
+
+@test "navigation: an existing install starts at the uninstall question" {
+    source tui/navigation.sh
+
+    EXISTING_INSTANCE="true"
+    CONFIRM_UNINSTALL="false"
+
+    assert_equal "${TUI_FLOW[0]}" "uninstall"
+    assert_equal "${TUI_FLOW[1]}" "update"
+    # Back from the welcome screen reaches them instead of stopping there.
+    assert_equal "${TUI_FLOW[$(tui_flow_previous_index 2)]}" "update"
     assert_equal "$(tui_flow_previous_index 0)" "-1"
+}
+
+@test "navigation: the update question is skipped once uninstall is chosen" {
+    source tui/navigation.sh
+
+    EXISTING_INSTANCE="true"
+    CONFIRM_UNINSTALL="true"
+
+    run tui_flow_step_enabled update
+    assert_failure
 }
 
 @test "tui: back on the channels screen returns to the methods screen" {
@@ -262,9 +294,24 @@ function rendered_titles() {
     run rendered_titles
     assert_line --index 0 "Open Voice OS Installation - Welcome"
     assert_line --index 1 "Open Voice OS Installation - Language"
-    # The picker took its first entry, Basque, and the walk resumes in it.
-    assert_line --index 2 "Ireki Voice OS instalazioa - Ongi etorri"
+    # The picker keeps its selection and the walk resumes from the start.
+    assert_line --index 2 "Open Voice OS Installation - Welcome"
+    assert_equal "$LOCALE" "en-us"
+}
+
+@test "tui: a language chosen on the way back is applied to the rest of the run" {
+    cancel_on_call 1
+    # The picker answers with whatever it has preselected; make that Basque.
+    WHIPTAIL_PREFERRED_TAGS="Basque"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
     assert_equal "$LOCALE" "eu-es"
+
+    run rendered_titles
+    assert_line --index 1 "Open Voice OS Installation - Language"
+    assert_line --index 2 "Ireki Voice OS instalazioa - Ongi etorri"
 }
 
 @test "tui: back on the summary screen returns to the feature checklist" {
@@ -399,6 +446,53 @@ function rendered_titles() {
     assert_success
     assert_output --partial "LOCALE=en-us"
     assert_equal "$(grep -c "Open Voice OS Installation - Language" <<<"$output")" "2"
+}
+
+@test "tui: an existing install can walk back through its own prompts" {
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="virtualenv"
+    # 1 uninstall (preselects No), 2 update (preselects Yes), 3 welcome.
+    cancel_on_call 3
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    run rendered_titles
+    assert_line --index 0 "Open Voice OS Installation - Uninstall"
+    assert_line --index 1 "Open Voice OS Installation - Update"
+    assert_line --index 2 "Open Voice OS Installation - Welcome"
+    # Back from the first screen of the install reaches the update question,
+    # which is what #579 could not do.
+    assert_line --index 3 "Open Voice OS Installation - Update"
+}
+
+@test "tui: choosing to uninstall asks nothing else" {
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="virtualenv"
+    WHIPTAIL_PREFERRED_TAGS="yes"
+    CONFIRM_UNINSTALL="true"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    assert_equal "$CONFIRM_UNINSTALL" "true"
+
+    run rendered_titles
+    assert_output "Open Voice OS Installation - Uninstall"
+}
+
+@test "tui: an existing install is never asked about telemetry" {
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="virtualenv"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    run rendered_titles
+    refute_output --partial "Open Voice OS Installation - Telemetry"
+    refute_output --partial "Open Voice OS Installation - Usage Metrics"
+    assert_equal "$SHARE_TELEMETRY" "false"
+    assert_equal "$SHARE_USAGE_TELEMETRY" "false"
 }
 
 @test "tui: a terminal whiptail cannot draw in leaves instead of looping" {

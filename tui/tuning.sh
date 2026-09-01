@@ -114,11 +114,17 @@ while true; do
     --radiolist "$CONTENT"
     --cancel-button "$BACK_BUTTON"
     --ok-button "$OK_BUTTON"
+    --notags
     "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height"
   )
 
   for option in "${available_options[@]}"; do
-    whiptail_args+=("$option" "")
+    # The tag stays the value, the item is the translated label.
+    if [ "$option" == "yes" ]; then
+      whiptail_args+=("$option" "$YES_BUTTON")
+    else
+      whiptail_args+=("$option" "$NO_BUTTON")
+    fi
     if [[ $option = "$active_option" ]]; then
       whiptail_args+=("ON")
     else
@@ -144,11 +150,16 @@ while true; do
         --radiolist "$OVERCLOCK_CONTENT"
         --cancel-button "$BACK_BUTTON"
         --ok-button "$OK_BUTTON"
+        --notags
         "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$overclock_list_height"
       )
 
       for option in "${overclock_options[@]}"; do
-        overclock_args+=("$option" "")
+        if [ "$option" == "yes" ]; then
+          overclock_args+=("$option" "$YES_BUTTON")
+        else
+          overclock_args+=("$option" "$NO_BUTTON")
+        fi
         if [[ $option = "$overclock_option" ]]; then
           overclock_args+=("ON")
         else
