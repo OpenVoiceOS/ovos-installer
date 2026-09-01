@@ -48,9 +48,10 @@ function tui_whiptail_fit() {
     if [ "$fitted_height" -gt "$((lines - 2))" ]; then
       fitted_height="$((lines - 2))"
     fi
-    # Two columns for the shadow, two for the same breathing room.
-    if [ "$fitted_width" -gt "$((columns - 4))" ]; then
-      fitted_width="$((columns - 4))"
+    # Two columns for the drop shadow whiptail draws to the right of the box.
+    # Anything more is width the body could have wrapped into.
+    if [ "$fitted_width" -gt "$((columns - 2))" ]; then
+      fitted_width="$((columns - 2))"
     fi
   fi
 

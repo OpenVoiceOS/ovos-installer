@@ -136,8 +136,9 @@ function setup() {
     '
 
     assert_success
-    # One row for the backtitle, one for the shadow, two columns each side.
-    assert_output "22 76 shrunk"
+    # One row for the backtitle and one for the shadow below the box; two
+    # columns for the shadow to its right.
+    assert_output "22 78 shrunk"
 }
 
 @test "dialog sizing: a box never shrinks below a usable size" {
