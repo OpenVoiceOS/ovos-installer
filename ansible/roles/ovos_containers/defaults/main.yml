@@ -139,12 +139,30 @@ ovos_containers_uninstall_compose_files_ovos:
   - "{{ ovos_containers_compose_file_windows }}"
 ovos_containers_uninstall_compose_files_hivemind:
   - "{{ ovos_containers_compose_file_satellite }}"
+# docker-compose project names used by older releases of the installer, they
+# are kept around to clean up legacy installations.
+ovos_containers_uninstall_legacy_project_name_ovos: ovos-docker
+ovos_containers_uninstall_legacy_project_name_hivemind: hivemind-docker
 ovos_containers_uninstall_project_names:
   - "{{ ovos_containers_uninstall_project_name_ovos }}"
   - "{{ ovos_containers_uninstall_project_name_hivemind }}"
+  - "{{ ovos_containers_uninstall_legacy_project_name_ovos }}"
+  - "{{ ovos_containers_uninstall_legacy_project_name_hivemind }}"
 ovos_containers_uninstall_name_prefixes:
   - "{{ ovos_containers_uninstall_project_name_ovos }}_"
   - "{{ ovos_containers_uninstall_project_name_hivemind }}_"
+# Containers, images, volumes and networks whose name matches one of these
+# patterns are never removed by the uninstall cleanup, even when they carry a
+# docker-compose project label of this installer. STT/TTS servers are not
+# deployed by the installer, they are managed by the user, but they commonly
+# use an "ovos_" name prefix.
+ovos_containers_uninstall_name_excludes: >-
+  {{ ovos_installer_uninstall_name_excludes | default(['ovos_stt', 'ovos_tts']) }}
+# Remove the images backing the removed containers. Follows the docker-compose
+# "remove_images" setting so both removal paths behave the same way.
+ovos_containers_uninstall_remove_images: >-
+  {{ (ovos_containers_docker_compose_remove_images | string) not in ['', 'none', 'false', 'False'] }}
+ovos_containers_uninstall_compose_project_label: com.docker.compose.project
 ovos_containers_remove_directories:
   - "{{ ovos_containers_ovos_base_dir }}"
   - "{{ ovos_containers_hivemind_base_dir }}"
