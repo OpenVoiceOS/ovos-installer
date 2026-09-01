@@ -167,6 +167,7 @@ function setup() {
                     if [ -z "$selection" ]; then
                         selection="${parsed_tags[0]}"
                     fi
+                    printf '%s\t%s\t%s\t%s\t%s\n' "${dialog_type#--}" "$dialog_title" "" "$selection" "0" >>"$WHIPTAIL_DIALOG_FILE"
                     printf '%s\n' "$selection" >&2
                     return 0
                 fi
@@ -282,7 +283,7 @@ function dialog_value() {
 }
 
 @test "telemetry: declining prompt keeps installer flow alive and disables telemetry" {
-    WHIPTAIL_FORCE_YESNO_STATUS="1"
+    WHIPTAIL_FORCE_SELECTION="no"
 
     # shellcheck source=tui/telemetry.sh
     source tui/telemetry.sh
@@ -291,7 +292,7 @@ function dialog_value() {
 }
 
 @test "usage telemetry: declining prompt keeps installer flow alive and disables usage telemetry" {
-    WHIPTAIL_FORCE_YESNO_STATUS="1"
+    WHIPTAIL_FORCE_SELECTION="no"
 
     # shellcheck source=tui/usage_telemetry.sh
     source tui/usage_telemetry.sh
@@ -306,7 +307,7 @@ function dialog_value() {
     source tui/usage_telemetry.sh
 
     assert_equal "$TITLE" "Open Voice OS Installation - Usage Metrics"
-    run grep -F -q $'yesno\tOpen Voice OS Installation - Usage Metrics' "$WHIPTAIL_DIALOG_FILE"
+    run grep -F -q $'radiolist\tOpen Voice OS Installation - Usage Metrics' "$WHIPTAIL_DIALOG_FILE"
     assert_success
 }
 
@@ -317,7 +318,7 @@ function dialog_value() {
     source tui/usage_telemetry.sh
 
     assert_equal "$TITLE" "Instalação do Open Voice OS - Métricas de utilização"
-    run grep -F -q $'yesno\tInstalação do Open Voice OS - Métricas de utilização' "$WHIPTAIL_DIALOG_FILE"
+    run grep -F -q $'radiolist\tInstalação do Open Voice OS - Métricas de utilização' "$WHIPTAIL_DIALOG_FILE"
     assert_success
 }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 # shellcheck source=tui/locales/en-us/channels.sh
 source "tui/locales/$LOCALE/channels.sh"
 # shellcheck source=tui/hardware_state.sh
@@ -65,16 +65,12 @@ for channel in "${available_channels[@]}"; do
   fi
 done
 
-if ! tui_whiptail_capture CHANNEL "${whiptail_args[@]}"; then
-  CHANNEL=""
+if ! tui_nav_capture CHANNEL "${whiptail_args[@]}"; then
+  CHANNEL="$active_channel"
+  export CHANNEL
+  return 0
 fi
 export CHANNEL
-
-if [ -z "$CHANNEL" ]; then
-  source tui/methods.sh
-  source tui/channels.sh
-  return
-fi
 
 # Persist selection (used for defaults when navigating back or re-running).
 state_tmp="$(mktemp)"

@@ -3,7 +3,11 @@
     "ok_button": "Seguinte",
     "yes_button": "Si",
     "no_button": "Non",
-    "back_button": "Volver"
+    "back_button": "Volver",
+    "quit_button": "Saír",
+    "quit_title": "Instalación de Open Voice OS - Saír",
+    "quit_content": "Seguro que queres saír do instalador? Aínda non se instalou nin cambiou nada, e podes executalo de novo cando queiras.",
+    "nav_hint": "Volver: pantalla anterior  -  continúa para saír"
   },
   "channels.sh": {
     "title": "Instalación de Open Voice OS - Canles",

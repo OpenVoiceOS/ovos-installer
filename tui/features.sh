@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 # shellcheck source=tui/locales/en-us/features.sh
 source "tui/locales/$LOCALE/features.sh"
 # shellcheck source=utils/llm_defaults.sh
@@ -193,18 +193,10 @@ if [ "${DEBUG:-false}" == "true" ]; then
   } >>"$LOG_FILE" 2>/dev/null || true
 fi
 
-if ! tui_whiptail_capture OVOS_FEATURES --separate-output --title "$TITLE" \
+if ! tui_nav_capture OVOS_FEATURES --separate-output --title "$TITLE" \
   --checklist "$CONTENT" --cancel-button "$BACK_BUTTON" --ok-button "$OK_BUTTON" \
   "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH" "$list_height" "${features[@]}"; then
-  source tui/profiles.sh
-  if [[ "$PROFILE" == "satellite" ]]; then
-    # Satellite doesn't have selectable features; collect satellite settings next.
-    export FEATURE_GUI="false" FEATURE_SKILLS="false" FEATURE_EXTRA_SKILLS="false" FEATURE_LLM="false"
-    source tui/satellite/main.sh
-    return
-fi
-  source tui/features.sh
-  return
+  return 0
 fi
 
 FEATURES_STATE=()
@@ -234,8 +226,10 @@ for FEATURE in $OVOS_FEATURES; do
     source tui/homeassistant.sh
     if [ "${HOMEASSISTANT_BACK:-false}" == "true" ]; then
       unset HOMEASSISTANT_BACK
-      source tui/features.sh
-      return
+      # Back out of the guided setup lands on the checklist, not the screen
+      # before it.
+      tui_nav_set "repeat"
+      return 0
     fi
     if [ "${FEATURE_HOMEASSISTANT}" == "true" ]; then
       FEATURES_STATE+=("homeassistant")
@@ -247,8 +241,8 @@ for FEATURE in $OVOS_FEATURES; do
     source tui/llm.sh
     if [ "${LLM_BACK:-false}" == "true" ]; then
       unset LLM_BACK
-      source tui/features.sh
-      return
+      tui_nav_set "repeat"
+      return 0
     fi
     if [ "${FEATURE_LLM}" == "true" ]; then
       FEATURES_STATE+=("llm")

@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 export CONFIRM_UNINSTALL="true"
 
-# shellcheck source=tui/locales/en-us/misc.sh
-source "tui/locales/$LOCALE/misc.sh"
-
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 
 # shellcheck source=tui/locales/en-us/uninstall.sh
 source "tui/locales/$LOCALE/uninstall.sh"

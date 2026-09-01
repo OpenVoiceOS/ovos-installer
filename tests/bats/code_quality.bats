@@ -2230,6 +2230,50 @@ YAML
     assert_success
 }
 
+@test "tui_screens_report_navigation_instead_of_sourcing_the_previous_screen" {
+    # Going back used to mean sourcing the previous screen from inside the
+    # current one. That nested the whole flow on every step and could never
+    # reach the first screen, which is what #579 reported. Screens report
+    # through TUI_NAV now and tui/main.sh decides where to go.
+    local file
+
+    for file in tui/methods.sh tui/channels.sh tui/profiles.sh tui/features.sh \
+        tui/tuning.sh tui/summary.sh tui/satellite/host.sh tui/satellite/main.sh; do
+        run grep -nE '^[[:space:]]*source tui/(methods|channels|profiles|features|detection|tuning|welcome|summary|satellite/main)\.sh' "$file"
+        assert_failure
+    done
+}
+
+@test "tui_main_walks_the_screens_as_a_flow_with_a_way_back_to_the_start" {
+    local file="tui/main.sh"
+
+    run grep -F -q 'source tui/navigation.sh' "$file"
+    assert_success
+
+    run grep -F -q 'tui_flow_previous_index' "$file"
+    assert_success
+
+    # Back from the very first screen has to reach the language picker.
+    run grep -F -q 'source tui/language.sh' "$file"
+    assert_success
+}
+
+@test "tui_offers_a_way_out_that_does_not_depend_on_ctrl_c_or_esc" {
+    # whiptail puts the terminal in raw mode, so Ctrl-C never reaches the
+    # installer, and ESC stopped being a newt form hotkey in 0.52.5. The way
+    # out has to be a button: going back reaches the language picker, and its
+    # cancel button leaves.
+    run grep -F -q 'tui_nav_confirm_quit' tui/language.sh
+    assert_success
+
+    run grep -F -q 'tui_nav_quit' tui/language.sh
+    assert_success
+
+    # Declining an update on an existing install is the other way out.
+    run grep -F -q 'tui_nav_quit' tui/update.sh
+    assert_success
+}
+
 @test "tui_confirms_ambiguous_mark2_hardware_before_detection" {
     local file="tui/main.sh"
 

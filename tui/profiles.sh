@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 # shellcheck source=tui/locales/en-us/profiles.sh
 source "tui/locales/$LOCALE/profiles.sh"
 
@@ -48,16 +48,12 @@ for method in "${available_profiles[@]}"; do
   fi
 done
 
-if ! tui_whiptail_capture PROFILE "${whiptail_args[@]}"; then
-  PROFILE=""
+if ! tui_nav_capture PROFILE "${whiptail_args[@]}"; then
+  PROFILE="$active_profile"
+  export PROFILE
+  return 0
 fi
 export PROFILE
-
-if [ -z "$PROFILE" ]; then
-  source tui/channels.sh
-  source tui/profiles.sh
-  return
-fi
 
 # Persist selection (used for defaults when navigating back or re-running).
 state_tmp="$(mktemp)"

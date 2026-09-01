@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# Every dialog carries the same backtitle, so the navigation keys stay on
+# screen whichever step the user is on. TUI_BACKTITLE is set by
+# tui/navigation.sh; without it this is a plain whiptail call.
+function tui_whiptail_run() {
+  if [ -n "${TUI_BACKTITLE:-}" ]; then
+    whiptail --backtitle "$TUI_BACKTITLE" "$@"
+  else
+    whiptail "$@"
+  fi
+}
+
 # Run whiptail without letting expected dialog statuses trip errexit.
 function tui_whiptail_dialog() {
   local had_errexit="false"
@@ -12,7 +23,7 @@ function tui_whiptail_dialog() {
       ;;
   esac
 
-  whiptail "$@"
+  tui_whiptail_run "$@"
   status=$?
 
   if [ "$had_errexit" == "true" ]; then
@@ -34,7 +45,7 @@ function tui_whiptail_dialog_allow_escape() {
       ;;
   esac
 
-  whiptail "$@"
+  tui_whiptail_run "$@"
   status=$?
 
   if [ "$had_errexit" == "true" ]; then
@@ -69,7 +80,7 @@ function tui_whiptail_capture() {
       ;;
   esac
 
-  output="$(whiptail "$@" 3>&1 1>&2 2>&3)"
+  output="$(tui_whiptail_run "$@" 3>&1 1>&2 2>&3)"
   status=$?
 
   if [ "$had_errexit" == "true" ]; then

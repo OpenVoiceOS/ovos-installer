@@ -20,6 +20,21 @@ This command downloads and runs the installer interactively.
 
 Note: OVOS targets a supported Python runtime in its virtual environment (default `3.11`). The installer uses `uv` to provision that version if it is not already available. Set `OVOS_VENV_PYTHON` to use a different version that is available on your system.
 
+### Moving around the installer screens
+
+Every question screen has a **Next** button and a **Back** button.
+
+- **Back** returns to the previous screen. It keeps working all the way to the
+  start, so a wrong answer several screens ago is one you can still change.
+- Keep pressing **Back** past the first screen and you reach the language
+  selection, whose **Exit** button leaves the installer. It asks for
+  confirmation first. Nothing is installed or changed until every screen has
+  been answered, so quitting there leaves the system untouched.
+
+Ctrl-C does not work while a screen is open: the installer draws its screens
+with `whiptail`, which puts the terminal in raw mode and never sees the key.
+Use **Back** and **Exit** instead.
+
 ### Pass environment variables to the `curl` one-liner
 
 To set environment variables when you use the `curl` one-liner, use `sudo env ...` so the variables reach the installer:

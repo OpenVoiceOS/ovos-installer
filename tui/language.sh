@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 message="
 Please select a language:
 "
@@ -24,15 +24,25 @@ for language in "${available_languages[@]}"; do
   fi
 done
 
-# Retrieve language and make it lower case with ",,"
-if ! tui_whiptail_capture language "${whiptail_args[@]}"; then
-  language=""
-fi
-language="${language,,}"
+# This is the first screen of the installer, and the one every other screen
+# eventually goes back to, so its cancel button is the way out of the whole
+# run. Confirm it: a user who reaches it from the far end of the flow has a
+# screenful of answers to lose.
+while :; do
+  # Retrieve language and make it lower case with ",,"
+  if ! tui_whiptail_capture language "${whiptail_args[@]}"; then
+    language=""
+  fi
+  language="${language,,}"
 
-if [ -z "$language" ]; then
-  exit 0
-fi
+  if [ -n "$language" ]; then
+    break
+  fi
+
+  if tui_nav_confirm_quit; then
+    tui_nav_quit
+  fi
+done
 
 # Hash of locales
 declare -A locales

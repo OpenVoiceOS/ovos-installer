@@ -3,7 +3,11 @@
     "ok_button": "अगला",
     "yes_button": "हाँ",
     "no_button": "नहीं",
-    "back_button": "पीछे"
+    "back_button": "पीछे",
+    "quit_button": "बाहर निकलें",
+    "quit_title": "Open Voice OS स्थापना - बाहर निकलें",
+    "quit_content": "क्या आप वाकई इंस्टॉलर से बाहर निकलना चाहते हैं? अभी तक कुछ भी इंस्टॉल या बदला नहीं गया है, और आप इसे कभी भी दोबारा चला सकते हैं।",
+    "nav_hint": "पीछे: पिछली स्क्रीन  -  बाहर निकलने के लिए पीछे जाते रहें"
   },
   "channels.sh": {
     "title": "Open Voice OS Installation - चैनल",

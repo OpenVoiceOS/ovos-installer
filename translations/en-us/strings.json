@@ -3,7 +3,11 @@
     "ok_button": "Next",
     "yes_button": "Yes",
     "no_button": "No",
-    "back_button": "Back"
+    "back_button": "Back",
+    "quit_button": "Quit",
+    "quit_title": "Open Voice OS Installation - Quit",
+    "quit_content": "Do you really want to quit the installer? Nothing has been installed or changed yet, and you can run the installer again at any time.",
+    "nav_hint": "Back: previous screen  -  keep going back to leave"
   },
   "channels.sh": {
     "title": "Open Voice OS Installation - Channels",

@@ -3,7 +3,11 @@
     "ok_button": "Næste",
     "yes_button": "Ja",
     "no_button": "Nej",
-    "back_button": "Tilbage"
+    "back_button": "Tilbage",
+    "quit_button": "Afslut",
+    "quit_title": "Open Voice OS Installation - Afslut",
+    "quit_content": "Vil du virkelig afslutte installationsprogrammet? Der er endnu ikke installeret eller ændret noget, og du kan køre det igen når som helst.",
+    "nav_hint": "Tilbage: forrige skaerm  -  bliv ved for at afslutte"
   },
   "channels.sh": {
     "title": "OpenVoice OS Installation - Kanaler",

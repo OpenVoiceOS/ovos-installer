@@ -3,7 +3,11 @@
     "ok_button": "Uḍfiṛ",
     "yes_button": "Ih",
     "no_button": "Uhu",
-    "back_button": "Tuɣalin"
+    "back_button": "Tuɣalin",
+    "quit_button": "Ffeɣ",
+    "quit_title": "Asbeddi n Open Voice OS - Tuffɣa",
+    "quit_content": "Tebɣiḍ s tidet ad teffɣeḍ seg usbeddi? Ulac ayen yettwasbedden neɣ yettwabeddlen ar tura, tzemreḍ ad t-tesnekreḍ tikkelt nniḍen melmi tebɣiḍ.",
+    "nav_hint": "Tuɣalin: agdil yezrin  -  kemmel ɣer deffir akken ad teffɣeḍ"
   },
   "channels.sh": {
     "title": "Asbeddi n Open Voice OS - Ibuda n usbeddi",

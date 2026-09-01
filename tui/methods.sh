@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 # The locked description interpolates INSTANCE_TYPE, which detect_existing_instance
 # leaves unset when it finds nothing. Sourcing a locale under nounset would abort
 # the installer there, so give it a value before any locale is read.
@@ -99,13 +99,11 @@ for method in "${available_methods[@]}"; do
   fi
 done
 
-if ! tui_whiptail_capture METHOD "${whiptail_args[@]}"; then
-  METHOD=""
+if ! tui_nav_capture METHOD "${whiptail_args[@]}"; then
+  # The capture emptied METHOD; keep the default this screen would offer again
+  # so nothing downstream sees a blank method while the user navigates.
+  METHOD="$active_method"
+  export METHOD
+  return 0
 fi
 export METHOD
-
-if [ -z "$METHOD" ]; then
-  source tui/detection.sh
-  source tui/methods.sh
-  return
-fi

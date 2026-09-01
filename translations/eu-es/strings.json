@@ -3,7 +3,11 @@
     "ok_button": "Hurrengoa",
     "yes_button": "Bai",
     "no_button": "Ez",
-    "back_button": "Itzuli"
+    "back_button": "Itzuli",
+    "quit_button": "Irten",
+    "quit_title": "Ireki Voice OS instalazioa - Irten",
+    "quit_content": "Ziur zaude instalatzailetik irten nahi duzula? Oraindik ez da ezer instalatu edo aldatu, eta nahi duzunean exekuta dezakezu berriro.",
+    "nav_hint": "Atzera: aurreko pantaila  -  jarraitu atzera irteteko"
   },
   "channels.sh": {
     "title": "Ireki Voice OS instalazioa - Kanalak",

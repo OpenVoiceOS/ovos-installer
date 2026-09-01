@@ -3,7 +3,11 @@
     "ok_button": "Siguiente",
     "yes_button": "Sí",
     "no_button": "No",
-    "back_button": "Atrás"
+    "back_button": "Atrás",
+    "quit_button": "Salir",
+    "quit_title": "Instalación de Open Voice OS - Salir",
+    "quit_content": "¿Seguro que quieres salir del instalador? Todavía no se ha instalado ni cambiado nada, y puedes volver a ejecutarlo cuando quieras.",
+    "nav_hint": "Atrás: pantalla anterior  -  sigue atrás para salir"
   },
   "channels.sh": {
     "title": "Instalación de Open Voice OS - Versiones",
