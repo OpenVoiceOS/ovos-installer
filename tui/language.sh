@@ -29,14 +29,23 @@ done
 # run. Confirm it: a user who reaches it from the far end of the flow has a
 # screenful of answers to lose.
 while :; do
+  language_status=0
   # Retrieve language and make it lower case with ",,"
-  if ! tui_whiptail_capture language "${whiptail_args[@]}"; then
+  tui_whiptail_capture language "${whiptail_args[@]}" || language_status=$?
+  if [ "$language_status" -ne 0 ]; then
     language=""
   fi
   language="${language,,}"
 
   if [ -n "$language" ]; then
     break
+  fi
+
+  # Only a press of the cancel button is worth confirming. Any other status is
+  # whiptail failing to draw, and the confirmation would fail the same way: ask
+  # again and the installer would never stop asking.
+  if [ "$language_status" -ne 1 ]; then
+    tui_nav_quit
   fi
 
   if tui_nav_confirm_quit; then

@@ -1037,6 +1037,41 @@ EOF
     assert_equal "$(dialog_value yesno "$LLM_TITLE_EXISTING" status)" "255"
 }
 
+@test "features: backing out of the guided LLM setup redraws the checklist" {
+    # The guided setups are entered from the checklist, so backing out of one
+    # has to land back on the checklist rather than on the screen before it.
+    mkdir -p "$RUN_AS_HOME/.config/ovos_persona"
+    cat <<'EOF' >"$RUN_AS_HOME/.config/ovos_persona/ovos-installer-llm.json"
+{
+  "name": "OVOS Installer LLM",
+  "ovos-solver-openai-plugin": {
+    "api_url": "https://llama.smartgic.io/v1",
+    "key": "sk-existing",
+    "model": "qwen3-nothink:latest",
+    "system_prompt": "Respond in plain spoken English.",
+    "max_tokens": 320,
+    "temperature": 0.2,
+    "top_p": 0.1
+  },
+  "solvers": [
+    "ovos-solver-openai-plugin"
+  ]
+}
+EOF
+    METHOD="virtualenv"
+    PROFILE="ovos"
+    WHIPTAIL_FORCE_SELECTION="llm"
+    WHIPTAIL_FORCE_YESNO_STATUS="255"
+
+    # shellcheck source=tui/features.sh
+    source tui/features.sh
+
+    assert_equal "$TUI_NAV" "repeat"
+    assert_equal "$FEATURE_LLM" "false"
+    # The checklist selection is not persisted on the way out.
+    [ ! -f "$INSTALLER_STATE_FILE" ]
+}
+
 @test "llm: invalid preseeded tuning values fall back to validated prompt defaults" {
     METHOD="virtualenv"
     LLM_API_URL="https://llama.smartgic.io/v1"

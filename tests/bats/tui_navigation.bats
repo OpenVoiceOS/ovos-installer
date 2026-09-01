@@ -401,6 +401,54 @@ function rendered_titles() {
     assert_equal "$(grep -c "Open Voice OS Installation - Language" <<<"$output")" "2"
 }
 
+@test "tui: a terminal whiptail cannot draw in leaves instead of looping" {
+    # Every dialog failing is a real case over SSH: a window too small for the
+    # box, or a TERM whiptail does not know. Treating that as a cancel walks
+    # the flow back to the language picker, which has to leave rather than ask
+    # again with a prompt that cannot be drawn either.
+    run timeout 20 bash -c '
+        set -u
+        source utils/constants.sh
+        export LOCALE="en-us"
+        LOG_FILE="$(mktemp)"
+        INSTALLER_STATE_FILE="$(mktemp)"
+        rm -f "$INSTALLER_STATE_FILE"
+        RUN_AS_HOME="$(mktemp -d)"
+        EXISTING_INSTANCE="false"
+        ARCH="x86_64"
+        DISTRO_NAME="ubuntu"
+        DISTRO_VERSION="Ubuntu 24.04"
+        DISTRO_VERSION_ID="24"
+        DISTRO_LABEL="Ubuntu 24.04"
+        KERNEL="6.8.0"
+        PYTHON="Python 3.12.3"
+        CPU_IS_CAPABLE="true"
+        SOUND_SERVER="PipeWire"
+        DISPLAY_SERVER="wayland"
+        VENV_PATH="$RUN_AS_HOME/.venvs/ovos"
+        RASPBERRYPI_MODEL="N/A"
+        HARDWARE_MODEL="N/A"
+        DETECTED_DEVICES=()
+
+        calls=0
+        whiptail() {
+            calls=$((calls + 1))
+            if [ "$calls" -gt 200 ]; then
+                printf "RUNAWAY\n"
+                exit 9
+            fi
+            return 255
+        }
+
+        source tui/main.sh
+        printf "unreachable\n"
+    '
+
+    assert_success
+    refute_output --partial "RUNAWAY"
+    refute_output --partial "unreachable"
+}
+
 @test "tui: every dialog carries the navigation hint in its backtitle" {
     # shellcheck source=tui/main.sh
     source tui/main.sh
