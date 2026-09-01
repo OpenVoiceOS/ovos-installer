@@ -8,6 +8,14 @@ source utils/constants.sh
 # setup.sh turns errexit off for the TUI.
 set +eo pipefail
 
+# setup.sh overrides the locale for the duration of the install; the wrapping
+# the dialogs measure depends on it, so mirror that here.
+if locale -a 2>/dev/null | grep -qiE '^c\.utf-?8$'; then
+  export LANG=C.UTF-8 LC_ALL=C.UTF-8
+elif locale -a 2>/dev/null | grep -qiE '^en_US\.utf-?8$'; then
+  export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
+fi
+
 export LOCALE="${LOCALE:-en-us}"
 LOG_FILE="$(mktemp)"
 INSTALLER_STATE_FILE="$(mktemp)"

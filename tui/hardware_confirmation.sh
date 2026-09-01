@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # shellcheck source=utils/common.sh
 source "utils/common.sh"
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 
 # Detection locale files build a full CONTENT string when sourced. Seed any
 # unset detection variables so the hardware confirmation prompt can reuse their
@@ -108,7 +110,7 @@ elif [ -n "$hardware_confirmation_candidate" ]; then
   fi
   printf -v hardware_confirmation_content '%b' "$hardware_confirmation_content"
 
-  if whiptail --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
+  if tui_whiptail_dialog --yes-button "$YES_BUTTON" --no-button "$NO_BUTTON" \
     --title "$HARDWARE_CONFIRMATION_TITLE" \
     --yesno "$hardware_confirmation_content" "$TUI_WINDOW_HEIGHT" "$TUI_WINDOW_WIDTH"; then
     hardware_confirmation_choice="$hardware_confirmation_candidate"

@@ -26,6 +26,7 @@ Every question screen has a **Next** button and a **Back** button.
 
 - **Back** returns to the previous screen. It keeps working all the way to the
   start, so a wrong answer several screens ago is one you can still change.
+  On an existing installation that includes the uninstall and update questions.
 - Keep pressing **Back** past the first screen and you reach the language
   selection, whose **Exit** button leaves the installer. It asks for
   confirmation first. Nothing is installed or changed until every screen has
@@ -33,7 +34,13 @@ Every question screen has a **Next** button and a **Back** button.
 
 Ctrl-C does not work while a screen is open: the installer draws its screens
 with `whiptail`, which puts the terminal in raw mode and never sees the key.
-Use **Back** and **Exit** instead.
+The ESC key does nothing either, because newt dropped it as a form hotkey in
+0.52.5. Use **Back** and **Exit** instead.
+
+The screens size themselves to the terminal. On a window too small for a
+screen's text the text scrolls, and whiptail then starts with the focus in the
+text rather than on a button, so **Tab** moves to **Next** and **Back**. A
+terminal of about 33 rows or more never needs that.
 
 ### Pass environment variables to the `curl` one-liner
 
@@ -277,16 +284,21 @@ sudo env DEBUG=true sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVo
 
 ## Screenshots
 
-![Screenshot 1](docs/images/screenshot_1.png)
+The installer walks through these screens in order. They are rendered from the
+TUI itself by `scripts/render_screenshots.py`, so they stay in step with it.
 
-![Screenshot 2](docs/images/screenshot_3.png)
+![Welcome](docs/images/screenshot_1.png)
 
-![Screenshot 3](docs/images/screenshot_4.png)
+![Detected hardware](docs/images/screenshot_2.png)
 
-![Screenshot 4](docs/images/screenshot_5.png)
+![Installation method](docs/images/screenshot_3.png)
 
-![Screenshot 5](docs/images/screenshot_6.png)
+![Release channel](docs/images/screenshot_4.png)
 
-![Screenshot 6](docs/images/screenshot_7.png)
+![Profile](docs/images/screenshot_5.png)
 
-![Screenshot 7](docs/images/screenshot_8.png)
+![Features](docs/images/screenshot_6.png)
+
+![Summary](docs/images/screenshot_7.png)
+
+![Finish](docs/images/screenshot_8.png)

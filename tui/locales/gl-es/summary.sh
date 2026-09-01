@@ -13,7 +13,7 @@ Estás a piques de rematar. Aquí tes un resumo das opcións que escolliches par
 
 As decisións tomadas durante a instalación de Open Voice OS foron coidadosamente pensadas para adaptar o noso sistema ás túas necesidades e preferencias.
 
-É correcto este resumo? Se non, selecciona ${BACK_BUTTON:-} (ou preme ESC) para volver atrás e facer cambios.
+É correcto este resumo? Se non, selecciona ${BACK_BUTTON:-} para volver atrás e facer cambios.
 "
 TITLE="Instalación de Open Voice OS - Recapitulación"
 

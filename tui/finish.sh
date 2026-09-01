@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 CONFIG_FILE="${RUN_AS_HOME}/.config/mycroft/mycroft.conf"
 OVOS_SERVICE_SCOPE_HINT=""
 OVOS_SERVICE_STATUS_COMMAND=""

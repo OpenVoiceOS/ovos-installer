@@ -2230,6 +2230,45 @@ YAML
     assert_success
 }
 
+@test "readme_screenshots_all_exist" {
+    # The screenshots are rendered from the TUI by scripts/render_screenshots.py,
+    # so a renamed or dropped one shows up as a broken image in the README.
+    local image
+    local missing=0
+
+    while read -r image; do
+        if [ ! -f "$image" ]; then
+            echo "missing $image" >&2
+            missing=1
+        fi
+    done < <(grep -oE 'docs/images/[A-Za-z0-9_.-]+\.png' README.md | sort -u)
+
+    [ "$missing" -eq 0 ]
+}
+
+@test "every_screen_loads_the_button_labels_it_uses" {
+    # A screen that reads OK_BUTTON without sourcing it works only while some
+    # earlier screen happens to have left it behind, and aborts under nounset
+    # the moment it is reached on its own.
+    local file
+
+    for file in tui/*.sh tui/satellite/*.sh; do
+        case "$file" in
+            tui/dialogs.sh | tui/navigation.sh | tui/hardware_state.sh | tui/main.sh)
+                continue
+                ;;
+        esac
+
+        if grep -qE '\$\{?(OK|YES|NO|BACK|QUIT)_BUTTON' "$file"; then
+            run grep -qE 'source (tui/navigation\.sh|"tui/locales/\$LOCALE/misc\.sh")' "$file"
+            if [ "$status" -ne 0 ]; then
+                echo "$file uses the button labels without loading them" >&2
+                return 1
+            fi
+        fi
+    done
+}
+
 @test "tui_screens_report_navigation_instead_of_sourcing_the_previous_screen" {
     # Going back used to mean sourcing the previous screen from inside the
     # current one. That nested the whole flow on every step and could never

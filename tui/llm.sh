@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# shellcheck source=tui/dialogs.sh
-source tui/dialogs.sh
+# shellcheck source=tui/navigation.sh
+source tui/navigation.sh
 # shellcheck source=utils/llm_defaults.sh
 source "utils/llm_defaults.sh"
 _llm_bootstrap_default_persona="$LLM_DEFAULT_PERSONA"
