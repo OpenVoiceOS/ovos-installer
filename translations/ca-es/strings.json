@@ -7,7 +7,7 @@
     "quit_button": "Surt",
     "quit_title": "Instal·lació de l'Open VoiceOS - Sortida",
     "quit_content": "Segur que voleu sortir de l'instal·lador? Encara no s'ha instal·lat ni modificat res, i podeu tornar a executar-lo quan vulgueu.",
-    "nav_hint": "Enrere: pantalla anterior  -  continueu per sortir"
+    "nav_hint": "Enrere: pantalla anterior  -  continueu enrere per sortir"
   },
   "channels.sh": {
     "title": "Instal·lació de l'Open Voice OS - Canals",

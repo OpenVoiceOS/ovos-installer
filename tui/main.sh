@@ -70,8 +70,13 @@ while [ "$tui_step_index" -lt "${#TUI_FLOW[@]}" ]; do
         ;;
     satellite)
         # A satellite has no feature checklist, it collects HiveMind settings.
+        # Every feature is cleared, not just the ones the checklist offers:
+        # the user may have picked some, gone back, and chosen satellite, and
+        # the summary would otherwise still show them.
         export FEATURE_GUI="false"
         export FEATURE_SKILLS="false"
+        export FEATURE_EXTRA_SKILLS="false"
+        export FEATURE_HOMEASSISTANT="false"
         export FEATURE_LLM="false"
         # shellcheck source=tui/satellite/main.sh
         source tui/satellite/main.sh

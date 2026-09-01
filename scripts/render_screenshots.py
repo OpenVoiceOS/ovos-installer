@@ -317,17 +317,41 @@ def capture(harness, keys, environment=None):
 
     try:
         drain(descriptor, screen, 10)
+        check_alive(pid, harness)
         for key in keys:
             os.write(descriptor, b"\r" if key == "enter" else b"\t")
             time.sleep(0.25)
             drain(descriptor, screen, 10)
+            check_alive(pid, harness)
     finally:
         try:
             os.kill(pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
+        try:
+            os.waitpid(pid, 0)
+        except ChildProcessError:
+            pass
 
     return screen
+
+
+def check_alive(pid, harness):
+    """Refuse to render a harness that stopped before reaching its dialog.
+
+    Otherwise a screen that fails to draw is captured as a screenshot of
+    whatever the terminal happened to hold, and the script still succeeds.
+    """
+    try:
+        finished, status = os.waitpid(pid, os.WNOHANG)
+    except ChildProcessError:
+        finished, status = pid, 0
+
+    if finished == pid:
+        raise SystemExit(
+            f"{harness} exited (status {status >> 8}) before its screen was drawn; "
+            "run it by hand to see why"
+        )
 
 
 def drain(descriptor, screen, seconds, quiet=0.5):

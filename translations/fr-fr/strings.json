@@ -7,7 +7,7 @@
     "quit_button": "Quitter",
     "quit_title": "Open Voice OS Installation - Quitter",
     "quit_content": "Voulez-vous vraiment quitter l'installateur ? Rien n'a encore été installé ni modifié, et vous pouvez le relancer à tout moment.",
-    "nav_hint": "Retour : écran précédent  -  continuez pour quitter"
+    "nav_hint": "Retour : écran précédent  -  continuez à reculer pour quitter"
   },
   "channels.sh": {
     "title": "Open Voice OS Installation - Canaux d'installation",

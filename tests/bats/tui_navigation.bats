@@ -482,7 +482,7 @@ function rendered_titles() {
 }
 
 @test "tui: a picker that cannot be drawn stops asking instead of looping" {
-    run timeout 20 bash -c '
+    run bash -c '
         set -u
         source utils/constants.sh
         LOG_FILE="$(mktemp)"
@@ -540,6 +540,28 @@ function rendered_titles() {
     assert_output "Open Voice OS Installation - Uninstall"
 }
 
+@test "tui: choosing satellite after picking features clears all of them" {
+    # Pick features, go back to the profile screen and choose satellite. The
+    # satellite has no feature checklist, so anything left set would show up on
+    # its summary as a selection the user cannot see or change.
+    WHIPTAIL_PREFERRED_TAGS="satellite"
+    FEATURE_SKILLS="true"
+    FEATURE_EXTRA_SKILLS="true"
+    FEATURE_HOMEASSISTANT="true"
+    FEATURE_GUI="true"
+    FEATURE_LLM="true"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    assert_equal "$PROFILE" "satellite"
+    assert_equal "$FEATURE_SKILLS" "false"
+    assert_equal "$FEATURE_EXTRA_SKILLS" "false"
+    assert_equal "$FEATURE_HOMEASSISTANT" "false"
+    assert_equal "$FEATURE_GUI" "false"
+    assert_equal "$FEATURE_LLM" "false"
+}
+
 @test "tui: an existing install is never asked about telemetry" {
     EXISTING_INSTANCE="true"
     INSTANCE_TYPE="virtualenv"
@@ -559,7 +581,10 @@ function rendered_titles() {
     # box, or a TERM whiptail does not know. Treating that as a cancel walks
     # the flow back to the language picker, which has to leave rather than ask
     # again with a prompt that cannot be drawn either.
-    run timeout 20 bash -c '
+    #
+    # The stub counts its own calls rather than leaning on timeout(1), which
+    # the macOS runners do not have.
+    run bash -c '
         set -u
         source utils/constants.sh
         export LOCALE="en-us"
