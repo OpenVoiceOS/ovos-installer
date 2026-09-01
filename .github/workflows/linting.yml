@@ -19,7 +19,7 @@ on:
       - setup.sh
       - installer.sh
       - tui/**
-      - tests/bats/**
+      - tests/**
   push:
     branches:
       - main
@@ -33,7 +33,7 @@ on:
       - setup.sh
       - installer.sh
       - tui/**
-      - tests/bats/**
+      - tests/**
   workflow_dispatch:
 
 jobs:
