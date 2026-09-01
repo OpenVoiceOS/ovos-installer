@@ -502,7 +502,11 @@ function rendered_titles() {
         printf "unreachable\n"
     '
 
-    assert_success
+    # A failure is reported as one: no success status, and no claim that the
+    # user cancelled anything.
+    assert_failure
+    assert_output --partial "could not be drawn"
+    refute_output --partial "Installation cancelled"
     refute_output --partial "RUNAWAY"
     refute_output --partial "unreachable"
 }
@@ -576,6 +580,69 @@ function rendered_titles() {
     assert_equal "$SHARE_USAGE_TELEMETRY" "false"
 }
 
+@test "tui: a failed first-run picker retries before giving up" {
+    # A transient failure on the very first screen must not end the run on the
+    # first try, and when it keeps failing the exit is an error - not the
+    # success status a real cancellation uses.
+    run bash -c '
+        set -u
+        source utils/constants.sh
+        LOG_FILE="$(mktemp)"
+        calls_file="$(mktemp)"
+        printf "0\n" >"$calls_file"
+        export calls_file
+
+        whiptail() {
+            local calls
+            calls="$(( $(cat "$calls_file") + 1 ))"
+            printf "%s\n" "$calls" >"$calls_file"
+            return 255
+        }
+
+        source tui/language.sh
+        printf "unreachable\n"
+    '
+
+    assert_failure
+    assert_output --partial "could not be drawn"
+    refute_output --partial "Installation cancelled"
+    refute_output --partial "unreachable"
+}
+
+@test "tui: pressing Exit and changing your mind is never treated as a failure" {
+    # Three deliberate Exit-then-stay cycles, then a language is chosen. The
+    # bounded retry is for whiptail failing, not for a user hesitating.
+    run bash -c '
+        set -u
+        source utils/constants.sh
+        LOG_FILE="$(mktemp)"
+        export TUI_LANGUAGE_REVISITED="true"
+        calls_file="$(mktemp)"
+        printf "0\n" >"$calls_file"
+        export calls_file
+
+        whiptail() {
+            local calls
+            calls="$(( $(cat "$calls_file") + 1 ))"
+            printf "%s\n" "$calls" >"$calls_file"
+            # Calls alternate picker, confirmation. Cancel all of the first
+            # six, then answer the picker.
+            if [ "$calls" -le 6 ]; then
+                return 1
+            fi
+            printf "English\n" >&2
+            return 0
+        }
+
+        source tui/language.sh
+        printf "LOCALE=%s\n" "$LOCALE"
+    '
+
+    assert_success
+    assert_output --partial "LOCALE=en-us"
+    refute_output --partial "could not be drawn"
+}
+
 @test "tui: a terminal whiptail cannot draw in leaves instead of looping" {
     # Every dialog failing is a real case over SSH: a window too small for the
     # box, or a TERM whiptail does not know. Treating that as a cancel walks
@@ -622,7 +689,8 @@ function rendered_titles() {
         printf "unreachable\n"
     '
 
-    assert_success
+    assert_failure
+    assert_output --partial "could not be drawn"
     refute_output --partial "RUNAWAY"
     refute_output --partial "unreachable"
 }
