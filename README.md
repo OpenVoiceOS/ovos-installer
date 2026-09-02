@@ -1,28 +1,53 @@
 # Open Voice OS Installer
 
-Installs [Open Voice OS](https://github.com/OpenVoiceOS/ovos-core), a private,
-open-source voice assistant, on a Linux machine, a Raspberry Pi, or a Mac. It
-asks a handful of questions and sets up everything else itself.
+**Your own voice assistant, on your own hardware.** Open source,
+privacy-focused, and yours to change — on a Raspberry Pi, a Linux box, or a Mac.
 
 [![Installs reported](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.meta.record_count&label=installs%20reported&color=2a78d6&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
 [![Distributions](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.aggregates.os.length&label=distributions&color=1baf7a&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
 [![Countries](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.aggregates.country.length&label=countries&color=4a3aa7&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
 
-## Install
-
 ```shell
 sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
 ```
 
-That is the whole thing. The installer asks a few questions, then does the work.
+One command. It asks a handful of questions, then sets everything up itself —
+speech, skills, services, the lot.
 
-Answer with the arrow keys and **Enter**. **Back** returns to the previous
-screen at any point, and nothing is installed until you have answered every
-screen — so you can change your mind, or leave, without touching the system.
+## What you can do with it
 
-You need `curl`, `git`, `sudo`, and Bash 4 or later. macOS needs
-[a little setup first](docs/macos.md). To read the script before running it,
-download it, look it over, then run `sudo sh installer.sh`.
+- **Ask it things.** The time, the temperature, who Ada Lovelace was — and
+  whatever else you add, because skills are open source and there are a lot of
+  them.
+- **Run your home.** The Home Assistant integration turns "turn off the kitchen
+  lights" into the thing actually happening.
+- **Give it a brain.** An optional LLM fallback answers what the skills do not,
+  pointed at whichever OpenAI-compatible endpoint you like — including one you
+  host yourself.
+- **Put it in every room.** HiveMind satellites share a single assistant across
+  several devices, so the Pi in the hallway and the one in the kitchen are the
+  same assistant.
+- **Keep it yours.** The configuration is a plain file on your disk, every
+  part is open source, and the installer asks before it shares anything.
+
+## Before you start
+
+You need `curl`, `git`, `sudo`, and Bash 4 or later. Macs need
+[a little setup first](docs/macos.md).
+
+Prefer to read the script before running it? Download it, look it over, then run
+it:
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh
+less installer.sh
+sudo sh installer.sh
+```
+
+Answer the questions with the arrow keys and **Enter**. **Back** returns to the
+previous screen at any point, and nothing is installed until you have answered
+every screen — so you can change your mind, or leave, without touching the
+machine.
 
 ## Talk to it
 

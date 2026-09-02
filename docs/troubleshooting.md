@@ -10,9 +10,12 @@ microphone is the usual culprit. The calibration helper is a standalone script,
 and the installer removes its own copy once it finishes, so fetch it:
 
 ```shell
-curl -fsSLO https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/scripts/audio-calibrate.sh
-bash audio-calibrate.sh
+curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/scripts/audio-calibrate.sh -o audio-calibrate.sh \
+  && bash audio-calibrate.sh
 ```
+
+The `&&` matters: without it a failed or half-finished download leaves you
+running whatever `audio-calibrate.sh` happened to be there already.
 
 It records a few short samples — silence, speech, the wake word — measures the
 levels, and recommends a capture volume and listener multiplier. Add `--apply`

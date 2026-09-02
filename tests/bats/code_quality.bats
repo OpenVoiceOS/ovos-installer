@@ -2263,11 +2263,24 @@ YAML
     assert_success
 }
 
+function anchors_of() {
+    # GitHub builds a heading anchor by lowercasing, dropping anything that is
+    # not a word character, space or hyphen, then joining on hyphens.
+    grep -E '^#{1,6} ' "$1" 2>/dev/null | sed -E '
+        s/^#{1,6}[[:space:]]+//
+        s/`//g
+        s/\[([^]]*)\]\([^)]*\)/\1/g
+    ' | tr '[:upper:]' '[:lower:]' | sed -E '
+        s/[^a-z0-9 _-]//g
+        s/[[:space:]]+/-/g
+    '
+}
+
 @test "docs_links_between_markdown_files_resolve" {
     # The README is deliberately short and hands the detail to docs/, which
     # only works while the links do. A renamed file otherwise reads fine and
     # goes nowhere.
-    local file link target missing=0
+    local file link target fragment missing=0
 
     for file in README.md docs/*.md; do
         while read -r link; do
@@ -2278,7 +2291,22 @@ YAML
             if [ -n "${link%%#*}" ] && [ ! -e "$target" ]; then
                 echo "broken link in $file: $link" >&2
                 missing=1
+                continue
             fi
+
+            # A fragment that no longer matches a heading is the quieter half
+            # of this: the file still resolves, so the link looks fine and
+            # lands at the top of the page instead of the section it names.
+            case "$link" in
+                *"#"*)
+                    fragment="${link#*#}"
+                    [ -n "${link%%#*}" ] || target="$file"
+                    if ! anchors_of "$target" | grep -q -x -F "$fragment"; then
+                        echo "broken anchor in $file: $link" >&2
+                        missing=1
+                    fi
+                    ;;
+            esac
         done < <(grep -oE '\]\([^)]+\)' "$file" | sed 's/^](//;s/)$//')
     done
 
