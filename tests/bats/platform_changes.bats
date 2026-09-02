@@ -98,3 +98,28 @@ function decide() {
     run bash -c "cd '$REPO' && bash '$SCRIPT' solaris '$BASE'"
     assert_failure
 }
+
+@test "documentation-only changes skip the install matrix on both platforms" {
+    # A README typo used to run four end-to-end installs and the macOS
+    # scenarios, which is an hour of runners for no information.
+    assert_equal "$(decide linux README.md)" "run=false"
+    assert_equal "$(decide macos README.md)" "run=false"
+    assert_equal "$(decide linux docs/troubleshooting.md docs/images/telemetry-os-light.svg)" "run=false"
+    assert_equal "$(decide macos LICENSE .github/CODEOWNERS)" "run=false"
+}
+
+@test "a documentation change alongside a real one still runs" {
+    # The skip is only safe while it means "nothing here can affect an
+    # install". One file that can, and the whole set runs.
+    assert_equal "$(decide linux README.md ansible/roles/ovos_config/tasks/main.yml)" "run=true"
+    assert_equal "$(decide macos docs/macos.md setup.sh)" "run=true"
+}
+
+@test "code that only looks like documentation is not treated as documentation" {
+    # scripts/ holds audio-calibrate.sh and the translation sync; tests/ and
+    # the workflows can change behaviour or the run itself. None of them are
+    # prose, whatever their extension.
+    assert_equal "$(decide linux scripts/sync_translations.py)" "run=true"
+    assert_equal "$(decide linux tests/bats/os.bats)" "run=true"
+    assert_equal "$(decide linux .github/workflows/shell_testing.yml)" "run=true"
+}

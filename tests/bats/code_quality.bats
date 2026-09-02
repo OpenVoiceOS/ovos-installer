@@ -2230,6 +2230,100 @@ YAML
     assert_success
 }
 
+@test "readme_telemetry_charts_have_both_themes_and_are_generated" {
+    # The charts are rendered by a script and refreshed by a workflow. A hand-
+    # drawn one would go stale silently, and a light-only one is unreadable on
+    # GitHub's dark theme, which is what <picture> is doing here.
+    local chart
+
+    for chart in telemetry-os telemetry-features; do
+        [ -f "docs/images/${chart}-light.svg" ] || { echo "missing ${chart}-light.svg" >&2; return 1; }
+        [ -f "docs/images/${chart}-dark.svg" ] || { echo "missing ${chart}-dark.svg" >&2; return 1; }
+
+        run grep -F -q "docs/images/${chart}-dark.svg" README.md
+        assert_success
+        run grep -F -q "docs/images/${chart}-light.svg" README.md
+        assert_success
+    done
+
+    run test -x scripts/render_telemetry_charts.py
+    assert_success
+
+    run grep -F -q 'render_telemetry_charts.py' .github/workflows/telemetry_charts.yml
+    assert_success
+}
+
+@test "readme_telemetry_badges_point_at_the_public_summary" {
+    # A badge querying a path that no longer exists renders the word "invalid"
+    # in the README rather than failing anywhere visible to us.
+    run grep -F -q 'telemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary' README.md
+    assert_success
+
+    run grep -F -q 'meta.record_count' README.md
+    assert_success
+}
+
+function anchors_of() {
+    # GitHub builds a heading anchor by lowercasing, dropping anything that is
+    # not a word character, space or hyphen, then joining on hyphens.
+    grep -E '^#{1,6} ' "$1" 2>/dev/null | sed -E '
+        s/^#{1,6}[[:space:]]+//
+        s/`//g
+        s/\[([^]]*)\]\([^)]*\)/\1/g
+    ' | tr '[:upper:]' '[:lower:]' | sed -E '
+        s/[^a-z0-9 _-]//g
+        s/[[:space:]]+/-/g
+    '
+}
+
+@test "docs_links_between_markdown_files_resolve" {
+    # The README is deliberately short and hands the detail to docs/, which
+    # only works while the links do. A renamed file otherwise reads fine and
+    # goes nowhere.
+    local file link target fragment missing=0
+
+    for file in README.md docs/*.md; do
+        while read -r link; do
+            case "$link" in
+                http*) continue ;;
+            esac
+            target="$(dirname "$file")/${link%%#*}"
+            if [ -n "${link%%#*}" ] && [ ! -e "$target" ]; then
+                echo "broken link in $file: $link" >&2
+                missing=1
+                continue
+            fi
+
+            # A fragment that no longer matches a heading is the quieter half
+            # of this: the file still resolves, so the link looks fine and
+            # lands at the top of the page instead of the section it names.
+            case "$link" in
+                *"#"*)
+                    fragment="${link#*#}"
+                    [ -n "${link%%#*}" ] || target="$file"
+                    if ! anchors_of "$target" | grep -q -x -F "$fragment"; then
+                        echo "broken anchor in $file: $link" >&2
+                        missing=1
+                    fi
+                    ;;
+            esac
+        done < <(grep -oE '\]\([^)]+\)' "$file" | sed 's/^](//;s/)$//')
+    done
+
+    [ "$missing" -eq 0 ]
+}
+
+@test "readme_points_at_a_calibration_script_the_user_actually_has" {
+    # installer.sh removes its clone once the install succeeds, and the
+    # calibration helper is never deployed to the system, so telling people to
+    # run it from a relative path sends them to a file that is not there.
+    run grep -nE '^\s*(\./)?scripts/audio-calibrate\.sh' README.md docs/troubleshooting.md
+    assert_failure
+
+    run grep -F -q 'raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/scripts/audio-calibrate.sh' docs/troubleshooting.md
+    assert_success
+}
+
 @test "readme_screenshots_all_exist" {
     # The screenshots are rendered from the TUI by scripts/render_screenshots.py,
     # so a renamed or dropped one shows up as a broken image in the README.

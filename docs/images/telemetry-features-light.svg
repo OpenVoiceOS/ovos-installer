@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="284" viewBox="0 0 720 284" role="img" aria-label="What people turn on. Share of 1,681 installs enabling each feature">
+<title>What people turn on</title>
+<text x="0" y="18" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#0b0b0b">What people turn on</text>
+<text x="0" y="36" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">Share of 1,681 installs enabling each feature</text>
+<text x="122" y="64.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">Skills</text>
+<rect x="132" y="51.0" width="504.0" height="16" rx="4" fill="#1baf7a"/>
+<text x="646.0" y="64.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">97%</text>
+<text x="122" y="94.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">Extra Skills</text>
+<rect x="132" y="81.0" width="260.0" height="16" rx="4" fill="#1baf7a"/>
+<text x="402.0" y="94.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">50%</text>
+<text x="122" y="124.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">Home Assistant</text>
+<rect x="132" y="111.0" width="19.2" height="16" rx="4" fill="#1baf7a"/>
+<text x="161.2" y="124.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">4%</text>
+<text x="122" y="154.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">LLM</text>
+<rect x="132" y="141.0" width="40.9" height="16" rx="4" fill="#1baf7a"/>
+<text x="182.9" y="154.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">8%</text>
+<text x="122" y="184.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">GUI</text>
+<rect x="132" y="171.0" width="123.3" height="16" rx="4" fill="#1baf7a"/>
+<text x="265.3" y="184.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">24%</text>
+<text x="122" y="214.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">CPU (AVX2 + SIMD)</text>
+<rect x="132" y="201.0" width="452.7" height="16" rx="4" fill="#1baf7a"/>
+<text x="594.7" y="214.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">87%</text>
+<text x="122" y="244.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">Tuning</text>
+<rect x="132" y="231.0" width="176.1" height="16" rx="4" fill="#1baf7a"/>
+<text x="318.1" y="244.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">34%</text>
+</svg>

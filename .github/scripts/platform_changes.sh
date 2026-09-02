@@ -11,6 +11,20 @@ set -euo pipefail
 platform="${1:?usage: platform_changes.sh <macos|linux> [base_sha]}"
 base_sha="${2:-}"
 
+# Files that cannot change what an install does on any platform, so a change
+# touching only these needs no install run at all. Kept deliberately narrow:
+# prose, pictures and repository furniture. Not scripts/, not tests/, not
+# workflows - those can all change behaviour or the run itself.
+docs_only='^README\.md$
+^LICENSE$
+^docs/
+^\.github/CODEOWNERS$
+^\.github/CODE_OF_CONDUCT\.md$
+^\.github/ISSUE_TEMPLATE/
+^\.jekyllignore$
+^\.nojekyll$
+^\.well-known/'
+
 # Files that only affect a Linux install, so macOS jobs can ignore them.
 # Containers are Linux only here: the macOS matrix installs virtualenv.
 linux_only='^ansible/roles/ovos_containers/
@@ -46,6 +60,13 @@ changed="$(git diff --name-only "${base_sha}...HEAD")"
 
 if [ -z "$changed" ]; then
     printf 'run=true\n'
+    exit 0
+fi
+
+# A documentation-only change cannot break an install, and running the full
+# matrix for a typo costs an hour of runners for no information.
+if ! grep -qvE "$(printf '%s' "$docs_only" | paste -sd'|' -)" <<<"$changed"; then
+    printf 'run=false\n'
     exit 0
 fi
 

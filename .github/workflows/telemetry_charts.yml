@@ -1,0 +1,43 @@
+---
+name: Refresh telemetry charts
+
+# The README charts are rendered from the public telemetry summary, because
+# GitHub does not run the dashboard's JavaScript in a README. Committing them
+# on a schedule keeps them current without the README depending on a third
+# party being up when someone reads it.
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+on:
+  schedule:
+    # Daily. The numbers move slowly; anything more often is churn.
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Render charts from the telemetry summary
+        run: python3 scripts/render_telemetry_charts.py
+
+      - name: Commit when the numbers moved
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "chore(docs): refresh telemetry charts"
+          file_pattern: docs/images/telemetry-*.svg
