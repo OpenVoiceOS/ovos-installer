@@ -21,6 +21,9 @@ export EXIT_SUCCESS=0
 export I2C_BUS="1"
 export INSTALLER_VENV_NAME="ovos-installer"
 export LOG_FILE=/var/log/ovos-installer.log
+# Pinned against ANSIBLE_VERSION: mitogen patches Ansible internals, so the
+# pair is upgraded together or not at all.
+export MITOGEN_VERSION="0.3.53"
 export NEWT_COLORS="
     root=white,black
     border=black,lightgray

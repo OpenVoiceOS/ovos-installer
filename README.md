@@ -58,9 +58,26 @@ sudo env OVOS_VENV_PYTHON=3.12 sh -c "$(curl -fsSL https://raw.githubusercontent
 # Speed up repeated runs by reusing cached artifacts (useful for debugging)
 sudo env REUSE_CACHED_ARTIFACTS=true sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
 
+# Run the playbook on Ansible's own strategy instead of Mitogen
+sudo env OVOS_INSTALLER_MITOGEN=false sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
+
 # Forward proxy variables into generated launchd/systemd services
 sudo env HTTPS_PROXY=http://proxy.example:3128 HTTP_PROXY=http://proxy.example:3128 NO_PROXY=localhost,127.0.0.1 sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
 ```
+
+### Install speed
+
+The playbook runs through [Mitogen](https://mitogen.networkgenomics.com/ansible_detailed.html),
+which keeps one Python interpreter alive for the whole run instead of starting
+a new one per task. On a local run that is worth roughly four times less CPU
+spent on task overhead, which matters most on a Raspberry Pi, where that
+overhead is a real part of the install rather than a rounding error.
+
+It is used only where it is supported — Python 3.11 or newer, which is what
+Mitogen supports for the pinned Ansible version — and the installer falls back
+to Ansible's own strategy on older interpreters, or if the package cannot be
+loaded, without failing the install. `OVOS_INSTALLER_MITOGEN=false` turns it
+off, which is the first thing to try if a run behaves oddly.
 
 Guide: [Begin your Open Voice OS journey with the OVOS installer](https://community.openconversational.ai/t/howto-begin-your-open-voice-os-journey-with-the-ovos-installer/14900)
 

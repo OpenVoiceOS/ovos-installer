@@ -153,6 +153,11 @@ case "${DISTRO_NAME:-}" in
     ;;
 esac
 export ANSIBLE_NOCOWS=1
+
+# After ANSIBLE_PYTHON_INTERPRETER: Mitogen starts the interpreter chosen
+# above and keeps it, so the strategy is only decided once that is settled.
+configure_ansible_strategy
+
 if [ -t 1 ]; then
   unset ANSIBLE_NOCOLOR || true
   export ANSIBLE_FORCE_COLOR=true

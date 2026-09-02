@@ -46,6 +46,14 @@ function handle_options() {
     # Always install and use uv instead of pip, which is significantly faster.
     export USE_UV="true"
 
+    # Run the playbook through Mitogen, which keeps one interpreter alive
+    # instead of starting a new one per task. Worth roughly 4x less CPU on the
+    # task overhead, which is what a Raspberry Pi spends most of its install
+    # budget on. Set OVOS_INSTALLER_MITOGEN=false to fall back to Ansible's
+    # own strategy; the installer already does that on its own wherever
+    # Mitogen is not supported or not importable.
+    export OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}"
+
     # Keep cached installer artifacts by default to speed repeated runs.
     # Set REUSE_CACHED_ARTIFACTS=false for clean-room troubleshooting.
     export REUSE_CACHED_ARTIFACTS="${REUSE_CACHED_ARTIFACTS:-true}"

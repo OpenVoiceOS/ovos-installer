@@ -1282,6 +1282,46 @@ function required_collections_present() {
     [ "$found_any" == "true" ]
 }
 
+# Whether this run may use Mitogen at all.
+#
+# Mitogen supports Ansible 10 only on Python 3.11 and newer, and the installer
+# still supports older interpreters, so the version gate is what keeps those
+# runs on Ansible's own strategy instead of an unsupported pairing. The switch
+# is checked here too, so an opted-out run does not even install the package.
+function mitogen_is_supported() {
+    [ "${OVOS_INSTALLER_MITOGEN:-true}" == "true" ] || return 1
+    [ -n "${PYTHON:-}" ] || return 1
+    [ "$(ver "$PYTHON")" -ge "$(ver 3.11)" ]
+}
+
+# Point Ansible at the Mitogen strategy, and say nothing if that is not on the
+# table. Resolving the plugin directory from the installed package is what
+# keeps this working whichever Python the virtualenv was built with.
+#
+# Falling back is deliberate: a missing or unloadable plugin costs the run its
+# speedup, and refusing to install over it would cost the user their install.
+function configure_ansible_strategy() {
+    local strategy_path=""
+
+    if ! mitogen_is_supported; then
+        printf '%s\n' "[info] Mitogen not used (python ${PYTHON:-unknown}, OVOS_INSTALLER_MITOGEN=${OVOS_INSTALLER_MITOGEN:-true})" &>>"$LOG_FILE"
+        return 0
+    fi
+
+    strategy_path="$("$VENV_PATH/bin/python3" -c \
+        'import os, ansible_mitogen.plugins.strategy as s; print(os.path.dirname(s.__file__))' \
+        2>>"$LOG_FILE" || true)"
+
+    if [ -z "$strategy_path" ] || [ ! -d "$strategy_path" ]; then
+        printf '%s\n' "[warn] Mitogen is not importable, continuing with the default Ansible strategy." &>>"$LOG_FILE"
+        return 0
+    fi
+
+    export ANSIBLE_STRATEGY_PLUGINS="$strategy_path"
+    export ANSIBLE_STRATEGY="mitogen_linear"
+    printf '%s\n' "[info] Using Mitogen strategy from ${strategy_path}" &>>"$LOG_FILE"
+}
+
 # Install Ansible into the new Python virtual environment and install the
 # collections required by the playbook. Collections are installed into a
 # repository-local path to avoid sudo/HOME collection discovery mismatches.
@@ -1308,6 +1348,12 @@ function install_ansible() {
         "docker==7.1.0"
         "requests==2.32.5"
     )
+
+    # Part of the package set rather than a separate install, so the cache
+    # check below notices when the switch or the interpreter changes.
+    if mitogen_is_supported; then
+        ansible_packages+=("mitogen==${MITOGEN_VERSION}")
+    fi
 
     if [ "${REUSE_CACHED_ARTIFACTS:-false}" == "true" ] \
         && python_packages_match_versions "$VENV_PATH/bin/python3" "${ansible_packages[@]}"; then

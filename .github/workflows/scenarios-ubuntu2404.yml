@@ -70,6 +70,14 @@ jobs:
         method:
           - virtualenv
           - containers
+        # The whole matrix runs through Mitogen, because that is the default.
+        # One entry opts out so the fallback keeps being a real install rather
+        # than a code path nobody runs, and so a regression that only appears
+        # under Mitogen can be told apart from one that does not.
+        include:
+          - runner: ubuntu-24.04
+            method: virtualenv
+            mitogen: "false"
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
@@ -78,6 +86,7 @@ jobs:
       CI_HOMEASSISTANT_URL: http://homeassistant.local:8123
       CI_HOMEASSISTANT_API_KEY: ci-token
       OVOS_CI_MAX_INSTALL_SECONDS: "2400"
+      OVOS_INSTALLER_MITOGEN: ${{ matrix.mitogen || 'true' }}
 
     steps:
       - name: Checkout code
@@ -150,6 +159,7 @@ jobs:
           sudo -E env \
             ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" \
             REUSE_CACHED_ARTIFACTS=true \
+            OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" \
             bash setup.sh
 
           elapsed="$(( $(date +%s) - start_ts ))"
@@ -178,7 +188,7 @@ jobs:
           EOF
 
       - name: Run uninstall scenario smoke
-        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" bash setup.sh
 
       - name: Dump diagnostics on failure
         if: failure()
@@ -310,11 +320,15 @@ jobs:
               HOMEASSISTANT_API_KEY="${CI_HOMEASSISTANT_API_KEY}" \
               ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" \
               REUSE_CACHED_ARTIFACTS=true \
+              OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" \
+            OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" \
               bash setup.sh
           else
             sudo -E env \
               ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" \
               REUSE_CACHED_ARTIFACTS=true \
+              OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" \
+            OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" \
               bash setup.sh
           fi
 
@@ -344,7 +358,7 @@ jobs:
           EOF
 
       - name: Run uninstall scenario exhaustive
-        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" bash setup.sh
 
       - name: Dump diagnostics on failure
         if: failure()
@@ -473,10 +487,10 @@ jobs:
           EOF
 
       - name: Run uninstall pass 1
-        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" bash setup.sh
 
       - name: Run uninstall pass 2
-        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" bash setup.sh
 
       - name: Dump diagnostics on failure
         if: failure()
@@ -620,7 +634,7 @@ jobs:
           EOF
 
       - name: Run uninstall cleanup
-        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" bash setup.sh
 
       - name: Dump diagnostics on failure
         if: failure()
@@ -735,7 +749,7 @@ jobs:
         shell: bash
         run: |
           set +e
-          sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+          sudo -E env REUSE_CACHED_ARTIFACTS=true OVOS_INSTALLER_MITOGEN="${OVOS_INSTALLER_MITOGEN:-true}" bash setup.sh
           rc=$?
           set -e
           if [ "$rc" -eq 0 ]; then
