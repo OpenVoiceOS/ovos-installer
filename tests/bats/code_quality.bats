@@ -2230,6 +2230,39 @@ YAML
     assert_success
 }
 
+@test "docs_links_between_markdown_files_resolve" {
+    # The README is deliberately short and hands the detail to docs/, which
+    # only works while the links do. A renamed file otherwise reads fine and
+    # goes nowhere.
+    local file link target missing=0
+
+    for file in README.md docs/*.md; do
+        while read -r link; do
+            case "$link" in
+                http*) continue ;;
+            esac
+            target="$(dirname "$file")/${link%%#*}"
+            if [ -n "${link%%#*}" ] && [ ! -e "$target" ]; then
+                echo "broken link in $file: $link" >&2
+                missing=1
+            fi
+        done < <(grep -oE '\]\([^)]+\)' "$file" | sed 's/^](//;s/)$//')
+    done
+
+    [ "$missing" -eq 0 ]
+}
+
+@test "readme_points_at_a_calibration_script_the_user_actually_has" {
+    # installer.sh removes its clone once the install succeeds, and the
+    # calibration helper is never deployed to the system, so telling people to
+    # run it from a relative path sends them to a file that is not there.
+    run grep -nE '^\s*(\./)?scripts/audio-calibrate\.sh' README.md docs/troubleshooting.md
+    assert_failure
+
+    run grep -F -q 'raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/scripts/audio-calibrate.sh' docs/troubleshooting.md
+    assert_success
+}
+
 @test "readme_screenshots_all_exist" {
     # The screenshots are rendered from the TUI by scripts/render_screenshots.py,
     # so a renamed or dropped one shows up as a broken image in the README.
