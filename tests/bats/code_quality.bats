@@ -2230,6 +2230,38 @@ YAML
     assert_success
 }
 
+@test "virtualenv_installs_the_terminal_client_where_it_can_read_the_config" {
+    # The client is designed to share the OVOS virtualenv: that is how it finds
+    # the configuration and the logs. It goes in the profiles that run OVOS
+    # locally, including server, which has no audio and so no other way to talk
+    # to it on the box.
+    local file
+
+    for file in core server; do
+        run grep -E '^ovos-tui-client$' \
+            "ansible/roles/ovos_virtualenv/templates/virtualenv/${file}-requirements.txt.j2"
+        assert_success
+    done
+
+    # Unpinned on purpose: its own floor is wide so pip can agree with the rest
+    # of the install, and a pin here is what would create a conflict.
+    run grep -E '^ovos-tui-client[=<>~]' \
+        ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
+    assert_failure
+}
+
+@test "readme_terminal_client_screenshot_is_present" {
+    # The point of the section is that a reader sees there is a terminal they
+    # can talk to OVOS through, so a missing image defeats it entirely.
+    [ -f docs/images/ovos-tui-client.png ] || { echo "missing terminal client screenshot" >&2; return 1; }
+
+    run grep -F -q 'docs/images/ovos-tui-client.png' README.md
+    assert_success
+
+    run grep -F -q 'docs/terminal-client.md' README.md
+    assert_success
+}
+
 @test "readme_telemetry_charts_have_both_themes_and_are_generated" {
     # The charts are rendered by a script and refreshed by a workflow. A hand-
     # drawn one would go stale silently, and a light-only one is unreadable on
