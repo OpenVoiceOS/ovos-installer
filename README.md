@@ -60,6 +60,19 @@ Lovelace?*
 
 If nothing happens, start with [Troubleshooting](docs/troubleshooting.md).
 
+### No microphone? Type instead
+
+[ovos-tui-client](docs/terminal-client.md) is a terminal you can talk to OVOS
+through — type what you would have said, read the reply, and watch which skill
+answered and why. Handy before the microphone is set up, on a machine that has
+none, or when you want to see what the assistant is actually doing.
+
+![Talking to OVOS from a terminal](docs/images/ovos-tui-client.png)
+
+It is a separate project, so it is a `pip install` away rather than something
+the installer sets up — [how to point it at your install](docs/terminal-client.md)
+covers virtualenv, containers and macOS.
+
 ## Everyday tasks
 
 | I want to… | Do this |
@@ -109,6 +122,7 @@ including which combinations macOS supports.
 
 ## Documentation
 
+- [Terminal client](docs/terminal-client.md) — talk to OVOS without a microphone
 - [Managing OVOS](docs/services.md) — starting, stopping and checking services
 - [Automation](docs/automation.md) — unattended installs and every setting
 - [macOS](docs/macos.md) — extra setup Macs need
