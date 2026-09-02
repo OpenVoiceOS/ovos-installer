@@ -71,3 +71,11 @@ ovos-PHAL[mk1]
 ovos-PHAL[mk2dev]
 git+https://github.com/OVOSHatchery/ovos-PHAL-plugin-sj201-leds.git
 {% endif %}
+
+# A terminal to talk to OVOS through, for when there is no microphone yet or
+# none at all: type an utterance, read the reply, watch which skill answered.
+# It lives in this virtualenv on purpose - that is how it reads the OVOS
+# configuration and finds the logs. Deliberately unpinned: its own floor is
+# wide (textual>=0.60) so pip can settle on whatever agrees with the rest of
+# the install, and pinning it here would be the thing that creates a conflict.
+ovos-tui-client

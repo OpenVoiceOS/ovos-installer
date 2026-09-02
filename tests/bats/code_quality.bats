@@ -2230,6 +2230,26 @@ YAML
     assert_success
 }
 
+@test "virtualenv_installs_the_terminal_client_where_it_can_read_the_config" {
+    # The client is designed to share the OVOS virtualenv: that is how it finds
+    # the configuration and the logs. It goes in the profiles that run OVOS
+    # locally, including server, which has no audio and so no other way to talk
+    # to it on the box.
+    local file
+
+    for file in core server; do
+        run grep -E '^ovos-tui-client$' \
+            "ansible/roles/ovos_virtualenv/templates/virtualenv/${file}-requirements.txt.j2"
+        assert_success
+    done
+
+    # Unpinned on purpose: its own floor is wide so pip can agree with the rest
+    # of the install, and a pin here is what would create a conflict.
+    run grep -E '^ovos-tui-client[=<>~]' \
+        ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2
+    assert_failure
+}
+
 @test "readme_terminal_client_screenshot_is_present" {
     # The point of the section is that a reader sees there is a terminal they
     # can talk to OVOS through, so a missing image defeats it entirely.

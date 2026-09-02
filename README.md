@@ -69,9 +69,9 @@ none, or when you want to see what the assistant is actually doing.
 
 ![Talking to OVOS from a terminal](docs/images/ovos-tui-client.png)
 
-It is a separate project, so it is a `pip install` away rather than something
-the installer sets up — [how to point it at your install](docs/terminal-client.md)
-covers virtualenv, containers and macOS.
+Virtualenv installs get it in the box — `~/.venvs/ovos/bin/ovos-tui` and you
+are talking to it. Container installs run it as a container too;
+[Running it](docs/terminal-client.md) has both.
 
 ## Everyday tasks
 
