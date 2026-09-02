@@ -77,9 +77,15 @@ settings.
 
 ## Who is running it
 
-From installs that opted in to [telemetry](docs/telemetry.md) — the numbers
-update on their own, and the [live dashboard](https://telemetry.smartgic.io/ovos-installer/dashboard/)
-has the interactive version with everything else it collects.
+From installs that accepted **installer telemetry**, which is one of the two
+questions the installer asks about sharing data — this one, sent to
+`telemetry.smartgic.io` while the install runs, and separately usage metrics,
+sent elsewhere during normal use. Both are off unless you accept them, and
+[Telemetry](docs/telemetry.md) lists exactly what each one sends.
+
+The numbers update on their own. The
+[live dashboard](https://telemetry.smartgic.io/ovos-installer/dashboard/) has
+the interactive version.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/telemetry-os-dark.svg">
