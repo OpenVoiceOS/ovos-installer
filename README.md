@@ -4,6 +4,10 @@ Installs [Open Voice OS](https://github.com/OpenVoiceOS/ovos-core), a private,
 open-source voice assistant, on a Linux machine, a Raspberry Pi, or a Mac. It
 asks a handful of questions and sets up everything else itself.
 
+[![Installs reported](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.meta.record_count&label=installs%20reported&color=2a78d6&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
+[![Distributions](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.aggregates.os.length&label=distributions&color=1baf7a&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
+[![Countries](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.aggregates.country.length&label=countries&color=4a3aa7&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
+
 ## Install
 
 ```shell
@@ -45,6 +49,22 @@ If nothing happens, start with [Troubleshooting](docs/troubleshooting.md).
 Back up `~/.config/mycroft/mycroft.conf` (or `~/ovos/config/mycroft.conf` for
 container installs) before updating or uninstalling if you want to keep your
 settings.
+
+## Who is running it
+
+From installs that opted in to [telemetry](docs/telemetry.md) — the numbers
+update on their own, and the [live dashboard](https://telemetry.smartgic.io/ovos-installer/dashboard/)
+has the interactive version with everything else it collects.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/telemetry-os-dark.svg">
+  <img alt="Operating systems reported by installs" src="docs/images/telemetry-os-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/telemetry-features-dark.svg">
+  <img alt="Share of installs enabling each feature" src="docs/images/telemetry-features-light.svg">
+</picture>
 
 ## Will it run on my machine?
 

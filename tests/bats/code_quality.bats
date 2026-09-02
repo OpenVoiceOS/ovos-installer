@@ -2230,6 +2230,39 @@ YAML
     assert_success
 }
 
+@test "readme_telemetry_charts_have_both_themes_and_are_generated" {
+    # The charts are rendered by a script and refreshed by a workflow. A hand-
+    # drawn one would go stale silently, and a light-only one is unreadable on
+    # GitHub's dark theme, which is what <picture> is doing here.
+    local chart
+
+    for chart in telemetry-os telemetry-features; do
+        [ -f "docs/images/${chart}-light.svg" ] || { echo "missing ${chart}-light.svg" >&2; return 1; }
+        [ -f "docs/images/${chart}-dark.svg" ] || { echo "missing ${chart}-dark.svg" >&2; return 1; }
+
+        run grep -F -q "docs/images/${chart}-dark.svg" README.md
+        assert_success
+        run grep -F -q "docs/images/${chart}-light.svg" README.md
+        assert_success
+    done
+
+    run test -x scripts/render_telemetry_charts.py
+    assert_success
+
+    run grep -F -q 'render_telemetry_charts.py' .github/workflows/telemetry_charts.yml
+    assert_success
+}
+
+@test "readme_telemetry_badges_point_at_the_public_summary" {
+    # A badge querying a path that no longer exists renders the word "invalid"
+    # in the README rather than failing anywhere visible to us.
+    run grep -F -q 'telemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary' README.md
+    assert_success
+
+    run grep -F -q 'meta.record_count' README.md
+    assert_success
+}
+
 @test "docs_links_between_markdown_files_resolve" {
     # The README is deliberately short and hands the detail to docs/, which
     # only works while the links do. A renamed file otherwise reads fine and
