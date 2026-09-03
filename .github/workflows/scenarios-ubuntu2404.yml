@@ -159,6 +159,10 @@ jobs:
             exit 1
           fi
 
+      - name: Validate the intent engine survived the install
+        if: matrix.method == 'virtualenv'
+        run: .github/scripts/assert_intent_engine.sh "$HOME/.venvs/ovos/bin/python"
+
       - name: Create uninstall scenario file
         shell: bash
         run: |
@@ -324,6 +328,10 @@ jobs:
             echo "Installer runtime ${elapsed}s exceeded threshold ${OVOS_CI_MAX_INSTALL_SECONDS}s"
             exit 1
           fi
+
+      - name: Validate the intent engine survived the install
+        if: matrix.method == 'virtualenv'
+        run: .github/scripts/assert_intent_engine.sh "$HOME/.venvs/ovos/bin/python"
 
       - name: Create uninstall scenario file
         shell: bash

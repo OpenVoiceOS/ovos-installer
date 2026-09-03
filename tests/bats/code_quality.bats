@@ -3575,3 +3575,31 @@ function teardown() {
     run grep -q "failed_when: false" "$constraints"
     assert_success
 }
+
+@test "scenarios_assert_an_intent_engine_survived_the_install" {
+    # padatious reaches the venv only through an ovos-core extra, so it can be
+    # dropped without any task failing - the install reports failed=0 and has
+    # no intent engine. Structure tests catch a changed gate; only a
+    # post-install assertion catches a changed resolution.
+    local script=".github/scripts/assert_intent_engine.sh"
+
+    run test -x "$script"
+    assert_success
+
+    run grep -q "ovos-padatious" "$script"
+    assert_success
+
+    # The fann2 expectation must come from the installed padatious, not from a
+    # channel name, or it goes stale the moment stable moves to a 2.x core.
+    # Comments may name channels to explain that; the code may not branch on
+    # one, so only non-comment lines are checked.
+    run bash -c "grep -vE '^[[:space:]]*#' \"$script\" | grep -qE '\\b(stable|testing|alpha)\\b'"
+    assert_failure
+
+    # Every workflow that installs into a virtualenv has to run it.
+    local workflow
+    for workflow in macos_ci scenarios-archlinux scenarios-ubuntu2404; do
+        run grep -q "assert_intent_engine.sh" ".github/workflows/${workflow}.yml"
+        assert_success
+    done
+}

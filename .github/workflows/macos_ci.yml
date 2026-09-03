@@ -278,6 +278,9 @@ jobs:
             exit 1
           fi
 
+      - name: Validate the intent engine survived the install
+        run: .github/scripts/assert_intent_engine.sh "$HOME/.venvs/ovos/bin/python"
+
       - name: Create uninstall scenario
         shell: bash
         run: |
