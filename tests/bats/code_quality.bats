@@ -2230,6 +2230,85 @@ YAML
     assert_success
 }
 
+@test "container_autoconfigure_only_runs_where_ovos_cli_exists" {
+    # ovos_cli comes from the base, Windows and Raspberry Pi compositions, and
+    # all three are gated on a desktop profile. A satellite container install
+    # has none of them, so an unguarded exec kills the run with "Could not find
+    # container ovos_cli" after the stack is already up.
+    local file="ansible/roles/ovos_containers/tasks/composer.yml"
+
+    run bash -c "
+        awk '/^- name: Merge ovos-config language recommendations/,/^\$/' '$file' \
+          | grep -q 'ovos_containers_is_desktop_profile'
+    "
+    assert_success
+
+    # The three compositions that define ovos_cli - base, Windows and
+    # Raspberry Pi - each carry the same gate. Assert the count, so removing
+    # one is caught rather than hidden by the other two still matching.
+    run command grep -c 'ovos_containers_is_desktop_profile | bool and' \
+        ansible/roles/ovos_containers/defaults/main.yml
+    assert_success
+    assert_output "3"
+}
+
+@test "container_exec_tasks_are_all_restricted_to_a_profile_that_has_them" {
+    # The general form of the bug above: a task that execs into a container
+    # runs on every profile unless it says otherwise, and the compositions
+    # that define those containers are per-profile. An unguarded exec is a
+    # late, confusing failure - the stack is already up and pulled by then.
+    #
+    # Every docker_container_exec must name a profile in its own `when:`.
+    # Only the `when:` field counts: a profile named in the task title, in
+    # the command, or in a nearby comment guards nothing at runtime, so it
+    # must not satisfy this check either.
+    local report total guarded offenders
+    report="$(command find ansible -name '*.yml' -print0 | command xargs -0 awk '
+        function endtask() {
+            if (has_exec) {
+                total++
+                if (guarded) ok++; else offenders = offenders "    " where "\n"
+            }
+            has_exec = 0; guarded = 0; in_when = 0
+        }
+        /^[[:space:]]*-[[:space:]]+name:/ {
+            endtask()
+            where = FILENAME ":" FNR
+        }
+        {
+            probe = $0
+            sub(/#.*/, "", probe)                 # a comment guards nothing
+            if (probe ~ /^[[:space:]]*$/) next
+            indent = match(probe, /[^[:space:]]/) - 1
+            if (in_when && indent <= when_indent) in_when = 0
+            if (probe ~ /community\.docker\.docker_container_exec/) has_exec = 1
+            if (probe ~ /^[[:space:]]*when:/) {
+                in_when = 1
+                when_indent = indent
+                sub(/^[[:space:]]*when:[[:space:]]*/, "", probe)   # inline form
+            }
+            if (!in_when) next
+            if (probe ~ /ovos_containers_is_desktop_profile/ ||
+                probe ~ /ovos_installer_profile[[:space:]]*==/ ||
+                probe ~ /ovos_containers_profile[[:space:]]*==/) guarded = 1
+        }
+        END { endtask(); printf "%d %d\n%s", total + 0, ok + 0, offenders }
+    ')"
+
+    total="$(printf '%s' "$report" | head -1 | cut -d" " -f1)"
+    guarded="$(printf '%s' "$report" | head -1 | cut -d" " -f2)"
+    offenders="$(printf '%s' "$report" | tail -n +2)"
+
+    [ "$total" -ge 1 ] || { echo "no container exec tasks found - did the module move?" >&2; return 1; }
+
+    if [ "$guarded" -ne "$total" ]; then
+        echo "container exec tasks: $total, profile-guarded: $guarded" >&2
+        echo "an exec into a per-profile container needs a profile in its when::" >&2
+        echo "$offenders" >&2
+        return 1
+    fi
+}
+
 @test "virtualenv_installs_the_terminal_client_where_it_can_read_the_config" {
     # The client is designed to share the OVOS virtualenv: that is how it finds
     # the configuration and the logs. It goes in the profiles that run OVOS

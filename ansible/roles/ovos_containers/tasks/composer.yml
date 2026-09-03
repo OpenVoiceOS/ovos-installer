@@ -71,6 +71,11 @@
   when:
     - not ansible_check_mode
     - ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool
+    # ovos_cli is defined by the base, Windows and Raspberry Pi compositions,
+    # and every one of those is gated on a desktop profile. A satellite has
+    # none of them, so without this the install dies here on "Could not find
+    # container ovos_cli" after the stack is already up.
+    - ovos_containers_is_desktop_profile | bool
 
 - name: Compute optional skills flags
   vars:
