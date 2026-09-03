@@ -5,7 +5,10 @@ hivemind-http-protocol
 hivemind-presence
 
 # OVOS
-ovos-core[lgpl,plugins]
+{# padatious 1.x lives behind the lgpl extra; 2.x moved it into plugins and
+   dropped fann2, and asking for lgpl there only earns an unknown-extra
+   warning. Same switch as the fann2 build chain in packages.yml. #}
+ovos-core[{{ 'lgpl,plugins' if ovos_virtualenv_needs_fann2 | bool else 'plugins' }}]
 
 # A terminal to talk to OVOS through, for when there is no microphone yet or
 # none at all: type an utterance, read the reply, watch which skill answered.

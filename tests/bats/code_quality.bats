@@ -606,6 +606,9 @@ function setup() {
 @test "virtualenv_caches_constraints_file_and_uses_local_constraints_for_uv" {
     local defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
     local tasks_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    # The fetch itself moved to constraints.yml so the package tasks can read
+    # the channel pin before installing anything; venv.yml still consumes it.
+    local constraints_file="ansible/roles/ovos_virtualenv/tasks/constraints.yml"
 
     run grep -q "ovos_virtualenv_constraints_url" "$defaults_file"
     assert_success
@@ -625,10 +628,10 @@ function setup() {
     run grep -q "ovos_virtualenv_uv_install_delay" "$defaults_file"
     assert_success
 
-    run grep -q "Check cached OVOS constraints file" "$tasks_file"
+    run grep -q "Check cached OVOS constraints file" "$constraints_file"
     assert_success
 
-    run grep -q "Cache OVOS constraints file" "$tasks_file"
+    run grep -q "Cache OVOS constraints file" "$constraints_file"
     assert_success
 
     run bash -c "grep -A6 -F -- \"- name: Install Open Voice OS in Python venv\" \"$tasks_file\" | grep -F -q -- \"--constraint {{ ovos_virtualenv_constraints_path }}\""
@@ -3437,4 +3440,138 @@ function teardown() {
         rm -f "utils/detect_sound.py"
     fi
     unset RUN_AS RUN_AS_UID SUDO_USER SUDO_UID USER_ID SOUND_SERVER
+}
+
+@test "virtualenv_fann2_build_chain_is_gated_on_the_channel_needing_it" {
+    # fann2 is a dependency of ovos-padatious 1.x only. A channel on 2.x must
+    # not install swig or the FANN headers, nor build the swig2.0 shim, so
+    # every fann/swig task has to carry the guard in its own `when:` - the
+    # same when-scoped check used for the container exec tasks, because a
+    # variable named in a task title or a comment gates nothing at runtime.
+    local file="ansible/roles/ovos_virtualenv/tasks/packages.yml"
+    local report named guarded offenders
+
+    report="$(awk '
+        function endtask() {
+            if (is_fann) {
+                named++
+                if (guarded) ok++; else offenders = offenders "    " where "\n"
+            }
+            is_fann = 0; guarded = 0; in_when = 0
+        }
+        /^-[[:space:]]+name:/ {
+            endtask()
+            where = FNR ": " substr($0, 9)
+            if (tolower($0) ~ /fann|swig/) is_fann = 1
+        }
+        {
+            probe = $0
+            sub(/#.*/, "", probe)
+            if (probe ~ /^[[:space:]]*$/) next
+            indent = match(probe, /[^[:space:]]/) - 1
+            if (in_when && indent <= when_indent) in_when = 0
+            if (probe ~ /^[[:space:]]*when:/) {
+                in_when = 1
+                when_indent = indent
+                sub(/^[[:space:]]*when:[[:space:]]*/, "", probe)
+            }
+            if (in_when && probe ~ /ovos_virtualenv_needs_fann2/) guarded = 1
+        }
+        END { endtask(); printf "%d %d\n%s", named + 0, ok + 0, offenders }
+    ' "$file")"
+
+    named="$(printf '%s' "$report" | head -1 | cut -d" " -f1)"
+    guarded="$(printf '%s' "$report" | head -1 | cut -d" " -f2)"
+    offenders="$(printf '%s' "$report" | tail -n +2)"
+
+    [ "$named" -ge 5 ] || { echo "expected the fann2 build tasks, found $named" >&2; return 1; }
+
+    if [ "$guarded" -ne "$named" ]; then
+        echo "fann/swig tasks: $named, guarded by ovos_virtualenv_needs_fann2: $guarded" >&2
+        echo "these run on channels that do not build fann2:" >&2
+        echo "$offenders" >&2
+        return 1
+    fi
+}
+
+@test "virtualenv_base_package_lists_carry_no_fann2_build_dependencies" {
+    # The build chain lives in its own lists so the composed ones can drop it.
+    # A stray swig back in a base list would reinstate it on every channel.
+    local defaults="ansible/roles/ovos_virtualenv/defaults/main.yml"
+
+    run awk '
+        /^ovos_virtualenv_(packages|macos_packages)[a-z_]*_base:/ { in_list = 1; name = $1; next }
+        /^[a-z]/ { in_list = 0 }
+        in_list && /^  - / && (tolower($2) ~ /^(swig|fann)/ || tolower($2) ~ /fann/) { print name " " $2 }
+    ' "$defaults"
+    assert_success
+    assert_output ""
+
+    # ...and each family still has one, so the split cannot silently vanish.
+    local family
+    for family in debian redhat suse arch macos; do
+        run grep -q "^ovos_virtualenv_fann2_packages_${family}:" "$defaults"
+        assert_success
+    done
+}
+
+@test "virtualenv_lgpl_extra_follows_the_fann2_decision" {
+    # padatious 1.x is reachable only through the lgpl extra, so dropping it
+    # unconditionally removes the intent engine from stable and testing; asking
+    # for it on a 3.x core only earns an unknown-extra warning. Neither
+    # template may hardcode the answer.
+    local template
+    for template in core server; do
+        local path="ansible/roles/ovos_virtualenv/templates/virtualenv/${template}-requirements.txt.j2"
+        run test -f "$path"
+        assert_success
+
+        run grep -q "^ovos-core\[lgpl,plugins\]" "$path"
+        assert_failure
+
+        run grep -q "ovos_virtualenv_needs_fann2" "$path"
+        assert_success
+    done
+}
+
+@test "virtualenv_constraints_are_resolved_before_the_package_tasks" {
+    # The fann2 decision is read out of the channel constraints, so the fetch
+    # has to happen before any package is installed - not in venv.yml, which
+    # runs after packages.yml.
+    local main="ansible/roles/ovos_virtualenv/tasks/main.yml"
+
+    run test -f "ansible/roles/ovos_virtualenv/tasks/constraints.yml"
+    assert_success
+
+    local constraints_line packages_line
+    constraints_line="$(command grep -n "import_tasks: constraints.yml" "$main" | cut -d: -f1)"
+    packages_line="$(command grep -n "import_tasks: packages.yml" "$main" | cut -d: -f1)"
+
+    [ -n "$constraints_line" ] || { echo "constraints.yml is never imported" >&2; return 1; }
+    [ "$constraints_line" -lt "$packages_line" ] || {
+        echo "constraints.yml ($constraints_line) must be imported before packages.yml ($packages_line)" >&2
+        return 1
+    }
+
+    # venv.yml must not fetch them a second time.
+    run grep -q "Cache OVOS constraints file" "ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    assert_failure
+}
+
+@test "virtualenv_fann2_decision_fails_safe_towards_building_it" {
+    # An unreadable or missing constraints file must keep the previous
+    # behaviour. Dropping the intent engine is the expensive failure; a
+    # needless swig install is the cheap one.
+    local defaults="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local constraints="ansible/roles/ovos_virtualenv/tasks/constraints.yml"
+
+    run grep -q "^ovos_virtualenv_needs_fann2: true$" "$defaults"
+    assert_success
+
+    # The major-version lookup falls back to 1 when nothing matches.
+    run grep -q "default('1')" "$constraints"
+    assert_success
+
+    run grep -q "failed_when: false" "$constraints"
+    assert_success
 }

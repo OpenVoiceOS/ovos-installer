@@ -4,6 +4,10 @@
   tags:
     - always
 
+- name: Include constraints.yml
+  ansible.builtin.import_tasks: constraints.yml
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
 - name: Include packages.yml
   ansible.builtin.import_tasks: packages.yml
   when: not (ovos_virtualenv_is_cleaning | bool)

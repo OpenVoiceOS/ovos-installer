@@ -159,6 +159,7 @@
     - ansible_facts.system == "Darwin"
     - ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir
 
+    - ovos_virtualenv_needs_fann2 | bool
 - name: Discover Homebrew fann dylibs on macOS
   ansible.builtin.find:
     paths: "{{ ovos_virtualenv_macos_fann_source_lib_dir }}"
@@ -170,6 +171,7 @@
     - ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir
     - ovos_virtualenv_macos_fann_source_dir.stat.exists | default(false)
 
+    - ovos_virtualenv_needs_fann2 | bool
 - name: Ensure fallback lib directory exists for fann build compatibility
   ansible.builtin.file:
     path: "{{ ovos_virtualenv_macos_fann_target_lib_dir }}"
@@ -180,6 +182,7 @@
     - ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir
     - ovos_virtualenv_macos_fann_dylibs.matched | default(0) | int > 0
 
+    - ovos_virtualenv_needs_fann2 | bool
 - name: Create fann compatibility symlinks for legacy build scripts
   ansible.builtin.file:
     src: "{{ item.path }}"
@@ -194,13 +197,16 @@
     - ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir
     - ovos_virtualenv_macos_fann_dylibs.matched | default(0) | int > 0
 
+    - ovos_virtualenv_needs_fann2 | bool
 - name: Handle fann package from AUR (Arch based only)
   become_user: "{{ ovos_installer_user }}"
   kewlfft.aur.aur:
     name: "{{ ovos_virtualenv_packages_arch_aur | default([]) }}"
     use: makepkg
   register: ovos_virtualenv_aur_package_install_result
-  when: ansible_facts.os_family == "Archlinux"
+  when:
+    - ansible_facts.os_family == "Archlinux"
+    - ovos_virtualenv_needs_fann2 | bool
   tags:
     - skip_ansible_lint
 
@@ -222,7 +228,9 @@
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     mode: "0755"
-  when: ansible_facts.system in ['Linux', 'Darwin']
+  when:
+    - ansible_facts.system in ['Linux', 'Darwin']
+    - ovos_virtualenv_needs_fann2 | bool
 
 # "command -v" is a shell builtin, unlike which(1), which is a separate package
 # that minimal images do not always carry. Resolving through it means a missing
@@ -240,7 +248,9 @@
   failed_when: false
   environment:
     PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
-  when: ansible_facts.system in ['Linux', 'Darwin']
+  when:
+    - ansible_facts.system in ['Linux', 'Darwin']
+    - ovos_virtualenv_needs_fann2 | bool
 
 # swig 4.5.0 dropped the Python 2 compatibility macros from its generated
 # wrappers, which fann2 1.0.7 typemaps still call. The shim runs the real swig
@@ -256,3 +266,4 @@
   when:
     - ansible_facts.system in ['Linux', 'Darwin']
     - (ovos_virtualenv_swig_bin.stdout | default('') | trim | length) > 0
+    - ovos_virtualenv_needs_fann2 | bool
