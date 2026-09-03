@@ -2,7 +2,10 @@
 {% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}
 {% set _ovos_is_devkit = _ovos_is_mark2_family and ('attiny1614' in (ovos_installer_i2c_devices | default([]))) %}
 ovos-audio[extras]
-ovos-core[lgpl,plugins]
+{# padatious 1.x lives behind the lgpl extra; 2.x moved it into plugins and
+   dropped fann2, and asking for lgpl there only earns an unknown-extra
+   warning. Same switch as the fann2 build chain in packages.yml. #}
+ovos-core[{{ 'lgpl,plugins' if ovos_virtualenv_needs_fann2 | bool else 'plugins' }}]
 ovos-dinkum-listener[{{ 'extras' if ansible_facts.system == 'Darwin' else 'extras,linux' }}]
 # Keep configured VAD selection and its fallback installed explicitly.
 {% if (ovos_installer_cpu_is_capable | default(false)) | bool %}

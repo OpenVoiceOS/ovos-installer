@@ -42,6 +42,10 @@ ovos_virtualenv_uv_environment: >-
         else {}
       )
   }}
+# Overridden in constraints.yml from the channel pin; defaults to the old
+# behaviour (build fann2) so a skipped or unreadable constraints file never
+# silently drops the intent engine.
+ovos_virtualenv_needs_fann2: true
 ovos_virtualenv_constraints_url: "https://raw.githubusercontent.com/OpenVoiceOS/ovos-releases/refs/heads/main/constraints-{{ ovos_installer_channel }}.txt"
 ovos_virtualenv_constraints_path: "{{ ovos_virtualenv_tmp_dir }}/constraints-{{ ovos_installer_channel }}.txt"
 ovos_virtualenv_constraints_refresh_interval: "{{ ovos_installer_constraints_refresh_interval | default(21600) }}"
@@ -116,10 +120,8 @@ ovos_virtualenv_macos_fann_library_path: >-
   {{ ovos_virtualenv_macos_fann_source_lib_dir }}{{ ':' ~ ovos_virtualenv_macos_fann_target_lib_dir if ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir else '' }}
 ovos_virtualenv_macos_fann_pkg_config_path: >-
   {{ ovos_virtualenv_macos_fann_source_lib_dir }}/pkgconfig{{ ':' ~ ovos_virtualenv_macos_fann_target_lib_dir ~ '/pkgconfig' if ovos_virtualenv_macos_fann_source_lib_dir != ovos_virtualenv_macos_fann_target_lib_dir else '' }}
-ovos_virtualenv_packages_debian:
+ovos_virtualenv_packages_debian_base:
   - build-essential
-  - swig
-  - libfann-dev
   - libasound2-dev
   - libpulse-dev
   - libportaudio2
@@ -137,10 +139,8 @@ ovos_virtualenv_packages_debian:
   - libicu-dev
   - portaudio19-dev
   - libjpeg-dev
-ovos_virtualenv_packages_redhat:
+ovos_virtualenv_packages_redhat_base:
   - gcc-c++
-  - swig
-  - fann-devel
   - alsa-lib-devel
   - pulseaudio-libs-devel
   - portaudio
@@ -153,10 +153,8 @@ ovos_virtualenv_packages_redhat:
   - libicu-devel
   - portaudio-devel
   - espeak-ng
-ovos_virtualenv_packages_suse:
+ovos_virtualenv_packages_suse_base:
   - gcc-c++
-  - swig
-  - libfann-devel
   - alsa-lib-devel
   - libpulse-devel
   - libportaudio2
@@ -168,9 +166,8 @@ ovos_virtualenv_packages_suse:
   - mpv
   - libopenblas_serial-devel
   - portaudio-devel
-ovos_virtualenv_packages_arch:
+ovos_virtualenv_packages_arch_base:
   - base-devel
-  - swig
   - alsa-lib
   - portaudio
   - mpg123
@@ -180,12 +177,8 @@ ovos_virtualenv_packages_arch:
   - libxslt
   - openblas
   - espeak-ng
-ovos_virtualenv_packages_arch_aur:
-  - fann
 ovos_virtualenv_packages_arch_tracked: "{{ (ovos_virtualenv_packages_arch + ovos_virtualenv_packages_arch_aur) | unique }}"
-ovos_virtualenv_macos_packages:
-  - fann
-  - swig
+ovos_virtualenv_macos_packages_base:
   - pkg-config
   - portaudio
   - mpg123
@@ -198,6 +191,34 @@ ovos_virtualenv_macos_packages:
   - jpeg-turbo
   - espeak-ng
   - brightness
+
+# ovos-padatious 1.x builds the fann2 C extension from source, which needs swig
+# and the FANN headers. padatious 2.x dropped fann2 entirely, so a channel on it
+# installs none of this and skips the swig2.0 shim in packages.yml. Composed
+# lazily: ovos_virtualenv_needs_fann2 is decided in constraints.yml, before the
+# package tasks run.
+ovos_virtualenv_fann2_packages_debian:
+  - swig
+  - libfann-dev
+ovos_virtualenv_fann2_packages_redhat:
+  - swig
+  - fann-devel
+ovos_virtualenv_fann2_packages_suse:
+  - swig
+  - libfann-devel
+ovos_virtualenv_fann2_packages_arch:
+  - swig
+ovos_virtualenv_fann2_packages_arch_aur:
+  - fann
+ovos_virtualenv_fann2_packages_macos:
+  - fann
+  - swig
+ovos_virtualenv_packages_debian: "{{ ovos_virtualenv_packages_debian_base + (ovos_virtualenv_fann2_packages_debian if ovos_virtualenv_needs_fann2 | bool else []) }}"
+ovos_virtualenv_packages_redhat: "{{ ovos_virtualenv_packages_redhat_base + (ovos_virtualenv_fann2_packages_redhat if ovos_virtualenv_needs_fann2 | bool else []) }}"
+ovos_virtualenv_packages_suse: "{{ ovos_virtualenv_packages_suse_base + (ovos_virtualenv_fann2_packages_suse if ovos_virtualenv_needs_fann2 | bool else []) }}"
+ovos_virtualenv_packages_arch: "{{ ovos_virtualenv_packages_arch_base + (ovos_virtualenv_fann2_packages_arch if ovos_virtualenv_needs_fann2 | bool else []) }}"
+ovos_virtualenv_macos_packages: "{{ ovos_virtualenv_macos_packages_base + (ovos_virtualenv_fann2_packages_macos if ovos_virtualenv_needs_fann2 | bool else []) }}"
+ovos_virtualenv_packages_arch_aur: "{{ ovos_virtualenv_fann2_packages_arch_aur if ovos_virtualenv_needs_fann2 | bool else [] }}"
 ovos_virtualenv_gui_packages_debian:
   - cmake
   - gettext

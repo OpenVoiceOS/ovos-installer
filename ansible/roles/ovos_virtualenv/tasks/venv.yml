@@ -215,39 +215,6 @@
     - not (ovos_virtualenv_is_cleaning | bool)
     - ovos_installer_enable_ggwave | bool
 
-- name: Check cached OVOS constraints file
-  ansible.builtin.stat:
-    path: "{{ ovos_virtualenv_constraints_path }}"
-  register: ovos_virtualenv_constraints_file
-  changed_when: false
-  when: not (ovos_virtualenv_is_cleaning | bool)
-
-- name: Decide whether OVOS constraints refresh is required
-  ansible.builtin.set_fact:
-    ovos_virtualenv_constraints_refresh_required: >-
-      {{
-        ovos_virtualenv_constraints_force_sync | bool
-        or not (ovos_virtualenv_constraints_file.stat.exists | default(false))
-        or (
-          (lookup('pipe', 'date +%s') | int)
-          - (ovos_virtualenv_constraints_file.stat.mtime | default(0) | int)
-          > (ovos_virtualenv_constraints_refresh_interval | int)
-        )
-      }}
-  changed_when: false
-  when: not (ovos_virtualenv_is_cleaning | bool)
-
-- name: Cache OVOS constraints file
-  ansible.builtin.get_url:
-    url: "{{ ovos_virtualenv_constraints_url }}"
-    dest: "{{ ovos_virtualenv_constraints_path }}"
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    mode: "0644"
-  when:
-    - not (ovos_virtualenv_is_cleaning | bool)
-    - ovos_virtualenv_constraints_refresh_required | bool
-
 - name: Install Open Voice OS in Python venv
   become: true
   become_user: "{{ ovos_installer_user }}"

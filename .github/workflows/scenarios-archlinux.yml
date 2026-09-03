@@ -101,6 +101,12 @@ jobs:
           print("fann2 usable, num_input =", network.get_num_input())
           PY
 
+      - name: Validate the intent engine survived the install
+        run: |
+          .github/scripts/assert_intent_engine.sh \
+            "${OVOS_CI_INSTALL_HOME}/.venvs/ovos/bin/python" \
+            "$OVOS_CI_INSTALL_USER"
+
       - name: Run ovos_virtualenv uninstall
         run: .github/scripts/run_virtualenv_role.sh true
 

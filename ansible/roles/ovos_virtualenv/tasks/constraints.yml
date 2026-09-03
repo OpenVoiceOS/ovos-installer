@@ -1,0 +1,63 @@
+---
+# The constraints file is fetched here rather than in venv.yml because the
+# package tasks need it too: whether this channel still builds fann2 is decided
+# from its ovos-padatious pin, and that decision has to be made before any
+# system package is installed.
+- name: Check cached OVOS constraints file
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_constraints_path }}"
+  register: ovos_virtualenv_constraints_file
+  changed_when: false
+
+- name: Decide whether OVOS constraints refresh is required
+  ansible.builtin.set_fact:
+    ovos_virtualenv_constraints_refresh_required: >-
+      {{
+        ovos_virtualenv_constraints_force_sync | bool
+        or not (ovos_virtualenv_constraints_file.stat.exists | default(false))
+        or (
+          (lookup('pipe', 'date +%s') | int)
+          - (ovos_virtualenv_constraints_file.stat.mtime | default(0) | int)
+          > (ovos_virtualenv_constraints_refresh_interval | int)
+        )
+      }}
+  changed_when: false
+
+- name: Cache OVOS constraints file
+  ansible.builtin.get_url:
+    url: "{{ ovos_virtualenv_constraints_url }}"
+    dest: "{{ ovos_virtualenv_constraints_path }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+  when: ovos_virtualenv_constraints_refresh_required | bool
+
+# Read back rather than trust the download: in check mode get_url writes
+# nothing, and a cached file from a previous run is just as authoritative.
+- name: Read OVOS constraints for the fann2 build decision
+  ansible.builtin.slurp:
+    src: "{{ ovos_virtualenv_constraints_path }}"
+  register: ovos_virtualenv_constraints_blob
+  failed_when: false
+  changed_when: false
+
+# fann2 is a dependency of ovos-padatious 1.x only; 2.x dropped it. Keying on
+# the resolved pin rather than the channel name means this flips on its own when
+# stable and testing move to a padatious 2.x core, instead of needing an edit.
+# An unreadable or pinless file falls back to 1, i.e. the previous behaviour.
+- name: Derive whether this channel still needs the fann2 build chain
+  vars:
+    _ovos_constraints_text: "{{ ovos_virtualenv_constraints_blob.content | default('') | b64decode }}"
+    _ovos_padatious_major: >-
+      {{
+        (
+          _ovos_constraints_text
+          | regex_search('ovos[-_]padatious[^0-9\n]*([0-9]+)', '\1')
+          | default([], true)
+          | first
+          | default('1')
+        )
+      }}
+  ansible.builtin.set_fact:
+    ovos_virtualenv_needs_fann2: "{{ (_ovos_padatious_major | int) < 2 }}"
+  changed_when: false
