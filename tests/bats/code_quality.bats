@@ -2258,24 +2258,53 @@ YAML
     # that define those containers are per-profile. An unguarded exec is a
     # late, confusing failure - the stack is already up and pulled by then.
     #
-    # Every docker_container_exec must name a profile in its `when:`.
-    local file="ansible/roles/ovos_containers/tasks/composer.yml"
-    local total guarded
+    # Every docker_container_exec must name a profile in its own `when:`.
+    # Only the `when:` field counts: a profile named in the task title, in
+    # the command, or in a nearby comment guards nothing at runtime, so it
+    # must not satisfy this check either.
+    local report total guarded offenders
+    report="$(command find ansible -name '*.yml' -print0 | command xargs -0 awk '
+        function endtask() {
+            if (has_exec) {
+                total++
+                if (guarded) ok++; else offenders = offenders "    " where "\n"
+            }
+            has_exec = 0; guarded = 0; in_when = 0
+        }
+        /^[[:space:]]*-[[:space:]]+name:/ {
+            endtask()
+            where = FILENAME ":" FNR
+        }
+        {
+            probe = $0
+            sub(/#.*/, "", probe)                 # a comment guards nothing
+            if (probe ~ /^[[:space:]]*$/) next
+            indent = match(probe, /[^[:space:]]/) - 1
+            if (in_when && indent <= when_indent) in_when = 0
+            if (probe ~ /community\.docker\.docker_container_exec/) has_exec = 1
+            if (probe ~ /^[[:space:]]*when:/) {
+                in_when = 1
+                when_indent = indent
+                sub(/^[[:space:]]*when:[[:space:]]*/, "", probe)   # inline form
+            }
+            if (!in_when) next
+            if (probe ~ /ovos_containers_is_desktop_profile/ ||
+                probe ~ /ovos_installer_profile[[:space:]]*==/ ||
+                probe ~ /ovos_containers_profile[[:space:]]*==/) guarded = 1
+        }
+        END { endtask(); printf "%d %d\n%s", total + 0, ok + 0, offenders }
+    ')"
 
-    total="$(command grep -c 'community.docker.docker_container_exec' "$file")"
-    [ "$total" -ge 1 ] || { echo "no container exec tasks found - did the file move?" >&2; return 1; }
+    total="$(printf '%s' "$report" | head -1 | cut -d" " -f1)"
+    guarded="$(printf '%s' "$report" | head -1 | cut -d" " -f2)"
+    offenders="$(printf '%s' "$report" | tail -n +2)"
 
-    # Count the exec tasks whose following `when:` block names a profile.
-    guarded="$(awk '
-        /community\.docker\.docker_container_exec/ { in_task = 1; seen = 0 }
-        in_task && /ovos_containers_is_desktop_profile|ovos_installer_profile ==|ovos_containers_profile ==/ { seen = 1 }
-        in_task && /^- name:/ && NR > 1 { if (seen) count++; in_task = 0 }
-        END { if (in_task && seen) count++; print count + 0 }
-    ' "$file")"
+    [ "$total" -ge 1 ] || { echo "no container exec tasks found - did the module move?" >&2; return 1; }
 
     if [ "$guarded" -ne "$total" ]; then
         echo "container exec tasks: $total, profile-guarded: $guarded" >&2
-        echo "an exec into a per-profile container needs a profile in its when:" >&2
+        echo "an exec into a per-profile container needs a profile in its when::" >&2
+        echo "$offenders" >&2
         return 1
     fi
 }

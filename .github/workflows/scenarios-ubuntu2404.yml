@@ -47,6 +47,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
         with:
+          persist-credentials: false
           fetch-depth: 0
 
       - name: Decide whether Linux jobs are needed
@@ -82,6 +83,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Restore installer caches
         uses: actions/cache@v6.1.0
@@ -221,6 +224,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Restore installer caches
         uses: actions/cache@v6.1.0
@@ -375,6 +380,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Restore installer caches
         uses: actions/cache@v6.1.0
@@ -500,6 +507,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Restore installer caches
         uses: actions/cache@v6.1.0
@@ -648,6 +657,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Install installer requirements
         run: |
@@ -711,6 +722,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Install installer requirements
         run: |
