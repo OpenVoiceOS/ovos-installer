@@ -2230,6 +2230,26 @@ YAML
     assert_success
 }
 
+@test "container_autoconfigure_only_runs_where_ovos_cli_exists" {
+    # ovos_cli comes from the base, Windows and Raspberry Pi compositions, and
+    # all three are gated on a desktop profile. A satellite container install
+    # has none of them, so an unguarded exec kills the run with "Could not find
+    # container ovos_cli" after the stack is already up.
+    local file="ansible/roles/ovos_containers/tasks/composer.yml"
+
+    run bash -c "
+        awk '/^- name: Merge ovos-config language recommendations/,/^\$/' '$file' \
+          | grep -q 'ovos_containers_is_desktop_profile'
+    "
+    assert_success
+
+    # The compose files that define ovos_cli carry the same gate, so the two
+    # cannot drift apart without this failing.
+    run grep -c 'ovos_containers_is_desktop_profile | bool and' \
+        ansible/roles/ovos_containers/defaults/main.yml
+    assert_success
+}
+
 @test "virtualenv_installs_the_terminal_client_where_it_can_read_the_config" {
     # The client is designed to share the OVOS virtualenv: that is how it finds
     # the configuration and the logs. It goes in the profiles that run OVOS
