@@ -2243,11 +2243,41 @@ YAML
     "
     assert_success
 
-    # The compose files that define ovos_cli carry the same gate, so the two
-    # cannot drift apart without this failing.
-    run grep -c 'ovos_containers_is_desktop_profile | bool and' \
+    # The three compositions that define ovos_cli - base, Windows and
+    # Raspberry Pi - each carry the same gate. Assert the count, so removing
+    # one is caught rather than hidden by the other two still matching.
+    run command grep -c 'ovos_containers_is_desktop_profile | bool and' \
         ansible/roles/ovos_containers/defaults/main.yml
     assert_success
+    assert_output "3"
+}
+
+@test "container_exec_tasks_are_all_restricted_to_a_profile_that_has_them" {
+    # The general form of the bug above: a task that execs into a container
+    # runs on every profile unless it says otherwise, and the compositions
+    # that define those containers are per-profile. An unguarded exec is a
+    # late, confusing failure - the stack is already up and pulled by then.
+    #
+    # Every docker_container_exec must name a profile in its `when:`.
+    local file="ansible/roles/ovos_containers/tasks/composer.yml"
+    local total guarded
+
+    total="$(command grep -c 'community.docker.docker_container_exec' "$file")"
+    [ "$total" -ge 1 ] || { echo "no container exec tasks found - did the file move?" >&2; return 1; }
+
+    # Count the exec tasks whose following `when:` block names a profile.
+    guarded="$(awk '
+        /community\.docker\.docker_container_exec/ { in_task = 1; seen = 0 }
+        in_task && /ovos_containers_is_desktop_profile|ovos_installer_profile ==|ovos_containers_profile ==/ { seen = 1 }
+        in_task && /^- name:/ && NR > 1 { if (seen) count++; in_task = 0 }
+        END { if (in_task && seen) count++; print count + 0 }
+    ' "$file")"
+
+    if [ "$guarded" -ne "$total" ]; then
+        echo "container exec tasks: $total, profile-guarded: $guarded" >&2
+        echo "an exec into a per-profile container needs a profile in its when:" >&2
+        return 1
+    fi
 }
 
 @test "virtualenv_installs_the_terminal_client_where_it_can_read_the_config" {

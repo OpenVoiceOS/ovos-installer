@@ -632,6 +632,65 @@ jobs:
           ls -la "$HOME/.local/state/mycroft" || true
           ls -la "$HOME/.config/ovos-installer" || true
 
+  linux-satellite-scenario:
+    # Every other scenario job installs the "ovos" profile, so a satellite has
+    # only ever been syntax-checked here. That is how an exec into a container
+    # no satellite composes survived for months: nothing installed one.
+    #
+    # One job, one profile, the scenario file this repository already ships.
+    needs: changes
+    if: >-
+      needs.changes.outputs.run == 'true'
+      && (github.event_name == 'pull_request' || github.event_name == 'push')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Install installer requirements
+        run: |
+          sudo apt-get update
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
+
+      - name: Ensure Docker is available
+        run: |
+          if command -v docker >/dev/null 2>&1; then
+            sudo systemctl start docker || true
+          fi
+
+      - name: Ensure ALSA device path is Docker-compatible
+        run: |
+          if [ ! -e /dev/snd ]; then
+            sudo mkdir -p /dev/snd
+            sudo chmod 0755 /dev/snd
+          fi
+
+          if [ -d /dev/snd ] && ! find /dev/snd -maxdepth 1 \( -type c -o -type b \) | grep -q .; then
+            sudo mknod /dev/snd/controlC0 c 1 3
+            sudo chmod 0666 /dev/snd/controlC0
+          fi
+
+      - name: Use the satellite scenario this repository ships
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          cp scenarios/scenario-satellite.yml "$HOME/.config/ovos-installer/scenario.yaml"
+          cat "$HOME/.config/ovos-installer/scenario.yaml"
+
+      - name: Run the satellite install
+        # The HiveMind host in that scenario is not reachable from here, and
+        # does not need to be: this covers the installer's own satellite path,
+        # not a working connection to a hive.
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          sudo docker ps -a || true
+          sudo tail -n 200 /var/log/ovos-installer.log || true
+          sudo tail -n 200 /var/log/ovos-ansible.log || true
+
   linux-negative-scenarios:
     needs: changes
     if: >-
