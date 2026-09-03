@@ -2,7 +2,7 @@
 {% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}
 {% set _ovos_is_devkit = _ovos_is_mark2_family and ('attiny1614' in (ovos_installer_i2c_devices | default([]))) %}
 ovos-audio[extras]
-ovos-core[lgpl,plugins]
+ovos-core[plugins]
 ovos-dinkum-listener[{{ 'extras' if ansible_facts.system == 'Darwin' else 'extras,linux' }}]
 # Keep configured VAD selection and its fallback installed explicitly.
 {% if (ovos_installer_cpu_is_capable | default(false)) | bool %}
