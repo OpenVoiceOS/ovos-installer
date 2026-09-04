@@ -29,9 +29,10 @@ ovos_hardware_mark1_unit_name: mark1.service
 ovos_hardware_mark1_unit_path: "{{ ovos_hardware_mark1_systemd_user_dir }}/{{ ovos_hardware_mark1_unit_name }}"
 ovos_hardware_mark1_unit_mode: "0644"
 ovos_hardware_mark1_unit_restart_sec: 5s
+# The serial device is deliberately absent here: it only appears once the
+# overlays below have been written and the board has rebooted, so it is
+# checked after the boot configuration rather than before it.
 ovos_hardware_mark1_required_paths:
-  - path: "{{ ovos_hardware_mark1_serial_device }}"
-    name: Mark 1 serial device
   - path: "{{ ovos_hardware_mark1_avrdude_binary }}"
     name: avrdude binary
   - path: "{{ ovos_hardware_mark1_boot_config_path }}"

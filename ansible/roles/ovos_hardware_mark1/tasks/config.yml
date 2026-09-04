@@ -54,3 +54,24 @@
     regexp: "{{ ovos_hardware_mark1_cmdline_console_regex }}"
     replace: ""
   notify: Set Reboot
+
+- name: Check the Mark 1 serial device
+  ansible.builtin.stat:
+    path: "{{ ovos_hardware_mark1_serial_device }}"
+  register: ovos_hardware_mark1_serial_status
+  changed_when: false
+
+# Bluetooth owns the PL011 until dtoverlay=miniuart-bt moves it to the mini
+# UART, and the overlay only takes effect on the next boot. On a freshly
+# flashed card the device therefore does not exist yet, and the boot config
+# written above is exactly what creates it.
+- name: Assert the Mark 1 serial device exists
+  ansible.builtin.assert:
+    that:
+      - ovos_hardware_mark1_serial_status.stat.exists | bool
+    fail_msg: >-
+      {{ ovos_hardware_mark1_serial_device }} is not present yet. The boot
+      configuration for the Mark 1 faceplate has been written, so reboot and
+      run the installer again to finish the setup.
+    success_msg: >-
+      Mark 1 serial device present: {{ ovos_hardware_mark1_serial_device }}

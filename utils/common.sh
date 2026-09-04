@@ -989,6 +989,9 @@ function required_packages() {
         extra_packages+=("i2c-tools")
         extra_packages+=("iw")
         extra_packages+=("libhidapi-libusb0")
+        # The libgpiod3 avrdude bundle links against libusb-0.1, which is not
+        # installed by default on Debian 13 and later.
+        extra_packages+=("libusb-0.1-4")
     fi
     local install_status=0
 
@@ -1919,6 +1922,45 @@ function resolve_avrdude_artifact_urls() {
     return 0
 }
 
+# Report the shared libraries the downloaded avrdude needs but cannot find.
+# Without this a missing package makes avrdude fail to start, and Mark 1
+# detection reports no hardware at all rather than saying why.
+function avrdude_shared_libraries_present() {
+    local missing=""
+    local library=""
+    local -a packages=()
+
+    if ! command -v ldd &>>"$LOG_FILE"; then
+        return 0
+    fi
+
+    missing="$(ldd "$AVRDUDE_BINARY_PATH" 2>>"$LOG_FILE" | awk '/not found/ { print $1 }' | sort -u)"
+
+    if [ -z "$missing" ]; then
+        return 0
+    fi
+
+    for library in $missing; do
+        case "$library" in
+        libusb-0.1.so.*) packages+=("libusb-0.1-4") ;;
+        libhidapi-libusb.so.*) packages+=("libhidapi-libusb0") ;;
+        libftdi1.so.*) packages+=("libftdi1-2") ;;
+        libgpiod.so.*) packages+=("libgpiod3") ;;
+        libreadline.so.*) packages+=("libreadline8") ;;
+        libelf.so.*) packages+=("libelf1") ;;
+        esac
+    done
+
+    log_warn "⚠ Mark 1 detection needs avrdude, and it cannot start."
+    log_warn "  Missing shared libraries: $(printf '%s' "$missing" | tr '\n' ' ')"
+    if [ "${#packages[@]}" -gt 0 ]; then
+        log_warn "  Install ${packages[*]} and run the installer again."
+    fi
+    printf '%s\n' "[warn] avrdude is missing shared libraries: ${missing}" >>"$LOG_FILE"
+
+    return 1
+}
+
 # Downloads avrdude binary with libgpiod support from
 # https://artifacts.smartgic.io. Once downloaded, a custom avrduderc will
 # be created with the Mark 1 required pinout. This binary will only be
@@ -1947,6 +1989,10 @@ function setup_avrdude() {
 
     if ! chmod 0755 "$AVRDUDE_BINARY_PATH" &>>"$LOG_FILE"; then
         printf '%s\n' "[warn] Failed to mark avrdude binary executable for Mark 1 detection." >>"$LOG_FILE"
+        return 1
+    fi
+
+    if ! avrdude_shared_libraries_present; then
         return 1
     fi
 
