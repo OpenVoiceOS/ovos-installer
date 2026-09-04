@@ -65,9 +65,62 @@ function teardown() {
     assert_success
 }
 
-@test "mark1_detection_installs_the_libgpiod3_avrdude_dependency" {
-    run grep -q 'extra_packages+=("libusb-0.1-4")' utils/common.sh
-    assert_success
+# Ask required_packages() what it would install on one distribution.
+function packages_for() {
+    DISTRO_NAME="$1"
+    RASPBERRYPI_MODEL="Raspberry Pi 3 Model B Rev 1.2"
+    local recorder="$BATS_TMPDIR/packages.$$"
+    : >"$recorder"
+    eval "
+        function install_debian_packages() { printf '%s\n' \"\$@\" >'$recorder'; }
+        function install_fedora_packages() { printf '%s\n' \"\$@\" >'$recorder'; }
+        function install_rhel_packages() { printf '%s\n' \"\$@\" >'$recorder'; }
+        function install_opensuse_packages() { printf '%s\n' \"\$@\" >'$recorder'; }
+        function install_arch_packages() { printf '%s\n' \"\$@\" >'$recorder'; }
+    "
+    required_packages >/dev/null 2>&1
+    cat "$recorder"
+    rm -f "$recorder"
+}
+
+@test "mark1_avrdude_dependencies_use_debian_names" {
+    # libgpiod3 avrdude needs libusb-0.1, which Debian 13 does not ship (#590).
+    run packages_for debian
+    assert_line "libusb-0.1-4"
+    assert_line "libhidapi-libusb0"
+    assert_line "i2c-tools"
+}
+
+@test "mark1_avrdude_dependencies_use_fedora_names" {
+    run packages_for fedora
+    assert_line "libusb-compat-0.1"
+    assert_line "hidapi"
+    refute_line "libusb-0.1-4"
+}
+
+@test "mark1_avrdude_dependencies_use_opensuse_names" {
+    run packages_for opensuse-tumbleweed
+    assert_line "libusb-0_1-4"
+    refute_line "libusb-0.1-4"
+}
+
+@test "mark1_avrdude_dependencies_use_arch_names" {
+    run packages_for arch
+    assert_line "libusb-compat"
+    refute_line "libusb-0.1-4"
+}
+
+@test "mark1_avrdude_dependencies_are_skipped_without_a_board" {
+    DISTRO_NAME="debian"
+    RASPBERRYPI_MODEL="N/A"
+    local recorder="$BATS_TMPDIR/packages.none"
+    : >"$recorder"
+    eval "function install_debian_packages() { printf '%s\n' \"\$@\" >'$recorder'; }"
+    required_packages >/dev/null 2>&1
+    run cat "$recorder"
+    # No board, so no board-specific packages at all.
+    assert_output ""
+    rm -f "$recorder"
 }
 
 @test "mark1_checks_the_serial_device_after_writing_the_boot_config" {

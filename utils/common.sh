@@ -988,10 +988,27 @@ function required_packages() {
     if [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
         extra_packages+=("i2c-tools")
         extra_packages+=("iw")
-        extra_packages+=("libhidapi-libusb0")
-        # The libgpiod3 avrdude bundle links against libusb-0.1, which is not
-        # installed by default on Debian 13 and later.
-        extra_packages+=("libusb-0.1-4")
+        # The avrdude bundle used for Mark 1 detection links against hidapi
+        # and, in the libgpiod3 flavour, against libusb-0.1. Neither ships by
+        # default, and the two are named differently on every family.
+        case "${DISTRO_NAME}" in
+        debian | ubuntu | raspbian | linuxmint | zorin | neon | pop)
+            extra_packages+=("libhidapi-libusb0")
+            extra_packages+=("libusb-0.1-4")
+            ;;
+        fedora | almalinux | rocky | centos)
+            extra_packages+=("hidapi")
+            extra_packages+=("libusb-compat-0.1")
+            ;;
+        opensuse-tumbleweed | opensuse-leap | opensuse-slowroll)
+            extra_packages+=("libhidapi-libusb0")
+            extra_packages+=("libusb-0_1-4")
+            ;;
+        arch | manjaro | endeavouros | cachyos)
+            extra_packages+=("hidapi")
+            extra_packages+=("libusb-compat")
+            ;;
+        esac
     fi
     local install_status=0
 
