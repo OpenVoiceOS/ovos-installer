@@ -1,26 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="720" height="284" viewBox="0 0 720 284" role="img" aria-label="Where Open Voice OS is installed. 1,694 installs reported up to 04 Sep 2026">
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="284" viewBox="0 0 720 284" role="img" aria-label="Where Open Voice OS is installed. 1,705 installs reported up to 05 Sep 2026">
 <title>Where Open Voice OS is installed</title>
 <text x="0" y="18" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="600" fill="#0b0b0b">Where Open Voice OS is installed</text>
-<text x="0" y="36" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">1,694 installs reported up to 04 Sep 2026</text>
+<text x="0" y="36" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12" fill="#52514e">1,705 installs reported up to 05 Sep 2026</text>
 <text x="122" y="64.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">Debian</text>
 <rect x="132" y="51.0" width="504.0" height="16" rx="4" fill="#2a78d6"/>
-<text x="646.0" y="64.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">739 (44%)</text>
+<text x="646.0" y="64.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">746 (44%)</text>
 <text x="122" y="94.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">Ubuntu</text>
-<rect x="132" y="81.0" width="333.5" height="16" rx="4" fill="#2a78d6"/>
-<text x="475.5" y="94.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">489 (29%)</text>
+<rect x="132" y="81.0" width="333.1" height="16" rx="4" fill="#2a78d6"/>
+<text x="475.1" y="94.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">493 (29%)</text>
 <text x="122" y="124.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">Linux Mint</text>
-<rect x="132" y="111.0" width="94.8" height="16" rx="4" fill="#2a78d6"/>
-<text x="236.8" y="124.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">139 (8%)</text>
+<rect x="132" y="111.0" width="93.9" height="16" rx="4" fill="#2a78d6"/>
+<text x="235.9" y="124.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">139 (8%)</text>
 <text x="122" y="154.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">Arch Linux</text>
-<rect x="132" y="141.0" width="92.1" height="16" rx="4" fill="#2a78d6"/>
-<text x="234.1" y="154.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">135 (8%)</text>
+<rect x="132" y="141.0" width="91.2" height="16" rx="4" fill="#2a78d6"/>
+<text x="233.2" y="154.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">135 (8%)</text>
 <text x="122" y="184.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">Fedora</text>
-<rect x="132" y="171.0" width="64.1" height="16" rx="4" fill="#2a78d6"/>
-<text x="206.1" y="184.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">94 (6%)</text>
+<rect x="132" y="171.0" width="63.5" height="16" rx="4" fill="#2a78d6"/>
+<text x="205.5" y="184.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">94 (6%)</text>
 <text x="122" y="214.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">macOS</text>
-<rect x="132" y="201.0" width="23.9" height="16" rx="4" fill="#2a78d6"/>
-<text x="165.9" y="214.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">35 (2%)</text>
+<rect x="132" y="201.0" width="23.6" height="16" rx="4" fill="#2a78d6"/>
+<text x="165.6" y="214.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">35 (2%)</text>
 <text x="122" y="244.0" text-anchor="end" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#0b0b0b">Other</text>
-<rect x="132" y="231.0" width="43.0" height="16" rx="4" fill="#2a78d6"/>
-<text x="185.0" y="244.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">63 (4%)</text>
+<rect x="132" y="231.0" width="42.6" height="16" rx="4" fill="#2a78d6"/>
+<text x="184.6" y="244.0" font-family="ui-sans-serif,-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif" font-size="12.5" fill="#52514e">63 (4%)</text>
 </svg>
