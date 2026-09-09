@@ -3693,11 +3693,22 @@ function teardown() {
     local defaults="ansible/roles/ovos_containers/defaults/main.yml"
     local env_template="ansible/roles/ovos_containers/templates/docker/env.j2"
 
-    run grep -q "default('feat/initial')" "$defaults"
-    assert_failure
+    # The pin that actually applies is the installer-level variable: the
+    # ovos_containers value is "{{ ovos_installer_... | default(...) }}", and
+    # that default never fires because the variable is always defined.
+    local installer_defaults="ansible/roles/ovos_installer/defaults/main.yml"
+    local pin
+    pin="$(command grep -oP '^ovos_installer_hivemind_docker_repo_branch:\s*\K\S+' "$installer_defaults")"
 
-    run grep -q "ovos_installer_hivemind_docker_repo_branch | default('dev')" "$defaults"
-    assert_success
+    [ -n "$pin" ] || { echo "no hivemind-docker pin found" >&2; return 1; }
+
+    # Refs known to predate hivemind-docker#45 (the satellite identity mount).
+    case "$pin" in
+        v1.0.0|v2.0.0|feat/initial)
+            echo "hivemind-docker pinned to $pin, which has no satellite identity mount" >&2
+            return 1
+            ;;
+    esac
 
     # That compose reads HIVEMIND_SITEID and falls back to a literal "default"
     # when it is unset, which would quietly discard the configured site id.
