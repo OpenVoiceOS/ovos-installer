@@ -86,7 +86,10 @@ ovos_containers_ovos_docker_repo_url: "{{ ovos_installer_ovos_docker_repo_url | 
 ovos_containers_ovos_docker_repo_branch: "{{ ovos_installer_ovos_docker_repo_branch | default('dev') }}"
 ovos_containers_hivemind_docker_repo_url: >-
   {{ ovos_installer_hivemind_docker_repo_url | default('https://github.com/JarbasHiveMind/hivemind-docker.git') }}
-ovos_containers_hivemind_docker_repo_branch: "{{ ovos_installer_hivemind_docker_repo_branch | default('feat/initial') }}"
+# feat/initial has not moved since 2026-08-15 while dev is the maintained
+# default branch; pinning the stale one is what kept the satellite identity fix
+# (hivemind-docker#45) away from installs.
+ovos_containers_hivemind_docker_repo_branch: "{{ ovos_installer_hivemind_docker_repo_branch | default('dev') }}"
 ovos_containers_docker_image_tag: "{{ ovos_installer_docker_image_tag | default(ovos_installer_channel | default('testing')) }}"
 ovos_containers_docker_pull_policy: "{{ ovos_installer_docker_pull_policy | default('always') }}"
 ovos_containers_docker_compose_remove_orphans: "{{ ovos_installer_docker_compose_remove_orphans | default(true) }}"

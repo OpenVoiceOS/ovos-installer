@@ -3682,3 +3682,53 @@ function teardown() {
         assert_success
     done
 }
+
+@test "hivemind_docker_tracks_the_maintained_branch_and_passes_the_site_id" {
+    # The satellite profile runs the compose file straight out of a clone of
+    # hivemind-docker, so the pinned branch decides which fixes reach an
+    # install. feat/initial stopped moving on 2026-08-15 while dev kept getting
+    # fixes - hivemind-docker#45, which lets an identity written by
+    # "hivemind-client set-identity" in hivemind_cli actually reach the
+    # satellite, is one of them.
+    local defaults="ansible/roles/ovos_containers/defaults/main.yml"
+    local env_template="ansible/roles/ovos_containers/templates/docker/env.j2"
+
+    # The pin that actually applies is the installer-level variable: the
+    # ovos_containers value is "{{ ovos_installer_... | default(...) }}", and
+    # that default never fires because the variable is always defined.
+    local installer_defaults="ansible/roles/ovos_installer/defaults/main.yml"
+    local pin
+    # sed, not grep -oP: BSD grep on the macOS runners has no -P
+    pin="$(command sed -n 's/^ovos_installer_hivemind_docker_repo_branch:[[:space:]]*//p' "$installer_defaults")"
+
+    [ -n "$pin" ] || { echo "no hivemind-docker pin found" >&2; return 1; }
+
+    # hivemind-docker#45 - the mount that lets an identity reach the satellite -
+    # landed after v2.0.0, so any release tag at or below it predates the fix.
+    # Written as that rule rather than a list of bad tags so the pin can move to
+    # v2.1.0 or later, which is the intent, without editing this test. A commit
+    # cannot be ordered offline, so a SHA is taken on trust.
+    case "$pin" in
+        feat/initial)
+            echo "hivemind-docker pinned to $pin, stale since 2026-08-15 and" >&2
+            echo "without the satellite identity mount (hivemind-docker#45)" >&2
+            return 1
+            ;;
+        v[0-9]*.[0-9]*.[0-9]*)
+            if [ "$(printf '%s\n%s\n' "${pin#v}" "2.0.0" | sort -V | tail -1)" = "2.0.0" ]; then
+                echo "hivemind-docker pinned to $pin, which is at or below v2.0.0 and" >&2
+                echo "so has no satellite identity mount (hivemind-docker#45)" >&2
+                return 1
+            fi
+            ;;
+    esac
+
+    # That compose reads HIVEMIND_SITEID and falls back to a literal "default"
+    # when it is unset, which would quietly discard the configured site id.
+    run grep -q "^HIVEMIND_SITEID=" "$env_template"
+    assert_success
+
+    # the value goes through the env() quoting macro like every other one
+    run grep -qE "^HIVEMIND_SITEID=\{\{ env\(ovos_installer_site_id" "$env_template"
+    assert_success
+}
