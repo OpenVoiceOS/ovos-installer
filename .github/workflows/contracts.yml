@@ -28,7 +28,9 @@ jobs:
         with:
           persist-credentials: false
 
-      - run: pip install --disable-pip-version-check pyyaml
+      # version-pinned: this job reads a file fetched from another repository, so the
+      # tool that parses it should not change under us between runs
+      - run: pip install --disable-pip-version-check "pyyaml==6.0.2"
 
       - name: Check the installer against the contracts at the pinned refs
         env:

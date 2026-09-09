@@ -28,10 +28,15 @@ import json
 import re
 import subprocess
 import sys
+import urllib.error
 import urllib.request
 from pathlib import Path
 
 import yaml
+
+DEPENDENCY_BUMP = re.compile(r"^(chore\(deps\)|Update .+ to v|build\(deps\)|chore: update .+ digest)", re.I)
+
+LAST_GH_ERROR: list = []  # why a gh lookup came back empty, if it did
 
 ROOT = Path(__file__).resolve().parent.parent
 CONTAINERS = ROOT / "ansible/roles/ovos_containers/defaults/main.yml"
@@ -86,17 +91,6 @@ def check(repo: str, contract: dict, facts: dict) -> list:
     # for variables that only the matrix-bot compose reads.
     used = wanted_files & declared_files
 
-    declared_containers = {
-        name for compose_file, services in (contract.get("services") or {}).items()
-        if compose_file in used for name in services.values()
-    }
-    all_containers = {
-        name for services in (contract.get("services") or {}).values() for name in services.values()
-    }
-    for name in sorted(facts["container_names"] & all_containers - declared_containers):
-        problems.append(f"{repo}: container {name} is referenced here but is not in any compose "
-                        f"file this installer runs")
-
     for variable, spec in sorted((contract.get("env") or {}).items()):
         if not (set(spec.get("compose_files") or []) & used):
             continue
@@ -111,13 +105,53 @@ def check(repo: str, contract: dict, facts: dict) -> list:
     return problems
 
 
-def fetch(slug: str, ref: str, path: str) -> str | None:
+def check_containers(contracts: dict, facts: dict) -> list:
+    """Every container this installer execs into must be declared by some contract.
+
+    This has to look at both contracts at once. Asking one repository whether it declares a
+    name and skipping the ones it does not know cannot see a rename: the old name simply
+    stops appearing, the check treats it as "belongs to the other repository", and stays
+    quiet - while the install still fails late with "Could not find container", which is the
+    exact failure this exists to prevent.
+    """
+    problems = []
+    reachable, declared_anywhere = set(), set()
+
+    for repo, contract in contracts.items():
+        used = facts["compose_files"][repo] & set(contract.get("compose_files") or [])
+        for compose_file, services in (contract.get("services") or {}).items():
+            declared_anywhere |= set(services.values())
+            if compose_file in used:
+                reachable |= set(services.values())
+
+    for name in sorted(facts["container_names"] - reachable):
+        if name in declared_anywhere:
+            problems.append(f"container {name} is declared upstream but is in no compose file "
+                            f"this installer runs")
+        else:
+            problems.append(f"container {name} is referenced here but no contract declares it - "
+                            f"renamed or removed upstream")
+    return problems
+
+
+def fetch(slug: str, ref: str, path: str) -> tuple[str | None, str | None]:
+    """Return (content, error).
+
+    (content, None)  the file was fetched
+    (None, None)     upstream genuinely does not publish it yet - a 404
+    (None, reason)   we could not tell: DNS, a 500, a proxy. Reporting that as "not
+                     published" is how a scheduled run verifies nothing and still exits 0.
+    """
     url = f"https://raw.githubusercontent.com/{slug}/{ref}/{path}"
     try:
         with urllib.request.urlopen(url, timeout=30) as response:
-            return response.read().decode()
-    except Exception:
-        return None
+            return response.read().decode(), None
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return None, None
+        return None, f"HTTP {error.code}"
+    except Exception as error:
+        return None, f"{type(error).__name__}: {error}"
 
 
 def release_lag(slug: str, tag: str) -> tuple[int, str] | None:
@@ -133,9 +167,20 @@ def release_lag(slug: str, tag: str) -> tuple[int, str] | None:
                                  "-q", ".defaultBranchRef.name"],
                                 capture_output=True, text=True, check=True).stdout.strip()
         out = subprocess.run(["gh", "api", f"repos/{slug}/compare/{tag}...{branch}",
-                              "-q", ".ahead_by"], capture_output=True, text=True, check=True)
-        return int(out.stdout.strip()), branch
-    except Exception:
+                              # single-parent only: a merge commit repeats what it merges,
+                              # and counting it makes a lone dependency bump look substantive
+                              "-q", ".commits[] | select(.parents | length == 1) "
+                                    "| .commit.message | split(\"\\n\")[0]"],
+                             capture_output=True, text=True, check=True)
+        # Only unreleased *fixes* are worth a release. Renovate merges dependency bumps
+        # continuously, and failing a weekly job for those trains people to ignore it -
+        # at which point the alert no longer works for the case it exists for.
+        subjects = [line for line in out.stdout.splitlines() if line.strip()]
+        substantive = [line for line in subjects
+                       if not DEPENDENCY_BUMP.match(line.strip())]
+        return len(substantive), branch
+    except Exception as error:
+        LAST_GH_ERROR.append(f"{type(error).__name__}: {error}")
         return None
 
 
@@ -144,7 +189,8 @@ def latest_release(slug: str) -> str | None:
         out = subprocess.run(["gh", "release", "view", "--repo", slug, "--json", "tagName", "-q", ".tagName"],
                              capture_output=True, text=True, check=True)
         return out.stdout.strip() or None
-    except Exception:
+    except Exception as error:
+        LAST_GH_ERROR.append(f"{type(error).__name__}: {error}")
         return None
 
 
@@ -159,7 +205,7 @@ def main() -> int:
     args = parser.parse_args()
 
     facts = installer_facts()
-    problems, notes = [], []
+    problems, notes, contracts = [], [], {}
 
     for repo in ("ovos-docker", "hivemind-docker"):
         snapshot = SNAPSHOTS / f"{repo}.yml"
@@ -167,28 +213,45 @@ def main() -> int:
             problems.append(f"{repo}: no contract snapshot at {snapshot.relative_to(ROOT)}")
             continue
         contract = yaml.safe_load(snapshot.read_text())
+        contracts[repo] = contract
 
         if args.online:
             slug, ref = facts["slugs"][repo], facts["pins"][repo]
-            live = fetch(slug, ref, "contract.yml")
-            if live is None:
+            live, fetch_error = fetch(slug, ref, "contract.yml")
+            if fetch_error:
+                # not the same as "upstream has none": we simply did not find out
+                message = (f"{repo}: could not read contract.yml at {ref} ({fetch_error}) - "
+                           f"nothing upstream was verified")
+                (problems if args.fail_on_stale else notes).append(message)
+            elif live is None:
                 notes.append(f"{repo}: {ref} publishes no contract.yml yet; using the snapshot")
             elif yaml.safe_load(live) != contract:
                 problems.append(f"{repo}: the snapshot differs from contract.yml at {ref} - "
                                 f"refresh tests/contracts/{repo}.yml")
+
+            del LAST_GH_ERROR[:]
             newest = latest_release(slug)
             if newest and newest != ref:
                 message = f"{repo}: pinned {ref}, latest release is {newest}"
                 (problems if args.fail_on_stale else notes).append(message)
 
-            lag = release_lag(slug, newest or ref)
+            lag = release_lag(slug, newest or ref) if newest else None
             if lag and lag[0]:
                 behind, branch = lag
-                message = (f"{repo}: {newest or ref} is {behind} commit(s) behind {branch} - "
-                           f"those fixes are in no release, so no install has them")
+                message = (f"{repo}: {newest or ref} is behind {branch} by {behind} "
+                           f"change(s) that are not dependency bumps - those fixes are in no "
+                           f"release, so no install has them")
+                (problems if args.fail_on_stale else notes).append(message)
+            elif LAST_GH_ERROR:
+                # gh missing, unauthenticated or rate-limited looks exactly like "nothing is
+                # behind" unless it is reported, and then the run passes having checked nothing
+                message = (f"{repo}: could not check release freshness ({LAST_GH_ERROR[0]}) - "
+                           f"the pin and the release lag were not verified")
                 (problems if args.fail_on_stale else notes).append(message)
 
         problems.extend(check(repo, contract, facts))
+
+    problems.extend(check_containers(contracts, facts))
 
     for note in notes:
         print(f"note: {note}")
@@ -200,7 +263,8 @@ def main() -> int:
             print(f"  {problem}", file=sys.stderr)
         return 1
 
-    print(f"contracts satisfied: {', '.join(f'{r} {facts['pins'][r]}' for r in facts['pins'])}")
+    pinned = ", ".join("{0} {1}".format(repo, facts["pins"][repo]) for repo in facts["pins"])
+    print("contracts satisfied: " + pinned)
     return 0
 
 
