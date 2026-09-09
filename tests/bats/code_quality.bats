@@ -3497,7 +3497,7 @@ function anchors_of() {
 }
 
 @test "ci_restores_python_uv_and_collection_caches" {
-    run grep -F -q "uses: actions/cache@v6" .github/workflows/linting.yml
+    run grep -E -q "uses: actions/cache@[0-9a-f]{40} # v6" .github/workflows/linting.yml
     assert_success
 
     run grep -F -q "~/.cache/uv" .github/workflows/linting.yml
@@ -3769,4 +3769,18 @@ function teardown() {
     # Every workflow must go through it rather than calling apt-get update directly.
     run bash -c "command grep -rn 'sudo apt-get update' .github/workflows/ | command grep -v apt_update.sh"
     assert_failure
+}
+
+@test "workflow_actions_are_pinned_to_an_immutable_commit" {
+    # A tag is not immutable: whoever owns the action can move v7 to any commit, and every
+    # workflow here would run it on the next push - with the repository checked out and, in
+    # some jobs, a token available. The version stays on the line as a comment so the pin is
+    # still readable; Renovate updates both together.
+    run bash -c "command grep -rhoE 'uses: [a-zA-Z0-9._-]+/[a-zA-Z0-9._/-]+@[^ ]+' .github/workflows/*.yml \
+        | command grep -vE '@[0-9a-f]{40}'"
+    if [ -n "$output" ]; then
+        echo "these actions are pinned to a movable ref:" >&2
+        echo "$output" >&2
+    fi
+    assert_output ""
 }
