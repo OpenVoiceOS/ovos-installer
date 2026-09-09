@@ -3702,11 +3702,23 @@ function teardown() {
 
     [ -n "$pin" ] || { echo "no hivemind-docker pin found" >&2; return 1; }
 
-    # Refs known to predate hivemind-docker#45 (the satellite identity mount).
+    # hivemind-docker#45 - the mount that lets an identity reach the satellite -
+    # landed after v2.0.0, so any release tag at or below it predates the fix.
+    # Written as that rule rather than a list of bad tags so the pin can move to
+    # v2.1.0 or later, which is the intent, without editing this test. A commit
+    # cannot be ordered offline, so a SHA is taken on trust.
     case "$pin" in
-        v1.0.0|v2.0.0|feat/initial)
-            echo "hivemind-docker pinned to $pin, which has no satellite identity mount" >&2
+        feat/initial)
+            echo "hivemind-docker pinned to $pin, stale since 2026-08-15 and" >&2
+            echo "without the satellite identity mount (hivemind-docker#45)" >&2
             return 1
+            ;;
+        v[0-9]*.[0-9]*.[0-9]*)
+            if [ "$(printf '%s\n%s\n' "${pin#v}" "2.0.0" | sort -V | tail -1)" = "2.0.0" ]; then
+                echo "hivemind-docker pinned to $pin, which is at or below v2.0.0 and" >&2
+                echo "so has no satellite identity mount (hivemind-docker#45)" >&2
+                return 1
+            fi
             ;;
     esac
 
