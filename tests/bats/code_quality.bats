@@ -3776,8 +3776,22 @@ function teardown() {
     # workflow here would run it on the next push - with the repository checked out and, in
     # some jobs, a token available. The version stays on the line as a comment so the pin is
     # still readable; Renovate updates both together.
-    run bash -c "command grep -rhoE 'uses: [a-zA-Z0-9._-]+/[a-zA-Z0-9._/-]+@[^ ]+' .github/workflows/*.yml \
-        | command grep -vE '@[0-9a-f]{40}'"
+    # awk, not grep: the first version of this matched a single space after "uses:" and
+    # then filtered lines *containing* 40 hex characters anywhere, so "uses:  x/y@v7" was
+    # never extracted and a trailing comment could satisfy the filter. A guard with a hole
+    # in it is worse than none, because it reads as proof.
+    run awk '
+        match($0, /uses:[[:space:]]+[A-Za-z0-9._-]+\/[A-Za-z0-9._\/-]+@[^[:space:]#]+/) {
+            ref = substr($0, RSTART, RLENGTH)
+            sub(/^uses:[[:space:]]+/, "", ref)
+            version = ref
+            sub(/^[^@]*@/, "", version)
+            if (version !~ /^[0-9a-f]{40}$/) {
+                print FILENAME ": " ref
+            }
+        }
+    ' .github/workflows/*.yml
+
     if [ -n "$output" ]; then
         echo "these actions are pinned to a movable ref:" >&2
         echo "$output" >&2

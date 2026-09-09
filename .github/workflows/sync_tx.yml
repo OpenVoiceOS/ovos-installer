@@ -4,6 +4,10 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
+# Pushes the generated locales back to main, so it needs contents: write - and only that.
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
   push:
