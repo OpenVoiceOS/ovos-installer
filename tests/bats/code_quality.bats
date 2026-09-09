@@ -3727,7 +3727,8 @@ function teardown() {
     run grep -q "^HIVEMIND_SITEID=" "$env_template"
     assert_success
 
-    run grep -q "^HIVEMIND_SITEID={{ ovos_installer_site_id" "$env_template"
+    # the value goes through the env() quoting macro like every other one
+    run grep -qE "^HIVEMIND_SITEID=\{\{ env\(ovos_installer_site_id" "$env_template"
     assert_success
 }
 
