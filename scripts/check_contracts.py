@@ -120,6 +120,25 @@ def fetch(slug: str, ref: str, path: str) -> str | None:
         return None
 
 
+def release_lag(slug: str, tag: str) -> tuple[int, str] | None:
+    """How far the newest release trails the branch it is cut from.
+
+    Pinning a release is what makes an install reproducible, but a fix only reaches anyone once a
+    release carries it. Comparing the pin against the newest release cannot see this: both can say
+    v2.0.2 while ten days of fixes sit unreleased on the default branch, which is exactly how the
+    fann2 gating and the intent-engine assertion failed to reach a single install.
+    """
+    try:
+        branch = subprocess.run(["gh", "repo", "view", slug, "--json", "defaultBranchRef",
+                                 "-q", ".defaultBranchRef.name"],
+                                capture_output=True, text=True, check=True).stdout.strip()
+        out = subprocess.run(["gh", "api", f"repos/{slug}/compare/{tag}...{branch}",
+                              "-q", ".ahead_by"], capture_output=True, text=True, check=True)
+        return int(out.stdout.strip()), branch
+    except Exception:
+        return None
+
+
 def latest_release(slug: str) -> str | None:
     try:
         out = subprocess.run(["gh", "release", "view", "--repo", slug, "--json", "tagName", "-q", ".tagName"],
@@ -160,6 +179,13 @@ def main() -> int:
             newest = latest_release(slug)
             if newest and newest != ref:
                 message = f"{repo}: pinned {ref}, latest release is {newest}"
+                (problems if args.fail_on_stale else notes).append(message)
+
+            lag = release_lag(slug, newest or ref)
+            if lag and lag[0]:
+                behind, branch = lag
+                message = (f"{repo}: {newest or ref} is {behind} commit(s) behind {branch} - "
+                           f"those fixes are in no release, so no install has them")
                 (problems if args.fail_on_stale else notes).append(message)
 
         problems.extend(check(repo, contract, facts))
