@@ -1,10 +1,11 @@
+---
 version: 1
 compose_files:
-- docker-compose.chatroom.yml
-- docker-compose.matrix-bot.yml
-- docker-compose.satellite.yml
-- docker-compose.webchat.yml
-- docker-compose.yml
+  - docker-compose.chatroom.yml
+  - docker-compose.matrix-bot.yml
+  - docker-compose.satellite.yml
+  - docker-compose.webchat.yml
+  - docker-compose.yml
 services:
   docker-compose.chatroom.yml:
     hivemind_chatroom: hivemind_chatroom
@@ -22,17 +23,17 @@ env:
   HIVEMIND_CONFIG_FOLDER:
     required: true
     compose_files:
-    - docker-compose.satellite.yml
-    - docker-compose.yml
+      - docker-compose.satellite.yml
+      - docker-compose.yml
   HIVEMIND_SHARE_FOLDER:
     required: true
     compose_files:
-    - docker-compose.satellite.yml
-    - docker-compose.yml
+      - docker-compose.satellite.yml
+      - docker-compose.yml
   HIVEMIND_SITEID:
     required: false
     compose_files:
-    - docker-compose.satellite.yml
+      - docker-compose.satellite.yml
     owner: installer
     description: Site id reported in message.context. The compose falls back to the
       literal "default", so an installer that does not set it produces a working satellite
@@ -41,104 +42,104 @@ env:
   HIVEMIND_USER:
     required: true
     compose_files:
-    - docker-compose.satellite.yml
-    - docker-compose.yml
+      - docker-compose.satellite.yml
+      - docker-compose.yml
   LIGHT_MEMORY_LIMIT:
     required: false
     compose_files:
-    - docker-compose.chatroom.yml
-    - docker-compose.matrix-bot.yml
-    - docker-compose.satellite.yml
-    - docker-compose.webchat.yml
-    - docker-compose.yml
+      - docker-compose.chatroom.yml
+      - docker-compose.matrix-bot.yml
+      - docker-compose.satellite.yml
+      - docker-compose.webchat.yml
+      - docker-compose.yml
   MATRIX_BOT_NAME:
     required: true
     compose_files:
-    - docker-compose.matrix-bot.yml
+      - docker-compose.matrix-bot.yml
   MATRIX_HOST:
     required: true
     compose_files:
-    - docker-compose.matrix-bot.yml
+      - docker-compose.matrix-bot.yml
   MATRIX_ROOM:
     required: true
     compose_files:
-    - docker-compose.matrix-bot.yml
+      - docker-compose.matrix-bot.yml
   MATRIX_TOKEN:
     required: true
     compose_files:
-    - docker-compose.matrix-bot.yml
+      - docker-compose.matrix-bot.yml
   OVOS_CONFIG_FOLDER:
     required: true
     compose_files:
-    - docker-compose.satellite.yml
+      - docker-compose.satellite.yml
   SAT_HOST:
     required: true
     compose_files:
-    - docker-compose.chatroom.yml
+      - docker-compose.chatroom.yml
   SAT_KEY:
     required: true
     compose_files:
-    - docker-compose.chatroom.yml
+      - docker-compose.chatroom.yml
   SAT_PASSWORD:
     required: true
     compose_files:
-    - docker-compose.chatroom.yml
+      - docker-compose.chatroom.yml
   SAT_PORT:
     required: true
     compose_files:
-    - docker-compose.chatroom.yml
+      - docker-compose.chatroom.yml
   STANDARD_MEMORY_LIMIT:
     required: false
     compose_files:
-    - docker-compose.chatroom.yml
-    - docker-compose.matrix-bot.yml
-    - docker-compose.satellite.yml
-    - docker-compose.webchat.yml
-    - docker-compose.yml
+      - docker-compose.chatroom.yml
+      - docker-compose.matrix-bot.yml
+      - docker-compose.satellite.yml
+      - docker-compose.webchat.yml
+      - docker-compose.yml
   TZ:
     required: true
     compose_files:
-    - docker-compose.chatroom.yml
-    - docker-compose.matrix-bot.yml
-    - docker-compose.satellite.yml
-    - docker-compose.webchat.yml
-    - docker-compose.yml
+      - docker-compose.chatroom.yml
+      - docker-compose.matrix-bot.yml
+      - docker-compose.satellite.yml
+      - docker-compose.webchat.yml
+      - docker-compose.yml
   VERSION:
     required: true
     compose_files:
-    - docker-compose.chatroom.yml
-    - docker-compose.matrix-bot.yml
-    - docker-compose.satellite.yml
-    - docker-compose.webchat.yml
-    - docker-compose.yml
+      - docker-compose.chatroom.yml
+      - docker-compose.matrix-bot.yml
+      - docker-compose.satellite.yml
+      - docker-compose.webchat.yml
+      - docker-compose.yml
   VOICE_SAT_HOST:
     required: true
     compose_files:
-    - docker-compose.matrix-bot.yml
-    - docker-compose.satellite.yml
+      - docker-compose.matrix-bot.yml
+      - docker-compose.satellite.yml
   VOICE_SAT_KEY:
     required: true
     compose_files:
-    - docker-compose.matrix-bot.yml
-    - docker-compose.satellite.yml
+      - docker-compose.matrix-bot.yml
+      - docker-compose.satellite.yml
   VOICE_SAT_PASSWORD:
     required: true
     compose_files:
-    - docker-compose.matrix-bot.yml
-    - docker-compose.satellite.yml
+      - docker-compose.matrix-bot.yml
+      - docker-compose.satellite.yml
   VOICE_SAT_PORT:
     required: true
     compose_files:
-    - docker-compose.matrix-bot.yml
-    - docker-compose.satellite.yml
+      - docker-compose.matrix-bot.yml
+      - docker-compose.satellite.yml
   XDG_RUNTIME_DIR:
     required: true
     compose_files:
-    - docker-compose.satellite.yml
+      - docker-compose.satellite.yml
 images:
-- docker.io/smartgic/hivemind-chatroom
-- docker.io/smartgic/hivemind-cli
-- docker.io/smartgic/hivemind-listener
-- docker.io/smartgic/hivemind-matrix-bot
-- docker.io/smartgic/hivemind-satellite
-- docker.io/smartgic/hivemind-webchat
+  - docker.io/smartgic/hivemind-chatroom
+  - docker.io/smartgic/hivemind-cli
+  - docker.io/smartgic/hivemind-listener
+  - docker.io/smartgic/hivemind-matrix-bot
+  - docker.io/smartgic/hivemind-satellite
+  - docker.io/smartgic/hivemind-webchat
