@@ -3698,7 +3698,8 @@ function teardown() {
     # that default never fires because the variable is always defined.
     local installer_defaults="ansible/roles/ovos_installer/defaults/main.yml"
     local pin
-    pin="$(command grep -oP '^ovos_installer_hivemind_docker_repo_branch:\s*\K\S+' "$installer_defaults")"
+    # sed, not grep -oP: BSD grep on the macOS runners has no -P
+    pin="$(command sed -n 's/^ovos_installer_hivemind_docker_repo_branch:[[:space:]]*//p' "$installer_defaults")"
 
     [ -n "$pin" ] || { echo "no hivemind-docker pin found" >&2; return 1; }
 
