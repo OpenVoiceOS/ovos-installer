@@ -3730,3 +3730,19 @@ function teardown() {
     run grep -q "^HIVEMIND_SITEID={{ ovos_installer_site_id" "$env_template"
     assert_success
 }
+
+@test "installer_satisfies_the_contracts_of_the_repositories_it_clones" {
+    # The containers method builds nothing: it clones ovos-docker and hivemind-docker at a
+    # pinned ref and runs their compose files. The compose file names, the container names
+    # docker_container_exec targets, and the variables the compose reads are therefore an
+    # interface, and each has broken an install. The quietest is a variable with an inline
+    # default that the installer is nonetheless meant to own - HIVEMIND_SITEID kept working
+    # and silently reported the wrong site id - so the contracts mark those `owner: installer`
+    # and this refuses to read "has a default" as "nobody needs to set it".
+    run python3 scripts/check_contracts.py
+    if [ "$status" -ne 0 ]; then
+        echo "$output" >&2
+        echo "refresh tests/contracts/ or fix env.j2; see scripts/check_contracts.py" >&2
+    fi
+    assert_success
+}

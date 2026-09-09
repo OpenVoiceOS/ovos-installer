@@ -1,0 +1,298 @@
+version: 1
+compose_files:
+- docker-compose.gui.yml
+- docker-compose.hivemind.yml
+- docker-compose.macos.yml
+- docker-compose.raspberrypi.gui.yml
+- docker-compose.raspberrypi.yml
+- docker-compose.server.yml
+- docker-compose.skills-extra.yml
+- docker-compose.skills.yml
+- docker-compose.windows.yml
+- docker-compose.yml
+services:
+  docker-compose.gui.yml:
+    ovos_gui: ovos_gui
+    ovos_gui_websocket: ovos_gui_websocket
+    ovos_skill_homescreen: ovos_skill_homescreen
+  docker-compose.hivemind.yml:
+    hivemind_cli: hivemind_cli
+    hivemind_listener: hivemind_listener
+  docker-compose.macos.yml:
+    ovos_audio: ovos_audio
+    ovos_cli: ovos_cli
+    ovos_core: ovos_core
+    ovos_listener: ovos_listener
+    ovos_messagebus: ovos_messagebus
+    ovos_phal: ovos_phal
+    ovos_phal_admin: ovos_phal_admin
+    ovos_plugin_ggwave: ovos_plugin_ggwave
+  docker-compose.server.yml:
+    hivemind_cli: hivemind_cli
+    hivemind_listener: hivemind_listener
+    ovos_core: ovos_core
+    ovos_messagebus: ovos_messagebus
+  docker-compose.skills-extra.yml:
+    ovos_skill_camera: ovos_skill_camera
+    ovos_skill_easter_eggs: ovos_skill_easter_eggs
+    ovos_skill_homeassistant: ovos_skill_homeassistant
+    ovos_skill_jokes: ovos_skill_jokes
+    ovos_skill_parrot: ovos_skill_parrot
+    ovos_skill_randomness: ovos_skill_randomness
+    ovos_skill_wikihow: ovos_skill_wikihow
+    ovos_skill_wolfie: ovos_skill_wolfie
+  docker-compose.skills.yml:
+    ovos_skill_alerts: ovos_skill_alerts
+    ovos_skill_date_time: ovos_skill_date_time
+    ovos_skill_duckduckgo: ovos_skill_duckduckgo
+    ovos_skill_fallback_unknown: ovos_skill_fallback_unknown
+    ovos_skill_ggwave: ovos_skill_ggwave
+    ovos_skill_hello_world: ovos_skill_hello_world
+    ovos_skill_personal: ovos_skill_personal
+    ovos_skill_volume: ovos_skill_volume
+    ovos_skill_weather: ovos_skill_weather
+    ovos_skill_wikipedia: ovos_skill_wikipedia
+    ovos_skill_wordnet: ovos_skill_wordnet
+  docker-compose.windows.yml:
+    ovos_audio: ovos_audio
+    ovos_cli: ovos_cli
+    ovos_core: ovos_core
+    ovos_listener: ovos_listener
+    ovos_messagebus: ovos_messagebus
+    ovos_phal: ovos_phal
+    ovos_phal_admin: ovos_phal_admin
+    ovos_plugin_ggwave: ovos_plugin_ggwave
+  docker-compose.yml:
+    ovos_audio: ovos_audio
+    ovos_cli: ovos_cli
+    ovos_core: ovos_core
+    ovos_listener: ovos_listener
+    ovos_messagebus: ovos_messagebus
+    ovos_phal: ovos_phal
+    ovos_phal_admin: ovos_phal_admin
+    ovos_plugin_ggwave: ovos_plugin_ggwave
+env:
+  CORE_MEMORY_LIMIT:
+    required: false
+    compose_files:
+    - docker-compose.macos.yml
+    - docker-compose.raspberrypi.yml
+    - docker-compose.server.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+  DISPLAY:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+  GPIO_GID:
+    required: true
+    compose_files:
+    - docker-compose.raspberrypi.yml
+  GUI_MEMORY_LIMIT:
+    required: false
+    compose_files:
+    - docker-compose.gui.yml
+  HIVEMIND_CONFIG_FOLDER:
+    required: true
+    compose_files:
+    - docker-compose.hivemind.yml
+    - docker-compose.server.yml
+  HIVEMIND_SHARE_FOLDER:
+    required: true
+    compose_files:
+    - docker-compose.hivemind.yml
+    - docker-compose.server.yml
+  HIVEMIND_USER:
+    required: true
+    compose_files:
+    - docker-compose.hivemind.yml
+    - docker-compose.server.yml
+  I2C_GID:
+    required: true
+    compose_files:
+    - docker-compose.raspberrypi.yml
+  INPUT_GID:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+  LIGHT_MEMORY_LIMIT:
+    required: false
+    compose_files:
+    - docker-compose.gui.yml
+    - docker-compose.hivemind.yml
+    - docker-compose.raspberrypi.yml
+    - docker-compose.server.yml
+    - docker-compose.skills-extra.yml
+    - docker-compose.skills.yml
+    - docker-compose.yml
+  OVOS_CONFIG_FOLDER:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+    - docker-compose.macos.yml
+    - docker-compose.server.yml
+    - docker-compose.skills-extra.yml
+    - docker-compose.skills.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+  OVOS_CONFIG_PHAL_FOLDER:
+    required: true
+    compose_files:
+    - docker-compose.yml
+  OVOS_PERSONA_FOLDER:
+    required: true
+    compose_files:
+    - docker-compose.macos.yml
+    - docker-compose.server.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+  OVOS_SHARE_FOLDER:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+    - docker-compose.macos.yml
+    - docker-compose.server.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+  OVOS_USER:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+    - docker-compose.macos.yml
+    - docker-compose.server.yml
+    - docker-compose.skills-extra.yml
+    - docker-compose.skills.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+  PULL_POLICY:
+    required: false
+    compose_files:
+    - docker-compose.gui.yml
+    - docker-compose.hivemind.yml
+    - docker-compose.macos.yml
+    - docker-compose.server.yml
+    - docker-compose.skills-extra.yml
+    - docker-compose.skills.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+    owner: installer
+    description: Image pull policy. The compose has a fallback, so an unset value
+      silently overrides the policy the installer was configured with rather than
+      failing.
+  PULSE_SERVER:
+    required: false
+    compose_files:
+    - docker-compose.macos.yml
+    - docker-compose.windows.yml
+  QT_QPA_EGLFS_INTEGRATION:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+  QT_QPA_EGLFS_KMS_CONFIG:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+  QT_QPA_PLATFORM:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+  RENDER_GID:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+  SPI_GID:
+    required: true
+    compose_files:
+    - docker-compose.raspberrypi.yml
+  STANDARD_MEMORY_LIMIT:
+    required: false
+    compose_files:
+    - docker-compose.gui.yml
+    - docker-compose.macos.yml
+    - docker-compose.raspberrypi.yml
+    - docker-compose.server.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+  TMP_FOLDER:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+    - docker-compose.macos.yml
+    - docker-compose.server.yml
+    - docker-compose.skills-extra.yml
+    - docker-compose.skills.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+  TZ:
+    required: false
+    compose_files:
+    - docker-compose.gui.yml
+    - docker-compose.hivemind.yml
+    - docker-compose.macos.yml
+    - docker-compose.server.yml
+    - docker-compose.skills-extra.yml
+    - docker-compose.skills.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+    owner: installer
+    description: Timezone for every service. The compose falls back to a default,
+      so an installer that does not set it produces a working stack in the wrong timezone
+      - silently.
+  VERSION:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+    - docker-compose.hivemind.yml
+    - docker-compose.macos.yml
+    - docker-compose.server.yml
+    - docker-compose.skills-extra.yml
+    - docker-compose.skills.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+  VIDEO_GID:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+  WAYLAND_DISPLAY:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+  XDG_RUNTIME_DIR:
+    required: true
+    compose_files:
+    - docker-compose.gui.yml
+    - docker-compose.windows.yml
+    - docker-compose.yml
+images:
+- docker.io/smartgic/hivemind-cli
+- docker.io/smartgic/hivemind-listener
+- docker.io/smartgic/ovos-audio
+- docker.io/smartgic/ovos-cli
+- docker.io/smartgic/ovos-core
+- docker.io/smartgic/ovos-gui-shell
+- docker.io/smartgic/ovos-gui-websocket
+- docker.io/smartgic/ovos-listener
+- docker.io/smartgic/ovos-messagebus
+- docker.io/smartgic/ovos-phal
+- docker.io/smartgic/ovos-phal-admin
+- docker.io/smartgic/ovos-plugin-ggwave
+- docker.io/smartgic/ovos-skill-alerts
+- docker.io/smartgic/ovos-skill-camera
+- docker.io/smartgic/ovos-skill-date-time
+- docker.io/smartgic/ovos-skill-duckduckgo
+- docker.io/smartgic/ovos-skill-easter-eggs
+- docker.io/smartgic/ovos-skill-fallback-unknown
+- docker.io/smartgic/ovos-skill-ggwave
+- docker.io/smartgic/ovos-skill-hello-world
+- docker.io/smartgic/ovos-skill-homeassistant
+- docker.io/smartgic/ovos-skill-homescreen
+- docker.io/smartgic/ovos-skill-jokes
+- docker.io/smartgic/ovos-skill-parrot
+- docker.io/smartgic/ovos-skill-personal
+- docker.io/smartgic/ovos-skill-randomness
+- docker.io/smartgic/ovos-skill-volume
+- docker.io/smartgic/ovos-skill-weather
+- docker.io/smartgic/ovos-skill-wikihow
+- docker.io/smartgic/ovos-skill-wikipedia
+- docker.io/smartgic/ovos-skill-wolfie
+- docker.io/smartgic/ovos-skill-wordnet
