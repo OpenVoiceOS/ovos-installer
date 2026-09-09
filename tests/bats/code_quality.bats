@@ -3682,3 +3682,28 @@ function teardown() {
         assert_success
     done
 }
+
+@test "hivemind_docker_tracks_the_maintained_branch_and_passes_the_site_id" {
+    # The satellite profile runs the compose file straight out of a clone of
+    # hivemind-docker, so the pinned branch decides which fixes reach an
+    # install. feat/initial stopped moving on 2026-08-15 while dev kept getting
+    # fixes - hivemind-docker#45, which lets an identity written by
+    # "hivemind-client set-identity" in hivemind_cli actually reach the
+    # satellite, is one of them.
+    local defaults="ansible/roles/ovos_containers/defaults/main.yml"
+    local env_template="ansible/roles/ovos_containers/templates/docker/env.j2"
+
+    run grep -q "default('feat/initial')" "$defaults"
+    assert_failure
+
+    run grep -q "ovos_installer_hivemind_docker_repo_branch | default('dev')" "$defaults"
+    assert_success
+
+    # That compose reads HIVEMIND_SITEID and falls back to a literal "default"
+    # when it is unset, which would quietly discard the configured site id.
+    run grep -q "^HIVEMIND_SITEID=" "$env_template"
+    assert_success
+
+    run grep -q "^HIVEMIND_SITEID={{ ovos_installer_site_id" "$env_template"
+    assert_success
+}
