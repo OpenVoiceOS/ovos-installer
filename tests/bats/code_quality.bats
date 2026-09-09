@@ -3732,3 +3732,41 @@ function teardown() {
     run grep -qE "^HIVEMIND_SITEID=\{\{ env\(ovos_installer_site_id" "$env_template"
     assert_success
 }
+
+@test "installer_satisfies_the_contracts_of_the_repositories_it_clones" {
+    # The containers method builds nothing: it clones ovos-docker and hivemind-docker at a
+    # pinned ref and runs their compose files. The compose file names, the container names
+    # docker_container_exec targets, and the variables the compose reads are therefore an
+    # interface, and each has broken an install. The quietest is a variable with an inline
+    # default that the installer is nonetheless meant to own - HIVEMIND_SITEID kept working
+    # and silently reported the wrong site id - so the contracts mark those `owner: installer`
+    # and this refuses to read "has a default" as "nobody needs to set it".
+    run python3 scripts/check_contracts.py
+    if [ "$status" -ne 0 ]; then
+        echo "$output" >&2
+        echo "refresh tests/contracts/ or fix env.j2; see scripts/check_contracts.py" >&2
+    fi
+    assert_success
+}
+
+@test "ci_updates_apt_without_the_unused_third_party_repositories" {
+    # The runner image ships apt sources for Google Chrome and Microsoft that nothing
+    # here installs from. A broken index on either fails apt-get update and kills the
+    # job at setup with exit 100, before any test runs - which is what happened on
+    # 2026-09-09 when dl.google.com served a Packages.gz that did not match its own
+    # Release file, failing every Linux job at once.
+    local script=".github/scripts/apt_update.sh"
+
+    run test -x "$script"
+    assert_success
+
+    # matched by content, not by file name: the runner image has used both
+    # google-chrome.list and the deb822 google-chrome.sources, and deleting a
+    # fixed name silently does nothing when the other form is in use
+    run grep -q "dl\\\\.google\\\\.com" "$script"
+    assert_success
+
+    # Every workflow must go through it rather than calling apt-get update directly.
+    run bash -c "command grep -rn 'sudo apt-get update' .github/workflows/ | command grep -v apt_update.sh"
+    assert_failure
+}

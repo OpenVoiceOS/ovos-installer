@@ -1,0 +1,38 @@
+---
+name: Upstream contracts
+
+# The offline half of this runs in every pull request via code_quality.bats, against the snapshots
+# in tests/contracts/. This is the half that needs the network: it re-fetches each contract at the
+# ref this installer pins, so a snapshot that has drifted is caught, and reports a pin that has
+# fallen behind a release - which is how an install sat on a hivemind-docker tag for weeks after
+# the fix it needed had shipped.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upstream-contracts
+  cancel-in-progress: false
+
+jobs:
+  contracts:
+    name: Verify pinned contracts
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      # version-pinned: this job reads a file fetched from another repository, so the
+      # tool that parses it should not change under us between runs
+      - run: pip install --disable-pip-version-check "pyyaml==6.0.2"
+
+      - name: Check the installer against the contracts at the pinned refs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/check_contracts.py --online --fail-on-stale

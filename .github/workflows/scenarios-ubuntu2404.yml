@@ -101,7 +101,7 @@ jobs:
 
       - name: Install installer requirements
         run: |
-          sudo apt-get update
+          ./.github/scripts/apt_update.sh
           sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Ensure Docker is available for container scenarios
@@ -246,7 +246,7 @@ jobs:
 
       - name: Install installer requirements
         run: |
-          sudo apt-get update
+          ./.github/scripts/apt_update.sh
           sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Resolve feature set
@@ -406,7 +406,7 @@ jobs:
 
       - name: Install installer requirements
         run: |
-          sudo apt-get update
+          ./.github/scripts/apt_update.sh
           sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Ensure Docker is available for container idempotency
@@ -533,7 +533,7 @@ jobs:
 
       - name: Install installer requirements
         run: |
-          sudo apt-get update
+          ./.github/scripts/apt_update.sh
           sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Create install scenario file
@@ -670,7 +670,7 @@ jobs:
 
       - name: Install installer requirements
         run: |
-          sudo apt-get update
+          ./.github/scripts/apt_update.sh
           sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Ensure Docker is available
@@ -735,7 +735,7 @@ jobs:
 
       - name: Install installer requirements
         run: |
-          sudo apt-get update
+          ./.github/scripts/apt_update.sh
           sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       - name: Create invalid scenario file
