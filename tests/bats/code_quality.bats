@@ -3748,3 +3748,22 @@ function teardown() {
     fi
     assert_success
 }
+
+@test "ci_updates_apt_without_the_unused_third_party_repositories" {
+    # The runner image ships apt sources for Google Chrome and Microsoft that nothing
+    # here installs from. A broken index on either fails apt-get update and kills the
+    # job at setup with exit 100, before any test runs - which is what happened on
+    # 2026-09-09 when dl.google.com served a Packages.gz that did not match its own
+    # Release file, failing every Linux job at once.
+    local script=".github/scripts/apt_update.sh"
+
+    run test -x "$script"
+    assert_success
+
+    run grep -q "google-chrome.list" "$script"
+    assert_success
+
+    # Every workflow must go through it rather than calling apt-get update directly.
+    run bash -c "command grep -rn 'sudo apt-get update' .github/workflows/ | command grep -v apt_update.sh"
+    assert_failure
+}

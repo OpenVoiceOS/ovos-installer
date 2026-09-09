@@ -49,7 +49,7 @@ jobs:
 
       - name: Install BATS requirements
         run: |
-          sudo apt-get update
+          ./.github/scripts/apt_update.sh
           # whiptail so the TUI can be walked through the real binary, not just
           # the stub the rest of the suite uses.
           sudo apt-get --no-install-recommends install -y bats git ca-certificates whiptail
