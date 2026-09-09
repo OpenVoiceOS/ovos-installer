@@ -8,14 +8,22 @@
 # a single test runs.
 #
 # That is not hypothetical: on 2026-09-09 dl.google.com served a Packages.gz whose hash
-# did not match its own Release file, and every Linux job here failed for hours. The
-# failure looks alarming (eight unrelated jobs red at once) and says nothing about the
-# change under test. Retrying does not help while the upstream index stays inconsistent.
+# did not match its own Release file, and every amd64 Linux job here failed for hours.
+# Retrying does not help while the upstream index stays inconsistent.
 #
-# So the lists are removed before the update rather than retried around.
+# Matched by content rather than by file name: the image has used both google-chrome.list
+# and the deb822 google-chrome.sources, so deleting a fixed name silently does nothing -
+# which is exactly how the first attempt at this fix passed on arm64, where the repository
+# is absent, and kept failing on amd64.
 set -euo pipefail
 
-sudo rm -f /etc/apt/sources.list.d/google-chrome.list \
-    /etc/apt/sources.list.d/microsoft-prod.list
+shopt -s nullglob
+for source_file in /etc/apt/sources.list.d/*; do
+    [ -f "$source_file" ] || continue
+    if grep -qE 'dl\.google\.com|packages\.microsoft\.com' "$source_file"; then
+        echo "removing unused third-party apt source: ${source_file}"
+        sudo rm -f "$source_file"
+    fi
+done
 
 sudo apt-get update

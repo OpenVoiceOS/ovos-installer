@@ -3760,7 +3760,10 @@ function teardown() {
     run test -x "$script"
     assert_success
 
-    run grep -q "google-chrome.list" "$script"
+    # matched by content, not by file name: the runner image has used both
+    # google-chrome.list and the deb822 google-chrome.sources, and deleting a
+    # fixed name silently does nothing when the other form is in use
+    run grep -q "dl\\\\.google\\\\.com" "$script"
     assert_success
 
     # Every workflow must go through it rather than calling apt-get update directly.
