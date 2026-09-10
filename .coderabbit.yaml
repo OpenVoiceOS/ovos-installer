@@ -1,0 +1,11 @@
+# CodeRabbit does not review draft pull requests unless told to.
+#
+# Every pull request in this repository opens as a draft, and the merge gate
+# needs a CodeRabbit review at the head sha before the review stage passes on
+# an important change. Without this setting the two rules contradict each
+# other: the review that the gate requires never runs, and the only way to
+# obtain one is an explicit request that is rationed to one per hour across
+# the organisation.
+reviews:
+  auto_review:
+    drafts: true
