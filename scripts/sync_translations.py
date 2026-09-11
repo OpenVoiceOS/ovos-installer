@@ -138,12 +138,32 @@ export CONTENT_HOST CONTENT_PORT CONTENT_KEY CONTENT_PASSWORD TITLE_HOST TITLE_P
 
 """
 
+FINISH_TEMPLATE = """
+#!/usr/bin/env bash
+# The satellite note is defined before CONTENT so CONTENT can interpolate it. It is
+# shown only when the caller asks for it, which is only after a satellite install -
+# every other profile either runs the listener itself or has nothing to do with one.
+# The command names and the values the installer fills in are not translated.
+HIVEMIND_SATELLITE_NOTE="
+{hivemind_satellite_note}
+"
+HIVEMIND_SATELLITE_HINT="${{SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}}"
+
+CONTENT="
+{content}
+$HIVEMIND_SATELLITE_HINT
+"
+TITLE="{title}"
+
+export CONTENT TITLE HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT
+"""
+
 TEMPLATES = {
     "misc.sh": MISC_TEMPLATE,
     "channels.sh": TEMPLATE,
     "detection.sh": DETECTION_TEMPLATE,
     "features.sh": FEATURES_TEMPLATE,
-    "finish.sh": TEMPLATE,
+    "finish.sh": FINISH_TEMPLATE,
     "methods.sh": METHODS_TEMPLATE,
     "overclock.sh": OVERCLOCK_TEMPLATE,
     "profiles.sh": TEMPLATE,

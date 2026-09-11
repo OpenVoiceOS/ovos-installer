@@ -10,12 +10,15 @@ ovos_services_enable_ggwave: "{{ ovos_services_enable_desktop | bool and (ovos_i
 ovos_services_enable_listener_or_server: "{{ ovos_installer_profile == 'listener' or ovos_installer_profile == 'server' }}"
 ovos_services_enable_satellite: "{{ ovos_installer_profile == 'satellite' }}"
 
-# client_id column of `hivemind-core export-clients`, whose first line is the CSV
-# header. An empty database yields the header alone, so this is [] on a fresh hub
-# and the grant loop simply does nothing.
+# client_id column of `hivemind-core export-clients`. Rows are picked by shape rather
+# than by position: the command logs its database backend to stdout before printing the
+# CSV, so the header is not the first line and counting from the top would hand the
+# literal string "client_id" to allow-msg. A client id is an integer, so a line that
+# starts with digits and a comma is a client and nothing else is. A fresh hub has no
+# clients, which yields [] and a loop that does nothing.
 ovos_services_hivemind_client_ids: >-
-  {{ (ovos_services_hivemind_clients.stdout_lines | default([]))[1:]
-     | map('split', ',') | map('first') | select('truthy') | list }}
+  {{ ovos_services_hivemind_clients.stdout_lines | default([])
+     | select('match', '^[0-9]+,') | map('split', ',') | map('first') | list }}
 ovos_services_wrapper_template: virtualenv/wrapper-ovos-phal-admin.sh.j2
 ovos_services_wrapper_path: /usr/local/bin/wrapper-ovos-phal-admin.sh
 ovos_services_wrapper_mode: "0755"
