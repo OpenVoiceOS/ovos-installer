@@ -3890,6 +3890,23 @@ function teardown() {
     run grep -q "ovos_installer_listener_host" ansible/roles/ovos_finalize/tasks/main.yml
     assert_success
 
+    # An empty port is not an absent one. A user who clears the port prompt leaves the
+    # variable defined and empty, which Jinja's default() and the shell's ${VAR-word}
+    # both preserve - the note would name an address ending in a bare colon. The forms
+    # that fall back on an empty value are default(x, true) and ${VAR:-word}, and the
+    # port is the one placeholder that can use the colon form safely because a number
+    # can never contain the apostrophe that broke three locales.
+    run grep -q "default(5678, true)" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_success
+    for dir in tui/locales/*/; do
+        run bash -c "export HIVEMIND_HOST=hub.example HIVEMIND_PORT= \
+            HIVEMIND_KEY_PREFIX=deadbeef SHOW_HIVEMIND_SATELLITE_NOTE=1 \
+            CONFIG_FILE=/x OVOS_SERVICE_SCOPE_HINT=; \
+            source '${dir}finish.sh'; printf '%s' \"\$CONTENT\""
+        assert_success
+        assert_output --partial "hub.example:5678"
+    done
+
     # The translated source is what the generator reads; editing the generated locale
     # alone is undone by the next sync.
     run grep -q "hivemind_satellite_note" translations/en-us/strings.json

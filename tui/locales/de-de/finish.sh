@@ -4,7 +4,7 @@
 # every other profile either runs the listener itself or has nothing to do with one.
 # The command names and the values the installer fills in are not translated.
 HIVEMIND_SATELLITE_NOTE="
-Dieser Satellit muss noch die Freigabe zum Sprechen erhalten, und zwar auf dem Rechner, auf dem der HiveMind-Listener läuft, unter ${HIVEMIND_HOST-}:${HIVEMIND_PORT-5678}:
+Dieser Satellit muss noch die Freigabe zum Sprechen erhalten, und zwar auf dem Rechner, auf dem der HiveMind-Listener läuft, unter ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678}:
 
   hivemind-core list-clients
   hivemind-core allow-msg recognizer_loop:utterance <node-id>

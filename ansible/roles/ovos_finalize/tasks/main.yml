@@ -25,7 +25,7 @@
   ansible.builtin.debug:
     msg:
       - "This satellite has to be allowed to speak, on the machine running the"
-      - "HiveMind listener at {{ ovos_installer_listener_host }}:{{ ovos_installer_listener_port | default(5678) }}:"
+      - "HiveMind listener at {{ ovos_installer_listener_host }}:{{ ovos_installer_listener_port | default(5678, true) }}:"
       - ""
       - "  hivemind-core list-clients"
       - "  hivemind-core allow-msg recognizer_loop:utterance <node-id>"

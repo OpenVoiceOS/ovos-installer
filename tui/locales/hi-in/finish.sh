@@ -4,7 +4,7 @@
 # every other profile either runs the listener itself or has nothing to do with one.
 # The command names and the values the installer fills in are not translated.
 HIVEMIND_SATELLITE_NOTE="
-इस सैटेलाइट को बोलने की अनुमति अभी दी जानी बाकी है। यह अनुमति उस मशीन पर दी जाती है जिस पर HiveMind listener चल रहा है, पते ${HIVEMIND_HOST-}:${HIVEMIND_PORT-5678} पर:
+इस सैटेलाइट को बोलने की अनुमति अभी दी जानी बाकी है। यह अनुमति उस मशीन पर दी जाती है जिस पर HiveMind listener चल रहा है, पते ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678} पर:
 
   hivemind-core list-clients
   hivemind-core allow-msg recognizer_loop:utterance <node-id>

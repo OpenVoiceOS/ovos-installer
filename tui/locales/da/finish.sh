@@ -4,7 +4,7 @@
 # every other profile either runs the listener itself or has nothing to do with one.
 # The command names and the values the installer fills in are not translated.
 HIVEMIND_SATELLITE_NOTE="
-Denne satellit skal stadig have lov til at tale. Tilladelsen gives på maskinen, der kører HiveMind-lytteren på ${HIVEMIND_HOST-}:${HIVEMIND_PORT-5678}:
+Denne satellit skal stadig have lov til at tale. Tilladelsen gives på maskinen, der kører HiveMind-lytteren på ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678}:
 
   hivemind-core list-clients
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
