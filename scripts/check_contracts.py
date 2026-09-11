@@ -11,8 +11,9 @@ those repositories and this one, and all four have broken an install:
   environment          every variable the compose reads must come from env.j2 - or, for a variable
                        with an inline default, must come from env.j2 anyway when the installer is
                        the one that owns the value
-  images               the compose is pinned by tag, the images move with a channel tag, so an
-                       image can be older than the compose that expects it
+  images               the compose is pinned by tag, the images move with a channel tag, so a
+                       published image can be older than the compose that expects it - or newer
+                       and expecting something the pinned compose does not provide
 
 The third is the one that stays quiet. A compose file that starts reading HIVEMIND_SITEID keeps
 working: it just uses the literal string "default" instead of the site id collected here. Nothing
@@ -20,8 +21,8 @@ fails, and every satellite reports the wrong site. That is why a contract marks 
 `owner: installer` and why this refuses to treat "has a default" as "nobody needs to set it".
 
 Offline by default, against the snapshots in tests/contracts/, so this runs in any pull request.
---online re-fetches them at the pinned refs, reports a pin that has fallen behind a release, and
-checks that the published images are not older than the compose pinned here.
+--online re-fetches them at the pinned refs and reports a pin that has fallen behind a release.
+The image half is NOT checked here: see scripts/image_coherence.py, which --online calls.
 """
 import argparse
 import json
