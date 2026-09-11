@@ -27,11 +27,15 @@ fi
 
 target="$(mktemp -d)"
 trap 'rm -rf "${target}"' EXIT
+# --no-cache-dir as well as --target: --target moves only where the package lands, while
+# pip's cache still goes under HOME, which is the thing this whole branch exists to avoid.
 echo "installing websocket-client into ${target}"
-if ! "${python_bin}" -m pip install --quiet --disable-pip-version-check \
+if ! "${python_bin}" -m pip install --quiet --disable-pip-version-check --no-cache-dir \
         --target "${target}" websocket-client; then
     echo "could not install websocket-client, so the bus cannot be reached from here" >&2
     exit 1
 fi
+# Deliberately not exec: exec replaces this shell, the EXIT trap never runs, and the
+# temporary directory is left behind on every successful run.
 PYTHONPATH="${target}${PYTHONPATH:+:${PYTHONPATH}}" \
-    exec "${python_bin}" "${here}/assert_intent_roundtrip.py" "$@"
+    "${python_bin}" "${here}/assert_intent_roundtrip.py" "$@"

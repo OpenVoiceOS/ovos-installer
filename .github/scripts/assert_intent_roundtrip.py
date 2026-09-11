@@ -31,6 +31,7 @@ container, and on macOS.
 """
 import argparse
 import json
+import secrets
 import sys
 import time
 
@@ -145,11 +146,22 @@ def probe(bus, utterance, lang, timeout):
 
 
 def round_trip(bus, utterance, lang, timeout):
-    """An utterance in, speech out: the whole chain, with a skill on the end of it."""
+    """An utterance in, speech out: the whole chain, with a skill on the end of it.
+
+    The reply is correlated with this particular utterance rather than taken as the next
+    thing said on the bus. Other skills speak unprompted - a boot announcement is the
+    obvious one - and accepting the first `speak` would let one of those stand in for an
+    answer that never came. A skill answering inside a handler speaks with
+    `message.forward`, which carries the triggering context through, so a marker put on
+    the utterance comes back on the reply.
+    """
+    marker = secrets.token_hex(8)
     bus.send("recognizer_loop:utterance",
              {"utterances": [utterance], "lang": lang},
-             {"source": ["ci"], "lang": lang})
-    answer = bus.wait_for("speak", timeout)
+             {"source": ["ci"], "lang": lang, "ci_probe": marker})
+    answer = bus.wait_for(
+        "speak", timeout,
+        match=lambda m: (m.get("context") or {}).get("ci_probe") == marker)
     if answer is None:
         raise Failure(
             f"nothing spoke within {timeout:.0f}s of saying {utterance!r}. The intent "
@@ -209,7 +221,10 @@ def main(argv=None):
         else:
             print(f"intent    : {args.utterance!r} matched nothing")
 
-        if args.expect_match and not intent:
+        # Naming a pipeline or a skill is a statement about the match, so it requires one.
+        # Skipping the check when nothing matched let --expect-pipeline pass while
+        # asserting nothing at all, which is the failure this whole check exists to find.
+        if (args.expect_match or args.expect_pipeline or args.expect_skill) and not intent:
             raise Failure(
                 f"nothing matched {args.utterance!r}. The pipeline answered, so it is "
                 f"alive; what it no longer does is resolve this utterance."

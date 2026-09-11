@@ -66,7 +66,17 @@ async def handler(ws):
         elif kind == "recognizer_loop:utterance":
             if MODE == "silent_skill":
                 continue
-            await reply("speak", {"utterance": "no problem, stopping"})
+            if MODE == "chatty_bystander":
+                # another skill talking on its own account: no triggering context, so no
+                # marker - exactly what must NOT be mistaken for the answer
+                await ws.send(json.dumps({"type": "speak",
+                                          "data": {"utterance": "ready to go"},
+                                          "context": {"skill_id": "boot-finished"}}))
+                continue
+            ctx = dict(m.get("context") or {})
+            await ws.send(json.dumps({"type": "speak",
+                                      "data": {"utterance": "no problem, stopping"},
+                                      "context": ctx}))
 
 async def main():
     async with websockets.serve(handler, "127.0.0.1", PORT):
@@ -184,6 +194,43 @@ class EachRungCanFail(unittest.TestCase):
             code, out = run_harness("--skip-skills-ready", port=bus.port)
         self.assertEqual(code, 0, out)
         self.assertNotIn("skills    :", out)
+
+
+@unittest.skipUnless(HAVE_SERVER and HAVE_CLIENT,
+                     "needs websockets (server) and websocket-client (harness)")
+class ItAnswersTheQuestionItAsked(unittest.TestCase):
+    """Correlating the reply, and refusing to assert about a match that never happened."""
+
+    def test_speech_from_another_skill_is_not_taken_as_the_answer(self):
+        """A boot announcement speaks unprompted; it is not a reply to anything.
+
+        Taking the next `speak` on a shared bus would let one of those stand in for an
+        answer that never came - a pass with nothing behind it.
+        """
+        with FakeBus("chatty_bystander") as bus:
+            code, out = run_harness("--expect-speak", port=bus.port)
+        self.assertEqual(code, 1, out)
+        self.assertIn("a skill answering it", out)
+
+    def test_the_answer_carrying_this_probe_marker_is_accepted(self):
+        with FakeBus("healthy") as bus:
+            code, out = run_harness("--expect-speak", port=bus.port)
+        self.assertEqual(code, 0, out)
+        self.assertIn("no problem, stopping", out)
+
+    def test_naming_a_pipeline_requires_there_to_be_a_match(self):
+        """--expect-pipeline used to skip its check when nothing matched, and pass.
+
+        That is the defect this whole check exists to find, in the check itself: an
+        assertion about the match is worthless if the absence of a match satisfies it.
+        """
+        with FakeBus("no_match") as bus:
+            code, out = run_harness("--expect-pipeline", "padatious", port=bus.port)
+            self.assertEqual(code, 1, out)
+            self.assertEqual(run_harness("--expect-skill", "skill-date-time",
+                                         port=bus.port)[0], 1)
+            # without an expectation, no match is still a perfectly good answer
+            self.assertEqual(run_harness(port=bus.port)[0], 0)
 
 
 class TheHarnessItself(unittest.TestCase):
