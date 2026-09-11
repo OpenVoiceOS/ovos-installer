@@ -25,3 +25,10 @@
 - name: Include install tasks
   ansible.builtin.import_tasks: install.yml
   when: not (ovos_services_is_cleaning | bool)
+
+- name: Include HiveMind permission tasks
+  ansible.builtin.import_tasks: hivemind-permissions.yml
+  when:
+    - not (ovos_services_is_cleaning | bool)
+    - ovos_services_enable_listener_or_server | bool
+    - ovos_installer_method == 'virtualenv'

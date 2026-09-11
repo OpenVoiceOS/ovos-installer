@@ -608,15 +608,51 @@ jobs:
       - name: Install baseline OVOS instance
         run: sudo -E env ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" REUSE_CACHED_ARTIFACTS=true bash setup.sh
 
+      # Replaying the roles needs an Ansible that outlives the installer. setup.sh builds
+      # its own in ~/.venvs/ovos-installer and removes it unconditionally on success, so
+      # the binary this step used to insist on never exists by the time it runs.
+      #
+      # A virtualenv rather than a --user install, because the replay runs the playbook
+      # under sudo and sudo resets HOME to /root: anything installed into the runner's
+      # user site-packages is invisible to root, while a virtualenv carries its own and
+      # does not care whose HOME is set. The versions are the ones utils/common.sh pins
+      # for the installer, so the replay exercises the same Ansible that installed.
+      - name: Build the Ansible used to replay the roles
+        shell: bash
+        run: |
+          python3 -m venv "${GITHUB_WORKSPACE}/.ansible-replay"
+          "${GITHUB_WORKSPACE}/.ansible-replay/bin/pip" install --quiet --upgrade pip
+          "${GITHUB_WORKSPACE}/.ansible-replay/bin/pip" install --quiet \
+            "ansible==10.7.0" "docker==7.1.0" "requests==2.32.5"
+
       - name: Assert key role idempotency
         shell: bash
         run: |
           set -o pipefail
-          ansible_playbook_bin="$HOME/.venvs/ovos-installer/bin/ansible-playbook"
+          ansible_playbook_bin="${GITHUB_WORKSPACE}/.ansible-replay/bin/ansible-playbook"
           if [ ! -x "$ansible_playbook_bin" ]; then
-            echo "ansible-playbook not found at $ansible_playbook_bin"
+            echo "the replay virtualenv has no ansible-playbook at $ansible_playbook_bin"
             exit 1
           fi
+          # setup.sh installs the collections into the working copy and leaves them
+          # there; only /root/.ansible and its own virtualenv are removed. Under sudo the
+          # default search starts at /root and finds neither, so the path is named here -
+          # both candidates, because this job's cache restores the workspace copy and the
+          # home copy and either may be the populated one.
+          export ANSIBLE_COLLECTIONS_PATH="${GITHUB_WORKSPACE}/.ansible/collections:${HOME}/.ansible/collections"
+          found=""
+          for candidate in "${GITHUB_WORKSPACE}/.ansible/collections" "${HOME}/.ansible/collections"; do
+            if [ -d "${candidate}/ansible_collections" ]; then
+              echo "collections: ${candidate}"
+              found="yes"
+            fi
+          done
+          if [ -z "$found" ]; then
+            echo "the baseline install left no collections in either candidate path;"
+            echo "the replay would fail on the first role that uses one"
+            exit 1
+          fi
+          echo "replaying the key roles with ${ansible_playbook_bin}"
 
           key_roles=(ovos_facts ovos_config ovos_virtualenv ovos_services ovos_finalize)
           mkdir -p artifacts
@@ -625,6 +661,7 @@ jobs:
             role_log="artifacts/idempotency-${role_tag}.log"
             sudo -E env \
               ANSIBLE_CONFIG=ansible.cfg \
+              ANSIBLE_COLLECTIONS_PATH="$ANSIBLE_COLLECTIONS_PATH" \
               ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" \
               "$ansible_playbook_bin" -i 127.0.0.1, ansible/site.yml \
                 -e "ovos_installer_user=${USER}" \

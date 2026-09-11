@@ -3931,6 +3931,133 @@ function teardown() {
     done
 }
 
+@test "every_locale_renders_the_satellite_note_without_breaking_its_own_file" {
+    # The note is a translated string that lands inside a double-quoted bash string and
+    # carries shell expansions, so a translation can break the whole finish screen for
+    # that language. Three locales did: an apostrophe inside ${VAR:-word} opens a quote
+    # as far as bash is concerned, and ca-es, fr-fr and it-it stopped parsing entirely.
+    # Sourcing each file is the only check that sees that.
+    for dir in tui/locales/*/; do
+        run bash -n "${dir}finish.sh"
+        assert_success
+
+        run bash -c "export HIVEMIND_HOST=hub.example HIVEMIND_PORT=5678 \
+            HIVEMIND_KEY_PREFIX=deadbeef SHOW_HIVEMIND_SATELLITE_NOTE=1 \
+            CONFIG_FILE=/x OVOS_SERVICE_SCOPE_HINT=; \
+            source '${dir}finish.sh'; printf '%s' \"\$CONTENT\""
+        assert_success
+        # the commands a user types are never translated
+        assert_output --partial "hivemind-core allow-msg recognizer_loop:utterance <node-id>"
+        # and the values the installer fills in actually arrive
+        assert_output --partial "hub.example"
+        assert_output --partial "deadbeef"
+        # a placeholder that survives to the screen is a placeholder that did not expand
+        refute_output --partial '${HIVEMIND'
+    done
+}
+
+@test "a_satellite_install_says_what_the_listener_still_has_to_allow" {
+    # The grant lives in the listener's database, so a satellite install cannot make it -
+    # this machine has neither that database nor the hivemind-core command. What it can
+    # do is say so, rather than leave a satellite that authenticates and is then refused
+    # on everything it says looking like broken hardware.
+    #
+    # The note itself is a translated string; every locale rendering it is checked
+    # separately. What is checked here is that the installer asks for it, and only when
+    # it applies.
+    run awk '
+        /SHOW_HIVEMIND_SATELLITE_NOTE=""/ { found = 1; next }
+        found && /if \[\[/ { print $0; exit }
+    ' tui/finish.sh
+    assert_output --partial "satellite"
+
+    # Enough of the access key to pick this satellite out of list-clients, and no more:
+    # an install log is a thing people paste into bug reports, and the key is a
+    # credential. Asserted as the truncation itself rather than by variable name, so
+    # renaming the variable cannot quietly turn this into a check of nothing.
+    run grep -qE ':0:8\}' tui/finish.sh
+    assert_success
+    # and the whole key never reaches the exported prefix
+    run grep -qE 'HIVEMIND_KEY_PREFIX="\$\{SATELLITE_KEY[:-]*\}"' tui/finish.sh
+    assert_failure
+
+    # A scenario install never reaches the finish screen, and a scenario install is
+    # exactly how a fleet of satellites gets built - so the play says it too.
+    run grep -q "allow-msg recognizer_loop:utterance" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_success
+    run grep -q "\[:8\]" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_success
+    run grep -q "ovos_installer_listener_host" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_success
+
+    # An empty port is not an absent one. A user who clears the port prompt leaves the
+    # variable defined and empty, which Jinja's default() and the shell's ${VAR-word}
+    # both preserve - the note would name an address ending in a bare colon. The forms
+    # that fall back on an empty value are default(x, true) and ${VAR:-word}, and the
+    # port is the one placeholder that can use the colon form safely because a number
+    # can never contain the apostrophe that broke three locales.
+    run grep -q "default(5678, true)" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_success
+    for dir in tui/locales/*/; do
+        run bash -c "export HIVEMIND_HOST=hub.example HIVEMIND_PORT= \
+            HIVEMIND_KEY_PREFIX=deadbeef SHOW_HIVEMIND_SATELLITE_NOTE=1 \
+            CONFIG_FILE=/x OVOS_SERVICE_SCOPE_HINT=; \
+            source '${dir}finish.sh'; printf '%s' \"\$CONTENT\""
+        assert_success
+        assert_output --partial "hub.example:5678"
+    done
+
+    # The translated source is what the generator reads; editing the generated locale
+    # alone is undone by the next sync.
+    run grep -q "hivemind_satellite_note" translations/en-us/strings.json
+    assert_success
+}
+
+@test "a_hub_grants_satellites_permission_to_send_utterances" {
+    local tasks="ansible/roles/ovos_services/tasks/hivemind-permissions.yml"
+
+    # hivemind-core denies a client every message type until one is allowed, and
+    # recognizer_loop:utterance stopped being granted by default - so a satellite
+    # connects, authenticates, and has everything it says silently refused.
+    run grep -q "allow-msg recognizer_loop:utterance" "$tasks"
+    assert_success
+
+    # The grant lives in the hub's database and is made per client, so it can only run
+    # where hivemind-core and that database exist. A satellite installs
+    # hivemind-voice-sat and hivemind-bus-client, not hivemind-core, so gating on the
+    # hub profiles is what keeps this from being a task that cannot work.
+    run grep -A6 "Include HiveMind permission tasks" ansible/roles/ovos_services/tasks/main.yml
+    assert_output --partial "ovos_services_enable_listener_or_server"
+
+    # Idempotent by reading what hivemind-core reports rather than by exit status: it
+    # prints "already allowed" and exits 0 when the grant is present, and prints
+    # "Invalid Node ID!" and ALSO exits 0 when it cannot resolve the client - which
+    # would otherwise be an unnoticed no-op.
+    run grep -q "changed_when: \"'Allowed' in" "$tasks"
+    assert_success
+    run grep -q "'Invalid Node ID' in ovos_services_hivemind_allow.stdout" "$tasks"
+    assert_success
+
+    # failed_when REPLACES the return-code check rather than adding to it, so a crashed
+    # allow-msg passes for success unless the return code is restated alongside the
+    # stdout test. Same reason export-clients must not be failed_when: false - a failure
+    # there yields no client ids, the loop does nothing, and the play reports success
+    # having granted nothing.
+    run grep -q "ovos_services_hivemind_allow.rc != 0" "$tasks"
+    assert_success
+    run grep -q "failed_when: false" "$tasks"
+    assert_failure
+
+    # Client ids are picked by shape, not by position: hivemind-core logs its database
+    # backend to stdout before the CSV, so the header is not the first line and counting
+    # from the top hands the literal string "client_id" to allow-msg.
+    run grep -q "export-clients" "$tasks"
+    assert_success
+    run grep -A3 "ovos_services_hivemind_client_ids" ansible/roles/ovos_services/defaults/main.yml
+    assert_output --partial "select('match', '^[0-9]+,')"
+    refute_output --partial "[1:]"
+}
+
 @test "contract_checker_decision_logic_and_reporting_are_tested_offline" {
     # Two suites, both offline, discovered by pattern rather than by name so that adding a
     # third does not silently go unrun - which is what happened to the reporting suite, whose
