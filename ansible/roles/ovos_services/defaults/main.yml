@@ -9,6 +9,13 @@ ovos_services_enable_gui: "{{ ovos_installer_feature_gui | bool and ovos_service
 ovos_services_enable_ggwave: "{{ ovos_services_enable_desktop | bool and (ovos_installer_enable_ggwave | bool) }}"
 ovos_services_enable_listener_or_server: "{{ ovos_installer_profile == 'listener' or ovos_installer_profile == 'server' }}"
 ovos_services_enable_satellite: "{{ ovos_installer_profile == 'satellite' }}"
+
+# client_id column of `hivemind-core export-clients`, whose first line is the CSV
+# header. An empty database yields the header alone, so this is [] on a fresh hub
+# and the grant loop simply does nothing.
+ovos_services_hivemind_client_ids: >-
+  {{ (ovos_services_hivemind_clients.stdout_lines | default([]))[1:]
+     | map('split', ',') | map('first') | select('truthy') | list }}
 ovos_services_wrapper_template: virtualenv/wrapper-ovos-phal-admin.sh.j2
 ovos_services_wrapper_path: /usr/local/bin/wrapper-ovos-phal-admin.sh
 ovos_services_wrapper_mode: "0755"

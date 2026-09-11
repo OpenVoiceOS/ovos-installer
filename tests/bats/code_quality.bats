@@ -3831,6 +3831,39 @@ function teardown() {
     assert_output ""
 }
 
+@test "a_hub_grants_satellites_permission_to_send_utterances" {
+    local tasks="ansible/roles/ovos_services/tasks/hivemind-permissions.yml"
+
+    # hivemind-core denies a client every message type until one is allowed, and
+    # recognizer_loop:utterance stopped being granted by default - so a satellite
+    # connects, authenticates, and has everything it says silently refused.
+    run grep -q "allow-msg recognizer_loop:utterance" "$tasks"
+    assert_success
+
+    # The grant lives in the hub's database and is made per client, so it can only run
+    # where hivemind-core and that database exist. A satellite installs
+    # hivemind-voice-sat and hivemind-bus-client, not hivemind-core, so gating on the
+    # hub profiles is what keeps this from being a task that cannot work.
+    run grep -A6 "Include HiveMind permission tasks" ansible/roles/ovos_services/tasks/main.yml
+    assert_output --partial "ovos_services_enable_listener_or_server"
+
+    # Idempotent by reading what hivemind-core reports rather than by exit status: it
+    # prints "already allowed" and exits 0 when the grant is present, and prints
+    # "Invalid Node ID!" and ALSO exits 0 when it cannot resolve the client - which
+    # would otherwise be an unnoticed no-op.
+    run grep -q "changed_when: \"'Allowed' in" "$tasks"
+    assert_success
+    run grep -q "failed_when: \"'Invalid Node ID' in" "$tasks"
+    assert_success
+
+    # The client ids come from the CSV export, whose first line is a header. A fresh hub
+    # has no clients, so the list is empty and the loop does nothing rather than failing.
+    run grep -q "export-clients" "$tasks"
+    assert_success
+    run grep -A3 "ovos_services_hivemind_client_ids" ansible/roles/ovos_services/defaults/main.yml
+    assert_output --partial "[1:]"
+}
+
 @test "contract_checker_decision_logic_and_reporting_are_tested_offline" {
     # Two suites, both offline, discovered by pattern rather than by name so that adding a
     # third does not silently go unrun - which is what happened to the reporting suite, whose
