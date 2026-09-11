@@ -23,6 +23,10 @@ jobs:
   contracts:
     name: Verify pinned contracts
     runs-on: ubuntu-24.04
+    # A healthy run takes a few minutes. An unreachable registry is retried, so a total outage
+    # costs three timeouts per image instead of one - without a bound that inherits the six-hour
+    # default and holds a runner all morning to reach a verdict this bound reaches anyway.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:

@@ -25,7 +25,6 @@ Offline by default, against the snapshots in tests/contracts/, so this runs in a
 The image half is NOT checked here: see scripts/image_coherence.py, which --online calls.
 """
 import argparse
-import json
 import re
 import subprocess
 import tempfile
@@ -39,7 +38,14 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import image_coherence  # noqa: E402  (same directory, not a package)
 
-DEPENDENCY_BUMP = re.compile(r"^(chore\(deps\)|Update .+ to v|build\(deps\)|chore: update .+ digest)", re.I)
+DEPENDENCY_BUMP = re.compile(
+    r"^(chore\(deps\)|build\(deps\)|Update .+ to v|Update .+ digest to|chore: update .+ digest)",
+    re.I)
+
+# A gh call that hangs is a gh call that failed: both leave the release lag unknown, and both
+# are already reported as such. Without this the only ceiling is the job's own timeout, which
+# reports nothing at all.
+GH_TIMEOUT = 120  # seconds
 
 LAST_GH_ERROR: list = []  # why a gh lookup came back empty, if it did
 
@@ -84,6 +90,34 @@ def installer_facts() -> dict:
                   for k, v in {"ovos-docker": urls.get("ovos", ""),
                                "hivemind-docker": urls.get("hivemind", "")}.items()},
     }
+
+
+def check_facts(facts: dict) -> list:
+    """Assert the facts exist at all, before anything is concluded from them.
+
+    Every fact above is pulled out of a file with a regular expression, and a checker holding no
+    facts finds no problems: indent these defaults under a key, rename a variable prefix, move
+    them to another file, and each pattern quietly matches nothing while the run reports
+    "contracts satisfied". A missing file raises, which is loud; a file that no longer matches
+    does not, which is not. Only things that cannot legitimately be empty are asserted here.
+    """
+    problems = []
+    for repo in ("ovos-docker", "hivemind-docker"):
+        if not facts["compose_files"].get(repo):
+            problems.append(f"{repo}: no compose file variables matched in "
+                            f"{CONTAINERS.relative_to(ROOT)} - nothing about this repository was "
+                            f"checked, so its contract was neither satisfied nor tested")
+        if not facts["pins"].get(repo):
+            problems.append(f"{repo}: no pin matched in {INSTALLER.relative_to(ROOT)}")
+        if not facts["slugs"].get(repo):
+            problems.append(f"{repo}: no repository url matched in {INSTALLER.relative_to(ROOT)}")
+    if not facts["container_names"]:
+        problems.append(f"no container names matched in {CONTAINERS.relative_to(ROOT)} - the "
+                        f"rename that this check exists to catch would now pass silently")
+    if not facts["provided_env"]:
+        problems.append(f"no variables matched in {ENV_TEMPLATE.relative_to(ROOT)} - every "
+                        f"variable upstream requires would read as supplied")
+    return problems
 
 
 def check(repo: str, contract: dict, facts: dict) -> list:
@@ -172,13 +206,14 @@ def release_lag(slug: str, tag: str) -> tuple[int, str] | None:
     try:
         branch = subprocess.run(["gh", "repo", "view", slug, "--json", "defaultBranchRef",
                                  "-q", ".defaultBranchRef.name"],
-                                capture_output=True, text=True, check=True).stdout.strip()
+                                capture_output=True, text=True, check=True,
+                                timeout=GH_TIMEOUT).stdout.strip()
         out = subprocess.run(["gh", "api", f"repos/{slug}/compare/{tag}...{branch}",
                               # single-parent only: a merge commit repeats what it merges,
                               # and counting it makes a lone dependency bump look substantive
                               "-q", ".commits[] | select(.parents | length == 1) "
                                     "| .commit.message | split(\"\\n\")[0]"],
-                             capture_output=True, text=True, check=True)
+                             capture_output=True, text=True, check=True, timeout=GH_TIMEOUT)
         # Only unreleased *fixes* are worth a release. Renovate merges dependency bumps
         # continuously, and failing a weekly job for those trains people to ignore it -
         # at which point the alert no longer works for the case it exists for.
@@ -194,7 +229,7 @@ def release_lag(slug: str, tag: str) -> tuple[int, str] | None:
 def latest_release(slug: str) -> str | None:
     try:
         out = subprocess.run(["gh", "release", "view", "--repo", slug, "--json", "tagName", "-q", ".tagName"],
-                             capture_output=True, text=True, check=True)
+                             capture_output=True, text=True, check=True, timeout=GH_TIMEOUT)
         return out.stdout.strip() or None
     except Exception as error:
         LAST_GH_ERROR.append(f"{type(error).__name__}: {error}")
@@ -219,6 +254,8 @@ def main() -> int:
     facts = installer_facts()
     problems, notes, contracts = [], [], {}
     pending_lag = {}
+
+    problems.extend(check_facts(facts))
 
     for repo in ("ovos-docker", "hivemind-docker"):
         snapshot = SNAPSHOTS / f"{repo}.yml"
@@ -266,8 +303,13 @@ def main() -> int:
         # Clones go to a temporary directory, never inside the repository: a checkout of another
         # project under ROOT gets picked up by this repository's own linters and tests.
         with tempfile.TemporaryDirectory(prefix="ovos-contract-pins-") as cache:
-            image_problems, image_notes, coverage = image_coherence.check_images(
-                contracts, facts, Path(cache), facts["channel"])
+            try:
+                image_problems, image_notes, coverage = image_coherence.check_images(
+                    contracts, facts, Path(cache), facts["channel"])
+            except Exception as error:  # a crash here must be reported, not thrown away
+                image_problems = [f"the image check failed to run: "
+                                  f"{type(error).__name__}: {str(error)[:140]}"]
+                image_notes, coverage = [], {}
 
             # A release trailing its branch is only worth failing over when the commits in
             # between are ones an install can observe. Asked with the producer's own selector,
@@ -275,14 +317,16 @@ def main() -> int:
             for repo, (release, behind, branch) in sorted(pending_lag.items()):
                 clone = Path(cache) / (facts["slugs"][repo] or "").replace("/", "_")
                 if not clone.exists():
-                    notes.append(f"{repo}: {release} is behind {branch} by {behind} change(s); "
-                                 f"could not check whether an install sees them")
+                    (problems if args.fail_on_stale else notes).append(
+                        f"{repo}: {release} is behind {branch} by {behind} change(s) and whether "
+                        f"an install sees them could not be checked - no clone at {release}")
                     continue
                 affects, detail = image_coherence.unreleased_impact(
                     clone, release, branch, facts["compose_files"][repo])
                 if affects is None:
-                    notes.append(f"{repo}: {release} is behind {branch} by {behind} change(s); "
-                                 f"impact unknown ({detail})")
+                    (problems if args.fail_on_stale else notes).append(
+                        f"{repo}: {release} is behind {branch} by {behind} change(s) and their "
+                        f"impact could not be determined ({detail})")
                 elif affects:
                     message = (f"{repo}: {release} is behind {branch} by {behind} change(s) an "
                                f"install would see ({detail}) - they are in no release")
@@ -290,9 +334,18 @@ def main() -> int:
                 else:
                     notes.append(f"{repo}: {release} is behind {branch} by {behind} change(s), "
                                  f"but {detail} - no release needed for an install's sake")
-        # Printed unconditionally: a run that resolved nothing must not look like a clean one.
+        # Printed unconditionally, and asserted: a printed count nobody checks is decoration.
+        # Without this every "could not tell" outcome lands in notes, which can never fail the
+        # job, so a run that verified nothing ends green - the exact shape this check exists to
+        # catch elsewhere.
         for (repo, tag), (resolved, total) in sorted(coverage.items()):
-            print(f"images checked: {repo}@{tag} {resolved}/{total}")
+            print(f"images checked: {repo}@{tag} {resolved}/{total}"
+                  + ("" if total else " (not checked)"))
+            if resolved < total or not total:
+                missing = (total - resolved) if total else "all"
+                image_problems.append(
+                    f"{repo}@{tag}: {missing} of {total or 'its'} images reached no verdict - "
+                    f"the run did not establish that they match the pinned compose")
         notes.extend(image_notes)
         (problems if args.fail_on_image_drift else notes).extend(image_problems)
 

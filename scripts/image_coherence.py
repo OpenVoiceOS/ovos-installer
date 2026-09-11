@@ -23,10 +23,10 @@ and is where the installer actually pulls from, but its unauthenticated budget i
 requests per hour per IP, shared across everything on a runner's egress - so using it here would
 break other jobs rather than this one.
 """
-import concurrent.futures
 import json
 import re
 import subprocess
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -34,6 +34,25 @@ from pathlib import Path
 import yaml
 
 REGISTRY_TIMEOUT = 20
+# A run reads ~30 images at three or four requests each. At that volume a single transient
+# failure is close to certain over time, and "the registry hiccuped" now fails the weekly
+# job - so a blip has to be told apart from an outage. Only transport failures are retried;
+# 404 and 401 are answers, and asking again just spends requests against a rate limit.
+REGISTRY_ATTEMPTS = 3
+REGISTRY_BACKOFF = 2  # seconds, doubled per attempt
+# One wall-clock ceiling for every registry read a run makes, together. Each
+# candidate can cost REGISTRY_TIMEOUT * REGISTRY_ATTEMPTS plus its backoff -- 66
+# seconds -- and a run reads up to two candidates per deployed image, so a wide
+# outage scales past the job's own timeout. Being killed mid-check is the worst
+# outcome available: the run reports nothing at all, including the images it did
+# resolve. Past the budget the remaining reads are skipped and named instead.
+REGISTRY_BUDGET = 900  # seconds
+# Every git, gh and docker call this program makes talks to a network or a daemon and none of
+# them carried a ceiling: a blackholed fetch simply never returns. The only bound was the job's
+# own timeout, and a job killed by that reports nothing at all - including the images it had
+# already resolved, which is the outcome the registry budget above exists to avoid. Generous
+# enough for a cold blobless clone of a large repository on a slow runner.
+SUBPROCESS_TIMEOUT = 300  # seconds
 TAG_VAR = re.compile(r":\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$")
 
 
@@ -50,8 +69,23 @@ def canonical_image(image: str) -> str:
     return repository
 
 
-def run(args, cwd=None, check=True):
-    return subprocess.run(args, cwd=cwd, capture_output=True, text=True, check=check)
+def run(args, cwd=None, check=True, timeout=SUBPROCESS_TIMEOUT):
+    """subprocess.run, where hanging is reported as failing.
+
+    Every caller here already handles a command that fails; none of them could have handled one
+    that never returns. Raising CalledProcessError for a timeout puts both outcomes through the
+    same handler, which is right - "it did not answer" and "it answered badly" are the same
+    thing to a checker, and the alternative is an exception nobody catches.
+    """
+    try:
+        return subprocess.run(args, cwd=cwd, capture_output=True, text=True,
+                              check=check, timeout=timeout)
+    except subprocess.TimeoutExpired as expired:
+        # 124 is what timeout(1) reports, and stderr has to be a str because callers read it
+        raise subprocess.CalledProcessError(
+            124, args,
+            output=expired.stdout if isinstance(expired.stdout, str) else "",
+            stderr=f"no answer after {timeout}s") from expired
 
 
 def pin_clone(slug: str, ref: str, cache: Path):
@@ -69,26 +103,52 @@ def pin_clone(slug: str, ref: str, cache: Path):
     return target
 
 
-def deployed_images(clone: Path, ref: str, compose_names) -> dict:
+def deployed_images(clone: Path, ref: str, compose_names) -> tuple:
     """Images the installer actually pulls: every service in the compose files it runs.
 
     Scope comes from the compose files rather than from the contract's `images` list, because the
     contract lists everything the producer builds while an install runs a profile-selected subset.
     Checking what is not deployed would report drift nobody can experience.
+
+    Only images whose tag comes from the channel variable are in scope. This checker asks the
+    registry what `:<channel>` currently holds, so an image the compose pins itself - a fixed
+    tag, or none at all - is a question it cannot ask: the install pulls the tag written in the
+    compose, which is the tag it was pinned at, and a pinned image cannot drift. Asking about
+    `:<channel>` for one would look it up under a mirror that has no such tag and report that an
+    install pulling it would fail, which would be untrue and unfixable.
+
+    Returns (images, unreadable, self_pinned). A compose file that could not be read or parsed
+    is named in `unreadable` rather than dropped: the run continues over the files it can read,
+    but the caller has to say so, because coverage computed over a silently smaller scope reads
+    exactly like coverage over the whole of it. `self_pinned` is named for the same reason -
+    out of scope is a defensible answer, out of sight is not.
     """
-    found = {}
+    found, unreadable, self_pinned = {}, [], []
     for name in sorted(compose_names):
         try:
             body = run(["git", "-C", str(clone), "show", f"{ref}:compose/{name}"]).stdout
         except subprocess.CalledProcessError:
+            unreadable.append((name, "is not in the pinned tree"))
             continue
-        for service, spec in (yaml.safe_load(body).get("services") or {}).items():
+        try:
+            document = yaml.safe_load(body) or {}
+        except yaml.YAMLError as error:
+            # One unparseable file upstream must not discard every other answer in
+            # the run, but it must not quietly shrink what the run claims to cover
+            # either: the images it deploys go unchecked while coverage still reads
+            # complete, which is the one outcome this gate exists to prevent.
+            unreadable.append((name, f"is not valid YAML ({str(error)[:70]})"))
+            continue
+        for service, spec in (document.get("services") or {}).items():
             if isinstance(spec, dict) and spec.get("image"):
+                if not TAG_VAR.search(spec["image"]):
+                    self_pinned.append((spec["image"], f"{name}:{service}"))
+                    continue
                 found.setdefault(canonical_image(spec["image"]), {})[name] = service
-    return found
+    return found, unreadable, self_pinned
 
 
-def read_labels(path: str, tag: str):
+def _read_labels_once(path: str, tag: str):
     """(labels, outcome) for ghcr.io/<path>:<tag>. outcome: ok | no_tag | denied | transport.
 
     The outcomes are kept apart on purpose. "The tag is not there" is a finding; "we could not
@@ -136,6 +196,34 @@ def read_labels(path: str, tag: str):
         return None, "transport"
 
 
+def read_labels(path: str, tag: str, sleep=time.sleep, deadline=None):
+    """_read_labels_once, retrying a registry that could not be reached.
+
+    Retrying is not cosmetic here. An unreachable registry is a failure now rather than a note,
+    which is right for an outage and wrong for a hiccup: a job that goes red most weeks for
+    reasons nobody can act on gets muted, and then it protects nothing.
+
+    `deadline` is a monotonic instant shared by every read in the run. Past it no request is
+    made and no retry is waited out: the caller reports what is left as unverified rather than
+    being killed part-way through and reporting nothing.
+
+    The deadline is tested at the top of every attempt rather than beside the backoff, so that a
+    sleep which crosses it cannot be followed by one more request. Checking before the wait but
+    not after left exactly that gap - the budget would be spent and a further REGISTRY_TIMEOUT
+    still spendable. The seeded outcome below carries the answer when nothing was attempted at
+    all; once an attempt has been made, its own failure is the more useful thing to report.
+    """
+    labels, outcome = None, "budget"
+    for attempt in range(REGISTRY_ATTEMPTS):
+        if deadline is not None and time.monotonic() >= deadline:
+            return labels, outcome
+        labels, outcome = _read_labels_once(path, tag)
+        if outcome != "transport" or attempt == REGISTRY_ATTEMPTS - 1:
+            return labels, outcome
+        sleep(REGISTRY_BACKOFF * (2 ** attempt))
+    return labels, outcome  # unreachable, kept so every path returns a pair
+
+
 def mirror_candidates(image: str, slugs: dict, declaring: str):
     """GHCR paths to try for an image, the declaring repository's mirror first.
 
@@ -179,7 +267,8 @@ def rebuild_targets(clone: Path, revision: str, pin: str):
         return None, "the producer has no scripts/affected.py at this ref"
     try:
         result = subprocess.run(["python3", str(selector), "paths"], cwd=str(clone),
-                                input=changed, capture_output=True, text=True, check=True)
+                                input=changed, capture_output=True, text=True, check=True,
+                                timeout=SUBPROCESS_TIMEOUT)
         return json.loads(result.stdout), None
     except Exception as error:
         return None, f"the rebuild selector failed: {str(error)[:140]}"
@@ -217,7 +306,11 @@ def service_interface(clone: Path, ref: str, compose_name: str, service: str):
         body = run(["git", "-C", str(clone), "show", f"{ref}:compose/{compose_name}"]).stdout
     except subprocess.CalledProcessError:
         return None
-    spec = ((yaml.safe_load(body) or {}).get("services") or {}).get(service)
+    try:
+        document = yaml.safe_load(body) or {}
+    except yaml.YAMLError:
+        return None
+    spec = (document.get("services") or {}).get(service)
     if not isinstance(spec, dict):
         return None
     environment = spec.get("environment")
@@ -236,23 +329,37 @@ def service_interface(clone: Path, ref: str, compose_name: str, service: str):
 def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
     """Compare what an install pulls against the compose it runs.
 
-    Returns (problems, notes, coverage). Nothing here is a problem unless it is both real and
-    actionable; everything unresolved is a note that names why, and the coverage counts are
-    printed by the caller so a run that verified nothing cannot look like a clean one.
+    Returns (problems, notes, coverage). The invariant that makes the result trustworthy is that
+    every deployed image does exactly one of three things: it reaches a verdict and counts as
+    resolved, it is declared out of scope and leaves the denominator with a note naming it, or it
+    leaves a gap between `resolved` and the total. The caller ASSERTS that gap rather than merely
+    printing it, so an image nobody managed to decide about fails the run - which is why most of
+    the outcomes below are notes and still cannot be ignored.
+
+    Only two things leave the denominator, and both are answers rather than failures to answer:
+    an image the compose pins itself, which cannot drift, and one built by a repository this
+    installer does not pin, which there is no pin to compare against. "Could not tell" is never
+    one of them.
     """
     problems, notes, coverage = [], [], {}
     clones, oracles = {}, {}
+    deadline = time.monotonic() + REGISTRY_BUDGET
+    out_of_budget = 0
 
     for repo, contract in contracts.items():
+        # Seeded before any early exit: a repository that drops out here would otherwise have no
+        # coverage line at all, so the report is emptiest exactly where it looks quietest.
+        coverage[(repo, channel)] = (0, 0)
         slug, pin = facts["slugs"].get(repo), facts["pins"].get(repo)
         if not slug or not pin:
-            notes.append(f"{repo}: no pin or repository url in the installer defaults")
+            problems.append(f"{repo}: no pin or repository url in the installer defaults - "
+                            f"no image was verified for it")
             continue
         try:
             clones[repo] = pin_clone(slug, pin, cache)
         except Exception as error:
-            notes.append(f"{repo}: could not clone {slug} at {pin} ({str(error)[:90]}) - "
-                         f"no image was verified for it")
+            problems.append(f"{repo}: could not clone {slug} at {pin} ({str(error)[:90]}) - "
+                            f"no image was verified for it")
             continue
         oracles[repo] = target_images(clones[repo])
         if oracles[repo] is None:
@@ -264,26 +371,43 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
         if clone is None:
             continue
         pin = facts["pins"][repo]
-        deployed = deployed_images(clone, pin, facts["compose_files"][repo])
+        deployed, unreadable, self_pinned = deployed_images(clone, pin,
+                                                            facts["compose_files"][repo])
+        for name, reason in unreadable:
+            problems.append(f"{repo}: compose/{name} {reason} - the images it deploys were "
+                            f"not checked, so this run's coverage is narrower than it looks")
+        for image, where in sorted(self_pinned):
+            notes.append(f"{repo}: {image} ({where}) takes its tag from the compose rather than "
+                         f"the channel, so it cannot drift - out of scope")
 
         declared = set(contract.get("images") or [])
         for image in sorted(set(deployed) - declared):
             problems.append(f"{repo}: the pinned compose deploys {image} but the contract does not "
                             f"declare it - the producer's own contract gate missed it")
 
-        resolved = 0
+        resolved, out_of_scope = 0, 0
         for image in sorted(deployed):
-            labels, outcome, used_repo = None, "no_tag", None
-            for candidate_repo, path in mirror_candidates(image, facts["slugs"], repo):
-                labels, outcome = read_labels(path, channel)
+            labels, outcome, attempts = None, "no_tag", []
+            for _, path in mirror_candidates(image, facts["slugs"], repo):
+                labels, outcome = read_labels(path, channel, deadline=deadline)
                 if outcome == "ok":
-                    used_repo = candidate_repo
                     break
+                attempts.append(outcome)
             if outcome != "ok":
-                reason = {"no_tag": f"no :{channel} tag published",
-                          "denied": "the mirror refused anonymous access",
-                          "transport": "the registry could not be reached"}[outcome]
-                notes.append(f"{repo}: {image} not verified - {reason}")
+                # The candidates are tried in order, so the LAST one's outcome would otherwise
+                # decide: a registry that could not be reached would be reported as "no such tag".
+                outcome = next((o for o in ("budget", "transport", "denied", "no_tag")
+                                if o in attempts), "no_tag")
+                if outcome == "budget":
+                    out_of_budget += 1
+                    continue
+                if outcome == "no_tag":
+                    problems.append(f"{repo}: the pinned compose deploys {image} but no :{channel} "
+                                    f"tag is published for it - an install pulling it would fail")
+                else:
+                    reason = ("the mirror refused anonymous access" if outcome == "denied"
+                              else "the registry could not be reached")
+                    notes.append(f"{repo}: {image} not verified - {reason}")
                 continue
 
             revision = labels.get("org.opencontainers.image.revision")
@@ -296,9 +420,23 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
             # whose compose deploys it: ovos-docker's compose runs hivemind-cli.
             owner = next((r for r, s in facts["slugs"].items()
                           if s and s.lower() == source.lower()), None)
+            if owner is None and not source:
+                # An absent label is not a statement about who built this. It reads exactly like
+                # a third-party image and must not be treated as one: if a producer's build
+                # stopped emitting the label, every image would quietly leave the denominator
+                # and a run that checked nothing would pass. "Could not tell", so it counts.
+                notes.append(f"{repo}: {image}:{channel} names no source repository - it cannot "
+                             f"be attributed to a pin, so it was not verified")
+                continue
             if owner is None:
-                notes.append(f"{repo}: {image} is built by {source or 'an unknown repository'}, "
-                             f"which this installer does not pin - out of scope")
+                # Genuinely out of scope, so it leaves the denominator as well as the numerator.
+                # Every other unresolved outcome here means "could not tell" and must count
+                # against coverage; this one means "not ours to tell", and counting it would
+                # fail the weekly job forever over an image nobody can do anything about - the
+                # note would say out of scope while the exit status said otherwise.
+                out_of_scope += 1
+                notes.append(f"{repo}: {image} is built by {source}, which this installer does "
+                             f"not pin - out of scope")
                 continue
             owner_clone, owner_pin = clones.get(owner), facts["pins"].get(owner)
             if owner_clone is None:
@@ -306,9 +444,12 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
                              f"not verified")
                 continue
 
-            resolved += 1
             verdict, detail = compare(owner_clone, owner_pin, revision, image,
                                       oracles.get(owner), deployed[image], clone, pin)
+            # Counted only when a verdict was actually reached: "we read the labels" is not
+            # "we decided", and this number is the one thing that shows a run checked anything.
+            if verdict in ("coherent", "behind", "ahead"):
+                resolved += 1
             if verdict == "behind":
                 problems.append(f"{repo}: {image}:{channel} was built from {revision[:12]}, which "
                                 f"predates {owner_pin} by changes that rebuild it ({detail}) - the "
@@ -320,7 +461,14 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
             elif verdict == "unknown":
                 notes.append(f"{repo}: {image} not verified - {detail}")
 
-        coverage[(repo, channel)] = (resolved, len(deployed))
+        coverage[(repo, channel)] = (resolved, len(deployed) - out_of_scope)
+
+    if out_of_budget:
+        # Named, not swallowed. These images were never asked about, so the
+        # coverage counts above already exclude them; saying how many were
+        # skipped is what stops a truncated run from reading like a thorough one.
+        notes.append(f"{out_of_budget} image(s) not verified - the {REGISTRY_BUDGET}s registry "
+                     f"budget for this run was spent before they were read")
 
     return problems, notes, coverage
 
@@ -335,10 +483,10 @@ def compare(clone: Path, pin: str, revision: str, image: str, oracle, placements
         except subprocess.CalledProcessError:
             return "unknown", f"revision {revision[:12]} is not reachable in {clone.name}"
 
-    behind = subprocess.run(["git", "-C", str(clone), "merge-base", "--is-ancestor", revision, pin],
-                            capture_output=True).returncode == 0
-    ahead = subprocess.run(["git", "-C", str(clone), "merge-base", "--is-ancestor", pin, revision],
-                           capture_output=True).returncode == 0
+    behind = run(["git", "-C", str(clone), "merge-base", "--is-ancestor", revision, pin],
+                 check=False).returncode == 0
+    ahead = run(["git", "-C", str(clone), "merge-base", "--is-ancestor", pin, revision],
+                check=False).returncode == 0
 
     if behind and ahead:
         return "coherent", "built from the pinned tree"
@@ -360,17 +508,30 @@ def compare(clone: Path, pin: str, revision: str, image: str, oracle, placements
 
     # Ahead: the image moved past the compose. What matters is whether the part of the service
     # definition the image has to agree with changed underneath it.
-    changed = []
+    changed, unreadable = [], []
     for compose_name, service in (placements or {}).items():
+        # The compose file belongs to the repository that DEPLOYS the image, which is not always
+        # the one that BUILT it: ovos-docker's docker-compose.hivemind.yml deploys hivemind-cli,
+        # and hivemind-docker has no such file. Reading it out of the builder's tree would always
+        # come back empty and silently read as agreement.
+        if clone != compose_clone:
+            unreadable.append(f"{compose_name}:{service} (built by another repository)")
+            continue
         at_pin = service_interface(compose_clone, compose_pin, compose_name, service)
         at_rev = service_interface(clone, revision, compose_name, service)
         if at_pin is None or at_rev is None:
+            unreadable.append(f"{compose_name}:{service}")
             continue
         for field in ("environment", "volumes", "entrypoint", "command"):
             if at_pin.get(field) != at_rev.get(field):
                 changed.append(f"{service}.{field}")
+
     if changed:
         return "ahead", "its service definition changed since: " + ", ".join(sorted(set(changed)))
+    if unreadable:
+        # Absence of evidence, not evidence of agreement.
+        return "unknown", ("ahead of the pin, and its service definition could not be compared for "
+                           + ", ".join(sorted(set(unreadable))))
     return "coherent", "ahead, but no service interface it depends on changed"
 
 
@@ -401,11 +562,15 @@ def unreleased_impact(clone: Path, tag: str, branch: str, compose_names):
     if reason:
         return None, reason
 
-    if compose_changed or targets:
-        parts = []
-        if compose_changed:
-            parts.append("compose: " + ", ".join(compose_changed))
+    if compose_changed:
+        detail = "compose: " + ", ".join(compose_changed)
         if targets:
-            parts.append(f"rebuilds {len(targets)} image(s)")
-        return True, "; ".join(parts)
+            detail += f"; also rebuilds {len(targets)} image(s)"
+        return True, detail
+    if targets:
+        # A rebuild reaches installs through the moving channel tag without any release, and
+        # whether that image then disagrees with the pinned compose is the image half's job.
+        # Demanding a release for it would be a weekly red for work already delivered.
+        return False, (f"only paths no install consumes; the {len(targets)} image(s) they rebuild "
+                       f"reach installs on the channel tag")
     return False, "only paths no install consumes"
