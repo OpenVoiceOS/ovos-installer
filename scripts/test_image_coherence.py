@@ -325,5 +325,61 @@ class AheadDirection(unittest.TestCase):
         self.assertIn("another repository", detail)
 
 
+
+class RegistryRetry(unittest.TestCase):
+    """Telling a hiccup apart from an outage.
+
+    Making an unreachable registry a failure is only safe if a blip is not one. A run reads
+    around thirty images at three or four requests each, so over enough weeks a single transient
+    failure is close to certain - and a job that goes red for reasons nobody can act on gets
+    muted, which costs every check it was carrying.
+    """
+
+    def setUp(self):
+        self._once = ic._read_labels_once
+        self.slept = []
+
+    def tearDown(self):
+        ic._read_labels_once = self._once
+
+    def stub(self, *outcomes):
+        """Answer with each outcome in turn, then repeat the last."""
+        calls = []
+
+        def once(path, tag):
+            calls.append(path)
+            index = min(len(calls) - 1, len(outcomes) - 1)
+            return outcomes[index]
+
+        ic._read_labels_once = once
+        return calls
+
+    def test_a_transient_failure_is_retried_and_recovers(self):
+        calls = self.stub((None, "transport"), ({"a": "b"}, "ok"))
+        labels, outcome = ic.read_labels("org/img", "testing", sleep=self.slept.append)
+        self.assertEqual((labels, outcome), ({"a": "b"}, "ok"))
+        self.assertEqual(len(calls), 2)
+
+    def test_a_persistent_outage_still_fails(self):
+        calls = self.stub((None, "transport"))
+        labels, outcome = ic.read_labels("org/img", "testing", sleep=self.slept.append)
+        self.assertEqual(outcome, "transport")
+        self.assertEqual(len(calls), ic.REGISTRY_ATTEMPTS)
+
+    def test_a_definitive_answer_is_not_retried(self):
+        """404 and 401 are answers. Asking again only spends requests against a rate limit."""
+        for decisive in ("no_tag", "denied", "ok"):
+            calls = self.stub((None, decisive))
+            ic.read_labels("org/img", "testing", sleep=self.slept.append)
+            self.assertEqual(len(calls), 1, decisive)
+
+    def test_the_backoff_grows_and_is_bounded(self):
+        self.stub((None, "transport"))
+        ic.read_labels("org/img", "testing", sleep=self.slept.append)
+        self.assertEqual(len(self.slept), ic.REGISTRY_ATTEMPTS - 1)  # no sleep after the last try
+        self.assertEqual(self.slept, sorted(self.slept))
+        self.assertLess(sum(self.slept), 60)  # a stuck registry must not stall the whole run
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

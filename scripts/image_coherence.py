@@ -27,6 +27,7 @@ import concurrent.futures
 import json
 import re
 import subprocess
+import time
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -34,6 +35,12 @@ from pathlib import Path
 import yaml
 
 REGISTRY_TIMEOUT = 20
+# A run reads ~30 images at three or four requests each. At that volume a single transient
+# failure is close to certain over time, and "the registry hiccuped" now fails the weekly
+# job - so a blip has to be told apart from an outage. Only transport failures are retried;
+# 404 and 401 are answers, and asking again just spends requests against a rate limit.
+REGISTRY_ATTEMPTS = 3
+REGISTRY_BACKOFF = 2  # seconds, doubled per attempt
 TAG_VAR = re.compile(r":\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$")
 
 
@@ -93,7 +100,7 @@ def deployed_images(clone: Path, ref: str, compose_names) -> dict:
     return found
 
 
-def read_labels(path: str, tag: str):
+def _read_labels_once(path: str, tag: str):
     """(labels, outcome) for ghcr.io/<path>:<tag>. outcome: ok | no_tag | denied | transport.
 
     The outcomes are kept apart on purpose. "The tag is not there" is a finding; "we could not
@@ -139,6 +146,21 @@ def read_labels(path: str, tag: str):
         return None, "transport"
     except Exception:
         return None, "transport"
+
+
+def read_labels(path: str, tag: str, sleep=time.sleep):
+    """_read_labels_once, retrying a registry that could not be reached.
+
+    Retrying is not cosmetic here. An unreachable registry is a failure now rather than a note,
+    which is right for an outage and wrong for a hiccup: a job that goes red most weeks for
+    reasons nobody can act on gets muted, and then it protects nothing.
+    """
+    for attempt in range(REGISTRY_ATTEMPTS):
+        labels, outcome = _read_labels_once(path, tag)
+        if outcome != "transport" or attempt == REGISTRY_ATTEMPTS - 1:
+            return labels, outcome
+        sleep(REGISTRY_BACKOFF * (2 ** attempt))
+    return None, "transport"  # unreachable, kept so every path returns a pair
 
 
 def mirror_candidates(image: str, slugs: dict, declaring: str):
