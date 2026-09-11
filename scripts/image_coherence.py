@@ -206,17 +206,22 @@ def read_labels(path: str, tag: str, sleep=time.sleep, deadline=None):
     `deadline` is a monotonic instant shared by every read in the run. Past it no request is
     made and no retry is waited out: the caller reports what is left as unverified rather than
     being killed part-way through and reporting nothing.
+
+    The deadline is tested at the top of every attempt rather than beside the backoff, so that a
+    sleep which crosses it cannot be followed by one more request. Checking before the wait but
+    not after left exactly that gap - the budget would be spent and a further REGISTRY_TIMEOUT
+    still spendable. The seeded outcome below carries the answer when nothing was attempted at
+    all; once an attempt has been made, its own failure is the more useful thing to report.
     """
-    if deadline is not None and time.monotonic() >= deadline:
-        return None, "budget"
+    labels, outcome = None, "budget"
     for attempt in range(REGISTRY_ATTEMPTS):
+        if deadline is not None and time.monotonic() >= deadline:
+            return labels, outcome
         labels, outcome = _read_labels_once(path, tag)
         if outcome != "transport" or attempt == REGISTRY_ATTEMPTS - 1:
             return labels, outcome
-        if deadline is not None and time.monotonic() >= deadline:
-            return labels, outcome
         sleep(REGISTRY_BACKOFF * (2 ** attempt))
-    return None, "transport"  # unreachable, kept so every path returns a pair
+    return labels, outcome  # unreachable, kept so every path returns a pair
 
 
 def mirror_candidates(image: str, slugs: dict, declaring: str):

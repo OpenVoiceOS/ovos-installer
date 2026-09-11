@@ -645,6 +645,26 @@ class RegistryReadsAreBounded(unittest.TestCase):
         self.assertEqual(outcome, "transport")
         self.assertEqual(len(self.calls), ic.REGISTRY_ATTEMPTS)
 
+    def test_a_backoff_that_crosses_the_deadline_makes_no_further_request(self):
+        """Checking beside the wait but not after it left one more request spendable.
+
+        Deterministic rather than timing-dependent: the stub sleep moves a fake clock past the
+        deadline, so the retry is attempted at exactly the instant the budget runs out.
+        """
+        now = [1000.0]
+        real_monotonic = ic.time.monotonic
+        ic.time.monotonic = lambda: now[0]
+        try:
+            labels, outcome = ic.read_labels(
+                "ghcr.io/x/y", "alpha",
+                sleep=lambda seconds: now.__setitem__(0, now[0] + 3600),  # overshoot the budget
+                deadline=now[0] + 1)
+        finally:
+            ic.time.monotonic = real_monotonic
+        self.assertEqual(len(self.calls), 1, "the retry must not start after the budget is gone")
+        self.assertEqual(outcome, "transport",
+                         "an attempt was made and failed, which is the more useful answer")
+
     def test_without_a_deadline_behaviour_is_unchanged(self):
         labels, outcome = ic.read_labels("ghcr.io/x/y", "alpha", sleep=lambda s: None)
         self.assertEqual(len(self.calls), ic.REGISTRY_ATTEMPTS)
