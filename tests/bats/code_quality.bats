@@ -3911,7 +3911,20 @@ function teardown() {
         found && /^[[:space:]]*if:/ { print $0; exit }
         found && /^[[:space:]]*run:/ { print "UNGATED"; exit }
     ' .github/workflows/macos_ci.yml
-    assert_output --partial "matrix.feature_set"
+    # The whole condition, values included. "matrix.feature_set" alone also passes for a
+    # reversed test, or for a gate on a different feature set entirely.
+    assert_output --partial "matrix.feature_set == 'all'"
+    assert_output --partial "matrix.profile == 'ovos'"
+
+    # And that pair really is the leg that installs skills: the scenario step decides
+    # skills from the same two values, so asserting the gate without asserting what the
+    # gate selects would survive skills moving to another feature set.
+    run awk '
+        index($0, "matrix.feature_set }}\" = \"all\"") \
+            && index($0, "matrix.profile }}\" = \"ovos\"") { found = 1; next }
+        found && index($0, "skills=") { print $0; exit }
+    ' .github/workflows/macos_ci.yml
+    assert_output --partial "skills=true"
 
     # It must not name the skill that answers, on either platform. Both methods install
     # ovos-skill-fallback-unknown, which answers whatever nobody else claims, so the
@@ -3973,13 +3986,18 @@ function teardown() {
 
     # Enough of the access key to pick this satellite out of list-clients, and no more:
     # an install log is a thing people paste into bug reports, and the key is a
-    # credential. Asserted as the truncation itself rather than by variable name, so
-    # renaming the variable cannot quietly turn this into a check of nothing.
-    run grep -qE ':0:8\}' tui/finish.sh
+    # credential. Asserted by rendering rather than by matching an expansion: a pattern
+    # that rejects ${SATELLITE_KEY} still passes for the unbraced $SATELLITE_KEY, which
+    # leaks the whole key. What matters is the value that comes out, so that is what is
+    # checked - and it holds however the assignment is spelled.
+    satellite_key_sentinel="0123456789abcdef0123456789abcdef"
+    run bash -c "export RUN_AS_HOME=/x METHOD=virtualenv LOCALE=en-us PROFILE=satellite \
+        SATELLITE_KEY='${satellite_key_sentinel}' HIVEMIND_HOST=hub.example HIVEMIND_PORT=5678; \
+        source tui/finish.sh >/dev/null 2>&1 || true; \
+        printf '%s' \"\${HIVEMIND_KEY_PREFIX-UNSET}\""
     assert_success
-    # and the whole key never reaches the exported prefix
-    run grep -qE 'HIVEMIND_KEY_PREFIX="\$\{SATELLITE_KEY[:-]*\}"' tui/finish.sh
-    assert_failure
+    assert_output "${satellite_key_sentinel:0:8}"
+    refute_output --partial "${satellite_key_sentinel}"
 
     # A scenario install never reaches the finish screen, and a scenario install is
     # exactly how a fleet of satellites gets built - so the play says it too.
@@ -4043,9 +4061,31 @@ function teardown() {
     # stdout test. Same reason export-clients must not be failed_when: false - a failure
     # there yields no client ids, the loop does nothing, and the play reports success
     # having granted nothing.
-    run grep -q "ovos_services_hivemind_allow.rc != 0" "$tasks"
+    #
+    # Scoped to the task rather than searched file-wide: a file-wide match is satisfied
+    # by the right text in the wrong task. Each task is folded onto one line, so the
+    # complete failed_when of the task that actually runs allow-msg can be asserted.
+    flatten_tasks() {
+        awk '
+            /^-[[:space:]]/ { if (block != "") print block; block = ""; }
+            {
+                line = $0
+                sub(/^[[:space:]]+/, "", line)
+                if (line ~ /^#/) next
+                block = block " " line
+            }
+            END { if (block != "") print block }
+        ' "$1"
+    }
+
+    run bash -c "$(declare -f flatten_tasks); flatten_tasks '$tasks' | grep -- 'allow-msg'"
     assert_success
-    run grep -q "failed_when: false" "$tasks"
+    assert_output --partial "failed_when: >- ovos_services_hivemind_allow.rc != 0 or 'Invalid Node ID' in ovos_services_hivemind_allow.stdout"
+
+    # And no task in the file opts out of failing. YAML spells false four ways, and
+    # "failed_when: false" only finds one of them.
+    run bash -c "$(declare -f flatten_tasks); flatten_tasks '$tasks' \
+        | grep -qiE 'failed_when:[[:space:]]*(false|no|off|n)([[:space:]]|\$)'"
     assert_failure
 
     # Client ids are picked by shape, not by position: hivemind-core logs its database
