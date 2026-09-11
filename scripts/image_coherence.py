@@ -324,9 +324,17 @@ def service_interface(clone: Path, ref: str, compose_name: str, service: str):
 def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
     """Compare what an install pulls against the compose it runs.
 
-    Returns (problems, notes, coverage). Nothing here is a problem unless it is both real and
-    actionable; everything unresolved is a note that names why, and the coverage counts are
-    printed by the caller so a run that verified nothing cannot look like a clean one.
+    Returns (problems, notes, coverage). The invariant that makes the result trustworthy is that
+    every deployed image does exactly one of three things: it reaches a verdict and counts as
+    resolved, it is declared out of scope and leaves the denominator with a note naming it, or it
+    leaves a gap between `resolved` and the total. The caller ASSERTS that gap rather than merely
+    printing it, so an image nobody managed to decide about fails the run - which is why most of
+    the outcomes below are notes and still cannot be ignored.
+
+    Only two things leave the denominator, and both are answers rather than failures to answer:
+    an image the compose pins itself, which cannot drift, and one built by a repository this
+    installer does not pin, which there is no pin to compare against. "Could not tell" is never
+    one of them.
     """
     problems, notes, coverage = [], [], {}
     clones, oracles = {}, {}

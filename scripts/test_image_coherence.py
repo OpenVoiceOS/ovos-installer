@@ -222,8 +222,8 @@ class CheckImagesReporting(unittest.TestCase):
         self.repo.mkdir()
         git(self.repo, "init", "-q")
         commit(self.repo, "scripts/affected.py", SELECTOR, "selector")
-        commit(self.repo, "compose/docker-compose.yml",
-               "services:\n  app:\n    image: smartgic/app:${VERSION}\n", "compose")
+        self.pin = commit(self.repo, "compose/docker-compose.yml",
+                          "services:\n  app:\n    image: smartgic/app:${VERSION}\n", "compose")
         git(self.repo, "tag", "v1.0.0")
 
         self.facts = {
@@ -326,6 +326,50 @@ class CheckImagesReporting(unittest.TestCase):
         self.assertEqual(coverage[("producer", "testing")], (0, 1),
                          "an unattributable image stays in the denominator")
         self.assertTrue(any("names no source repository" in n for n in notes), notes)
+
+    def test_every_outcome_either_resolves_or_is_visible(self):
+        """The invariant, swept across every outcome rather than one case at a time.
+
+        A deployed image must do exactly one of three things: reach a verdict and count as
+        resolved, be declared out of scope and leave the denominator with a note naming it, or
+        leave a gap between resolved and the total. The third is what the caller asserts, so a
+        new outcome added later cannot quietly become a fourth kind that counts as verified
+        without deciding anything.
+        """
+        OUTCOMES = {
+            "transport": "gap", "denied": "gap", "no_tag": "gap", "budget": "gap",
+            "no_revision": "gap", "no_source": "gap", "elsewhere": "out_of_scope",
+            "ours": "resolved",
+        }
+        for outcome, expected in OUTCOMES.items():
+            with self.subTest(outcome=outcome):
+                if outcome == "no_revision":
+                    labels = {"org.opencontainers.image.source": "https://github.com/Org/producer"}
+                    ic.read_labels = lambda p, t, **_: (dict(labels), "ok")
+                elif outcome == "no_source":
+                    ic.read_labels = lambda p, t, **_: (
+                        {"org.opencontainers.image.revision": "0" * 40}, "ok")
+                elif outcome == "elsewhere":
+                    ic.read_labels = lambda p, t, **_: (
+                        {"org.opencontainers.image.revision": "0" * 40,
+                         "org.opencontainers.image.source": "https://github.com/Other/repo"}, "ok")
+                elif outcome == "ours":
+                    ic.read_labels = lambda p, t, **_: (
+                        {"org.opencontainers.image.revision": self.pin,
+                         "org.opencontainers.image.source": "https://github.com/Org/producer"}, "ok")
+                else:
+                    ic.read_labels = (lambda o: lambda p, t, **_: (None, o))(outcome)
+
+                problems, notes, coverage = self.run_check()
+                resolved, total = coverage[("producer", "testing")]
+                if expected == "resolved":
+                    self.assertEqual((resolved, total), (1, 1))
+                elif expected == "out_of_scope":
+                    self.assertEqual((resolved, total), (0, 0), "left the denominator")
+                    self.assertTrue(any("out of scope" in n for n in notes), notes)
+                else:
+                    self.assertEqual((resolved, total), (0, 1),
+                                     f"{outcome} must leave a visible gap")
 
     def test_a_compose_file_that_could_not_be_read_is_a_problem(self):
         """Its images are not in `deployed` at all, so coverage alone cannot notice them."""
