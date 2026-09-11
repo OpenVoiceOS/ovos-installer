@@ -25,7 +25,6 @@ Offline by default, against the snapshots in tests/contracts/, so this runs in a
 The image half is NOT checked here: see scripts/image_coherence.py, which --online calls.
 """
 import argparse
-import json
 import re
 import subprocess
 import tempfile
