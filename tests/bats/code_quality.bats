@@ -3860,8 +3860,8 @@ function teardown() {
     # return the containers method to having nothing.
     run awk '
         /name: Validate the bus, core and skills/ { found = 1; next }
-        found && /^\s*if:/ { print "guarded"; exit }
-        found && /^\s*run:/ { found = 0 }
+        found && /^[[:space:]]*if:/ { print "guarded"; exit }
+        found && /^[[:space:]]*run:/ { found = 0 }
     ' .github/workflows/scenarios-ubuntu2404.yml
     assert_output ""
 
@@ -3894,10 +3894,12 @@ function teardown() {
     # Every other rung stops at the intent, which core resolves itself through its own
     # stop pipeline - so none of them involves a skill. This is the only assertion that
     # a skill answered, and it can only hold where skills were installed.
+    # POSIX character classes, not \s: that is a GNU awk extension and the macOS
+    # runners use BSD awk, where the pattern silently matches nothing.
     run awk '
         /name: Validate a skill answers out loud/ { found = 1; next }
-        found && /^\s*if:/ { print $0; exit }
-        found && /^\s*run:/ { print "UNGATED"; exit }
+        found && /^[[:space:]]*if:/ { print $0; exit }
+        found && /^[[:space:]]*run:/ { print "UNGATED"; exit }
     ' .github/workflows/scenarios-ubuntu2404.yml
     assert_output --partial "feature_set.outputs.skills"
 
