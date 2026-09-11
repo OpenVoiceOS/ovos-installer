@@ -372,3 +372,40 @@ def compare(clone: Path, pin: str, revision: str, image: str, oracle, placements
     if changed:
         return "ahead", "its service definition changed since: " + ", ".join(sorted(set(changed)))
     return "coherent", "ahead, but no service interface it depends on changed"
+
+
+def unreleased_impact(clone: Path, tag: str, branch: str, compose_names):
+    """(affects, detail) for what sits on `branch` but not in `tag`.
+
+    A release trailing its branch only matters when the commits in between are ones an install
+    can observe: a compose file it runs, or a path that rebuilds an image it pulls. CI workflows,
+    tests and the contract tooling itself are substantive commits that change nothing a consumer
+    consumes, and failing a weekly job for those would teach people to ignore it - the same way a
+    naive image rule would have.
+    """
+    try:
+        run(["git", "-C", str(clone), "fetch", "--quiet", "origin", branch])
+        head = run(["git", "-C", str(clone), "rev-parse", "FETCH_HEAD"]).stdout.strip()
+        changed = run(["git", "-C", str(clone), "diff", "--name-only", tag, head]).stdout
+    except subprocess.CalledProcessError as error:
+        return None, f"could not compare {tag} with {branch}: {error.stderr.strip()[:110]}"
+
+    touched = [line for line in changed.splitlines() if line.strip()]
+    if not touched:
+        return False, "nothing"
+
+    compose_changed = sorted({line.split("/", 1)[1] for line in touched
+                              if line.startswith("compose/") and "/" in line
+                              and line.split("/", 1)[1] in compose_names})
+    targets, reason = rebuild_targets(clone, tag, head)
+    if reason:
+        return None, reason
+
+    if compose_changed or targets:
+        parts = []
+        if compose_changed:
+            parts.append("compose: " + ", ".join(compose_changed))
+        if targets:
+            parts.append(f"rebuilds {len(targets)} image(s)")
+        return True, "; ".join(parts)
+    return False, "only paths no install consumes"
