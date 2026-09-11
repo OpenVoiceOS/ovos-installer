@@ -3834,13 +3834,27 @@ function teardown() {
 @test "every_real_install_proves_the_bus_core_and_skills_answer" {
     # The package check beside it proves ovos-padatious is on disk. Only this one proves
     # the deployment answers, and the gap between those is where an install that starts
-    # and then talks to nobody used to pass. It must cover BOTH methods: the containers
-    # method had no post-install assertion of any kind, because the package check is
-    # necessarily virtualenv-only and nothing replaced it.
-    for workflow in .github/workflows/scenarios-ubuntu2404.yml .github/workflows/macos_ci.yml; do
-        run grep -q "assert_intent_roundtrip.sh" "$workflow"
-        assert_success
+    # and then talks to nobody used to pass.
+    #
+    # Enumerating the jobs is the point. The first version of this guard only checked
+    # that the file was mentioned somewhere in the workflow, which four of the six jobs
+    # that perform a real install silently failed while the guard stayed green.
+    for job in linux-installer-scenarios-pr-smoke \
+               linux-installer-scenarios-nightly-exhaustive \
+               linux-idempotency \
+               linux-key-role-idempotency; do
+        run awk -v want="$job" '
+            /^  [a-z][a-z0-9_-]*:$/ { j = $1; sub(":", "", j) }
+            /assert_intent_roundtrip\.sh/ { if (j == want) { print "found"; exit } }
+        ' .github/workflows/scenarios-ubuntu2404.yml
+        assert_output "found"
     done
+
+    run awk '
+        /^  [a-z][a-z0-9_-]*:$/ { j = $1; sub(":", "", j) }
+        /assert_intent_roundtrip\.sh/ { if (j == "macos-scenario-matrix") { print "found"; exit } }
+    ' .github/workflows/macos_ci.yml
+    assert_output "found"
 
     # Not gated on a method. The bus is on 127.0.0.1:8181 for both, because ovos-docker
     # publishes the messagebus with network_mode: host - so a guard here would silently
@@ -3852,8 +3866,21 @@ function teardown() {
     ' .github/workflows/scenarios-ubuntu2404.yml
     assert_output ""
 
-    # Arch is excluded on purpose: that job runs inside a container with no systemd, so
-    # setup.sh never starts a service and there is no bus to answer.
+    # Two jobs are excluded deliberately, and both would be permanently red if added.
+    # linux-negative-scenarios feeds invalid scenarios and asserts the install FAILS, so
+    # there is no deployment to answer. linux-satellite-scenario installs the satellite
+    # profile, which runs hivemind-docker's satellite compose against a REMOTE hub -
+    # hivemind_satellite and hivemind_cli, no ovos-core and no local messagebus.
+    for job in linux-negative-scenarios linux-satellite-scenario; do
+        run awk -v want="$job" '
+            /^  [a-z][a-z0-9_-]*:$/ { j = $1; sub(":", "", j) }
+            /assert_intent_roundtrip\.sh/ { if (j == want) { print "wrongly added"; exit } }
+        ' .github/workflows/scenarios-ubuntu2404.yml
+        assert_output ""
+    done
+
+    # Arch is excluded for the same reason: that job runs inside a container with no
+    # systemd, so setup.sh starts no service and there is no bus to answer.
     run grep -q "assert_intent_roundtrip" .github/workflows/scenarios-archlinux.yml
     assert_failure
 }

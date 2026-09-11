@@ -490,6 +490,13 @@ jobs:
             exit 1
           fi
 
+      # Running the installer again must not break a deployment that was working. The
+      # drift assertion above counts Ansible's changed tasks; it says nothing about
+      # whether anything still answers afterwards, so a second pass that quietly stopped
+      # the bus would satisfy it.
+      - name: Validate the bus, core and skills still answer after a second pass
+        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
+
       - name: Create uninstall scenario file
         run: |
           cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
@@ -631,6 +638,11 @@ jobs:
               exit 1
             fi
           done
+
+      # Re-running the key roles must leave the deployment answering, not merely leave
+      # Ansible reporting no changes.
+      - name: Validate the bus, core and skills still answer after the key roles re-run
+        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
 
       - name: Upload key-role idempotency logs
         if: always()
