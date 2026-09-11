@@ -4,12 +4,12 @@
 # every other profile either runs the listener itself or has nothing to do with one.
 # The command names and the values the installer fills in are not translated.
 HIVEMIND_SATELLITE_NOTE="
-Agensa-a mazal ilaq ad as-yettwasireg ad immeslay, ɣef tmacint anida yettazzal umseflid n HiveMind deg ${HIVEMIND_HOST}:${HIVEMIND_PORT:-5678}:
+Agensa-a mazal ilaq ad as-yettwasireg ad immeslay, ɣef tmacint anida yettazzal umseflid n HiveMind deg ${HIVEMIND_HOST-}:${HIVEMIND_PORT-5678}:
 
   hivemind-core list-clients
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
 
-Seqdec list-clients akken ad d-tafeḍ Node ID i yesɛan tasarut n unekcum i yebdan s ${HIVEMIND_KEY_PREFIX} - wagi d agensa-a. Skud mazal ur tefkiḍ ara tasiregt-a, ad yeqqen yerna ad yesentem timagit-is akken iwata, maca ayen akk ara d-yini ad yettwagi.
+Seqdec list-clients akken ad d-tafeḍ Node ID i yesɛan tasarut n unekcum i yebdan s ${HIVEMIND_KEY_PREFIX-} - wagi d agensa-a. Skud mazal ur tefkiḍ ara tasiregt-a, ad yeqqen yerna ad yesentem timagit-is akken iwata, maca ayen akk ara d-yini ad yettwagi.
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 

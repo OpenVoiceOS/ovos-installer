@@ -4,12 +4,12 @@
 # every other profile either runs the listener itself or has nothing to do with one.
 # The command names and the values the installer fills in are not translated.
 HIVEMIND_SATELLITE_NOTE="
-This satellite still has to be allowed to speak, on the machine running the HiveMind listener at ${HIVEMIND_HOST}:${HIVEMIND_PORT:-5678}:
+This satellite still has to be allowed to speak, on the machine running the HiveMind listener at ${HIVEMIND_HOST-}:${HIVEMIND_PORT-5678}:
 
   hivemind-core list-clients
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
 
-Use list-clients to find the Node ID whose access key begins ${HIVEMIND_KEY_PREFIX} - that is this satellite. Until the grant is made it will connect and authenticate, and everything it says will be refused.
+Use list-clients to find the Node ID whose access key begins ${HIVEMIND_KEY_PREFIX-} - that is this satellite. Until the grant is made it will connect and authenticate, and everything it says will be refused.
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 

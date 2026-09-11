@@ -39,12 +39,17 @@ fi
 #
 # Only the first characters of the access key: enough to pick this satellite out of
 # list-clients, while an install log stays safe to paste into a bug report.
-HIVEMIND_KEY_PREFIX="${SATELLITE_KEY:0:8}"
+# Two steps because a substring expansion has no :- form, and every profile that is
+# not a satellite reaches here with SATELLITE_KEY unset - under set -u that is fatal,
+# and it takes the whole finish screen with it.
+hivemind_satellite_key="${SATELLITE_KEY:-}"
+HIVEMIND_KEY_PREFIX="${hivemind_satellite_key:0:8}"
 SHOW_HIVEMIND_SATELLITE_NOTE=""
 if [[ "${PROFILE:-}" == "satellite" ]]; then
     SHOW_HIVEMIND_SATELLITE_NOTE="1"
 fi
 export HIVEMIND_KEY_PREFIX SHOW_HIVEMIND_SATELLITE_NOTE
+export HIVEMIND_HOST="${HIVEMIND_HOST:-}" HIVEMIND_PORT="${HIVEMIND_PORT:-}"
 
 export CONFIG_FILE OVOS_SERVICE_SCOPE_HINT OVOS_SERVICE_STATUS_COMMAND
 

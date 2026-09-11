@@ -4,12 +4,12 @@
 # every other profile either runs the listener itself or has nothing to do with one.
 # The command names and the values the installer fills in are not translated.
 HIVEMIND_SATELLITE_NOTE="
-Satelite honi oraindik hitz egiteko baimena eman behar zaio, ${HIVEMIND_HOST}:${HIVEMIND_PORT:-5678} helbidean HiveMind entzulea exekutatzen ari den makinan:
+Satelite honi oraindik hitz egiteko baimena eman behar zaio, ${HIVEMIND_HOST-}:${HIVEMIND_PORT-5678} helbidean HiveMind entzulea exekutatzen ari den makinan:
 
   hivemind-core list-clients
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
 
-Erabili list-clients sarbide-gakoaren hasieran ${HIVEMIND_KEY_PREFIX} duen Node ID aurkitzeko - hori da satelite hau. Baimena eman arte, satelitea konektatu eta autentifikatu egingo da, baina esaten duen guztia ukatu egingo da.
+Erabili list-clients sarbide-gakoaren hasieran ${HIVEMIND_KEY_PREFIX-} duen Node ID aurkitzeko - hori da satelite hau. Baimena eman arte, satelitea konektatu eta autentifikatu egingo da, baina esaten duen guztia ukatu egingo da.
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 

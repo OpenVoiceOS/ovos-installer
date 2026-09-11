@@ -4,12 +4,12 @@
 # every other profile either runs the listener itself or has nothing to do with one.
 # The command names and the values the installer fills in are not translated.
 HIVEMIND_SATELLITE_NOTE="
-Aquest satèl·lit encara ha de rebre permís per a parlar, a la màquina on s'executa l'escolta de HiveMind a ${HIVEMIND_HOST}:${HIVEMIND_PORT:-5678}:
+Aquest satèl·lit encara ha de rebre permís per a parlar, a la màquina on s'executa l'escolta de HiveMind a ${HIVEMIND_HOST-}:${HIVEMIND_PORT-5678}:
 
   hivemind-core list-clients
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
 
-Feu servir list-clients per a trobar el Node ID la clau d'accés del qual comença per ${HIVEMIND_KEY_PREFIX} - aquest és el Node ID d'aquest satèl·lit. Fins que no es concedeixi el permís, el satèl·lit es connectarà i s'autenticarà correctament, però es rebutjarà tot el que digui.
+Feu servir list-clients per a trobar el Node ID la clau d'accés del qual comença per ${HIVEMIND_KEY_PREFIX-} - aquest és el Node ID d'aquest satèl·lit. Fins que no es concedeixi el permís, el satèl·lit es connectarà i s'autenticarà correctament, però es rebutjarà tot el que digui.
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 

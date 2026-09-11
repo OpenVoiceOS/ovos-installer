@@ -4,12 +4,12 @@
 # every other profile either runs the listener itself or has nothing to do with one.
 # The command names and the values the installer fills in are not translated.
 HIVEMIND_SATELLITE_NOTE="
-इस सैटेलाइट को बोलने की अनुमति अभी दी जानी बाकी है। यह अनुमति उस मशीन पर दी जाती है जिस पर HiveMind listener चल रहा है, पते ${HIVEMIND_HOST}:${HIVEMIND_PORT:-5678} पर:
+इस सैटेलाइट को बोलने की अनुमति अभी दी जानी बाकी है। यह अनुमति उस मशीन पर दी जाती है जिस पर HiveMind listener चल रहा है, पते ${HIVEMIND_HOST-}:${HIVEMIND_PORT-5678} पर:
 
   hivemind-core list-clients
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
 
-list-clients चलाकर वह Node ID ढूँढें जिसकी एक्सेस कुंजी ${HIVEMIND_KEY_PREFIX} से शुरू होती है - वही यह सैटेलाइट है। जब तक यह अनुमति नहीं दी जाती, यह जुड़ भी जाएगा और प्रमाणीकरण भी पूरा कर लेगा, लेकिन यह जो कुछ भी कहेगा वह अस्वीकार कर दिया जाएगा।
+list-clients चलाकर वह Node ID ढूँढें जिसकी एक्सेस कुंजी ${HIVEMIND_KEY_PREFIX-} से शुरू होती है - वही यह सैटेलाइट है। जब तक यह अनुमति नहीं दी जाती, यह जुड़ भी जाएगा और प्रमाणीकरण भी पूरा कर लेगा, लेकिन यह जो कुछ भी कहेगा वह अस्वीकार कर दिया जाएगा।
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 
