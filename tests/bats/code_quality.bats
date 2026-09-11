@@ -3830,3 +3830,27 @@ function teardown() {
     ' scripts/contracts-requirements.txt
     assert_output ""
 }
+
+@test "image_coherence_decision_logic_is_tested_offline" {
+    # The image check itself needs a registry, so its decisions are exercised against a
+    # throwaway git repository instead: which side of the pin an image sits on, whether the
+    # producer's own selector says it would be rebuilt, and that an image behind the pin by a
+    # harmless commit stays quiet. That last one is the whole reason the check is not simply
+    # "revision >= pinned ref" - images are rebuilt when constraints move, with no commit here
+    # at all, so being behind is the normal state rather than a defect.
+    run python3 -m unittest discover -s scripts -p "test_image_coherence.py" -q
+    assert_success
+}
+
+@test "online_checks_report_how_many_images_they_actually_verified" {
+    # A run that resolved nothing must not read like a clean one. The coverage line is printed
+    # unconditionally, and every unresolved image becomes a note naming why.
+    local script="scripts/check_contracts.py"
+
+    run grep -q "images checked:" "$script"
+    assert_success
+
+    # the outcomes stay distinct: a registry that could not be reached is not "no such tag"
+    run grep -qE "no_tag|denied|transport" scripts/image_coherence.py
+    assert_success
+}

@@ -11,8 +11,9 @@ those repositories and this one, and all four have broken an install:
   environment          every variable the compose reads must come from env.j2 - or, for a variable
                        with an inline default, must come from env.j2 anyway when the installer is
                        the one that owns the value
-  images               the compose is pinned by tag, the images move with a channel tag, so an
-                       image can be older than the compose that expects it
+  images               the compose is pinned by tag, the images move with a channel tag, so a
+                       published image can be older than the compose that expects it - or newer
+                       and expecting something the pinned compose does not provide
 
 The third is the one that stays quiet. A compose file that starts reading HIVEMIND_SITEID keeps
 working: it just uses the literal string "default" instead of the site id collected here. Nothing
@@ -20,19 +21,23 @@ fails, and every satellite reports the wrong site. That is why a contract marks 
 `owner: installer` and why this refuses to treat "has a default" as "nobody needs to set it".
 
 Offline by default, against the snapshots in tests/contracts/, so this runs in any pull request.
---online re-fetches them at the pinned refs, reports a pin that has fallen behind a release, and
-checks that the published images are not older than the compose pinned here.
+--online re-fetches them at the pinned refs and reports a pin that has fallen behind a release.
+The image half is NOT checked here: see scripts/image_coherence.py, which --online calls.
 """
 import argparse
 import json
 import re
 import subprocess
+import tempfile
 import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import image_coherence  # noqa: E402  (same directory, not a package)
 
 DEPENDENCY_BUMP = re.compile(r"^(chore\(deps\)|Update .+ to v|build\(deps\)|chore: update .+ digest)", re.I)
 
@@ -61,6 +66,7 @@ def installer_facts() -> dict:
     compose = dict(re.findall(r"^(ovos_containers_compose_file_[a-z_]+):\s*(\S+)$", containers, re.M))
     containers_named = dict(re.findall(r"^(ovos_containers_container_[a-z_]+):\s*(\S+)$", containers, re.M))
     pins = dict(re.findall(r"^ovos_installer_(ovos|hivemind)_docker_repo_branch:\s*(\S+)$", installer, re.M))
+    channel = re.search(r"^ovos_installer_channel:\s*[\"']?([A-Za-z0-9._-]+)", installer, re.M)
     urls = dict(re.findall(r"^ovos_installer_(ovos|hivemind)_docker_repo_url:\s*(\S+)$", installer, re.M))
 
     files = {"hivemind-docker": set(), "ovos-docker": set()}
@@ -73,6 +79,7 @@ def installer_facts() -> dict:
         "container_names": set(containers_named.values()),
         "provided_env": set(re.findall(r"^([A-Z][A-Z0-9_]*)=", ENV_TEMPLATE.read_text(), re.M)),
         "pins": {"ovos-docker": pins.get("ovos"), "hivemind-docker": pins.get("hivemind")},
+        "channel": channel.group(1) if channel else "testing",
         "slugs": {k: re.sub(r"^https://github\.com/|\.git$", "", v)
                   for k, v in {"ovos-docker": urls.get("ovos", ""),
                                "hivemind-docker": urls.get("hivemind", "")}.items()},
@@ -198,6 +205,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--online", action="store_true",
                         help="re-fetch the contracts at the pinned refs and check pin freshness")
+    parser.add_argument("--fail-on-image-drift", action="store_true",
+                        help="treat an image that disagrees with the pinned compose as a failure. "
+                             "Separate from --fail-on-stale because it depends on a registry and "
+                             "on the producer's rebuild schedule, so it can go red for reasons a "
+                             "pin bump cannot fix.")
     parser.add_argument("--fail-on-stale", action="store_true",
                         help="treat a pin behind the latest release as a failure. A scheduled run "
                              "that exits 0 tells nobody anything, so the job that watches for "
@@ -252,6 +264,18 @@ def main() -> int:
         problems.extend(check(repo, contract, facts))
 
     problems.extend(check_containers(contracts, facts))
+
+    if args.online:
+        # Clones go to a temporary directory, never inside the repository: a checkout of another
+        # project under ROOT gets picked up by this repository's own linters and tests.
+        with tempfile.TemporaryDirectory(prefix="ovos-contract-pins-") as cache:
+            image_problems, image_notes, coverage = image_coherence.check_images(
+                contracts, facts, Path(cache), facts["channel"])
+        # Printed unconditionally: a run that resolved nothing must not look like a clean one.
+        for (repo, tag), (resolved, total) in sorted(coverage.items()):
+            print(f"images checked: {repo}@{tag} {resolved}/{total}")
+        notes.extend(image_notes)
+        (problems if args.fail_on_image_drift else notes).extend(image_problems)
 
     for note in notes:
         print(f"note: {note}")
