@@ -407,6 +407,14 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
             # whose compose deploys it: ovos-docker's compose runs hivemind-cli.
             owner = next((r for r, s in facts["slugs"].items()
                           if s and s.lower() == source.lower()), None)
+            if owner is None and not source:
+                # An absent label is not a statement about who built this. It reads exactly like
+                # a third-party image and must not be treated as one: if a producer's build
+                # stopped emitting the label, every image would quietly leave the denominator
+                # and a run that checked nothing would pass. "Could not tell", so it counts.
+                notes.append(f"{repo}: {image}:{channel} names no source repository - it cannot "
+                             f"be attributed to a pin, so it was not verified")
+                continue
             if owner is None:
                 # Genuinely out of scope, so it leaves the denominator as well as the numerator.
                 # Every other unresolved outcome here means "could not tell" and must count
@@ -414,8 +422,8 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
                 # fail the weekly job forever over an image nobody can do anything about - the
                 # note would say out of scope while the exit status said otherwise.
                 out_of_scope += 1
-                notes.append(f"{repo}: {image} is built by {source or 'an unknown repository'}, "
-                             f"which this installer does not pin - out of scope")
+                notes.append(f"{repo}: {image} is built by {source}, which this installer does "
+                             f"not pin - out of scope")
                 continue
             owner_clone, owner_pin = clones.get(owner), facts["pins"].get(owner)
             if owner_clone is None:

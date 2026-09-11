@@ -313,6 +313,20 @@ class CheckImagesReporting(unittest.TestCase):
         self.assertEqual(coverage[("producer", "testing")], (0, 0))
         self.assertTrue(any("out of scope" in n for n in notes), notes)
 
+    def test_an_image_naming_no_source_still_counts_against_coverage(self):
+        """A missing label looks exactly like a third-party image, and is not one.
+
+        If a producer's build stopped emitting org.opencontainers.image.source, every image
+        would read as "built elsewhere" and quietly leave the denominator - a run that verified
+        nothing would report full coverage and pass. Absent is not the same as elsewhere.
+        """
+        ic.read_labels = lambda path, tag, **_: (
+            {"org.opencontainers.image.revision": "0" * 40}, "ok")   # no source label
+        problems, notes, coverage = self.run_check()
+        self.assertEqual(coverage[("producer", "testing")], (0, 1),
+                         "an unattributable image stays in the denominator")
+        self.assertTrue(any("names no source repository" in n for n in notes), notes)
+
     def test_a_compose_file_that_could_not_be_read_is_a_problem(self):
         """Its images are not in `deployed` at all, so coverage alone cannot notice them."""
         real = ic.deployed_images
