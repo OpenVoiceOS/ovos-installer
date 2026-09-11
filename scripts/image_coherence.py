@@ -82,7 +82,12 @@ def deployed_images(clone: Path, ref: str, compose_names) -> dict:
             body = run(["git", "-C", str(clone), "show", f"{ref}:compose/{name}"]).stdout
         except subprocess.CalledProcessError:
             continue
-        for service, spec in (yaml.safe_load(body).get("services") or {}).items():
+        try:
+            document = yaml.safe_load(body) or {}
+        except yaml.YAMLError:
+            # One unparseable file upstream must not discard every other answer in the run.
+            continue
+        for service, spec in (document.get("services") or {}).items():
             if isinstance(spec, dict) and spec.get("image"):
                 found.setdefault(canonical_image(spec["image"]), {})[name] = service
     return found
@@ -217,7 +222,11 @@ def service_interface(clone: Path, ref: str, compose_name: str, service: str):
         body = run(["git", "-C", str(clone), "show", f"{ref}:compose/{compose_name}"]).stdout
     except subprocess.CalledProcessError:
         return None
-    spec = ((yaml.safe_load(body) or {}).get("services") or {}).get(service)
+    try:
+        document = yaml.safe_load(body) or {}
+    except yaml.YAMLError:
+        return None
+    spec = (document.get("services") or {}).get(service)
     if not isinstance(spec, dict):
         return None
     environment = spec.get("environment")
@@ -244,15 +253,19 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
     clones, oracles = {}, {}
 
     for repo, contract in contracts.items():
+        # Seeded before any early exit: a repository that drops out here would otherwise have no
+        # coverage line at all, so the report is emptiest exactly where it looks quietest.
+        coverage[(repo, channel)] = (0, 0)
         slug, pin = facts["slugs"].get(repo), facts["pins"].get(repo)
         if not slug or not pin:
-            notes.append(f"{repo}: no pin or repository url in the installer defaults")
+            problems.append(f"{repo}: no pin or repository url in the installer defaults - "
+                            f"no image was verified for it")
             continue
         try:
             clones[repo] = pin_clone(slug, pin, cache)
         except Exception as error:
-            notes.append(f"{repo}: could not clone {slug} at {pin} ({str(error)[:90]}) - "
-                         f"no image was verified for it")
+            problems.append(f"{repo}: could not clone {slug} at {pin} ({str(error)[:90]}) - "
+                            f"no image was verified for it")
             continue
         oracles[repo] = target_images(clones[repo])
         if oracles[repo] is None:
@@ -273,17 +286,24 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
 
         resolved = 0
         for image in sorted(deployed):
-            labels, outcome, used_repo = None, "no_tag", None
-            for candidate_repo, path in mirror_candidates(image, facts["slugs"], repo):
+            labels, outcome, attempts = None, "no_tag", []
+            for _, path in mirror_candidates(image, facts["slugs"], repo):
                 labels, outcome = read_labels(path, channel)
                 if outcome == "ok":
-                    used_repo = candidate_repo
                     break
+                attempts.append(outcome)
             if outcome != "ok":
-                reason = {"no_tag": f"no :{channel} tag published",
-                          "denied": "the mirror refused anonymous access",
-                          "transport": "the registry could not be reached"}[outcome]
-                notes.append(f"{repo}: {image} not verified - {reason}")
+                # The candidates are tried in order, so the LAST one's outcome would otherwise
+                # decide: a registry that could not be reached would be reported as "no such tag".
+                outcome = next((o for o in ("transport", "denied", "no_tag") if o in attempts),
+                               "no_tag")
+                if outcome == "no_tag":
+                    problems.append(f"{repo}: the pinned compose deploys {image} but no :{channel} "
+                                    f"tag is published for it - an install pulling it would fail")
+                else:
+                    reason = ("the mirror refused anonymous access" if outcome == "denied"
+                              else "the registry could not be reached")
+                    notes.append(f"{repo}: {image} not verified - {reason}")
                 continue
 
             revision = labels.get("org.opencontainers.image.revision")
@@ -306,9 +326,12 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
                              f"not verified")
                 continue
 
-            resolved += 1
             verdict, detail = compare(owner_clone, owner_pin, revision, image,
                                       oracles.get(owner), deployed[image], clone, pin)
+            # Counted only when a verdict was actually reached: "we read the labels" is not
+            # "we decided", and this number is the one thing that shows a run checked anything.
+            if verdict in ("coherent", "behind", "ahead"):
+                resolved += 1
             if verdict == "behind":
                 problems.append(f"{repo}: {image}:{channel} was built from {revision[:12]}, which "
                                 f"predates {owner_pin} by changes that rebuild it ({detail}) - the "
@@ -360,17 +383,30 @@ def compare(clone: Path, pin: str, revision: str, image: str, oracle, placements
 
     # Ahead: the image moved past the compose. What matters is whether the part of the service
     # definition the image has to agree with changed underneath it.
-    changed = []
+    changed, unreadable = [], []
     for compose_name, service in (placements or {}).items():
+        # The compose file belongs to the repository that DEPLOYS the image, which is not always
+        # the one that BUILT it: ovos-docker's docker-compose.hivemind.yml deploys hivemind-cli,
+        # and hivemind-docker has no such file. Reading it out of the builder's tree would always
+        # come back empty and silently read as agreement.
+        if clone != compose_clone:
+            unreadable.append(f"{compose_name}:{service} (built by another repository)")
+            continue
         at_pin = service_interface(compose_clone, compose_pin, compose_name, service)
         at_rev = service_interface(clone, revision, compose_name, service)
         if at_pin is None or at_rev is None:
+            unreadable.append(f"{compose_name}:{service}")
             continue
         for field in ("environment", "volumes", "entrypoint", "command"):
             if at_pin.get(field) != at_rev.get(field):
                 changed.append(f"{service}.{field}")
+
     if changed:
         return "ahead", "its service definition changed since: " + ", ".join(sorted(set(changed)))
+    if unreadable:
+        # Absence of evidence, not evidence of agreement.
+        return "unknown", ("ahead of the pin, and its service definition could not be compared for "
+                           + ", ".join(sorted(set(unreadable))))
     return "coherent", "ahead, but no service interface it depends on changed"
 
 
@@ -401,11 +437,15 @@ def unreleased_impact(clone: Path, tag: str, branch: str, compose_names):
     if reason:
         return None, reason
 
-    if compose_changed or targets:
-        parts = []
-        if compose_changed:
-            parts.append("compose: " + ", ".join(compose_changed))
+    if compose_changed:
+        detail = "compose: " + ", ".join(compose_changed)
         if targets:
-            parts.append(f"rebuilds {len(targets)} image(s)")
-        return True, "; ".join(parts)
+            detail += f"; also rebuilds {len(targets)} image(s)"
+        return True, detail
+    if targets:
+        # A rebuild reaches installs through the moving channel tag without any release, and
+        # whether that image then disagrees with the pinned compose is the image half's job.
+        # Demanding a release for it would be a weekly red for work already delivered.
+        return False, (f"only paths no install consumes; the {len(targets)} image(s) they rebuild "
+                       f"reach installs on the channel tag")
     return False, "only paths no install consumes"

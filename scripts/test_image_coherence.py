@@ -177,15 +177,152 @@ class UnreleasedImpact(unittest.TestCase):
         affects, detail = ic.unreleased_impact(self.repo, "v1.0.0", "dev", {"docker-compose.yml"})
         self.assertFalse(affects, detail)
 
-    def test_a_change_that_rebuilds_an_image_does_warrant_one(self):
+    def test_a_rebuild_the_channel_tag_already_delivers_does_not_warrant_one(self):
+        """The asymmetry the whole checker rests on.
+
+        Compose files are read from the clone at the PINNED tag, so a compose change reaches
+        nobody until a release. Images are pulled by a MOVING channel tag, so a Dockerfile
+        change reaches every install on the next publish with no release at all. Calling that
+        a release lag would page a human weekly for work already delivered.
+        """
+        commit(self.repo, "app/Dockerfile", "FROM scratch\nRUN true\n", "image change")
+        affects, detail = ic.unreleased_impact(self.repo, "v1.0.0", "dev", {"docker-compose.yml"})
+        self.assertFalse(affects, detail)
+        self.assertIn("channel tag", detail)
+
+    def test_a_compose_change_is_still_reported_when_it_also_rebuilds_images(self):
+        """The image rebuild must not swallow the compose change riding along with it."""
+        commit(self.repo, "compose/docker-compose.yml", "services: {x: {}}\n", "compose change")
         commit(self.repo, "app/Dockerfile", "FROM scratch\nRUN true\n", "image change")
         affects, detail = ic.unreleased_impact(self.repo, "v1.0.0", "dev", {"docker-compose.yml"})
         self.assertTrue(affects, detail)
-        self.assertIn("rebuilds", detail)
+        self.assertIn("docker-compose.yml", detail)
+        self.assertIn("also rebuilds", detail)
 
     def test_nothing_unreleased_is_not_an_impact(self):
         affects, detail = ic.unreleased_impact(self.repo, "v1.0.0", "dev", {"docker-compose.yml"})
         self.assertFalse(affects, detail)
+
+
+
+class CheckImagesReporting(unittest.TestCase):
+    """What check_images turns into output.
+
+    None of this was covered before: every guard lived in a branch no test drove, so the audit
+    found four ways a run could verify nothing and still report success. These assert the
+    reporting contract itself - an unresolved image must be visible in the coverage count AND
+    reachable by --fail-on-image-drift, never a note that cannot fail anything.
+    """
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name)
+        self.repo = self.root / "producer"
+        self.repo.mkdir()
+        git(self.repo, "init", "-q")
+        commit(self.repo, "scripts/affected.py", SELECTOR, "selector")
+        commit(self.repo, "compose/docker-compose.yml",
+               "services:\n  app:\n    image: smartgic/app:${VERSION}\n", "compose")
+        git(self.repo, "tag", "v1.0.0")
+
+        self.facts = {
+            "compose_files": {"producer": {"docker-compose.yml"}},
+            "pins": {"producer": "v1.0.0"},
+            "slugs": {"producer": "Org/producer"},
+        }
+        self.contracts = {"producer": {"images": ["docker.io/smartgic/app"]}}
+        self._real = (ic.pin_clone, ic.target_images, ic.read_labels)
+        ic.pin_clone = lambda slug, ref, cache: self.repo
+        ic.target_images = lambda clone: {"docker.io/smartgic/app": "app"}
+
+    def tearDown(self):
+        ic.pin_clone, ic.target_images, ic.read_labels = self._real
+        self._tmp.cleanup()
+
+    def run_check(self):
+        return ic.check_images(self.contracts, self.facts, self.root / "cache", "testing")
+
+    def test_an_unreachable_registry_is_not_counted_as_verified(self):
+        ic.read_labels = lambda path, tag: (None, "transport")
+        problems, notes, coverage = self.run_check()
+        self.assertEqual(coverage[("producer", "testing")], (0, 1))
+        self.assertTrue(any("could not be reached" in n for n in notes), notes)
+
+    def test_a_missing_channel_tag_is_a_problem_not_a_note(self):
+        """An install pulling a tag that does not exist fails; that is a finding."""
+        ic.read_labels = lambda path, tag: (None, "no_tag")
+        problems, notes, coverage = self.run_check()
+        self.assertTrue(any("no :testing tag is published" in p for p in problems), problems)
+
+    def test_an_undecided_verdict_does_not_count_toward_coverage(self):
+        ic.target_images = lambda clone: None          # no bake graph -> cannot attribute
+        ic.read_labels = lambda path, tag: (
+            {"org.opencontainers.image.revision": "0" * 40,
+             "org.opencontainers.image.source": "https://github.com/Org/producer"}, "ok")
+        problems, notes, coverage = self.run_check()
+        self.assertEqual(coverage[("producer", "testing")], (0, 1))
+
+    def test_a_repository_that_cannot_be_cloned_still_gets_a_coverage_entry(self):
+        def boom(slug, ref, cache):
+            raise RuntimeError("network down")
+        ic.pin_clone = boom
+        problems, notes, coverage = self.run_check()
+        self.assertIn(("producer", "testing"), coverage)
+        self.assertTrue(any("could not clone" in p for p in problems), problems)
+
+    def test_an_image_the_contract_does_not_declare_is_a_problem(self):
+        self.contracts = {"producer": {"images": []}}
+        ic.read_labels = lambda path, tag: (None, "transport")
+        problems, notes, coverage = self.run_check()
+        self.assertTrue(any("does not declare it" in p for p in problems), problems)
+
+    def test_the_most_severe_mirror_outcome_wins(self):
+        """Candidates are tried in order; the last one's outcome must not decide."""
+        seen = []
+
+        def by_candidate(path, tag):
+            seen.append(path)
+            return (None, "transport" if len(seen) == 1 else "no_tag")
+
+        self.facts["slugs"]["other"] = "Org/other"
+        self.facts["compose_files"]["other"] = set()
+        self.facts["pins"]["other"] = "v1.0.0"
+        self.contracts["other"] = {"images": []}
+        ic.read_labels = by_candidate
+        problems, notes, coverage = self.run_check()
+        self.assertTrue(any("could not be reached" in n for n in notes), notes)
+
+
+class AheadDirection(unittest.TestCase):
+    """Ahead of the pin, with the service definition unreadable, is not agreement."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self._tmp.name) / "producer"
+        self.repo.mkdir()
+        git(self.repo, "init", "-q")
+        commit(self.repo, "scripts/affected.py", SELECTOR, "selector")
+        self.pin = commit(self.repo, "app/Dockerfile", "FROM scratch\n", "pin")
+        self.newer = commit(self.repo, "app/Dockerfile", "FROM scratch\nRUN true\n", "newer")
+        self.other = Path(self._tmp.name) / "other"
+        self.other.mkdir()
+        git(self.other, "init", "-q")
+        commit(self.other, "README.md", "x\n", "other repo")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_unreadable_service_definition_is_unknown_not_coherent(self):
+        verdict, detail = ic.compare(self.repo, self.pin, self.newer, "img", {"img": "app"},
+                                     {"docker-compose.yml": "app"}, self.repo, self.pin)
+        self.assertEqual(verdict, "unknown", detail)
+
+    def test_a_cross_repository_image_is_not_compared_against_the_wrong_tree(self):
+        """The compose file belongs to the deployer, not the builder."""
+        verdict, detail = ic.compare(self.repo, self.pin, self.newer, "img", {"img": "app"},
+                                     {"docker-compose.hivemind.yml": "cli"}, self.other, "HEAD")
+        self.assertEqual(verdict, "unknown", detail)
+        self.assertIn("another repository", detail)
 
 
 if __name__ == "__main__":

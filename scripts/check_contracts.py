@@ -39,7 +39,9 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import image_coherence  # noqa: E402  (same directory, not a package)
 
-DEPENDENCY_BUMP = re.compile(r"^(chore\(deps\)|Update .+ to v|build\(deps\)|chore: update .+ digest)", re.I)
+DEPENDENCY_BUMP = re.compile(
+    r"^(chore\(deps\)|build\(deps\)|Update .+ to v|Update .+ digest to|chore: update .+ digest)",
+    re.I)
 
 LAST_GH_ERROR: list = []  # why a gh lookup came back empty, if it did
 
@@ -266,8 +268,13 @@ def main() -> int:
         # Clones go to a temporary directory, never inside the repository: a checkout of another
         # project under ROOT gets picked up by this repository's own linters and tests.
         with tempfile.TemporaryDirectory(prefix="ovos-contract-pins-") as cache:
-            image_problems, image_notes, coverage = image_coherence.check_images(
-                contracts, facts, Path(cache), facts["channel"])
+            try:
+                image_problems, image_notes, coverage = image_coherence.check_images(
+                    contracts, facts, Path(cache), facts["channel"])
+            except Exception as error:  # a crash here must be reported, not thrown away
+                image_problems = [f"the image check failed to run: "
+                                  f"{type(error).__name__}: {str(error)[:140]}"]
+                image_notes, coverage = [], {}
 
             # A release trailing its branch is only worth failing over when the commits in
             # between are ones an install can observe. Asked with the producer's own selector,
@@ -275,14 +282,16 @@ def main() -> int:
             for repo, (release, behind, branch) in sorted(pending_lag.items()):
                 clone = Path(cache) / (facts["slugs"][repo] or "").replace("/", "_")
                 if not clone.exists():
-                    notes.append(f"{repo}: {release} is behind {branch} by {behind} change(s); "
-                                 f"could not check whether an install sees them")
+                    (problems if args.fail_on_stale else notes).append(
+                        f"{repo}: {release} is behind {branch} by {behind} change(s) and whether "
+                        f"an install sees them could not be checked - no clone at {release}")
                     continue
                 affects, detail = image_coherence.unreleased_impact(
                     clone, release, branch, facts["compose_files"][repo])
                 if affects is None:
-                    notes.append(f"{repo}: {release} is behind {branch} by {behind} change(s); "
-                                 f"impact unknown ({detail})")
+                    (problems if args.fail_on_stale else notes).append(
+                        f"{repo}: {release} is behind {branch} by {behind} change(s) and their "
+                        f"impact could not be determined ({detail})")
                 elif affects:
                     message = (f"{repo}: {release} is behind {branch} by {behind} change(s) an "
                                f"install would see ({detail}) - they are in no release")
@@ -290,9 +299,18 @@ def main() -> int:
                 else:
                     notes.append(f"{repo}: {release} is behind {branch} by {behind} change(s), "
                                  f"but {detail} - no release needed for an install's sake")
-        # Printed unconditionally: a run that resolved nothing must not look like a clean one.
+        # Printed unconditionally, and asserted: a printed count nobody checks is decoration.
+        # Without this every "could not tell" outcome lands in notes, which can never fail the
+        # job, so a run that verified nothing ends green - the exact shape this check exists to
+        # catch elsewhere.
         for (repo, tag), (resolved, total) in sorted(coverage.items()):
-            print(f"images checked: {repo}@{tag} {resolved}/{total}")
+            print(f"images checked: {repo}@{tag} {resolved}/{total}"
+                  + ("" if total else " (not checked)"))
+            if resolved < total or not total:
+                missing = (total - resolved) if total else "all"
+                image_problems.append(
+                    f"{repo}@{tag}: {missing} of {total or 'its'} images reached no verdict - "
+                    f"the run did not establish that they match the pinned compose")
         notes.extend(image_notes)
         (problems if args.fail_on_image_drift else notes).extend(image_problems)
 
