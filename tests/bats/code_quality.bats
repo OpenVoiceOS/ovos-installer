@@ -3873,9 +3873,13 @@ function teardown() {
 
     # Enough of the access key to pick this satellite out of list-clients, and no more:
     # an install log is a thing people paste into bug reports, and the key is a
-    # credential.
-    run grep -q 'SATELLITE_KEY:0:8' tui/finish.sh
+    # credential. Asserted as the truncation itself rather than by variable name, so
+    # renaming the variable cannot quietly turn this into a check of nothing.
+    run grep -qE ':0:8\}' tui/finish.sh
     assert_success
+    # and the whole key never reaches the exported prefix
+    run grep -qE 'HIVEMIND_KEY_PREFIX="\$\{SATELLITE_KEY[:-]*\}"' tui/finish.sh
+    assert_failure
 
     # A scenario install never reaches the finish screen, and a scenario install is
     # exactly how a fleet of satellites gets built - so the play says it too.
