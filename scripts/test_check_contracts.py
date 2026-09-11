@@ -101,6 +101,84 @@ class ReportingContract(unittest.TestCase):
         self.assertNotIn("images checked", output)
 
 
+
+class FactsFloor(unittest.TestCase):
+    """A checker holding no facts finds no problems.
+
+    Every fact is pulled out of a file by regular expression. Indenting these defaults under a
+    key - an ordinary Ansible refactor - makes every pattern match nothing, and before this
+    floor existed the run printed "contracts satisfied" having compared nothing at all. A
+    missing file raises, which is loud. A file that no longer matches does not.
+    """
+
+    def facts(self, **overrides):
+        base = {
+            "compose_files": {"ovos-docker": {"docker-compose.yml"},
+                              "hivemind-docker": {"docker-compose.satellite.yml"}},
+            "container_names": {"ovos_cli"},
+            "provided_env": {"TZ"},
+            "pins": {"ovos-docker": "v2.1.0", "hivemind-docker": "v2.1.2"},
+            "channel": "testing",
+            "slugs": {"ovos-docker": "OpenVoiceOS/ovos-docker",
+                      "hivemind-docker": "JarbasHiveMind/hivemind-docker"},
+        }
+        base.update(overrides)
+        return base
+
+    def test_the_real_repository_passes_the_floor(self):
+        """A floor that fires on the repository as it stands is an alarm, not a check."""
+        self.assertEqual(cc.check_facts(cc.installer_facts()), [])
+
+    def test_a_populated_set_of_facts_passes(self):
+        self.assertEqual(cc.check_facts(self.facts()), [])
+
+    def test_no_compose_files_is_a_violation_per_repository(self):
+        problems = cc.check_facts(self.facts(compose_files={"ovos-docker": set(),
+                                                            "hivemind-docker": set()}))
+        self.assertEqual(len([p for p in problems if "no compose file variables" in p]), 2)
+
+    def test_no_container_names_is_a_violation(self):
+        problems = cc.check_facts(self.facts(container_names=set()))
+        self.assertTrue(any("no container names matched" in p for p in problems), problems)
+
+    def test_no_environment_variables_is_a_violation(self):
+        """Empty means every variable upstream requires reads as already supplied."""
+        problems = cc.check_facts(self.facts(provided_env=set()))
+        self.assertTrue(any("would read as supplied" in p for p in problems), problems)
+
+    def test_the_floor_is_wired_into_the_run(self):
+        """Testing the guard is not the same as proving it is called.
+
+        This drives main() with facts whose patterns matched nothing, the state an upstream
+        refactor produces. Before the floor existed it printed "contracts satisfied" and
+        returned 0.
+        """
+        saved = (cc.installer_facts, cc.fetch, cc.latest_release, cc.release_lag, sys.argv)
+        cc.installer_facts = lambda: self.facts(
+            compose_files={"ovos-docker": set(), "hivemind-docker": set()},
+            container_names=set(), provided_env=set())
+        cc.fetch = lambda slug, ref, path: (None, None)
+        cc.latest_release = lambda slug: None
+        cc.release_lag = lambda slug, tag: None
+        sys.argv = ["check_contracts.py"]
+        try:
+            out, err = io.StringIO(), io.StringIO()
+            with redirect_stdout(out), redirect_stderr(err):
+                status = cc.main()
+        finally:
+            (cc.installer_facts, cc.fetch, cc.latest_release, cc.release_lag, sys.argv) = saved
+        output = out.getvalue() + err.getvalue()
+        self.assertEqual(status, 1, output)
+        self.assertIn("nothing about this repository was checked", output)
+        self.assertNotIn("contracts satisfied", output)
+
+    def test_a_missing_pin_or_url_is_a_violation(self):
+        problems = cc.check_facts(self.facts(pins={"ovos-docker": None, "hivemind-docker": None},
+                                             slugs={"ovos-docker": "", "hivemind-docker": ""}))
+        self.assertEqual(len([p for p in problems if "no pin matched" in p]), 2)
+        self.assertEqual(len([p for p in problems if "no repository url matched" in p]), 2)
+
+
 class DependencyBumpRecognition(unittest.TestCase):
     """Release lag counts commits an install would see; a bot's digest bump is not one.
 

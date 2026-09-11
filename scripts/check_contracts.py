@@ -87,6 +87,34 @@ def installer_facts() -> dict:
     }
 
 
+def check_facts(facts: dict) -> list:
+    """Assert the facts exist at all, before anything is concluded from them.
+
+    Every fact above is pulled out of a file with a regular expression, and a checker holding no
+    facts finds no problems: indent these defaults under a key, rename a variable prefix, move
+    them to another file, and each pattern quietly matches nothing while the run reports
+    "contracts satisfied". A missing file raises, which is loud; a file that no longer matches
+    does not, which is not. Only things that cannot legitimately be empty are asserted here.
+    """
+    problems = []
+    for repo in ("ovos-docker", "hivemind-docker"):
+        if not facts["compose_files"].get(repo):
+            problems.append(f"{repo}: no compose file variables matched in "
+                            f"{CONTAINERS.relative_to(ROOT)} - nothing about this repository was "
+                            f"checked, so its contract was neither satisfied nor tested")
+        if not facts["pins"].get(repo):
+            problems.append(f"{repo}: no pin matched in {INSTALLER.relative_to(ROOT)}")
+        if not facts["slugs"].get(repo):
+            problems.append(f"{repo}: no repository url matched in {INSTALLER.relative_to(ROOT)}")
+    if not facts["container_names"]:
+        problems.append(f"no container names matched in {CONTAINERS.relative_to(ROOT)} - the "
+                        f"rename that this check exists to catch would now pass silently")
+    if not facts["provided_env"]:
+        problems.append(f"no variables matched in {ENV_TEMPLATE.relative_to(ROOT)} - every "
+                        f"variable upstream requires would read as supplied")
+    return problems
+
+
 def check(repo: str, contract: dict, facts: dict) -> list:
     problems = []
     wanted_files = facts["compose_files"][repo]
@@ -220,6 +248,8 @@ def main() -> int:
     facts = installer_facts()
     problems, notes, contracts = [], [], {}
     pending_lag = {}
+
+    problems.extend(check_facts(facts))
 
     for repo in ("ovos-docker", "hivemind-docker"):
         snapshot = SNAPSHOTS / f"{repo}.yml"
