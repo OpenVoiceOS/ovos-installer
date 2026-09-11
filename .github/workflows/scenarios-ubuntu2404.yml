@@ -372,9 +372,15 @@ jobs:
       - name: Validate a skill answers out loud
         if: steps.feature_set.outputs.skills == 'true'
         run: |
+          # The probe needs longer here than the rung above it. That one asks about
+          # "stop", which core answers itself from its own stop pipeline; this one asks
+          # about an utterance a skill claims, which means padatious, and padatious
+          # trains its models as the skills load. The skills service reports ready
+          # before the first real match can be served, so the default reply timeout is
+          # too tight for this question in particular.
           .github/scripts/assert_intent_roundtrip.sh \
             --utterance "what time is it" --expect-speak \
-            --ready-timeout 420 --speak-timeout 120
+            --ready-timeout 420 --reply-timeout 120 --speak-timeout 120
 
       - name: Create uninstall scenario file
         shell: bash

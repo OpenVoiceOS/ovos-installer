@@ -3918,9 +3918,16 @@ function teardown() {
     # assertion survives the skill set changing underneath it - naming one would make it
     # break for a reason that has nothing to do with the installer.
     for workflow in .github/workflows/scenarios-ubuntu2404.yml .github/workflows/macos_ci.yml; do
-        run grep -A6 "name: Validate a skill answers out loud" "$workflow"
+        run grep -A12 "name: Validate a skill answers out loud" "$workflow"
         refute_output --partial "--expect-skill"
         refute_output --partial "--expect-pipeline"
+
+        # The probe must be given longer than its default here. The rung above asks
+        # about "stop", which core answers from its own stop pipeline; this one asks
+        # about an utterance a skill claims, which means padatious - and padatious
+        # trains as the skills load, so the skills service reports ready before the
+        # first real match can be served. macOS timed out at the 30s default.
+        assert_output --partial "--reply-timeout"
     done
 }
 
