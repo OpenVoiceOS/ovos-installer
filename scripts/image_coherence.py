@@ -40,6 +40,13 @@ REGISTRY_TIMEOUT = 20
 # 404 and 401 are answers, and asking again just spends requests against a rate limit.
 REGISTRY_ATTEMPTS = 3
 REGISTRY_BACKOFF = 2  # seconds, doubled per attempt
+# One wall-clock ceiling for every registry read a run makes, together. Each
+# candidate can cost REGISTRY_TIMEOUT * REGISTRY_ATTEMPTS plus its backoff -- 66
+# seconds -- and a run reads up to two candidates per deployed image, so a wide
+# outage scales past the job's own timeout. Being killed mid-check is the worst
+# outcome available: the run reports nothing at all, including the images it did
+# resolve. Past the budget the remaining reads are skipped and named instead.
+REGISTRY_BUDGET = 900  # seconds
 TAG_VAR = re.compile(r":\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$")
 
 
@@ -75,28 +82,38 @@ def pin_clone(slug: str, ref: str, cache: Path):
     return target
 
 
-def deployed_images(clone: Path, ref: str, compose_names) -> dict:
+def deployed_images(clone: Path, ref: str, compose_names) -> tuple:
     """Images the installer actually pulls: every service in the compose files it runs.
 
     Scope comes from the compose files rather than from the contract's `images` list, because the
     contract lists everything the producer builds while an install runs a profile-selected subset.
     Checking what is not deployed would report drift nobody can experience.
+
+    Returns (images, unreadable). A compose file that could not be read or parsed is named in
+    `unreadable` rather than dropped: the run continues over the files it can read, but the
+    caller has to say so, because coverage computed over a silently smaller scope reads exactly
+    like coverage over the whole of it.
     """
-    found = {}
+    found, unreadable = {}, []
     for name in sorted(compose_names):
         try:
             body = run(["git", "-C", str(clone), "show", f"{ref}:compose/{name}"]).stdout
         except subprocess.CalledProcessError:
+            unreadable.append((name, "is not in the pinned tree"))
             continue
         try:
             document = yaml.safe_load(body) or {}
-        except yaml.YAMLError:
-            # One unparseable file upstream must not discard every other answer in the run.
+        except yaml.YAMLError as error:
+            # One unparseable file upstream must not discard every other answer in
+            # the run, but it must not quietly shrink what the run claims to cover
+            # either: the images it deploys go unchecked while coverage still reads
+            # complete, which is the one outcome this gate exists to prevent.
+            unreadable.append((name, f"is not valid YAML ({str(error)[:70]})"))
             continue
         for service, spec in (document.get("services") or {}).items():
             if isinstance(spec, dict) and spec.get("image"):
                 found.setdefault(canonical_image(spec["image"]), {})[name] = service
-    return found
+    return found, unreadable
 
 
 def _read_labels_once(path: str, tag: str):
@@ -147,16 +164,24 @@ def _read_labels_once(path: str, tag: str):
         return None, "transport"
 
 
-def read_labels(path: str, tag: str, sleep=time.sleep):
+def read_labels(path: str, tag: str, sleep=time.sleep, deadline=None):
     """_read_labels_once, retrying a registry that could not be reached.
 
     Retrying is not cosmetic here. An unreachable registry is a failure now rather than a note,
     which is right for an outage and wrong for a hiccup: a job that goes red most weeks for
     reasons nobody can act on gets muted, and then it protects nothing.
+
+    `deadline` is a monotonic instant shared by every read in the run. Past it no request is
+    made and no retry is waited out: the caller reports what is left as unverified rather than
+    being killed part-way through and reporting nothing.
     """
+    if deadline is not None and time.monotonic() >= deadline:
+        return None, "budget"
     for attempt in range(REGISTRY_ATTEMPTS):
         labels, outcome = _read_labels_once(path, tag)
         if outcome != "transport" or attempt == REGISTRY_ATTEMPTS - 1:
+            return labels, outcome
+        if deadline is not None and time.monotonic() >= deadline:
             return labels, outcome
         sleep(REGISTRY_BACKOFF * (2 ** attempt))
     return None, "transport"  # unreachable, kept so every path returns a pair
@@ -272,6 +297,8 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
     """
     problems, notes, coverage = [], [], {}
     clones, oracles = {}, {}
+    deadline = time.monotonic() + REGISTRY_BUDGET
+    out_of_budget = 0
 
     for repo, contract in contracts.items():
         # Seeded before any early exit: a repository that drops out here would otherwise have no
@@ -298,7 +325,10 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
         if clone is None:
             continue
         pin = facts["pins"][repo]
-        deployed = deployed_images(clone, pin, facts["compose_files"][repo])
+        deployed, unreadable = deployed_images(clone, pin, facts["compose_files"][repo])
+        for name, reason in unreadable:
+            problems.append(f"{repo}: compose/{name} {reason} - the images it deploys were "
+                            f"not checked, so this run's coverage is narrower than it looks")
 
         declared = set(contract.get("images") or [])
         for image in sorted(set(deployed) - declared):
@@ -309,15 +339,18 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
         for image in sorted(deployed):
             labels, outcome, attempts = None, "no_tag", []
             for _, path in mirror_candidates(image, facts["slugs"], repo):
-                labels, outcome = read_labels(path, channel)
+                labels, outcome = read_labels(path, channel, deadline=deadline)
                 if outcome == "ok":
                     break
                 attempts.append(outcome)
             if outcome != "ok":
                 # The candidates are tried in order, so the LAST one's outcome would otherwise
                 # decide: a registry that could not be reached would be reported as "no such tag".
-                outcome = next((o for o in ("transport", "denied", "no_tag") if o in attempts),
-                               "no_tag")
+                outcome = next((o for o in ("budget", "transport", "denied", "no_tag")
+                                if o in attempts), "no_tag")
+                if outcome == "budget":
+                    out_of_budget += 1
+                    continue
                 if outcome == "no_tag":
                     problems.append(f"{repo}: the pinned compose deploys {image} but no :{channel} "
                                     f"tag is published for it - an install pulling it would fail")
@@ -365,6 +398,13 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
                 notes.append(f"{repo}: {image} not verified - {detail}")
 
         coverage[(repo, channel)] = (resolved, len(deployed))
+
+    if out_of_budget:
+        # Named, not swallowed. These images were never asked about, so the
+        # coverage counts above already exclude them; saying how many were
+        # skipped is what stops a truncated run from reading like a thorough one.
+        notes.append(f"{out_of_budget} image(s) not verified - the {REGISTRY_BUDGET}s registry "
+                     f"budget for this run was spent before they were read")
 
     return problems, notes, coverage
 

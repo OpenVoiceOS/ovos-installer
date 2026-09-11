@@ -11,6 +11,7 @@ Every guard here is asserted in both directions. A check that only ever passes p
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -243,20 +244,20 @@ class CheckImagesReporting(unittest.TestCase):
         return ic.check_images(self.contracts, self.facts, self.root / "cache", "testing")
 
     def test_an_unreachable_registry_is_not_counted_as_verified(self):
-        ic.read_labels = lambda path, tag: (None, "transport")
+        ic.read_labels = lambda path, tag, **_: (None, "transport")
         problems, notes, coverage = self.run_check()
         self.assertEqual(coverage[("producer", "testing")], (0, 1))
         self.assertTrue(any("could not be reached" in n for n in notes), notes)
 
     def test_a_missing_channel_tag_is_a_problem_not_a_note(self):
         """An install pulling a tag that does not exist fails; that is a finding."""
-        ic.read_labels = lambda path, tag: (None, "no_tag")
+        ic.read_labels = lambda path, tag, **_: (None, "no_tag")
         problems, notes, coverage = self.run_check()
         self.assertTrue(any("no :testing tag is published" in p for p in problems), problems)
 
     def test_an_undecided_verdict_does_not_count_toward_coverage(self):
         ic.target_images = lambda clone: None          # no bake graph -> cannot attribute
-        ic.read_labels = lambda path, tag: (
+        ic.read_labels = lambda path, tag, **_: (
             {"org.opencontainers.image.revision": "0" * 40,
              "org.opencontainers.image.source": "https://github.com/Org/producer"}, "ok")
         problems, notes, coverage = self.run_check()
@@ -270,9 +271,35 @@ class CheckImagesReporting(unittest.TestCase):
         self.assertIn(("producer", "testing"), coverage)
         self.assertTrue(any("could not clone" in p for p in problems), problems)
 
+
+    def test_an_image_skipped_for_budget_is_missing_from_coverage(self):
+        """The wiring, not the unit.
+
+        A budget-skipped image is never asked about, so it must stay OUT of the resolved count
+        while remaining IN the denominator - that gap is what check_contracts turns into a
+        violation. A note saying "12 images not verified" cannot fail a job on its own.
+        """
+        ic.read_labels = lambda path, tag, **_: (None, "budget")
+        problems, notes, coverage = self.run_check()
+        resolved, total = coverage[("producer", "testing")]
+        self.assertEqual(resolved, 0)
+        self.assertEqual(total, 1, "the skipped image still counts against what was claimed")
+        self.assertTrue(any("budget" in n for n in notes), notes)
+
+    def test_a_compose_file_that_could_not_be_read_is_a_problem(self):
+        """Its images are not in `deployed` at all, so coverage alone cannot notice them."""
+        real = ic.deployed_images
+        try:
+            ic.deployed_images = lambda clone, ref, names: (
+                {}, [("docker-compose.yml", "is not valid YAML (mapping values not allowed)")])
+            problems, notes, coverage = self.run_check()
+        finally:
+            ic.deployed_images = real
+        self.assertTrue(any("coverage is narrower than it looks" in p for p in problems), problems)
+
     def test_an_image_the_contract_does_not_declare_is_a_problem(self):
         self.contracts = {"producer": {"images": []}}
-        ic.read_labels = lambda path, tag: (None, "transport")
+        ic.read_labels = lambda path, tag, **_: (None, "transport")
         problems, notes, coverage = self.run_check()
         self.assertTrue(any("does not declare it" in p for p in problems), problems)
 
@@ -280,7 +307,7 @@ class CheckImagesReporting(unittest.TestCase):
         """Candidates are tried in order; the last one's outcome must not decide."""
         seen = []
 
-        def by_candidate(path, tag):
+        def by_candidate(path, tag, **_):
             seen.append(path)
             return (None, "transport" if len(seen) == 1 else "no_tag")
 
@@ -383,3 +410,79 @@ class RegistryRetry(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
+
+
+class CoverageScopeIsNotSilentlyNarrowed(unittest.TestCase):
+    """A compose file the run could not read must not shrink what it claims to cover."""
+
+    def test_an_unparseable_compose_is_named_rather_than_skipped(self):
+        real_run = ic.run
+        try:
+            ic.run = lambda cmd, *a, **k: type("R", (), {"stdout": "services: [broken: : :"})()
+            found, unreadable = ic.deployed_images(
+                Path(tempfile.gettempdir()), "HEAD", ["docker-compose.yml"])
+        finally:
+            ic.run = real_run
+        self.assertEqual(found, {}, "nothing is parsed out of a broken file")
+        self.assertEqual([name for name, _ in unreadable], ["docker-compose.yml"])
+        self.assertIn("not valid YAML", unreadable[0][1])
+
+    def test_a_compose_missing_from_the_pinned_tree_is_named(self):
+        real_run = ic.run
+
+        def boom(cmd, *a, **k):
+            raise subprocess.CalledProcessError(128, cmd)
+
+        try:
+            ic.run = boom
+            found, unreadable = ic.deployed_images(
+                Path(tempfile.gettempdir()), "HEAD", ["docker-compose.yml"])
+        finally:
+            ic.run = real_run
+        self.assertEqual(found, {})
+        self.assertIn("not in the pinned tree", unreadable[0][1])
+
+    def test_a_readable_compose_reports_nothing_unreadable(self):
+        real_run = ic.run
+        try:
+            ic.run = lambda cmd, *a, **k: type(
+                "R", (), {"stdout": "services:\n  app:\n    image: smartgic/app:1\n"})()
+            found, unreadable = ic.deployed_images(
+                Path(tempfile.gettempdir()), "HEAD", ["docker-compose.yml"])
+        finally:
+            ic.run = real_run
+        self.assertEqual(unreadable, [])
+        self.assertTrue(found)
+
+
+class RegistryReadsAreBounded(unittest.TestCase):
+    """Every registry read in a run shares one wall-clock ceiling.
+
+    Each candidate can cost REGISTRY_TIMEOUT * REGISTRY_ATTEMPTS plus backoff, and a run
+    reads up to two candidates per deployed image, so a wide outage scales past the job's
+    own timeout. Being killed mid-check reports nothing at all, including what resolved.
+    """
+
+    def setUp(self):
+        self._real_once = ic._read_labels_once
+        self.calls = []
+        ic._read_labels_once = lambda path, tag: (self.calls.append(path), (None, "transport"))[1]
+
+    def tearDown(self):
+        ic._read_labels_once = self._real_once
+
+    def test_no_request_is_made_once_the_budget_is_spent(self):
+        labels, outcome = ic.read_labels(
+            "ghcr.io/x/y", "alpha", sleep=lambda s: None, deadline=time.monotonic() - 1)
+        self.assertEqual(outcome, "budget")
+        self.assertEqual(self.calls, [], "a spent budget makes no request at all")
+
+    def test_a_live_budget_still_retries(self):
+        labels, outcome = ic.read_labels(
+            "ghcr.io/x/y", "alpha", sleep=lambda s: None, deadline=time.monotonic() + 600)
+        self.assertEqual(outcome, "transport")
+        self.assertEqual(len(self.calls), ic.REGISTRY_ATTEMPTS)
+
+    def test_without_a_deadline_behaviour_is_unchanged(self):
+        labels, outcome = ic.read_labels("ghcr.io/x/y", "alpha", sleep=lambda s: None)
+        self.assertEqual(len(self.calls), ic.REGISTRY_ATTEMPTS)
