@@ -55,4 +55,8 @@ ovos restart ovos-listener
 ## Containers
 
 Installs using the `containers` method run under Docker instead of systemd.
-Manage them with the usual Docker commands from `~/ovos`.
+Manage them with the usual Docker commands by container name - `docker ps`
+lists them. `~/ovos` holds the configuration and data the containers mount
+(`config/`, `share/`, `tmp/`), not the compose files: those are cloned to
+`/tmp/ovos-docker/compose`, or `/tmp/hivemind-docker/compose` for a satellite,
+and a `docker compose` command needs `--project-directory` pointed there.

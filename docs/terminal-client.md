@@ -57,9 +57,11 @@ docker run -it --rm --network host ghcr.io/andlo/ovos-tui-client:latest
 `-it` matters — this one is an interactive terminal, not a background service
 like the other OVOS containers, and it needs a TTY to draw anything at all.
 `--network host` is the simplest way to reach the message bus on
-`127.0.0.1:8181`; joining the `ovos-docker` compose network and passing
-`--host` the messagebus container's name is the tidier option if you intend to
-keep it around.
+`127.0.0.1:8181`. The tidier option, if you intend to keep the client around,
+is to attach it to the network the stack already runs on and pass `--host` the
+messagebus container's name. The installer names the Compose project `ovos`, or
+`hivemind` for a satellite, so that network is `ovos_default`; `docker network
+ls` confirms it.
 
 The installer does not add this to your compose stack, because the client is a
 tool you reach for rather than a service that should be running.
