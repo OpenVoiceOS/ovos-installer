@@ -23,6 +23,7 @@ doc/_build/
 .theia
 .venv/
 .ansible
+.ansible-replay/
 __pycache__
 
 # Created by unit tests
