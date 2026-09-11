@@ -3903,14 +3903,25 @@ function teardown() {
     ' .github/workflows/scenarios-ubuntu2404.yml
     assert_output --partial "feature_set.outputs.skills"
 
-    # It must not name the skill that answers. Both methods install
+    # macOS carries it too, on the one leg that installs skills. The condition is spelled
+    # from the matrix there because the scenario file sets skills from a shell variable
+    # rather than a step output, so there is nothing to read from steps.
+    run awk '
+        /name: Validate a skill answers out loud/ { found = 1; next }
+        found && /^[[:space:]]*if:/ { print $0; exit }
+        found && /^[[:space:]]*run:/ { print "UNGATED"; exit }
+    ' .github/workflows/macos_ci.yml
+    assert_output --partial "matrix.feature_set"
+
+    # It must not name the skill that answers, on either platform. Both methods install
     # ovos-skill-fallback-unknown, which answers whatever nobody else claims, so the
     # assertion survives the skill set changing underneath it - naming one would make it
     # break for a reason that has nothing to do with the installer.
-    run grep -A6 "name: Validate a skill answers out loud" \
-        .github/workflows/scenarios-ubuntu2404.yml
-    refute_output --partial "--expect-skill"
-    refute_output --partial "--expect-pipeline"
+    for workflow in .github/workflows/scenarios-ubuntu2404.yml .github/workflows/macos_ci.yml; do
+        run grep -A6 "name: Validate a skill answers out loud" "$workflow"
+        refute_output --partial "--expect-skill"
+        refute_output --partial "--expect-pipeline"
+    done
 }
 
 @test "contract_checker_decision_logic_and_reporting_are_tested_offline" {
