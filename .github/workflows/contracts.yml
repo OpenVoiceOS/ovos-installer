@@ -33,7 +33,12 @@ jobs:
       # file, so the pin holds against the artifact and not just the version label.
       - run: pip install --disable-pip-version-check --require-hashes -r scripts/contracts-requirements.txt
 
+      # The image half asks the producer's own bake graph which build target an image belongs
+      # to, rather than guessing from its name. `bake --print` needs the buildx CLI but neither a
+      # daemon nor the network.
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4
+
       - name: Check the installer against the contracts at the pinned refs
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 scripts/check_contracts.py --online --fail-on-stale
+        run: python3 scripts/check_contracts.py --online --fail-on-stale --fail-on-image-drift
