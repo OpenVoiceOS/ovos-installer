@@ -358,6 +358,24 @@ jobs:
       - name: Validate the bus, core and skills are talking to each other
         run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
 
+      # The rung above stops at the intent: core resolves the utterance itself through
+      # its own stop pipeline, so it holds with no skills installed. This one carries the
+      # utterance the rest of the way and requires something to say a sentence back,
+      # which is the only assertion here that involves a skill at all.
+      #
+      # It deliberately does not name the skill that answers. Both methods install
+      # ovos-skill-fallback-unknown - the virtualenv through ovos-core[skills-essential],
+      # the containers through docker-compose.skills.yml - and a fallback answers what
+      # nobody else claims. So this survives the skill set changing underneath it: if
+      # date-time handles the question it speaks the time, and if it is gone the fallback
+      # speaks instead. Either way a skill spoke, which is the property being asserted.
+      - name: Validate a skill answers out loud
+        if: steps.feature_set.outputs.skills == 'true'
+        run: |
+          .github/scripts/assert_intent_roundtrip.sh \
+            --utterance "what time is it" --expect-speak \
+            --ready-timeout 420 --speak-timeout 120
+
       - name: Create uninstall scenario file
         shell: bash
         run: |
@@ -638,11 +656,6 @@ jobs:
               exit 1
             fi
           done
-
-      # Re-running the key roles must leave the deployment answering, not merely leave
-      # Ansible reporting no changes.
-      - name: Validate the bus, core and skills still answer after the key roles re-run
-        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
 
       - name: Upload key-role idempotency logs
         if: always()

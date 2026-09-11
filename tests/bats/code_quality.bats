@@ -3841,8 +3841,7 @@ function teardown() {
     # that perform a real install silently failed while the guard stayed green.
     for job in linux-installer-scenarios-pr-smoke \
                linux-installer-scenarios-nightly-exhaustive \
-               linux-idempotency \
-               linux-key-role-idempotency; do
+               linux-idempotency; do
         run awk -v want="$job" '
             /^  [a-z][a-z0-9_-]*:$/ { j = $1; sub(":", "", j) }
             /assert_intent_roundtrip\.sh/ { if (j == want) { print "found"; exit } }
@@ -3871,7 +3870,13 @@ function teardown() {
     # there is no deployment to answer. linux-satellite-scenario installs the satellite
     # profile, which runs hivemind-docker's satellite compose against a REMOTE hub -
     # hivemind_satellite and hivemind_cli, no ovos-core and no local messagebus.
-    for job in linux-negative-scenarios linux-satellite-scenario; do
+    # linux-key-role-idempotency is excluded for a different reason: its own
+    # "Assert key role idempotency" step cannot run. setup.sh removes the installer
+    # venv on every successful run, and that step requires the ansible-playbook inside
+    # it, so the job exits 1 before reaching anything placed after it. A check there
+    # would never execute while reading as coverage.
+    for job in linux-negative-scenarios linux-satellite-scenario \
+               linux-key-role-idempotency; do
         run awk -v want="$job" '
             /^  [a-z][a-z0-9_-]*:$/ { j = $1; sub(":", "", j) }
             /assert_intent_roundtrip\.sh/ { if (j == want) { print "wrongly added"; exit } }
@@ -3883,6 +3888,27 @@ function teardown() {
     # systemd, so setup.sh starts no service and there is no bus to answer.
     run grep -q "assert_intent_roundtrip" .github/workflows/scenarios-archlinux.yml
     assert_failure
+}
+
+@test "the_speak_rung_runs_where_skills_exist_and_names_no_skill" {
+    # Every other rung stops at the intent, which core resolves itself through its own
+    # stop pipeline - so none of them involves a skill. This is the only assertion that
+    # a skill answered, and it can only hold where skills were installed.
+    run awk '
+        /name: Validate a skill answers out loud/ { found = 1; next }
+        found && /^\s*if:/ { print $0; exit }
+        found && /^\s*run:/ { print "UNGATED"; exit }
+    ' .github/workflows/scenarios-ubuntu2404.yml
+    assert_output --partial "feature_set.outputs.skills"
+
+    # It must not name the skill that answers. Both methods install
+    # ovos-skill-fallback-unknown, which answers whatever nobody else claims, so the
+    # assertion survives the skill set changing underneath it - naming one would make it
+    # break for a reason that has nothing to do with the installer.
+    run grep -A6 "name: Validate a skill answers out loud" \
+        .github/workflows/scenarios-ubuntu2404.yml
+    refute_output --partial "--expect-skill"
+    refute_output --partial "--expect-pipeline"
 }
 
 @test "contract_checker_decision_logic_and_reporting_are_tested_offline" {
