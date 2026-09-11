@@ -286,6 +286,11 @@ jobs:
       - name: Validate the intent engine survived the install
         run: .github/scripts/assert_intent_engine.sh "$HOME/.venvs/ovos/bin/python"
 
+      # launchctl print above proves the jobs are LOADED. This proves they answer: the
+      # bus is listening, core attached to it, and an utterance resolves to an intent.
+      - name: Validate the bus, core and skills are talking to each other
+        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
+
       - name: Create uninstall scenario
         shell: bash
         run: |

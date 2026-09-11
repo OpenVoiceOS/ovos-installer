@@ -166,6 +166,16 @@ jobs:
         if: matrix.method == 'virtualenv'
         run: .github/scripts/assert_intent_engine.sh "$HOME/.venvs/ovos/bin/python"
 
+      # The package check above proves ovos-padatious is installed. This proves the
+      # deployment answers: something is listening on the bus, core attached to it, the
+      # skills finished loading, and an utterance resolves to an intent. Until now no
+      # Linux job had ever connected to port 8181, so an install that started and then
+      # answered nobody passed every check we had. It runs for BOTH methods - ovos-docker
+      # publishes the messagebus with network_mode: host, so the bus is on 127.0.0.1:8181
+      # either way - and as the install user, because the venv and mycroft.conf are hers.
+      - name: Validate the bus, core and skills are talking to each other
+        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
+
       - name: Create uninstall scenario file
         shell: bash
         run: |
@@ -337,6 +347,16 @@ jobs:
       - name: Validate the intent engine survived the install
         if: matrix.method == 'virtualenv'
         run: .github/scripts/assert_intent_engine.sh "$HOME/.venvs/ovos/bin/python"
+
+      # The package check above proves ovos-padatious is installed. This proves the
+      # deployment answers: something is listening on the bus, core attached to it, the
+      # skills finished loading, and an utterance resolves to an intent. Until now no
+      # Linux job had ever connected to port 8181, so an install that started and then
+      # answered nobody passed every check we had. It runs for BOTH methods - ovos-docker
+      # publishes the messagebus with network_mode: host, so the bus is on 127.0.0.1:8181
+      # either way - and as the install user, because the venv and mycroft.conf are hers.
+      - name: Validate the bus, core and skills are talking to each other
+        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
 
       - name: Create uninstall scenario file
         shell: bash

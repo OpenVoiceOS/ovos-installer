@@ -3831,6 +3831,33 @@ function teardown() {
     assert_output ""
 }
 
+@test "every_real_install_proves_the_bus_core_and_skills_answer" {
+    # The package check beside it proves ovos-padatious is on disk. Only this one proves
+    # the deployment answers, and the gap between those is where an install that starts
+    # and then talks to nobody used to pass. It must cover BOTH methods: the containers
+    # method had no post-install assertion of any kind, because the package check is
+    # necessarily virtualenv-only and nothing replaced it.
+    for workflow in .github/workflows/scenarios-ubuntu2404.yml .github/workflows/macos_ci.yml; do
+        run grep -q "assert_intent_roundtrip.sh" "$workflow"
+        assert_success
+    done
+
+    # Not gated on a method. The bus is on 127.0.0.1:8181 for both, because ovos-docker
+    # publishes the messagebus with network_mode: host - so a guard here would silently
+    # return the containers method to having nothing.
+    run awk '
+        /name: Validate the bus, core and skills/ { found = 1; next }
+        found && /^\s*if:/ { print "guarded"; exit }
+        found && /^\s*run:/ { found = 0 }
+    ' .github/workflows/scenarios-ubuntu2404.yml
+    assert_output ""
+
+    # Arch is excluded on purpose: that job runs inside a container with no systemd, so
+    # setup.sh never starts a service and there is no bus to answer.
+    run grep -q "assert_intent_roundtrip" .github/workflows/scenarios-archlinux.yml
+    assert_failure
+}
+
 @test "contract_checker_decision_logic_and_reporting_are_tested_offline" {
     # Two suites, both offline, discovered by pattern rather than by name so that adding a
     # third does not silently go unrun - which is what happened to the reporting suite, whose
