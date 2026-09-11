@@ -10,3 +10,29 @@
   ansible.builtin.debug:
     msg: The "mycroft.conf" configuration file has been restored, existing file has been backup.
   when: _drift | bool
+
+# A satellite cannot grant itself the right to be heard. hivemind-core refuses a client
+# every message type until one is allowed explicitly, and recognizer_loop:utterance is no
+# longer granted by default - so a satellite connects, authenticates, and then has
+# everything it says rejected, which looks like a broken satellite rather than a missing
+# permission. The grant is per client and lives in the listener's database, so it can only
+# be made there; this machine has neither that database nor the hivemind-core command.
+#
+# Printed from the play rather than the finish screen because a scenario install never
+# reaches the finish screen, and a scenario install is exactly how a fleet of satellites
+# gets built.
+- name: Explain what the HiveMind listener still has to allow
+  ansible.builtin.debug:
+    msg:
+      - "This satellite has to be allowed to speak, on the machine running the"
+      - "HiveMind listener at {{ ovos_installer_listener_host }}:{{ ovos_installer_listener_port | default(5678, true) }}:"
+      - ""
+      - "  hivemind-core list-clients"
+      - "  hivemind-core allow-msg recognizer_loop:utterance <node-id>"
+      - ""
+      - >-
+        Use list-clients to find the Node ID whose access key begins
+        {{ (ovos_installer_satellite_key | default(''))[:8] }} - that is this
+        satellite. Until the grant is made it will connect and authenticate, and
+        everything it says will be refused.
+  when: ovos_installer_profile == 'satellite'
