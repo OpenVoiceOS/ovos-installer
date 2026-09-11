@@ -166,6 +166,16 @@ jobs:
         if: matrix.method == 'virtualenv'
         run: .github/scripts/assert_intent_engine.sh "$HOME/.venvs/ovos/bin/python"
 
+      # The package check above proves ovos-padatious is installed. This proves the
+      # deployment answers: something is listening on the bus, core attached to it, the
+      # skills finished loading, and an utterance resolves to an intent. Until now no
+      # Linux job had ever connected to port 8181, so an install that started and then
+      # answered nobody passed every check we had. It runs for BOTH methods - ovos-docker
+      # publishes the messagebus with network_mode: host, so the bus is on 127.0.0.1:8181
+      # either way - and as the install user, because the venv and mycroft.conf are hers.
+      - name: Validate the bus, core and skills are talking to each other
+        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
+
       - name: Create uninstall scenario file
         shell: bash
         run: |
@@ -338,6 +348,40 @@ jobs:
         if: matrix.method == 'virtualenv'
         run: .github/scripts/assert_intent_engine.sh "$HOME/.venvs/ovos/bin/python"
 
+      # The package check above proves ovos-padatious is installed. This proves the
+      # deployment answers: something is listening on the bus, core attached to it, the
+      # skills finished loading, and an utterance resolves to an intent. Until now no
+      # Linux job had ever connected to port 8181, so an install that started and then
+      # answered nobody passed every check we had. It runs for BOTH methods - ovos-docker
+      # publishes the messagebus with network_mode: host, so the bus is on 127.0.0.1:8181
+      # either way - and as the install user, because the venv and mycroft.conf are hers.
+      - name: Validate the bus, core and skills are talking to each other
+        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
+
+      # The rung above stops at the intent: core resolves the utterance itself through
+      # its own stop pipeline, so it holds with no skills installed. This one carries the
+      # utterance the rest of the way and requires something to say a sentence back,
+      # which is the only assertion here that involves a skill at all.
+      #
+      # It deliberately does not name the skill that answers. Both methods install
+      # ovos-skill-fallback-unknown - the virtualenv through ovos-core[skills-essential],
+      # the containers through docker-compose.skills.yml - and a fallback answers what
+      # nobody else claims. So this survives the skill set changing underneath it: if
+      # date-time handles the question it speaks the time, and if it is gone the fallback
+      # speaks instead. Either way a skill spoke, which is the property being asserted.
+      - name: Validate a skill answers out loud
+        if: steps.feature_set.outputs.skills == 'true'
+        run: |
+          # The probe needs longer here than the rung above it. That one asks about
+          # "stop", which core answers itself from its own stop pipeline; this one asks
+          # about an utterance a skill claims, which means padatious, and padatious
+          # trains its models as the skills load. The skills service reports ready
+          # before the first real match can be served, so the default reply timeout is
+          # too tight for this question in particular.
+          .github/scripts/assert_intent_roundtrip.sh \
+            --utterance "what time is it" --expect-speak \
+            --ready-timeout 420 --reply-timeout 120 --speak-timeout 120
+
       - name: Create uninstall scenario file
         shell: bash
         run: |
@@ -469,6 +513,13 @@ jobs:
             echo "Second idempotency pass changed=${changed_count}, expected <=8"
             exit 1
           fi
+
+      # Running the installer again must not break a deployment that was working. The
+      # drift assertion above counts Ansible's changed tasks; it says nothing about
+      # whether anything still answers afterwards, so a second pass that quietly stopped
+      # the bus would satisfy it.
+      - name: Validate the bus, core and skills still answer after a second pass
+        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
 
       - name: Create uninstall scenario file
         run: |

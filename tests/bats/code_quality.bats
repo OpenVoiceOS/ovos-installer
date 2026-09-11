@@ -3831,6 +3831,119 @@ function teardown() {
     assert_output ""
 }
 
+@test "every_real_install_proves_the_bus_core_and_skills_answer" {
+    # The package check beside it proves ovos-padatious is on disk. Only this one proves
+    # the deployment answers, and the gap between those is where an install that starts
+    # and then talks to nobody used to pass.
+    #
+    # Enumerating the jobs is the point. The first version of this guard only checked
+    # that the file was mentioned somewhere in the workflow, which four of the six jobs
+    # that perform a real install silently failed while the guard stayed green.
+    for job in linux-installer-scenarios-pr-smoke \
+               linux-installer-scenarios-nightly-exhaustive \
+               linux-idempotency; do
+        run awk -v want="$job" '
+            /^  [a-z][a-z0-9_-]*:$/ { j = $1; sub(":", "", j) }
+            /assert_intent_roundtrip\.sh/ { if (j == want) { print "found"; exit } }
+        ' .github/workflows/scenarios-ubuntu2404.yml
+        assert_output "found"
+    done
+
+    run awk '
+        /^  [a-z][a-z0-9_-]*:$/ { j = $1; sub(":", "", j) }
+        /assert_intent_roundtrip\.sh/ { if (j == "macos-scenario-matrix") { print "found"; exit } }
+    ' .github/workflows/macos_ci.yml
+    assert_output "found"
+
+    # Not gated on a method. The bus is on 127.0.0.1:8181 for both, because ovos-docker
+    # publishes the messagebus with network_mode: host - so a guard here would silently
+    # return the containers method to having nothing.
+    run awk '
+        /name: Validate the bus, core and skills/ { found = 1; next }
+        found && /^[[:space:]]*if:/ { print "guarded"; exit }
+        found && /^[[:space:]]*run:/ { found = 0 }
+    ' .github/workflows/scenarios-ubuntu2404.yml
+    assert_output ""
+
+    # Two jobs are excluded deliberately, and both would be permanently red if added.
+    # linux-negative-scenarios feeds invalid scenarios and asserts the install FAILS, so
+    # there is no deployment to answer. linux-satellite-scenario installs the satellite
+    # profile, which runs hivemind-docker's satellite compose against a REMOTE hub -
+    # hivemind_satellite and hivemind_cli, no ovos-core and no local messagebus.
+    # linux-key-role-idempotency is excluded for a different reason: its own
+    # "Assert key role idempotency" step cannot run. setup.sh removes the installer
+    # venv on every successful run, and that step requires the ansible-playbook inside
+    # it, so the job exits 1 before reaching anything placed after it. A check there
+    # would never execute while reading as coverage.
+    for job in linux-negative-scenarios linux-satellite-scenario \
+               linux-key-role-idempotency; do
+        run awk -v want="$job" '
+            /^  [a-z][a-z0-9_-]*:$/ { j = $1; sub(":", "", j) }
+            /assert_intent_roundtrip\.sh/ { if (j == want) { print "wrongly added"; exit } }
+        ' .github/workflows/scenarios-ubuntu2404.yml
+        assert_output ""
+    done
+
+    # Arch is excluded for the same reason: that job runs inside a container with no
+    # systemd, so setup.sh starts no service and there is no bus to answer.
+    run grep -q "assert_intent_roundtrip" .github/workflows/scenarios-archlinux.yml
+    assert_failure
+}
+
+@test "the_speak_rung_runs_where_skills_exist_and_names_no_skill" {
+    # Every other rung stops at the intent, which core resolves itself through its own
+    # stop pipeline - so none of them involves a skill. This is the only assertion that
+    # a skill answered, and it can only hold where skills were installed.
+    # POSIX character classes, not \s: that is a GNU awk extension and the macOS
+    # runners use BSD awk, where the pattern silently matches nothing.
+    run awk '
+        /name: Validate a skill answers out loud/ { found = 1; next }
+        found && /^[[:space:]]*if:/ { print $0; exit }
+        found && /^[[:space:]]*run:/ { print "UNGATED"; exit }
+    ' .github/workflows/scenarios-ubuntu2404.yml
+    assert_output --partial "feature_set.outputs.skills"
+
+    # macOS carries it too, on the one leg that installs skills. The condition is spelled
+    # from the matrix there because the scenario file sets skills from a shell variable
+    # rather than a step output, so there is nothing to read from steps.
+    run awk '
+        /name: Validate a skill answers out loud/ { found = 1; next }
+        found && /^[[:space:]]*if:/ { print $0; exit }
+        found && /^[[:space:]]*run:/ { print "UNGATED"; exit }
+    ' .github/workflows/macos_ci.yml
+    # The whole condition, values included. "matrix.feature_set" alone also passes for a
+    # reversed test, or for a gate on a different feature set entirely.
+    assert_output --partial "matrix.feature_set == 'all'"
+    assert_output --partial "matrix.profile == 'ovos'"
+
+    # And that pair really is the leg that installs skills: the scenario step decides
+    # skills from the same two values, so asserting the gate without asserting what the
+    # gate selects would survive skills moving to another feature set.
+    run awk '
+        index($0, "matrix.feature_set }}\" = \"all\"") \
+            && index($0, "matrix.profile }}\" = \"ovos\"") { found = 1; next }
+        found && index($0, "skills=") { print $0; exit }
+    ' .github/workflows/macos_ci.yml
+    assert_output --partial "skills=true"
+
+    # It must not name the skill that answers, on either platform. Both methods install
+    # ovos-skill-fallback-unknown, which answers whatever nobody else claims, so the
+    # assertion survives the skill set changing underneath it - naming one would make it
+    # break for a reason that has nothing to do with the installer.
+    for workflow in .github/workflows/scenarios-ubuntu2404.yml .github/workflows/macos_ci.yml; do
+        run grep -A12 "name: Validate a skill answers out loud" "$workflow"
+        refute_output --partial "--expect-skill"
+        refute_output --partial "--expect-pipeline"
+
+        # The probe must be given longer than its default here. The rung above asks
+        # about "stop", which core answers from its own stop pipeline; this one asks
+        # about an utterance a skill claims, which means padatious - and padatious
+        # trains as the skills load, so the skills service reports ready before the
+        # first real match can be served. macOS timed out at the 30s default.
+        assert_output --partial "--reply-timeout"
+    done
+}
+
 @test "every_locale_renders_the_satellite_note_without_breaking_its_own_file" {
     # The note is a translated string that lands inside a double-quoted bash string and
     # carries shell expansions, so a translation can break the whole finish screen for
@@ -3873,13 +3986,18 @@ function teardown() {
 
     # Enough of the access key to pick this satellite out of list-clients, and no more:
     # an install log is a thing people paste into bug reports, and the key is a
-    # credential. Asserted as the truncation itself rather than by variable name, so
-    # renaming the variable cannot quietly turn this into a check of nothing.
-    run grep -qE ':0:8\}' tui/finish.sh
+    # credential. Asserted by rendering rather than by matching an expansion: a pattern
+    # that rejects ${SATELLITE_KEY} still passes for the unbraced $SATELLITE_KEY, which
+    # leaks the whole key. What matters is the value that comes out, so that is what is
+    # checked - and it holds however the assignment is spelled.
+    satellite_key_sentinel="0123456789abcdef0123456789abcdef"
+    run bash -c "export RUN_AS_HOME=/x METHOD=virtualenv LOCALE=en-us PROFILE=satellite \
+        SATELLITE_KEY='${satellite_key_sentinel}' HIVEMIND_HOST=hub.example HIVEMIND_PORT=5678; \
+        source tui/finish.sh >/dev/null 2>&1 || true; \
+        printf '%s' \"\${HIVEMIND_KEY_PREFIX-UNSET}\""
     assert_success
-    # and the whole key never reaches the exported prefix
-    run grep -qE 'HIVEMIND_KEY_PREFIX="\$\{SATELLITE_KEY[:-]*\}"' tui/finish.sh
-    assert_failure
+    assert_output "${satellite_key_sentinel:0:8}"
+    refute_output --partial "${satellite_key_sentinel}"
 
     # A scenario install never reaches the finish screen, and a scenario install is
     # exactly how a fleet of satellites gets built - so the play says it too.
@@ -3943,9 +4061,31 @@ function teardown() {
     # stdout test. Same reason export-clients must not be failed_when: false - a failure
     # there yields no client ids, the loop does nothing, and the play reports success
     # having granted nothing.
-    run grep -q "ovos_services_hivemind_allow.rc != 0" "$tasks"
+    #
+    # Scoped to the task rather than searched file-wide: a file-wide match is satisfied
+    # by the right text in the wrong task. Each task is folded onto one line, so the
+    # complete failed_when of the task that actually runs allow-msg can be asserted.
+    flatten_tasks() {
+        awk '
+            /^-[[:space:]]/ { if (block != "") print block; block = ""; }
+            {
+                line = $0
+                sub(/^[[:space:]]+/, "", line)
+                if (line ~ /^#/) next
+                block = block " " line
+            }
+            END { if (block != "") print block }
+        ' "$1"
+    }
+
+    run bash -c "$(declare -f flatten_tasks); flatten_tasks '$tasks' | grep -- 'allow-msg'"
     assert_success
-    run grep -q "failed_when: false" "$tasks"
+    assert_output --partial "failed_when: >- ovos_services_hivemind_allow.rc != 0 or 'Invalid Node ID' in ovos_services_hivemind_allow.stdout"
+
+    # And no task in the file opts out of failing. YAML spells false four ways, and
+    # "failed_when: false" only finds one of them.
+    run bash -c "$(declare -f flatten_tasks); flatten_tasks '$tasks' \
+        | grep -qiE 'failed_when:[[:space:]]*(false|no|off|n)([[:space:]]|\$)'"
     assert_failure
 
     # Client ids are picked by shape, not by position: hivemind-core logs its database

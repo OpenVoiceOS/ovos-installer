@@ -286,6 +286,32 @@ jobs:
       - name: Validate the intent engine survived the install
         run: .github/scripts/assert_intent_engine.sh "$HOME/.venvs/ovos/bin/python"
 
+      # launchctl print above proves the jobs are LOADED. This proves they answer: the
+      # bus is listening, core attached to it, and an utterance resolves to an intent.
+      - name: Validate the bus, core and skills are talking to each other
+        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420
+
+      # The rung above stops at the intent, which core resolves through its own stop
+      # pipeline, so it holds with no skills installed. This one carries the utterance
+      # the rest of the way, on the one leg that installs skills - the same condition the
+      # scenario file is written from, restated here because that one is a shell variable
+      # rather than a step output.
+      #
+      # It names no skill: both methods install ovos-skill-fallback-unknown, which answers
+      # whatever nobody else claims, so the assertion survives the skill set changing.
+      - name: Validate a skill answers out loud
+        if: matrix.feature_set == 'all' && matrix.profile == 'ovos'
+        run: |
+          # The probe needs longer here than the rung above it. That one asks about
+          # "stop", which core answers itself from its own stop pipeline; this one asks
+          # about an utterance a skill claims, which means padatious, and padatious
+          # trains its models as the skills load. The skills service reports ready
+          # before the first real match can be served, so the default reply timeout is
+          # too tight for this question in particular.
+          .github/scripts/assert_intent_roundtrip.sh \
+            --utterance "what time is it" --expect-speak \
+            --ready-timeout 420 --reply-timeout 120 --speak-timeout 120
+
       - name: Create uninstall scenario
         shell: bash
         run: |
