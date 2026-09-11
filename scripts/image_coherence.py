@@ -23,7 +23,6 @@ and is where the installer actually pulls from, but its unauthenticated budget i
 requests per hour per IP, shared across everything on a runner's egress - so using it here would
 break other jobs rather than this one.
 """
-import concurrent.futures
 import json
 import re
 import subprocess
