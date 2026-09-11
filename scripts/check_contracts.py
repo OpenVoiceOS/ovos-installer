@@ -42,6 +42,11 @@ DEPENDENCY_BUMP = re.compile(
     r"^(chore\(deps\)|build\(deps\)|Update .+ to v|Update .+ digest to|chore: update .+ digest)",
     re.I)
 
+# A gh call that hangs is a gh call that failed: both leave the release lag unknown, and both
+# are already reported as such. Without this the only ceiling is the job's own timeout, which
+# reports nothing at all.
+GH_TIMEOUT = 120  # seconds
+
 LAST_GH_ERROR: list = []  # why a gh lookup came back empty, if it did
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -201,13 +206,14 @@ def release_lag(slug: str, tag: str) -> tuple[int, str] | None:
     try:
         branch = subprocess.run(["gh", "repo", "view", slug, "--json", "defaultBranchRef",
                                  "-q", ".defaultBranchRef.name"],
-                                capture_output=True, text=True, check=True).stdout.strip()
+                                capture_output=True, text=True, check=True,
+                                timeout=GH_TIMEOUT).stdout.strip()
         out = subprocess.run(["gh", "api", f"repos/{slug}/compare/{tag}...{branch}",
                               # single-parent only: a merge commit repeats what it merges,
                               # and counting it makes a lone dependency bump look substantive
                               "-q", ".commits[] | select(.parents | length == 1) "
                                     "| .commit.message | split(\"\\n\")[0]"],
-                             capture_output=True, text=True, check=True)
+                             capture_output=True, text=True, check=True, timeout=GH_TIMEOUT)
         # Only unreleased *fixes* are worth a release. Renovate merges dependency bumps
         # continuously, and failing a weekly job for those trains people to ignore it -
         # at which point the alert no longer works for the case it exists for.
@@ -223,7 +229,7 @@ def release_lag(slug: str, tag: str) -> tuple[int, str] | None:
 def latest_release(slug: str) -> str | None:
     try:
         out = subprocess.run(["gh", "release", "view", "--repo", slug, "--json", "tagName", "-q", ".tagName"],
-                             capture_output=True, text=True, check=True)
+                             capture_output=True, text=True, check=True, timeout=GH_TIMEOUT)
         return out.stdout.strip() or None
     except Exception as error:
         LAST_GH_ERROR.append(f"{type(error).__name__}: {error}")

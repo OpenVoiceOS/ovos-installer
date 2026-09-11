@@ -286,12 +286,39 @@ class CheckImagesReporting(unittest.TestCase):
         self.assertEqual(total, 1, "the skipped image still counts against what was claimed")
         self.assertTrue(any("budget" in n for n in notes), notes)
 
+    def test_a_self_pinned_image_is_reported_as_out_of_scope(self):
+        """Excluding it from the check is right; excluding it from the report is not."""
+        real = ic.deployed_images
+        try:
+            ic.deployed_images = lambda clone, ref, names: (
+                {}, [], [("redis:7-alpine", "docker-compose.yml:cache")])
+            problems, notes, coverage = self.run_check()
+        finally:
+            ic.deployed_images = real
+        self.assertTrue(any("out of scope" in n and "redis:7-alpine" in n for n in notes), notes)
+        self.assertEqual(problems, [], "a pinned image is not a defect")
+
+    def test_an_image_built_elsewhere_leaves_the_denominator_too(self):
+        """"Could not tell" and "not ours to tell" are different, and only one is a defect.
+
+        Every other unresolved outcome counts against coverage, which is what turns it into a
+        violation. This one would fail the weekly job forever over an image nobody can act on,
+        while the note beside it said "out of scope" - the report and the exit status
+        disagreeing about the same image.
+        """
+        ic.read_labels = lambda path, tag, **_: (
+            {"org.opencontainers.image.revision": "0" * 40,
+             "org.opencontainers.image.source": "https://github.com/SomeoneElse/their-repo"}, "ok")
+        problems, notes, coverage = self.run_check()
+        self.assertEqual(coverage[("producer", "testing")], (0, 0))
+        self.assertTrue(any("out of scope" in n for n in notes), notes)
+
     def test_a_compose_file_that_could_not_be_read_is_a_problem(self):
         """Its images are not in `deployed` at all, so coverage alone cannot notice them."""
         real = ic.deployed_images
         try:
             ic.deployed_images = lambda clone, ref, names: (
-                {}, [("docker-compose.yml", "is not valid YAML (mapping values not allowed)")])
+                {}, [("docker-compose.yml", "is not valid YAML (mapping values not allowed)")], [])
             problems, notes, coverage = self.run_check()
         finally:
             ic.deployed_images = real
@@ -408,6 +435,57 @@ class RegistryRetry(unittest.TestCase):
         self.assertLess(sum(self.slept), 60)  # a stuck registry must not stall the whole run
 
 
+
+class HangingIsFailing(unittest.TestCase):
+    """A command that never returns must reach the same handler as one that fails.
+
+    Every git, gh and docker call this program makes talks to a network or a daemon, and none of
+    them carried a ceiling: a blackholed fetch simply never returned. The only bound was the
+    job's own timeout, and a job killed by that reports nothing at all - including the images it
+    had already resolved. That is the same outcome the registry budget exists to avoid.
+    """
+
+    def test_a_timeout_is_raised_as_a_failed_command(self):
+        """Callers catch CalledProcessError. None of them catches TimeoutExpired."""
+        with self.assertRaises(subprocess.CalledProcessError) as caught:
+            ic.run(["sleep", "5"], timeout=0.2)
+        self.assertEqual(caught.exception.returncode, 124)
+        self.assertIn("no answer after", caught.exception.stderr)
+
+    def test_a_hung_command_degrades_one_answer_rather_than_the_run(self):
+        """deployed_images already treats a failed git show as a file it could not read."""
+        real = ic.run
+        try:
+            ic.run = lambda *a, **k: real(["sleep", "5"], timeout=0.2)
+            found, unreadable, self_pinned = ic.deployed_images(Path(tempfile.gettempdir()), "HEAD",
+                                                  ["docker-compose.yml"])
+        finally:
+            ic.run = real
+        self.assertEqual(found, {})
+        self.assertEqual([name for name, _ in unreadable], ["docker-compose.yml"])
+
+    def test_a_caller_that_asks_for_no_ceiling_still_gets_one(self):
+        """Every call site relies on the default; none of them passes a timeout."""
+        seen = {}
+        real = subprocess.run
+
+        def capture(*args, **kwargs):
+            seen.update(kwargs)
+            return real(["true"], capture_output=True, text=True)
+
+        subprocess.run = capture
+        try:
+            ic.run(["git", "status"])
+        finally:
+            subprocess.run = real
+        self.assertIsNotNone(seen.get("timeout"), "run() passed no ceiling to subprocess")
+        self.assertEqual(seen["timeout"], ic.SUBPROCESS_TIMEOUT)
+
+    def test_the_default_ceiling_is_bounded_and_generous(self):
+        self.assertLessEqual(ic.SUBPROCESS_TIMEOUT, 600)
+        self.assertGreaterEqual(ic.SUBPROCESS_TIMEOUT, 60)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
 
@@ -419,13 +497,39 @@ class CoverageScopeIsNotSilentlyNarrowed(unittest.TestCase):
         real_run = ic.run
         try:
             ic.run = lambda cmd, *a, **k: type("R", (), {"stdout": "services: [broken: : :"})()
-            found, unreadable = ic.deployed_images(
+            found, unreadable, self_pinned = ic.deployed_images(
                 Path(tempfile.gettempdir()), "HEAD", ["docker-compose.yml"])
         finally:
             ic.run = real_run
         self.assertEqual(found, {}, "nothing is parsed out of a broken file")
         self.assertEqual([name for name, _ in unreadable], ["docker-compose.yml"])
         self.assertIn("not valid YAML", unreadable[0][1])
+
+
+    def test_an_image_the_compose_pins_itself_is_out_of_scope_and_named(self):
+        """The check asks what :<channel> holds. A self-pinned image has no such question.
+
+        Asking anyway looks the image up under a producer mirror that has no such tag and
+        reports that an install pulling it would fail - untrue, and unfixable by anyone, which
+        is how a weekly alarm gets muted. It is named rather than dropped, because out of scope
+        is a defensible answer and out of sight is not.
+        """
+        real = ic.run
+        try:
+            ic.run = lambda *a, **k: type("R", (), {"stdout": (
+                "services:\n"
+                "  app:\n    image: smartgic/app:${VERSION}\n"
+                "  cache:\n    image: redis:7-alpine\n"
+                "  db:\n    image: postgres\n")})()
+            found, unreadable, self_pinned = ic.deployed_images(
+                Path(tempfile.gettempdir()), "HEAD", ["docker-compose.yml"])
+        finally:
+            ic.run = real
+        self.assertEqual(sorted(found), ["docker.io/smartgic/app"])
+        self.assertEqual(unreadable, [])
+        # both the fixed tag and the absent one: the compose decides each, not the channel
+        self.assertEqual(sorted(image for image, _ in self_pinned), ["postgres", "redis:7-alpine"])
+        self.assertTrue(all(where.startswith("docker-compose.yml:") for _, where in self_pinned))
 
     def test_a_compose_missing_from_the_pinned_tree_is_named(self):
         real_run = ic.run
@@ -435,7 +539,7 @@ class CoverageScopeIsNotSilentlyNarrowed(unittest.TestCase):
 
         try:
             ic.run = boom
-            found, unreadable = ic.deployed_images(
+            found, unreadable, self_pinned = ic.deployed_images(
                 Path(tempfile.gettempdir()), "HEAD", ["docker-compose.yml"])
         finally:
             ic.run = real_run
@@ -446,8 +550,8 @@ class CoverageScopeIsNotSilentlyNarrowed(unittest.TestCase):
         real_run = ic.run
         try:
             ic.run = lambda cmd, *a, **k: type(
-                "R", (), {"stdout": "services:\n  app:\n    image: smartgic/app:1\n"})()
-            found, unreadable = ic.deployed_images(
+                "R", (), {"stdout": "services:\n  app:\n    image: smartgic/app:${VERSION}\n"})()
+            found, unreadable, self_pinned = ic.deployed_images(
                 Path(tempfile.gettempdir()), "HEAD", ["docker-compose.yml"])
         finally:
             ic.run = real_run

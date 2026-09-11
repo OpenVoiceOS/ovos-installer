@@ -47,6 +47,12 @@ REGISTRY_BACKOFF = 2  # seconds, doubled per attempt
 # outcome available: the run reports nothing at all, including the images it did
 # resolve. Past the budget the remaining reads are skipped and named instead.
 REGISTRY_BUDGET = 900  # seconds
+# Every git, gh and docker call this program makes talks to a network or a daemon and none of
+# them carried a ceiling: a blackholed fetch simply never returns. The only bound was the job's
+# own timeout, and a job killed by that reports nothing at all - including the images it had
+# already resolved, which is the outcome the registry budget above exists to avoid. Generous
+# enough for a cold blobless clone of a large repository on a slow runner.
+SUBPROCESS_TIMEOUT = 300  # seconds
 TAG_VAR = re.compile(r":\$\{?[A-Za-z_][A-Za-z0-9_]*\}?$")
 
 
@@ -63,8 +69,23 @@ def canonical_image(image: str) -> str:
     return repository
 
 
-def run(args, cwd=None, check=True):
-    return subprocess.run(args, cwd=cwd, capture_output=True, text=True, check=check)
+def run(args, cwd=None, check=True, timeout=SUBPROCESS_TIMEOUT):
+    """subprocess.run, where hanging is reported as failing.
+
+    Every caller here already handles a command that fails; none of them could have handled one
+    that never returns. Raising CalledProcessError for a timeout puts both outcomes through the
+    same handler, which is right - "it did not answer" and "it answered badly" are the same
+    thing to a checker, and the alternative is an exception nobody catches.
+    """
+    try:
+        return subprocess.run(args, cwd=cwd, capture_output=True, text=True,
+                              check=check, timeout=timeout)
+    except subprocess.TimeoutExpired as expired:
+        # 124 is what timeout(1) reports, and stderr has to be a str because callers read it
+        raise subprocess.CalledProcessError(
+            124, args,
+            output=expired.stdout if isinstance(expired.stdout, str) else "",
+            stderr=f"no answer after {timeout}s") from expired
 
 
 def pin_clone(slug: str, ref: str, cache: Path):
@@ -89,12 +110,20 @@ def deployed_images(clone: Path, ref: str, compose_names) -> tuple:
     contract lists everything the producer builds while an install runs a profile-selected subset.
     Checking what is not deployed would report drift nobody can experience.
 
-    Returns (images, unreadable). A compose file that could not be read or parsed is named in
-    `unreadable` rather than dropped: the run continues over the files it can read, but the
-    caller has to say so, because coverage computed over a silently smaller scope reads exactly
-    like coverage over the whole of it.
+    Only images whose tag comes from the channel variable are in scope. This checker asks the
+    registry what `:<channel>` currently holds, so an image the compose pins itself - a fixed
+    tag, or none at all - is a question it cannot ask: the install pulls the tag written in the
+    compose, which is the tag it was pinned at, and a pinned image cannot drift. Asking about
+    `:<channel>` for one would look it up under a mirror that has no such tag and report that an
+    install pulling it would fail, which would be untrue and unfixable.
+
+    Returns (images, unreadable, self_pinned). A compose file that could not be read or parsed
+    is named in `unreadable` rather than dropped: the run continues over the files it can read,
+    but the caller has to say so, because coverage computed over a silently smaller scope reads
+    exactly like coverage over the whole of it. `self_pinned` is named for the same reason -
+    out of scope is a defensible answer, out of sight is not.
     """
-    found, unreadable = {}, []
+    found, unreadable, self_pinned = {}, [], []
     for name in sorted(compose_names):
         try:
             body = run(["git", "-C", str(clone), "show", f"{ref}:compose/{name}"]).stdout
@@ -112,8 +141,11 @@ def deployed_images(clone: Path, ref: str, compose_names) -> tuple:
             continue
         for service, spec in (document.get("services") or {}).items():
             if isinstance(spec, dict) and spec.get("image"):
+                if not TAG_VAR.search(spec["image"]):
+                    self_pinned.append((spec["image"], f"{name}:{service}"))
+                    continue
                 found.setdefault(canonical_image(spec["image"]), {})[name] = service
-    return found, unreadable
+    return found, unreadable, self_pinned
 
 
 def _read_labels_once(path: str, tag: str):
@@ -230,7 +262,8 @@ def rebuild_targets(clone: Path, revision: str, pin: str):
         return None, "the producer has no scripts/affected.py at this ref"
     try:
         result = subprocess.run(["python3", str(selector), "paths"], cwd=str(clone),
-                                input=changed, capture_output=True, text=True, check=True)
+                                input=changed, capture_output=True, text=True, check=True,
+                                timeout=SUBPROCESS_TIMEOUT)
         return json.loads(result.stdout), None
     except Exception as error:
         return None, f"the rebuild selector failed: {str(error)[:140]}"
@@ -325,17 +358,21 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
         if clone is None:
             continue
         pin = facts["pins"][repo]
-        deployed, unreadable = deployed_images(clone, pin, facts["compose_files"][repo])
+        deployed, unreadable, self_pinned = deployed_images(clone, pin,
+                                                            facts["compose_files"][repo])
         for name, reason in unreadable:
             problems.append(f"{repo}: compose/{name} {reason} - the images it deploys were "
                             f"not checked, so this run's coverage is narrower than it looks")
+        for image, where in sorted(self_pinned):
+            notes.append(f"{repo}: {image} ({where}) takes its tag from the compose rather than "
+                         f"the channel, so it cannot drift - out of scope")
 
         declared = set(contract.get("images") or [])
         for image in sorted(set(deployed) - declared):
             problems.append(f"{repo}: the pinned compose deploys {image} but the contract does not "
                             f"declare it - the producer's own contract gate missed it")
 
-        resolved = 0
+        resolved, out_of_scope = 0, 0
         for image in sorted(deployed):
             labels, outcome, attempts = None, "no_tag", []
             for _, path in mirror_candidates(image, facts["slugs"], repo):
@@ -371,6 +408,12 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
             owner = next((r for r, s in facts["slugs"].items()
                           if s and s.lower() == source.lower()), None)
             if owner is None:
+                # Genuinely out of scope, so it leaves the denominator as well as the numerator.
+                # Every other unresolved outcome here means "could not tell" and must count
+                # against coverage; this one means "not ours to tell", and counting it would
+                # fail the weekly job forever over an image nobody can do anything about - the
+                # note would say out of scope while the exit status said otherwise.
+                out_of_scope += 1
                 notes.append(f"{repo}: {image} is built by {source or 'an unknown repository'}, "
                              f"which this installer does not pin - out of scope")
                 continue
@@ -397,7 +440,7 @@ def check_images(contracts: dict, facts: dict, cache: Path, channel: str):
             elif verdict == "unknown":
                 notes.append(f"{repo}: {image} not verified - {detail}")
 
-        coverage[(repo, channel)] = (resolved, len(deployed))
+        coverage[(repo, channel)] = (resolved, len(deployed) - out_of_scope)
 
     if out_of_budget:
         # Named, not swallowed. These images were never asked about, so the
@@ -419,10 +462,10 @@ def compare(clone: Path, pin: str, revision: str, image: str, oracle, placements
         except subprocess.CalledProcessError:
             return "unknown", f"revision {revision[:12]} is not reachable in {clone.name}"
 
-    behind = subprocess.run(["git", "-C", str(clone), "merge-base", "--is-ancestor", revision, pin],
-                            capture_output=True).returncode == 0
-    ahead = subprocess.run(["git", "-C", str(clone), "merge-base", "--is-ancestor", pin, revision],
-                           capture_output=True).returncode == 0
+    behind = run(["git", "-C", str(clone), "merge-base", "--is-ancestor", revision, pin],
+                 check=False).returncode == 0
+    ahead = run(["git", "-C", str(clone), "merge-base", "--is-ancestor", pin, revision],
+                check=False).returncode == 0
 
     if behind and ahead:
         return "coherent", "built from the pinned tree"
