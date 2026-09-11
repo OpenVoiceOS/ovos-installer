@@ -70,7 +70,7 @@ ovos_installer_hivemind_docker_repo_url: https://github.com/JarbasHiveMind/hivem
 # hivemind_cli container - which composer.yml does - never reaches the satellite.
 # Pinned to a hivemind-docker release so satellite installs are reproducible, the
 # same way ovos-docker is above; bump on new releases.
-ovos_installer_hivemind_docker_repo_branch: v2.1.1
+ovos_installer_hivemind_docker_repo_branch: v2.1.2
 ovos_installer_docker_image_tag: "{{ ovos_installer_channel | default('testing') }}"
 ovos_installer_docker_pull_policy: always
 ovos_installer_docker_compose_remove_orphans: true
