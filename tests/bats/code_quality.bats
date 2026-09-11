@@ -4098,6 +4098,48 @@ function teardown() {
     refute_output --partial "[1:]"
 }
 
+@test "no_ci_job_reports_a_real_install_to_telemetry" {
+    # A CI run is not an install. The satellite job copied the shipped example scenario
+    # verbatim, and that example has telemetry on because it is written for somebody
+    # installing a real satellite - so every pull request and every push posted a genuine
+    # install event, several times an hour, indistinguishable in the dashboard from a
+    # person actually installing one.
+    #
+    # Checked by value rather than by counting occurrences: a scenario that names the
+    # setting at all must name it false, wherever a workflow writes or edits one.
+    for workflow in .github/workflows/scenarios-ubuntu2404.yml \
+                    .github/workflows/scenarios-archlinux.yml \
+                    .github/workflows/macos_ci.yml; do
+        [ -f "$workflow" ] || continue
+        run grep -nE '^[[:space:]]*share_(usage_)?telemetry: true' "$workflow"
+        assert_output ""
+    done
+
+    # Every shipped scenario keeps telemetry on - they are advice to real users, not test
+    # fixtures - so any workflow that copies one has to turn it off afterwards. Stated
+    # over whichever files are actually copied, so adding a job that reuses a different
+    # scenario is covered without anyone remembering this test exists.
+    # Scoped to the copying step, not merely to the file: every workflow here already
+    # contains "share_telemetry: false" somewhere, in the scenarios it writes inline, so
+    # a file-wide grep passes while the copied scenario still reports.
+    while read -r workflow; do
+        run awk '
+            /^[[:space:]]*cp scenarios\/.*\.yml/ { copying = 1; next }
+            copying && /share_telemetry: false/   { off = 1 }
+            copying && /^[[:space:]]*- name:/     { copying = 0 }
+            END { print (off ? "disabled" : "REPORTS") }
+        ' "$workflow"
+        assert_output "disabled"
+    done < <(grep -rlE '^[[:space:]]*cp scenarios/.*\.yml' .github/workflows/ || true)
+
+    # And the substitution has to still match the file it edits: rename the key upstream
+    # and the sed silently does nothing, which is how this got missed the first time.
+    run grep -qE '^share_telemetry: true$' scenarios/scenario-satellite.yml
+    assert_success
+    run grep -qE '^share_usage_telemetry: true$' scenarios/scenario-satellite.yml
+    assert_success
+}
+
 @test "contract_checker_decision_logic_and_reporting_are_tested_offline" {
     # Two suites, both offline, discovered by pattern rather than by name so that adding a
     # third does not silently go unrun - which is what happened to the reporting suite, whose

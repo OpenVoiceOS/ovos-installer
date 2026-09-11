@@ -783,6 +783,18 @@ jobs:
         run: |
           mkdir -p "$HOME/.config/ovos-installer"
           cp scenarios/scenario-satellite.yml "$HOME/.config/ovos-installer/scenario.yaml"
+
+          # The shipped scenario has telemetry on, because it is an example written for
+          # someone installing a real satellite. Copying it verbatim made every pull
+          # request and every push post a genuine install event: a runner in a US
+          # datacentre, reported as a container satellite on Ubuntu 24.04, several times
+          # an hour. Every other scenario in this file sets these false inline, and this
+          # one was missed precisely because it reuses the file rather than writing one.
+          sed -i 's/^share_telemetry: true$/share_telemetry: false/' \
+                 "$HOME/.config/ovos-installer/scenario.yaml"
+          sed -i 's/^share_usage_telemetry: true$/share_usage_telemetry: false/' \
+                 "$HOME/.config/ovos-installer/scenario.yaml"
+          grep -E '^share_(usage_)?telemetry:' "$HOME/.config/ovos-installer/scenario.yaml"
           cat "$HOME/.config/ovos-installer/scenario.yaml"
 
       - name: Run the satellite install
