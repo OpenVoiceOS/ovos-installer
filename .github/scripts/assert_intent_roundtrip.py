@@ -34,11 +34,6 @@ import json
 import sys
 import time
 
-try:
-    import websocket  # websocket-client, as ovos-docker's own health probe uses
-except ImportError:  # pragma: no cover - exercised by CI, not by the unit tests
-    sys.exit("websocket-client is not installed; pip install websocket-client")
-
 
 class Failure(Exception):
     """A rung that did not hold. The message is what CI prints and a human reads."""
@@ -48,6 +43,15 @@ class Bus:
     """The bus protocol, in the small: send a message, wait for a reply type."""
 
     def __init__(self, url, connect_timeout):
+        # Imported here rather than at module scope so that --help, and every argument
+        # error, still work on a machine that has not got it yet. A program that cannot
+        # explain itself without its dependencies is a worse program to debug in CI.
+        try:
+            import websocket  # websocket-client, as ovos-docker's own health probe uses
+        except ImportError:
+            raise Failure("websocket-client is not installed, so the bus cannot be "
+                          "reached from this interpreter")
+        self.websocket = websocket
         self.url = url
         try:
             self.ws = websocket.create_connection(url, timeout=connect_timeout)
@@ -72,7 +76,7 @@ class Bus:
             self.ws.settimeout(max(0.1, remaining))
             try:
                 raw = self.ws.recv()
-            except websocket.WebSocketTimeoutException:
+            except self.websocket.WebSocketTimeoutException:
                 return None
             except Exception:
                 return None

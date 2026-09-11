@@ -59,5 +59,14 @@ jobs:
       - name: Install BATS helper libraries
         run: ./.github/scripts/install_bats_helpers.sh
 
+      # The intent round trip is exercised against a real websocket server that
+      # misbehaves one way at a time. Without these two the socket half of that suite
+      # skips, and a skipped test proves nothing - which is the shape those very tests
+      # exist to keep the round trip from becoming.
+      - name: Install the websocket libraries the intent round trip tests need
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check --break-system-packages \
+            websocket-client websockets
+
       - name: Run bats
         run: bats tests/bats --verbose-run --print-output-on-failure
