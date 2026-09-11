@@ -10,8 +10,10 @@ transport is half of what the harness does. Where websockets or websocket-client
 absent the socket tests skip, and the argument handling is still covered - so read a skip
 here as reduced coverage, not as a pass.
 """
+import os
 import subprocess
 import sys
+import tempfile
 import time
 import unittest
 from pathlib import Path
@@ -200,6 +202,73 @@ class TheHarnessItself(unittest.TestCase):
         result = subprocess.run([sys.executable, str(HARNESS), "--help"],
                                 capture_output=True, text=True, timeout=60)
         self.assertIn("stop pipeline", result.stdout)
+
+
+class TheWrapperPicksAnInterpreterWithoutWritingToHome(unittest.TestCase):
+    """Where the dependency lands, when the deployment's own interpreter cannot be used.
+
+    The first real run of this check failed here rather than in the deployment: pip fell
+    back to ~/.local, which the installer leaves root-owned because it runs under sudo,
+    and the step died with EACCES before reaching the bus. Nothing about the round trip
+    needs to write inside HOME, so nothing may.
+    """
+
+    WRAPPER = ROOT / ".github" / "scripts" / "assert_intent_roundtrip.sh"
+
+    def run_wrapper(self, home, stub_dir, extra_env=None):
+        env = dict(os.environ, HOME=str(home), PATH=f"{stub_dir}:{os.environ['PATH']}",
+                   PYTHON_BIN=str(stub_dir / "python3"),
+                   OVOS_VENV_PYTHON=str(home / "no-such-venv" / "bin" / "python"))
+        env.update(extra_env or {})
+        return subprocess.run([str(self.WRAPPER), "--help"], capture_output=True,
+                              text=True, timeout=60, env=env)
+
+    def make_stubs(self, tmp, has_websocket=False):
+        """A python3 that reports whether websocket is importable, and records pip args."""
+        stub = tmp / "bin"
+        stub.mkdir(parents=True)
+        recorded = tmp / "pip-args"
+        (stub / "python3").write_text(
+            "#!/bin/bash\n"
+            'if [ "$1" = "-c" ] && [ "$2" = "import websocket" ]; then\n'
+            f'  exit {0 if has_websocket else 1}\n'
+            "fi\n"
+            'if [ "$1" = "-m" ] && [ "$2" = "pip" ]; then\n'
+            f'  printf "%s\\n" "$@" >> "{recorded}"\n'
+            "  exit 0\n"
+            "fi\n"
+            # the real interpreter by absolute path: the stub is first on PATH, so
+            # resolving "python3" here would re-enter this script forever
+            f'exec {sys.executable} "$@"\n')
+        (stub / "python3").chmod(0o755)
+        return stub, recorded
+
+    def test_the_dependency_goes_to_a_throwaway_directory_not_to_home(self):
+        with tempfile.TemporaryDirectory() as raw:
+            tmp = Path(raw)
+            home = tmp / "home"
+            (home / ".local" / "lib").mkdir(parents=True)
+            stub, recorded = self.make_stubs(tmp, has_websocket=False)
+            self.run_wrapper(home, stub)
+            args = recorded.read_text() if recorded.exists() else ""
+            self.assertIn("--target", args, "the install must be redirected")
+            self.assertNotIn("--user", args)
+            self.assertNotIn(str(home), args,
+                             "nothing may be written inside HOME, which the installer "
+                             "leaves root-owned after running under sudo")
+
+    def test_an_interpreter_that_already_has_it_installs_nothing(self):
+        with tempfile.TemporaryDirectory() as raw:
+            tmp = Path(raw)
+            home = tmp / "home"
+            home.mkdir()
+            stub, recorded = self.make_stubs(tmp, has_websocket=True)
+            self.run_wrapper(home, stub)
+            # What matters is that it did not reach for pip. The harness's own exit is
+            # not asserted here: HOME is faked to keep the test off the real one, and
+            # user site-packages hangs off HOME, so the interpreter's import path is
+            # not the one it would have in a real run.
+            self.assertFalse(recorded.exists(), "it should not have reached for pip")
 
 
 if __name__ == "__main__":
