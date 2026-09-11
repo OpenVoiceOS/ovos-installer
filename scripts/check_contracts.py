@@ -218,6 +218,7 @@ def main() -> int:
 
     facts = installer_facts()
     problems, notes, contracts = [], [], {}
+    pending_lag = {}
 
     for repo in ("ovos-docker", "hivemind-docker"):
         snapshot = SNAPSHOTS / f"{repo}.yml"
@@ -249,11 +250,7 @@ def main() -> int:
 
             lag = release_lag(slug, newest or ref) if newest else None
             if lag and lag[0]:
-                behind, branch = lag
-                message = (f"{repo}: {newest or ref} is behind {branch} by {behind} "
-                           f"change(s) that are not dependency bumps - those fixes are in no "
-                           f"release, so no install has them")
-                (problems if args.fail_on_stale else notes).append(message)
+                pending_lag[repo] = (newest or ref, lag[0], lag[1])
             elif LAST_GH_ERROR:
                 # gh missing, unauthenticated or rate-limited looks exactly like "nothing is
                 # behind" unless it is reported, and then the run passes having checked nothing
@@ -271,6 +268,28 @@ def main() -> int:
         with tempfile.TemporaryDirectory(prefix="ovos-contract-pins-") as cache:
             image_problems, image_notes, coverage = image_coherence.check_images(
                 contracts, facts, Path(cache), facts["channel"])
+
+            # A release trailing its branch is only worth failing over when the commits in
+            # between are ones an install can observe. Asked with the producer's own selector,
+            # the same way the image half asks it.
+            for repo, (release, behind, branch) in sorted(pending_lag.items()):
+                clone = Path(cache) / (facts["slugs"][repo] or "").replace("/", "_")
+                if not clone.exists():
+                    notes.append(f"{repo}: {release} is behind {branch} by {behind} change(s); "
+                                 f"could not check whether an install sees them")
+                    continue
+                affects, detail = image_coherence.unreleased_impact(
+                    clone, release, branch, facts["compose_files"][repo])
+                if affects is None:
+                    notes.append(f"{repo}: {release} is behind {branch} by {behind} change(s); "
+                                 f"impact unknown ({detail})")
+                elif affects:
+                    message = (f"{repo}: {release} is behind {branch} by {behind} change(s) an "
+                               f"install would see ({detail}) - they are in no release")
+                    (problems if args.fail_on_stale else notes).append(message)
+                else:
+                    notes.append(f"{repo}: {release} is behind {branch} by {behind} change(s), "
+                                 f"but {detail} - no release needed for an install's sake")
         # Printed unconditionally: a run that resolved nothing must not look like a clean one.
         for (repo, tag), (resolved, total) in sorted(coverage.items()):
             print(f"images checked: {repo}@{tag} {resolved}/{total}")

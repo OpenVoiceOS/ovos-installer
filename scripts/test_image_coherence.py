@@ -139,5 +139,54 @@ class ImageCoherence(unittest.TestCase):
         self.assertNotEqual(ic.service_interface(self.repo, rev3, "docker-compose.yml", "svc"), face)
 
 
+
+class UnreleasedImpact(unittest.TestCase):
+    """A release trailing its branch only matters when an install can see the difference."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.repo = Path(self._tmp.name) / "producer"
+        self.repo.mkdir()
+        git(self.repo, "init", "-q")
+        git(self.repo, "checkout", "-q", "-b", "dev")
+        commit(self.repo, "scripts/affected.py", SELECTOR, "selector")
+        commit(self.repo, "compose/docker-compose.yml", "services: {}\n", "compose")
+        commit(self.repo, "app/Dockerfile", "FROM scratch\n", "app")
+        git(self.repo, "tag", "v1.0.0")
+        # a clone cannot fetch from itself, so the tests point the function at this repo as both
+        git(self.repo, "remote", "add", "origin", str(self.repo))
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def test_ci_only_commits_do_not_warrant_a_release(self):
+        commit(self.repo, ".github/workflows/ci.yml", "on: push\n", "ci only")
+        commit(self.repo, "scripts/helper.py", "# tooling\n", "tooling only")
+        affects, detail = ic.unreleased_impact(self.repo, "v1.0.0", "dev", {"docker-compose.yml"})
+        self.assertFalse(affects, detail)
+        self.assertIn("no install consumes", detail)
+
+    def test_a_compose_change_an_install_runs_does_warrant_one(self):
+        commit(self.repo, "compose/docker-compose.yml", "services: {x: {}}\n", "compose change")
+        affects, detail = ic.unreleased_impact(self.repo, "v1.0.0", "dev", {"docker-compose.yml"})
+        self.assertTrue(affects, detail)
+        self.assertIn("docker-compose.yml", detail)
+
+    def test_a_compose_file_this_installer_does_not_run_is_ignored(self):
+        commit(self.repo, "compose/docker-compose.other.yml", "services: {}\n", "other compose")
+        affects, detail = ic.unreleased_impact(self.repo, "v1.0.0", "dev", {"docker-compose.yml"})
+        self.assertFalse(affects, detail)
+
+    def test_a_change_that_rebuilds_an_image_does_warrant_one(self):
+        commit(self.repo, "app/Dockerfile", "FROM scratch\nRUN true\n", "image change")
+        affects, detail = ic.unreleased_impact(self.repo, "v1.0.0", "dev", {"docker-compose.yml"})
+        self.assertTrue(affects, detail)
+        self.assertIn("rebuilds", detail)
+
+    def test_nothing_unreleased_is_not_an_impact(self):
+        affects, detail = ic.unreleased_impact(self.repo, "v1.0.0", "dev", {"docker-compose.yml"})
+        self.assertFalse(affects, detail)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
