@@ -1,0 +1,16 @@
+# Dependencies for scripts/check_contracts.py, pinned by version and by artifact hash.
+#
+# This job reads files fetched from other repositories, so the tool that parses them must not
+# change under us between runs. --require-hashes makes that a property of the artifact rather
+# than of the index: a version pin alone still trusts whatever PyPI serves for that version.
+#
+# The digests cover the sdist and the manylinux x86_64 wheels for the Python versions a
+# ubuntu-24.04 runner may ship. To refresh, read the sha256 digests from
+# https://pypi.org/pypi/PyYAML/<version>/json - pip picks whichever artifact fits the runner and
+# fails closed if its digest is not listed here.
+pyyaml==6.0.2 \
+    --hash=sha256:ec031d5d2feb36d1d1a24380e4db6d43695f3748343d99434e6f5f9156aaa2ed \
+    --hash=sha256:3ad2a3decf9aaba3d29c8f537ac4b243e36bef957511b4766cb0057d32b0be85 \
+    --hash=sha256:80bab7bfc629882493af4aa31a4cfa43a4c57c83813253626916b8c7ada83476 \
+    --hash=sha256:70b189594dbe54f75ab3a1acec5f1e3faa7e8cf2f1e08d9b561cb41b845f69d5 \
+    --hash=sha256:d584d9ec91ad65861cc08d42e834324ef890a082e591037abe114850ff7bbc3e
