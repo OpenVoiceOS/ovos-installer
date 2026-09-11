@@ -28,9 +28,10 @@ jobs:
         with:
           persist-credentials: false
 
-      # version-pinned: this job reads a file fetched from another repository, so the
-      # tool that parses it should not change under us between runs
-      - run: pip install --disable-pip-version-check "pyyaml==6.0.2"
+      # hash-pinned: this job reads a file fetched from another repository, so the tool that
+      # parses it should not change under us between runs. The digests live in the requirements
+      # file, so the pin holds against the artifact and not just the version label.
+      - run: pip install --disable-pip-version-check --require-hashes -r scripts/contracts-requirements.txt
 
       - name: Check the installer against the contracts at the pinned refs
         env:

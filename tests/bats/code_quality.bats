@@ -3798,3 +3798,35 @@ function teardown() {
     fi
     assert_output ""
 }
+
+@test "contracts_workflow_installs_its_parser_by_artifact_hash" {
+    # The same reasoning as the action pin, one layer down. This job parses files fetched from
+    # other repositories, so the parser is part of what the check trusts. A version pin still
+    # takes whatever the index serves for that version; --require-hashes makes the pin hold
+    # against the artifact, and fails closed when it does not match.
+    run grep -F -q -- "--require-hashes -r scripts/contracts-requirements.txt" \
+        .github/workflows/contracts.yml
+    assert_success
+
+    # every requirement is version-pinned and carries at least one digest of its own, or pip
+    # would refuse the file at install time rather than here. Counting digests across the whole
+    # file would let one well-hashed requirement vouch for an unhashed one added after it, so
+    # each requirement is tracked as its own stanza: a name==version line opens one and the
+    # continuation lines that follow belong to it.
+    run awk '
+        /^[[:space:]]*#/ { next }
+        /^[A-Za-z0-9._-]+[[:space:]]*==/ {
+            if (name != "" && hashes == 0) { print "no digest for " name }
+            name = $0
+            sub(/[[:space:]].*$/, "", name)
+            pinned++
+            hashes = 0
+        }
+        /--hash=sha256:[0-9a-f]{64}/ { if (name != "") hashes++ }
+        END {
+            if (name != "" && hashes == 0) { print "no digest for " name }
+            if (pinned < 1) { print "no version-pinned requirement found" }
+        }
+    ' scripts/contracts-requirements.txt
+    assert_output ""
+}
