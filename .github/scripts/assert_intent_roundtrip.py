@@ -145,7 +145,12 @@ def probe(bus, utterance, lang, timeout):
     return (answer.get("data") or {}).get("intent")
 
 
-def round_trip(bus, utterance, lang, timeout):
+# Long enough that a healthy skill answers on the first ask, short enough that a
+# dropped utterance is asked again several times inside a --speak-timeout budget.
+SPEAK_ATTEMPT_WINDOW = 20.0
+
+
+def round_trip(bus, utterance, lang, timeout, attempt_window=SPEAK_ATTEMPT_WINDOW):
     """An utterance in, speech out: the whole chain, with a skill on the end of it.
 
     The reply is correlated with this particular utterance rather than taken as the next
@@ -154,21 +159,49 @@ def round_trip(bus, utterance, lang, timeout):
     answer that never came. A skill answering inside a handler speaks with
     `message.forward`, which carries the triggering context through, so a marker put on
     the utterance comes back on the reply.
+
+    The utterance is asked again rather than waited on in one go, because a bus message is
+    fire-and-forget. A skills service that is not listening at that instant never receives
+    the one in flight, and waiting longer cannot recover a message nobody was there for -
+    only asking again can. That is not hypothetical: on macOS this service has been seen
+    to abort during boot and be relaunched, which leaves the intent resolving from core
+    while no skill answers, and a single-shot wait reports that as "nothing spoke" after
+    the full budget. Every attempt keeps its marker, so an answer to an earlier attempt
+    still counts rather than being discarded as unrecognised.
     """
-    marker = secrets.token_hex(8)
-    bus.send("recognizer_loop:utterance",
-             {"utterances": [utterance], "lang": lang},
-             {"source": ["ci"], "lang": lang, "ci_probe": marker})
-    answer = bus.wait_for(
-        "speak", timeout,
-        match=lambda m: (m.get("context") or {}).get("ci_probe") == marker)
-    if answer is None:
+    # A window that is not positive makes every wait return at once, and the loop below
+    # then re-asks as fast as the socket allows - a three second budget sent the
+    # utterance 467,438 times. nan fails this test too, because nan > 0 is False, and it
+    # would otherwise poison min() and leave the wait with no deadline at all. Positive
+    # infinity is fine: min() then yields the remaining budget.
+    if not attempt_window > 0:
         raise Failure(
-            f"nothing spoke within {timeout:.0f}s of saying {utterance!r}. The intent "
-            f"resolves, so core is working - what did not happen is a skill answering "
-            f"it, which is the half this exists to prove."
+            f"--speak-attempt-window must be greater than zero, not {attempt_window!r}."
         )
-    return (answer.get("data") or {}).get("utterance", "")
+    deadline = time.monotonic() + timeout
+    markers = set()
+    attempts = 0
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        marker = secrets.token_hex(8)
+        markers.add(marker)
+        attempts += 1
+        bus.send("recognizer_loop:utterance",
+                 {"utterances": [utterance], "lang": lang},
+                 {"source": ["ci"], "lang": lang, "ci_probe": marker})
+        answer = bus.wait_for(
+            "speak", min(attempt_window, remaining),
+            match=lambda m: (m.get("context") or {}).get("ci_probe") in markers)
+        if answer is not None:
+            return (answer.get("data") or {}).get("utterance", "")
+    raise Failure(
+        f"nothing spoke within {timeout:.0f}s of saying {utterance!r}, asked "
+        f"{attempts} time{'' if attempts == 1 else 's'}. The intent resolves, so core is "
+        f"working - what did not happen is a skill answering it, which is the half this "
+        f"exists to prove."
+    )
 
 
 def main(argv=None):
@@ -185,6 +218,10 @@ def main(argv=None):
                              "stack on a slow runner is the case this has to cover")
     parser.add_argument("--reply-timeout", type=float, default=30)
     parser.add_argument("--speak-timeout", type=float, default=60)
+    parser.add_argument("--speak-attempt-window", type=float,
+                        default=SPEAK_ATTEMPT_WINDOW,
+                        help="how long to wait for an answer before asking "
+                             "again, within the --speak-timeout budget.")
     parser.add_argument("--expect-match", action="store_true",
                         help="require the probe to resolve to an intent")
     parser.add_argument("--expect-pipeline", default=None,
@@ -246,7 +283,8 @@ def main(argv=None):
             )
 
         if args.expect_speak:
-            spoken = round_trip(bus, args.utterance, args.lang, args.speak_timeout)
+            spoken = round_trip(bus, args.utterance, args.lang, args.speak_timeout,
+                                args.speak_attempt_window)
             print(f"speech    : a skill answered with {spoken!r}")
 
         print("the bus, core and the skills are talking to each other")

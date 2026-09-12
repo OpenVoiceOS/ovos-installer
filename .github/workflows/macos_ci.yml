@@ -340,6 +340,15 @@ jobs:
           launchctl list | grep -E 'ovos|hivemind' || true
           ls -la "$HOME/Library/LaunchAgents" || true
           ls -la "$HOME/.local/state/mycroft/logs" || true
+          # Listing these was not enough. When the round trip failed because no skill
+          # answered, the launchctl line above said com.ovos.service had last exited -6 -
+          # it had aborted and been relaunched - and the reason was in ovos-core.err,
+          # which nothing printed. The one question the step exists to answer needs the
+          # service's own output, not a directory listing of it.
+          for log in ovos-core.err ovos-core.log ovos-audio.err ovos-audio.log; do
+            printf '\n===== %s =====\n' "$log"
+            tail -n 200 "$HOME/.local/state/mycroft/logs/$log" || true
+          done
           # The installer tells you to read this file when it gives up, so it
           # belongs in the job output. Without it a CI failure is undebuggable.
           sudo tail -n 200 /var/log/ovos-installer.log || true

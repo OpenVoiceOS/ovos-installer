@@ -40,6 +40,8 @@ MATCH = {"intent_name": "stop:global",
          "intent_service": "ovos-stop-pipeline-plugin-high",
          "skill_id": "stop.openvoiceos"}
 
+DROPPED = [0]
+
 async def handler(ws):
     async for raw in ws:
         m = json.loads(raw)
@@ -66,6 +68,28 @@ async def handler(ws):
         elif kind == "recognizer_loop:utterance":
             if MODE == "silent_skill":
                 continue
+            if MODE == "slow_skill":
+                # Answers the utterance it was given, but slowly enough that the harness
+                # has already asked again by the time it speaks. The reply carries the
+                # FIRST ask's marker, and it is still the answer to the question.
+                ctx_slow = dict(m.get("context") or {})
+                async def answer_later(c):
+                    await asyncio.sleep(3)
+                    await ws.send(json.dumps({"type": "speak",
+                                              "data": {"utterance": "it is half past ten"},
+                                              "context": c}))
+                if DROPPED[0] == 0:
+                    DROPPED[0] += 1
+                    asyncio.create_task(answer_later(ctx_slow))
+                continue
+            if MODE == "restarting_skill":
+                # A skills service that is being relaunched is simply not there for the
+                # utterance in flight. Dropping the first two and answering the third is
+                # what that looks like from the bus: nothing is refused, nothing errors,
+                # the message just lands where no one is listening.
+                DROPPED[0] += 1
+                if DROPPED[0] <= 2:
+                    continue
             if MODE == "chatty_bystander":
                 # another skill talking on its own account: no triggering context, so no
                 # marker - exactly what must NOT be mistaken for the answer
@@ -125,11 +149,12 @@ class FakeBus:
                 self.proc.kill()
 
 
-def run_harness(*args, port):
+def run_harness(*args, port, speak_timeout="4", attempt_window="20"):
     result = subprocess.run(
         [sys.executable, str(HARNESS), "--url", f"ws://127.0.0.1:{port}/core",
          "--connect-timeout", "4", "--ready-timeout", "6",
-         "--reply-timeout", "4", "--speak-timeout", "4", *args],
+         "--reply-timeout", "4", "--speak-timeout", speak_timeout,
+         f"--speak-attempt-window={attempt_window}", *args],
         capture_output=True, text=True, timeout=90)
     return result.returncode, result.stdout + result.stderr
 
@@ -188,6 +213,53 @@ class EachRungCanFail(unittest.TestCase):
             code, out = run_harness("--expect-speak", port=bus.port)
         self.assertEqual(code, 1, out)
         self.assertIn("a skill answering it", out)
+
+    def test_an_utterance_dropped_by_a_restarting_skill_is_asked_again(self):
+        """Waiting longer cannot recover a message nobody was listening for.
+
+        A bus utterance is fire-and-forget. When the skills service aborts and launchd
+        relaunches it - which is what macOS was doing when this rung failed, with the
+        intent still resolving from core - the utterance in flight is simply lost. A
+        single-shot wait then reports "nothing spoke" after the whole budget, having
+        asked exactly once. Only asking again recovers it.
+        """
+        with FakeBus("restarting_skill") as bus:
+            code, out = run_harness("--expect-speak", port=bus.port,
+                                    speak_timeout="24", attempt_window="2")
+            self.assertEqual(code, 0, out)
+            self.assertIn("a skill answered with", out)
+
+    def test_a_late_answer_to_an_earlier_ask_still_counts(self):
+        """Asking again must not invalidate the question already asked.
+
+        The reply carries the marker of the ask it belongs to. If only the newest marker
+        were accepted, a skill that answered the first ask a moment after the harness had
+        moved on would be thrown away as somebody else's speech, and a deployment that
+        works would be reported as one where no skill answered.
+        """
+        with FakeBus("slow_skill") as bus:
+            code, out = run_harness("--expect-speak", port=bus.port,
+                                    speak_timeout="24", attempt_window="2")
+            self.assertEqual(code, 0, out)
+            self.assertIn("half past ten", out)
+
+    def test_an_attempt_window_that_is_not_positive_is_refused(self):
+        """Otherwise the re-ask loop becomes a flood.
+
+        A window of zero makes every wait return immediately, so the loop re-sends as
+        fast as the socket allows: a three second budget sent the utterance 467,438
+        times. nan is refused for the same reason - nan > 0 is False - and because it
+        would poison min() and leave the wait with no deadline. Positive infinity is
+        allowed, since min() then yields the remaining budget.
+        """
+        for window in ("0", "-1", "nan", "-inf"):
+            with self.subTest(window=window):
+                with FakeBus("silent_skill") as bus:
+                    code, out = run_harness("--expect-speak", port=bus.port,
+                                            speak_timeout="3", attempt_window=window)
+                    self.assertEqual(code, 1, out)
+                    self.assertIn("must be greater than zero", out)
+                    self.assertNotIn("asked", out)
 
     def test_the_skills_rung_can_be_skipped_for_a_profile_that_runs_none(self):
         with FakeBus("healthy") as bus:
