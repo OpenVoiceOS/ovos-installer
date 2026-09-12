@@ -10,6 +10,13 @@ The installer sends one payload to `https://telemetry.smartgic.io/ovos-installer
 
 To fill the `country` field, the installer asks `http://ip-api.com/json` to look up the location of the host. That request tells a third-party service your IP address, and it goes over plain HTTP, so anything on the path can read it. Decline installer telemetry if you do not want that lookup to happen.
 
+Automated runs are not counted. When the installer finds a continuous integration
+marker in the environment - `CI`, `GITHUB_ACTIONS`, `GITLAB_CI` and the equivalents for
+the other common systems - it skips this payload and says so, because a build is not a
+user and counting one as an install misreports the community figures. A variable set to
+`false` or left empty is read as "not CI", so ordinary machines are unaffected. Set
+`ovos_telemetry_allow_in_ci` to `true` to report from a pipeline on purpose.
+
 The table below lists the collected data. See the [Ansible task](https://github.com/OpenVoiceOS/ovos-installer/blob/main/ansible/roles/ovos_telemetry/tasks/main.yml) that builds and sends the telemetry payload.
 
 | Data                    | Description                                             |

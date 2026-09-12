@@ -1778,6 +1778,77 @@ function setup() {
     assert_success
 }
 
+@test "telemetry_is_withheld_from_continuous_integration_runs" {
+    # A build is not a user. This installer's own CI reported sixty satellite installs in
+    # nine days before anyone noticed, and correcting that workflow only fixed the one
+    # repository - forks run the same workflow from their own copy and kept reporting.
+    # So the refusal lives at the point of sending, where every caller passes through it.
+    #
+    # Asserted by running the decision, not by reading it: the earlier version of this
+    # guard read ansible_env, which is populated only once facts are gathered. site.yml
+    # gathers none, so that version answered "not CI" on a runner that plainly was one
+    # and telemetry went out anyway. A grep for the variable name would still have passed.
+    run grep -q "gather_facts: false" ansible/site.yml
+    assert_success
+
+    local defaults_file="$PWD/ansible/roles/ovos_telemetry/defaults/main.yml"
+    local gate_playbook
+    gate_playbook="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/telemetry_ci_gate.XXXXXX.yml")"
+    cat >"$gate_playbook" <<YAML
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - ansible.builtin.include_vars:
+        file: "$defaults_file"
+    - ansible.builtin.assert:
+        that:
+          - (ovos_telemetry_should_share | bool) == (lookup('env', 'EXPECT_SHARE') == 'yes')
+        fail_msg: >-
+          should_share={{ ovos_telemetry_should_share }} but EXPECT_SHARE={{ lookup('env', 'EXPECT_SHARE') }}
+          (markers seen: {{ ovos_telemetry_ci_markers_set }})
+YAML
+
+    # This suite runs inside CI itself, so the workstation cases only mean anything with
+    # every marker cleared first.
+    local -a clean=(env)
+    local marker
+    for marker in CI GITHUB_ACTIONS GITLAB_CI JENKINS_URL BUILDKITE CIRCLECI TRAVIS \
+        TEAMCITY_VERSION TF_BUILD BITBUCKET_BUILD_NUMBER DRONE APPVEYOR; do
+        clean+=("-u" "$marker")
+    done
+
+    # A runner that announces itself is not counted.
+    run "${clean[@]}" CI=true EXPECT_SHARE=no ansible-playbook -i localhost, -c local "$gate_playbook"
+    assert_success
+    run "${clean[@]}" GITHUB_ACTIONS=true EXPECT_SHARE=no ansible-playbook -i localhost, -c local "$gate_playbook"
+    assert_success
+    run "${clean[@]}" GITLAB_CI=true EXPECT_SHARE=no ansible-playbook -i localhost, -c local "$gate_playbook"
+    assert_success
+
+    # CI=false is what several tools export to mean the opposite, so presence alone must
+    # not be the test - that reading would silence telemetry on ordinary machines.
+    run "${clean[@]}" CI=false EXPECT_SHARE=yes ansible-playbook -i localhost, -c local "$gate_playbook"
+    assert_success
+    run "${clean[@]}" CI= EXPECT_SHARE=yes ansible-playbook -i localhost, -c local "$gate_playbook"
+    assert_success
+
+    # With nothing set, a real install still reports. Without this case the guard would be
+    # indistinguishable from one that switched telemetry off for everybody.
+    run "${clean[@]}" EXPECT_SHARE=yes ansible-playbook -i localhost, -c local "$gate_playbook"
+    assert_success
+
+    # And someone deliberately exercising the telemetry path from a pipeline can still say so.
+    run "${clean[@]}" CI=true EXPECT_SHARE=yes ansible-playbook -i localhost, -c local \
+        -e ovos_telemetry_allow_in_ci=true "$gate_playbook"
+    assert_success
+
+    rm -f "$gate_playbook"
+
+    # The role must consult the decision rather than carry its own copy of it.
+    run grep -q "when: ovos_telemetry_should_share | bool" ansible/roles/ovos_telemetry/tasks/main.yml
+    assert_success
+}
+
 @test "sound_role_never_writes_invalid_n_a_asound_defaults" {
     local defaults_file="ansible/roles/ovos_sound/defaults/main.yml"
     local tasks_file="ansible/roles/ovos_sound/tasks/install.yml"

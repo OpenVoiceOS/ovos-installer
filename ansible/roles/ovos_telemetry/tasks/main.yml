@@ -4,7 +4,17 @@
   tags:
     - always
 
+- name: Report that telemetry is withheld because this is an automated run
+  ansible.builtin.debug:
+    msg: >-
+      Telemetry was not shared: this looks like a continuous integration run
+      ({{ ovos_telemetry_ci_markers_set | join(', ') }} set in the environment). A build
+      is not a user, and counting one as an install misreports the community figures.
+      Set ovos_telemetry_allow_in_ci to true to send anyway.
+  when: not (ovos_telemetry_should_share | bool)
+
 - name: Block telemetry
+  when: ovos_telemetry_should_share | bool
   block:
     - name: Retrieve country based on ISP address
       ansible.builtin.uri:
