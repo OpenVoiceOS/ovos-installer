@@ -7,3 +7,52 @@ ovos_telemetry_geoip_url: http://ip-api.com/json
 ovos_telemetry_url: "https://telemetry.smartgic.io/ovos-installer/metrics/"
 ovos_telemetry_user_agent: "OVOS-Installer/1.0 (Ansible)"
 ovos_telemetry_validate_certs: false
+
+# A continuous integration run is indistinguishable from a real install by the time this
+# role sees it: same distribution, same architecture, same everything the payload carries.
+# The only thing that separates them is the environment the runner exports, so that is
+# what is tested.
+#
+# A guard belongs here rather than in any one workflow because a workflow fix reaches only
+# the repository it is committed to. When this installer's own CI began installing a
+# satellite on every push, it reported sixty installs in nine days; correcting that
+# workflow stopped it upstream while forks running their own copy carried on reporting.
+# Checked at the point of sending, it covers every caller - scenario, TUI, arguments, fork.
+ovos_telemetry_ci_markers:
+  - CI
+  - GITHUB_ACTIONS
+  - GITLAB_CI
+  - JENKINS_URL
+  - BUILDKITE
+  - CIRCLECI
+  - TRAVIS
+  - TEAMCITY_VERSION
+  - TF_BUILD
+  - BITBUCKET_BUILD_NUMBER
+  - DRONE
+  - APPVEYOR
+
+# Presence is not the test: several tools export CI=false to mean the opposite.
+ovos_telemetry_ci_falsey_values:
+  - ""
+  - "false"
+  - "0"
+  - "no"
+  - "off"
+
+# Read from the environment rather than from ansible_env, which only exists once facts
+# have been gathered - site.yml sets gather_facts: false, so a facts-based test reports
+# "not CI" on a runner that plainly is one, and telemetry goes out anyway.
+ovos_telemetry_ci_markers_set: >-
+  {{ ovos_telemetry_ci_markers
+     | zip(q('env', *ovos_telemetry_ci_markers) | map('string') | map('trim') | map('lower'))
+     | rejectattr('1', 'in', ovos_telemetry_ci_falsey_values)
+     | map('first') | list }}
+
+ovos_telemetry_ci_detected: "{{ (ovos_telemetry_ci_markers_set | length) > 0 }}"
+
+# For someone deliberately exercising the telemetry path from a pipeline.
+ovos_telemetry_allow_in_ci: false
+
+ovos_telemetry_should_share: >-
+  {{ (not (ovos_telemetry_ci_detected | bool)) or (ovos_telemetry_allow_in_ci | bool) }}
