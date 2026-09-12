@@ -169,6 +169,15 @@ def round_trip(bus, utterance, lang, timeout, attempt_window=SPEAK_ATTEMPT_WINDO
     the full budget. Every attempt keeps its marker, so an answer to an earlier attempt
     still counts rather than being discarded as unrecognised.
     """
+    # A window that is not positive makes every wait return at once, and the loop below
+    # then re-asks as fast as the socket allows - a three second budget sent the
+    # utterance 467,438 times. nan fails this test too, because nan > 0 is False, and it
+    # would otherwise poison min() and leave the wait with no deadline at all. Positive
+    # infinity is fine: min() then yields the remaining budget.
+    if not attempt_window > 0:
+        raise Failure(
+            f"--speak-attempt-window must be greater than zero, not {attempt_window!r}."
+        )
     deadline = time.monotonic() + timeout
     markers = set()
     attempts = 0

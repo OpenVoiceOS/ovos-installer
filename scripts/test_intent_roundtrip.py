@@ -154,7 +154,7 @@ def run_harness(*args, port, speak_timeout="4", attempt_window="20"):
         [sys.executable, str(HARNESS), "--url", f"ws://127.0.0.1:{port}/core",
          "--connect-timeout", "4", "--ready-timeout", "6",
          "--reply-timeout", "4", "--speak-timeout", speak_timeout,
-         "--speak-attempt-window", attempt_window, *args],
+         f"--speak-attempt-window={attempt_window}", *args],
         capture_output=True, text=True, timeout=90)
     return result.returncode, result.stdout + result.stderr
 
@@ -242,6 +242,24 @@ class EachRungCanFail(unittest.TestCase):
                                     speak_timeout="24", attempt_window="2")
             self.assertEqual(code, 0, out)
             self.assertIn("half past ten", out)
+
+    def test_an_attempt_window_that_is_not_positive_is_refused(self):
+        """Otherwise the re-ask loop becomes a flood.
+
+        A window of zero makes every wait return immediately, so the loop re-sends as
+        fast as the socket allows: a three second budget sent the utterance 467,438
+        times. nan is refused for the same reason - nan > 0 is False - and because it
+        would poison min() and leave the wait with no deadline. Positive infinity is
+        allowed, since min() then yields the remaining budget.
+        """
+        for window in ("0", "-1", "nan", "-inf"):
+            with self.subTest(window=window):
+                with FakeBus("silent_skill") as bus:
+                    code, out = run_harness("--expect-speak", port=bus.port,
+                                            speak_timeout="3", attempt_window=window)
+                    self.assertEqual(code, 1, out)
+                    self.assertIn("must be greater than zero", out)
+                    self.assertNotIn("asked", out)
 
     def test_the_skills_rung_can_be_skipped_for_a_profile_that_runs_none(self):
         with FakeBus("healthy") as bus:
