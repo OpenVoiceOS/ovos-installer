@@ -58,7 +58,7 @@ If you accept them, the installer writes this into your `mycroft.conf`:
 ```json
 "open_data": {
   "intent_urls": [
-    "https://metrics.tigregotico.pt/intents"
+    "https://metrics.openvoiceos.pt/intents"
   ]
 }
 ```
@@ -70,6 +70,6 @@ Your assistant then reports the intents it matches to that address, for as long 
 | virtualenv | `~/.config/mycroft/mycroft.conf` |
 | containers | `~/ovos/config/mycroft.conf`     |
 
-The collected data is published on the [Open Data portal](https://opendata.tigregotico.pt), where it can be viewed and downloaded.
+The collected data is published on the [Open Data portal](https://metrics.openvoiceos.pt), where it can be viewed and downloaded.
 
 Both endpoints are run by the Open Voice OS community rather than by this repository, so their retention and their use of the data are documented where each service is, not here.
