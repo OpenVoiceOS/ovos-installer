@@ -4,7 +4,7 @@ Erabilera-neurriak partekatzea aukeratuz gero, funtsezko ekarpena egiten diezu g
 
 Zure parte-hartzearen truke, erabilera-joerei, huts egindako asmoei eta analisi pertsonalizatuei buruzko informazio baliotsua eskaintzen dizugu aginte-panel interaktibo baten bidez. Informazio horrek laguntzailea zure behar zehatzetara hobeto egokitzen lagun zaitzake, esperientzia atseginagoa eta eraginkorragoa bermatuz.
 
-Datuak bistaratzeko eta deskargatzeko aukerei buruzko informazio gehiago lortzeko, bisitatu gure Datu Irekien ataria: https://opendata.tigregotico.pt
+Datuak bistaratzeko eta deskargatzeko aukerei buruzko informazio gehiago lortzeko, bisitatu gure Datu Irekien ataria: https://metrics.openvoiceos.pt
 
 Zure ekarpena eskertzen dugu, eta guztiontzako software-esperientzia hobea sortzen lagunduko diguzula espero dugu!
 

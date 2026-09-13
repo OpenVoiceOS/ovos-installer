@@ -4,7 +4,7 @@ Ao optar por partilhar as suas métricas de utilização, torna-se um colaborado
 
 Em troca da sua participação, disponibilizamos informações valiosas sobre tendências de utilização, intenções falhadas e análises personalizadas através de um painel interativo. Esta informação pode ajudá-lo a ajustar o assistente às suas necessidades específicas, garantindo uma experiência mais agradável e eficiente.
 
-Para mais informações sobre a visualização e as opções de transferência dos dados, visite o nosso portal de Dados Abertos: https://opendata.tigregotico.pt
+Para mais informações sobre a visualização e as opções de transferência dos dados, visite o nosso portal de Dados Abertos: https://metrics.openvoiceos.pt
 
 Valorizamos o seu contributo e esperamos que se junte a nós na criação de uma melhor experiência de software para todos!
 

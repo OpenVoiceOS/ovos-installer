@@ -4,7 +4,7 @@ By choosing to share your usage metrics, you become a vital contributor to our o
 
 In return for your participation, we offer valuable insights into usage trends, failed intents, and personalized analytics through an interactive dashboard. This information can help you fine-tune the assistant to better suit your specific needs, ensuring a more enjoyable and efficient user experience.
 
-For more information about data visualization and download options, please visit our Open Data portal: https://opendata.tigregotico.pt
+For more information about data visualization and download options, please visit our Open Data portal: https://metrics.openvoiceos.pt
 
 We value your input and hope you'll join us in creating a better software experience for all!
 

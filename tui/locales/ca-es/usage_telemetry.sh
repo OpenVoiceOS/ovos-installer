@@ -4,7 +4,7 @@ En triar compartir les mètriques d'ús, us convertiu en un contribuent vital al
 
 A canvi de la vostra participació, oferim informació valuosa sobre les tendències d'ús, les intencions fallides i anàlisis personalitzades a través d'un tauler de control interactiu. Aquesta informació us pot ajudar a ajustar l'assistent per adaptar-lo millor a les vostres necessitats específiques, garantint una experiència d'usuari més agradable i eficient.
 
-Per a obtenir més informació sobre la visualització de dades i les opcions de baixada, visiteu el nostre portal de dades obertes: https://opendata.tigregotico.pt
+Per a obtenir més informació sobre la visualització de dades i les opcions de baixada, visiteu el nostre portal de dades obertes: https://metrics.openvoiceos.pt
 
 Valorem la vostra aportació i esperem que us uniu a nosaltres per crear una millor experiència de programari per a tothom!
 
