@@ -4,7 +4,7 @@ En choisissant de partager vos indicateurs d'utilisation, vous contribuez active
 
 En échange de votre participation, nous vous offrons des informations précieuses sur les tendances d'utilisation, les intentions échouées et des analyses personnalisées via un tableau de bord interactif. Ces informations peuvent vous aider à optimiser l'assistant pour qu'il réponde mieux à vos besoins spécifiques, garantissant ainsi une expérience utilisateur plus agréable et efficace.
 
-Pour plus d'informations sur la visualisation des données et les options de téléchargement, veuillez consulter notre portail Open Data : https://opendata.tigregotico.pt
+Pour plus d'informations sur la visualisation des données et les options de téléchargement, veuillez consulter notre portail Open Data : https://metrics.openvoiceos.pt
 
 Votre contribution est importante et nous espérons que vous nous rejoindrez pour créer une meilleure expérience logicielle pour tous !
 

@@ -5,7 +5,7 @@ De gegevens die je verstrekt, blijven anoniem en zijn cruciaal om ons te helpen 
 
 Met je gedeelde gegevens, kunnen we inzichten geven in gebruikstrends, verkeerd gematchte intents en gepersonaliseerde analyses aanbieden via een interactief dashboard. Deze informatie kan je helpen OVOS beter af te stemmen op je eigen behoeften. Dat zorgt weer voor een aangenamere en efficiëntere gebruikerservaring.
 
-Ga voor meer informatie over datavisualisatie en downloadopties naar ons Open Data-portaal: https://opendata.tigregotico.pt
+Ga voor meer informatie over datavisualisatie en downloadopties naar ons Open Data-portaal: https://metrics.openvoiceos.pt
 
 We waarderen je inbreng en hopen dat je je bij ons aansluit om een betere ervaring te creëren voor iedereen!
 

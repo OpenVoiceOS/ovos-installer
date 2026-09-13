@@ -4,7 +4,7 @@ Indem Sie Ihre Nutzungsdaten teilen, leisten Sie einen wichtigen Beitrag zu unse
 
 Im Gegenzug für Ihre Teilnahme bieten wir Ihnen über ein interaktives Dashboard wertvolle Einblicke in Nutzungstrends, fehlgeschlagene Intents und personalisierte Analysen. Diese Informationen helfen Ihnen, den Assistenten optimal an Ihre Bedürfnisse anzupassen und so ein angenehmeres und effizienteres Benutzererlebnis zu gewährleisten.
 
-Weitere Informationen zur Datenvisualisierung und zu Download-Optionen finden Sie in unserem Open-Data-Portal: https://opendata.tigregotico.pt
+Weitere Informationen zur Datenvisualisierung und zu Download-Optionen finden Sie in unserem Open-Data-Portal: https://metrics.openvoiceos.pt
 
 Wir freuen uns über Ihren Beitrag und hoffen, dass Sie gemeinsam mit uns ein besseres Softwareerlebnis für alle schaffen!
 

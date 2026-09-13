@@ -4,7 +4,7 @@ Ao escolleres compartir as túas métricas de uso convérteste nun contribuínte
 
 A cambio da túa participación, ofrecémosche información relevante sobre tendencias de uso, comandos mal identificados e análises personalizadas a través dun panel interactivo. Esta información pode axudarche a afinar o asistente para que se adapte mellor ás túas necesidades específicas, garantindo unha experiencia de usuario máis agradable e eficiente.
 
-Para obteres máis información sobre a visualización de datos e as opcións de descarga, visita o noso portal de datos abertos: https://opendata.tigregotico.pt
+Para obteres máis información sobre a visualización de datos e as opcións de descarga, visita o noso portal de datos abertos: https://metrics.openvoiceos.pt
 
 Valoramos a túa contribución e esperamos que nos axudes a crear unha mellor experiencia de software para todos.
 

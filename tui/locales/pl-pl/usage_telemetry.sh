@@ -4,7 +4,7 @@ Decydując się na udostępnianie statystyk użytkowania, wnosisz istotny wkład
 
 W zamian za udział udostępniamy cenne informacje o trendach użytkowania, nierozpoznanych intencjach i spersonalizowanych analizach za pośrednictwem interaktywnego panelu. Informacje te mogą pomóc Ci lepiej dostosować asystenta do własnych potrzeb, zapewniając przyjemniejsze i wydajniejsze korzystanie z niego.
 
-Więcej informacji o wizualizacji danych i możliwościach ich pobierania znajdziesz w naszym portalu Open Data: https://opendata.tigregotico.pt
+Więcej informacji o wizualizacji danych i możliwościach ich pobierania znajdziesz w naszym portalu Open Data: https://metrics.openvoiceos.pt
 
 Cenimy Twój wkład i mamy nadzieję, że dołączysz do nas w tworzeniu lepszego oprogramowania dla wszystkich!
 

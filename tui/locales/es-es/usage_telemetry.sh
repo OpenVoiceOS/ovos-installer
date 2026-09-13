@@ -4,7 +4,7 @@ Al elegir compartir tus métricas de uso, te conviertes en un colaborador fundam
 
 A cambio de tu participación, te ofrecemos información valiosa sobre tendencias de uso, intenciones fallidas y análisis personalizados a través de un panel interactivo. Esta información puede ayudarte a ajustar el asistente para adaptarlo mejor a tus necesidades específicas, garantizando así una experiencia más agradable y eficiente.
 
-Para obtener más información sobre visualización de datos y opciones de descarga, visita nuestro portal de datos abiertos: https://opendata.tigregotico.pt
+Para obtener más información sobre visualización de datos y opciones de descarga, visita nuestro portal de datos abiertos: https://metrics.openvoiceos.pt
 
 Valoramos tu participación y esperamos que nos acompañes en la creación de una mejor experiencia de software para todos.
 
