@@ -11,7 +11,7 @@ set -euo pipefail
 function scenario_reject() {
     local key="$1" value="$2" expected="${3:-}"
     export SCENARIO_NOT_SUPPORTED="true"
-    SCENARIO_ERROR="$key: '$value'"
+    SCENARIO_ERROR="$key: ${value:-<empty>}"
     if [ -n "$expected" ]; then
         SCENARIO_ERROR="$SCENARIO_ERROR (expected: $expected)"
     fi
