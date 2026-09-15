@@ -71,12 +71,17 @@ if [ -f "$SCENARIO_PATH" ]; then
     # Make sure the scenario file is not empty
     if [ -z "${!options[*]}" ]; then
         export SCENARIO_NOT_SUPPORTED="true"
+        SCENARIO_ERROR="the file has no options in it"
+        export SCENARIO_ERROR
     fi
 
-    # Required options must always be present.
+    # Required options must always be present. Naming the missing one matters as
+    # much as naming a bad value: both are a single line to fix in the file.
     for required_option in "${required_options[@]}"; do
         if [ -z "${options[$required_option]+x}" ]; then
             export SCENARIO_NOT_SUPPORTED="true"
+            SCENARIO_ERROR="missing required option: $required_option"
+            export SCENARIO_ERROR
         fi
     done
 
@@ -139,7 +144,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                     export HARDWARE_CONFIRMATION="${options[$option]}"
                     ;;
                 *)
-                    export SCENARIO_NOT_SUPPORTED="true"
+                    scenario_reject "hardware" "${options[$option]}" "generic, mark2, devkit"
                     break
                     ;;
                 esac

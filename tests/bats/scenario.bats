@@ -320,3 +320,104 @@ EOF
     result="$(ver "1.02.3")"
     assert_equal "$result" "001002003"
 }
+
+# The gui feature reached the scenario parser late: the TUI has always offered it
+# and setup.sh has always passed ovos_installer_feature_gui, but SCENARIO_ALLOWED_FEATURES
+# did not list it, so a scenario naming gui at all was refused whatever its value.
+@test "scenario_feature_gui_is_accepted" {
+    # load() ran constants.sh inside setup(), where declare made the
+    # allow-lists local; re-declare them here so in_array can see them
+    source ../../utils/constants.sh
+    export SCENARIO_PATH="/tmp/test-scenario-gui.yaml"
+    cat <<EOF >"$SCENARIO_PATH"
+uninstall: false
+method: containers
+channel: testing
+profile: server
+features:
+  skills: true
+  gui: false
+raspberry_pi_tuning: false
+share_telemetry: true
+share_usage_telemetry: true
+EOF
+    cat <<'EOF' >"$YQ_BINARY_PATH"
+#!/usr/bin/env bash
+case "$*" in
+*".features | to_entries"*) echo "skills=true"; echo "gui=false" ;;
+*".hivemind | to_entries"*|*".llm | to_entries"*) ;;
+*) echo "uninstall=false"; echo "method=containers"; echo "channel=testing"
+   echo "profile=server"; echo "features="; echo "raspberry_pi_tuning=false"
+   echo "share_telemetry=true"; echo "share_usage_telemetry=true" ;;
+esac
+EOF
+    chmod +x "$YQ_BINARY_PATH"
+
+    # detect_scenario primes this before sourcing; mirror it so the test
+    # exercises the same starting state as the installer
+    export SCENARIO_NOT_SUPPORTED="false"
+    source ../../utils/scenario.sh
+
+    assert_equal "$SCENARIO_NOT_SUPPORTED" "false"
+    assert_equal "$FEATURE_GUI" "false"
+    assert_equal "$FEATURE_SKILLS" "true"
+    rm -f "$SCENARIO_PATH"
+}
+
+@test "scenario_feature_gui_true_is_mapped" {
+    # load() ran constants.sh inside setup(), where declare made the
+    # allow-lists local; re-declare them here so in_array can see them
+    source ../../utils/constants.sh
+    export SCENARIO_PATH="/tmp/test-scenario-gui-on.yaml"
+    echo "placeholder" >"$SCENARIO_PATH"
+    cat <<'EOF' >"$YQ_BINARY_PATH"
+#!/usr/bin/env bash
+case "$*" in
+*".features | to_entries"*) echo "gui=true" ;;
+*".hivemind | to_entries"*|*".llm | to_entries"*) ;;
+*) echo "uninstall=false"; echo "method=containers"; echo "channel=testing"
+   echo "profile=ovos"; echo "features="; echo "raspberry_pi_tuning=false"
+   echo "share_telemetry=true"; echo "share_usage_telemetry=true" ;;
+esac
+EOF
+    chmod +x "$YQ_BINARY_PATH"
+
+    # detect_scenario primes this before sourcing; mirror it so the test
+    # exercises the same starting state as the installer
+    export SCENARIO_NOT_SUPPORTED="false"
+    source ../../utils/scenario.sh
+
+    assert_equal "$SCENARIO_NOT_SUPPORTED" "false"
+    assert_equal "$FEATURE_GUI" "true"
+    rm -f "$SCENARIO_PATH"
+}
+
+# A refused value used to leave nothing but "scenario not supported" in the log,
+# with no way to tell which line of the file to edit.
+@test "scenario_rejection_records_the_offending_value" {
+    # load() ran constants.sh inside setup(), where declare made the
+    # allow-lists local; re-declare them here so in_array can see them
+    source ../../utils/constants.sh
+    export SCENARIO_PATH="/tmp/test-scenario-channel.yaml"
+    echo "placeholder" >"$SCENARIO_PATH"
+    cat <<'EOF' >"$YQ_BINARY_PATH"
+#!/usr/bin/env bash
+case "$*" in
+*".features | to_entries"*) echo "skills=true" ;;
+*".hivemind | to_entries"*|*".llm | to_entries"*) ;;
+*) echo "uninstall=false"; echo "method=containers"; echo "channel=development"
+   echo "profile=server"; echo "features="; echo "raspberry_pi_tuning=false"
+   echo "share_telemetry=true"; echo "share_usage_telemetry=true" ;;
+esac
+EOF
+    chmod +x "$YQ_BINARY_PATH"
+
+    # detect_scenario primes this before sourcing; mirror it so the test
+    # exercises the same starting state as the installer
+    export SCENARIO_NOT_SUPPORTED="false"
+    source ../../utils/scenario.sh
+
+    assert_equal "$SCENARIO_NOT_SUPPORTED" "true"
+    assert_equal "$SCENARIO_ERROR" "channel: development (expected: testing, alpha)"
+    rm -f "$SCENARIO_PATH"
+}
