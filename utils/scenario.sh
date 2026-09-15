@@ -5,6 +5,19 @@ set -euo pipefail
 : "${SCENARIO_PATH:=}"
 : "${YQ_BINARY_PATH:=yq}"
 
+# Record why the scenario was refused. Every rejection below sets
+# SCENARIO_NOT_SUPPORTED, and without this the installer can only report
+# "scenario not supported" with no clue which line to edit.
+function scenario_reject() {
+    local key="$1" value="$2" expected="${3:-}"
+    export SCENARIO_NOT_SUPPORTED="true"
+    SCENARIO_ERROR="$key: '$value'"
+    if [ -n "$expected" ]; then
+        SCENARIO_ERROR="$SCENARIO_ERROR (expected: $expected)"
+    fi
+    export SCENARIO_ERROR
+}
+
 if [ -f "$SCENARIO_PATH" ]; then
     # Variables to store options, features and hivemind content
     declare -A options
@@ -78,7 +91,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 elif [[ "${options[$option]}" == "false" ]]; then
                     UNINSTALL="false"
                 else
-                    export SCENARIO_NOT_SUPPORTED="true"
+                    scenario_reject "uninstall" "${options[$option]}" "true, false"
                     break
                 fi
                 export UNINSTALL
@@ -89,7 +102,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 elif [[ "${options[$option]}" == "virtualenv" ]]; then
                     METHOD="virtualenv"
                 else
-                    export SCENARIO_NOT_SUPPORTED="true"
+                    scenario_reject "method" "${options[$option]}" "containers, virtualenv"
                     break
                 fi
                 export METHOD
@@ -100,7 +113,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 elif [[ "${options[$option]}" == "alpha" ]]; then
                     CHANNEL="alpha"
                 else
-                    export SCENARIO_NOT_SUPPORTED="true"
+                    scenario_reject "channel" "${options[$option]}" "testing, alpha"
                     break
                 fi
                 export CHANNEL
@@ -115,7 +128,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 elif [[ "${options[$option]}" == "server" ]]; then
                     PROFILE="server"
                 else
-                    export SCENARIO_NOT_SUPPORTED="true"
+                    scenario_reject "profile" "${options[$option]}" "ovos, satellite, listener, server"
                     break
                 fi
                 export PROFILE
@@ -137,7 +150,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 elif [[ "${options[$option]}" == "false" ]]; then
                     TUNING="no"
                 else
-                    export SCENARIO_NOT_SUPPORTED="true"
+                    scenario_reject "raspberry_pi_tuning" "${options[$option]}" "true, false"
                     break
                 fi
                 export TUNING
@@ -153,7 +166,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                             elif [[ "${features[$feature]}" == "false" ]]; then
                                 FEATURE_SKILLS="false"
                             else
-                                export SCENARIO_NOT_SUPPORTED="true"
+                                scenario_reject "skills" "${features[$feature]}" "true, false"
                                 break
                             fi
                             export FEATURE_SKILLS
@@ -164,7 +177,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                             elif [[ "${features[$feature]}" == "false" ]]; then
                                 FEATURE_EXTRA_SKILLS="false"
                             else
-                                export SCENARIO_NOT_SUPPORTED="true"
+                                scenario_reject "extra_skills" "${features[$feature]}" "true, false"
                                 break
                             fi
                             export FEATURE_EXTRA_SKILLS
@@ -175,7 +188,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                             elif [[ "${features[$feature]}" == "false" ]]; then
                                 FEATURE_GUI="false"
                             else
-                                export SCENARIO_NOT_SUPPORTED="true"
+                                scenario_reject "gui" "${features[$feature]}" "true, false"
                                 break
                             fi
                             export FEATURE_GUI
@@ -186,7 +199,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                             elif [[ "${features[$feature]}" == "false" ]]; then
                                 FEATURE_HOMEASSISTANT="false"
                             else
-                                export SCENARIO_NOT_SUPPORTED="true"
+                                scenario_reject "homeassistant" "${features[$feature]}" "true, false"
                                 break
                             fi
                             export FEATURE_HOMEASSISTANT
@@ -197,7 +210,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                             elif [[ "${features[$feature]}" == "false" ]]; then
                                 FEATURE_LLM="false"
                             else
-                                export SCENARIO_NOT_SUPPORTED="true"
+                                scenario_reject "llm" "${features[$feature]}" "true, false"
                                 break
                             fi
                             export FEATURE_LLM
@@ -272,7 +285,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 elif [[ "${options[$option]}" == "false" ]]; then
                     SHARE_TELEMETRY="false"
                 else
-                    export SCENARIO_NOT_SUPPORTED="true"
+                    scenario_reject "share_telemetry" "${options[$option]}" "true, false"
                     break
                 fi
                 export SHARE_TELEMETRY
@@ -283,7 +296,7 @@ if [ -f "$SCENARIO_PATH" ]; then
                 elif [[ "${options[$option]}" == "false" ]]; then
                     SHARE_USAGE_TELEMETRY="false"
                 else
-                    export SCENARIO_NOT_SUPPORTED="true"
+                    scenario_reject "share_usage_telemetry" "${options[$option]}" "true, false"
                     break
                 fi
                 export SHARE_USAGE_TELEMETRY

@@ -1505,7 +1505,14 @@ function detect_scenario() {
 
         # Check scenario status
         if [ "$SCENARIO_NOT_SUPPORTED" == "true" ]; then
-            echo "scenario not supported" &>>"$LOG_FILE"
+            echo "scenario not supported${SCENARIO_ERROR:+: $SCENARIO_ERROR}" &>>"$LOG_FILE"
+            log_error ""
+            if [ -n "${SCENARIO_ERROR:-}" ]; then
+                log_error "➤ Unsupported value in ${SCENARIO_NAME:-the scenario file}: $SCENARIO_ERROR"
+            else
+                log_error "➤ ${SCENARIO_NAME:-The scenario file} was refused; see $LOG_FILE"
+            fi
+            log_error "➤ Edit $SCENARIO_PATH and run the installer again."
             on_error
         fi
 
