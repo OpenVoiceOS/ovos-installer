@@ -21,6 +21,18 @@
     path: "{{ ovos_facts_networkmanager_path }}"
   register: ovos_facts_networkmanager_dir
 
+# /etc/NetworkManager exists on images that never installed NetworkManager
+# itself, so the directory alone says nothing about whether the service can be
+# configured or restarted. Ask the service manager.
+- name: Collect service facts
+  ansible.builtin.service_facts:
+
+- name: Record whether NetworkManager is actually installed
+  ansible.builtin.set_fact:
+    ovos_facts_networkmanager_available: >-
+      {{ (ovos_facts_networkmanager_dir.stat.exists | default(false) | bool)
+         and ('NetworkManager.service' in (ansible_facts.services | default({}))) }}
+
 - name: Define systemd drop-in paths
   ansible.builtin.set_fact:
     ovos_facts_systemd_dropin_path: >-
