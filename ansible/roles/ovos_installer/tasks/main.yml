@@ -15,6 +15,7 @@
   ansible.builtin.set_fact:
     ovos_installer_boot_directory: "{{ ovos_facts_boot_directory }}"
     ovos_installer_networkmanager_dir: "{{ ovos_facts_networkmanager_dir }}"
+    ovos_installer_networkmanager_available: "{{ ovos_facts_networkmanager_available }}"
     ovos_installer_systemd_dropin_path: "{{ ovos_facts_systemd_dropin_path }}"
     ovos_installer_systemd_dropin_owner: "{{ ovos_facts_systemd_dropin_owner }}"
     ovos_installer_systemd_dropin_group: "{{ ovos_facts_systemd_dropin_group }}"

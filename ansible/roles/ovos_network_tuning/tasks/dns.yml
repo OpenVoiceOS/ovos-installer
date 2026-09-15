@@ -1,7 +1,7 @@
 ---
 - name: Configure NetworkManager DNS caching
   when:
-    - ovos_installer_networkmanager_dir.stat.exists | default(false) | bool
+    - ovos_installer_networkmanager_available | default(false) | bool
   block:
     - name: Install dnsmasq for NetworkManager caching
       ansible.builtin.package:
@@ -15,6 +15,14 @@
         enabled: false
       failed_when: false
       notify: Restart NetworkManager
+
+    - name: Ensure the NetworkManager configuration directory exists
+      ansible.builtin.file:
+        path: "{{ ovos_network_tuning_dnsmasq_conf_path | dirname }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
 
     - name: Enable NetworkManager dnsmasq caching
       ansible.builtin.copy:
