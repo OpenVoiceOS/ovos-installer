@@ -147,6 +147,10 @@
   ansible.builtin.systemd_service:
     name: NetworkManager
     state: restarted
+  # DNS caching is an optimisation. If the restart cannot happen the cache
+  # simply is not applied, which is never a reason to fail an install that has
+  # otherwise finished - least of all on a host running other services.
+  failed_when: false
   when:
     - ovos_services_manager == 'systemd'
     - ovos_installer_networkmanager_available | default(false) | bool
