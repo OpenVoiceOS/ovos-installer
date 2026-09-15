@@ -327,7 +327,7 @@ EOF
 @test "scenario_feature_gui_is_accepted" {
     # load() ran constants.sh inside setup(), where declare made the
     # allow-lists local; re-declare them here so in_array can see them
-    source ../../utils/constants.sh
+    source "$BATS_TEST_DIRNAME"/../../utils/constants.sh
     export SCENARIO_PATH="/tmp/test-scenario-gui.yaml"
     cat <<EOF >"$SCENARIO_PATH"
 uninstall: false
@@ -356,7 +356,7 @@ EOF
     # detect_scenario primes this before sourcing; mirror it so the test
     # exercises the same starting state as the installer
     export SCENARIO_NOT_SUPPORTED="false"
-    source ../../utils/scenario.sh
+    source "$BATS_TEST_DIRNAME"/../../utils/scenario.sh
 
     assert_equal "$SCENARIO_NOT_SUPPORTED" "false"
     assert_equal "$FEATURE_GUI" "false"
@@ -367,7 +367,7 @@ EOF
 @test "scenario_feature_gui_true_is_mapped" {
     # load() ran constants.sh inside setup(), where declare made the
     # allow-lists local; re-declare them here so in_array can see them
-    source ../../utils/constants.sh
+    source "$BATS_TEST_DIRNAME"/../../utils/constants.sh
     export SCENARIO_PATH="/tmp/test-scenario-gui-on.yaml"
     echo "placeholder" >"$SCENARIO_PATH"
     cat <<'EOF' >"$YQ_BINARY_PATH"
@@ -385,7 +385,7 @@ EOF
     # detect_scenario primes this before sourcing; mirror it so the test
     # exercises the same starting state as the installer
     export SCENARIO_NOT_SUPPORTED="false"
-    source ../../utils/scenario.sh
+    source "$BATS_TEST_DIRNAME"/../../utils/scenario.sh
 
     assert_equal "$SCENARIO_NOT_SUPPORTED" "false"
     assert_equal "$FEATURE_GUI" "true"
@@ -397,7 +397,7 @@ EOF
 @test "scenario_rejection_records_the_offending_value" {
     # load() ran constants.sh inside setup(), where declare made the
     # allow-lists local; re-declare them here so in_array can see them
-    source ../../utils/constants.sh
+    source "$BATS_TEST_DIRNAME"/../../utils/constants.sh
     export SCENARIO_PATH="/tmp/test-scenario-channel.yaml"
     echo "placeholder" >"$SCENARIO_PATH"
     cat <<'EOF' >"$YQ_BINARY_PATH"
@@ -415,7 +415,7 @@ EOF
     # detect_scenario primes this before sourcing; mirror it so the test
     # exercises the same starting state as the installer
     export SCENARIO_NOT_SUPPORTED="false"
-    source ../../utils/scenario.sh
+    source "$BATS_TEST_DIRNAME"/../../utils/scenario.sh
 
     assert_equal "$SCENARIO_NOT_SUPPORTED" "true"
     assert_equal "$SCENARIO_ERROR" "channel: development (expected: testing, alpha)"

@@ -2022,7 +2022,7 @@ YAML
 }
 
 @test "llm_feature_writes_openvoiceos_persona_profile_and_secret_extra_vars" {
-    run grep -q "SCENARIO_ALLOWED_FEATURES=(skills extra_skills homeassistant llm)" utils/constants.sh
+    run grep -q "SCENARIO_ALLOWED_FEATURES=(skills extra_skills gui homeassistant llm)" utils/constants.sh
     assert_success
 
     run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)" utils/constants.sh
