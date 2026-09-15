@@ -4,8 +4,10 @@ set -euo pipefail
 # Functions in this file are mostly called by setup.sh but most of
 # the exported variables are consumed within the Ansible playbook.
 
-done_format="\e[32mdone\e[0m"
-fail_format="\e[31mfail\e[0m"
+# $'...' so these hold the actual escape bytes: printf '%s' and echo both
+# render them, and no consumer has to interpret backslashes to get colour.
+done_format=$'\e[32mdone\e[0m'
+fail_format=$'\e[31mfail\e[0m'
 
 function log_info() {
     printf '%s\n' "$*"
@@ -16,9 +18,7 @@ function log_warn() {
 }
 
 function log_error() {
-    # %b, not %s: the done/fail markers carry \e colour sequences, and %s prints
-    # them to the terminal verbatim as "\e[31mfail\e[0m".
-    printf '%b\n' "$*" >&2
+    printf '%s\n' "$*" >&2
 }
 
 # Strip ANSI escape sequences from a stream before writing to plain-text logs.
@@ -1542,10 +1542,13 @@ function in_array() {
     # Call on_error() function if option is not supported. The reason goes to the
     # console as well as the log: a scenario that names one wrong key otherwise
     # ends as a bare [fail] with nothing on screen to act on.
-    echo "$needle is an unsupported option" &>>"$LOG_FILE"
+    local detail="Unsupported option in ${SCENARIO_NAME:-the scenario file}: $needle"
+    local supported="Supported here: ${!haystack}"
+    echo "$detail" &>>"$LOG_FILE"
+    echo "$supported" &>>"$LOG_FILE"
     log_error ""
-    log_error "➤ Unsupported option in ${SCENARIO_NAME:-the scenario file}: '$needle'"
-    log_error "➤ Supported here: ${!haystack}"
+    log_error "➤ $detail"
+    log_error "➤ $supported"
     on_error
 }
 
