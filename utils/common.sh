@@ -4,8 +4,10 @@ set -euo pipefail
 # Functions in this file are mostly called by setup.sh but most of
 # the exported variables are consumed within the Ansible playbook.
 
-done_format="\e[32mdone\e[0m"
-fail_format="\e[31mfail\e[0m"
+# $'...' so these hold the actual escape bytes: printf '%s' and echo both
+# render them, and no consumer has to interpret backslashes to get colour.
+done_format=$'\e[32mdone\e[0m'
+fail_format=$'\e[31mfail\e[0m'
 
 function log_info() {
     printf '%s\n' "$*"
@@ -1503,7 +1505,14 @@ function detect_scenario() {
 
         # Check scenario status
         if [ "$SCENARIO_NOT_SUPPORTED" == "true" ]; then
-            echo "scenario not supported" &>>"$LOG_FILE"
+            echo "scenario not supported${SCENARIO_ERROR:+: $SCENARIO_ERROR}" &>>"$LOG_FILE"
+            log_error ""
+            if [ -n "${SCENARIO_ERROR:-}" ]; then
+                log_error "➤ Unsupported value in ${SCENARIO_NAME:-the scenario file}: $SCENARIO_ERROR"
+            else
+                log_error "➤ ${SCENARIO_NAME:-The scenario file} was refused; see $LOG_FILE"
+            fi
+            log_error "➤ Edit $SCENARIO_PATH and run the installer again."
             on_error
         fi
 
@@ -1530,8 +1539,16 @@ function in_array() {
             return 0
         fi
     done
-    # Call on_error() function if option is not supported
-    echo "$needle is an unsupported option" &>>"$LOG_FILE"
+    # Call on_error() function if option is not supported. The reason goes to the
+    # console as well as the log: a scenario that names one wrong key otherwise
+    # ends as a bare [fail] with nothing on screen to act on.
+    local detail="Unsupported option in ${SCENARIO_NAME:-the scenario file}: $needle"
+    local supported="Supported here: ${!haystack}"
+    echo "$detail" &>>"$LOG_FILE"
+    echo "$supported" &>>"$LOG_FILE"
+    log_error ""
+    log_error "➤ $detail"
+    log_error "➤ $supported"
     on_error
 }
 

@@ -445,3 +445,24 @@ function teardown() {
     unset curl
     rm -f "$LOG_FILE" "$attempts_file"
 }
+
+# The rejection reason used to go only to $LOG_FILE as a bare needle, while the
+# screen showed nothing. on_error uploads that log, so both need the detail.
+@test "function_in_array_reports_the_rejected_option" {
+    local test_array=("apple" "banana" "cherry")
+    LOG_FILE="$(mktemp)"
+
+    function ask_optin() { return 1; }
+    function upload_logs() { printf '%s\n' ""; }
+    export -f ask_optin upload_logs
+
+    run in_array test_array "grape"
+    assert_failure
+    assert_output --partial "grape"
+    assert_output --partial "apple banana cherry"
+
+    # the uploaded log carries it too, not just the terminal
+    run grep -q "grape" "$LOG_FILE"
+    assert_success
+    rm -f "$LOG_FILE"
+}
