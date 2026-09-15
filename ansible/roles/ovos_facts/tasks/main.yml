@@ -27,11 +27,20 @@
 - name: Collect service facts
   ansible.builtin.service_facts:
 
+# Membership in that dictionary is not enough: service_facts also reports units
+# it only knows by name - aliases, masked units, leftover references - with a
+# status of not-found or masked, and restarting one of those fails with
+# "Could not find the requested service NetworkManager".
 - name: Record whether NetworkManager is actually installed
+  vars:
+    _networkmanager_unit: >-
+      {{ (ansible_facts.services | default({}))['NetworkManager.service'] | default({}) }}
   ansible.builtin.set_fact:
     ovos_facts_networkmanager_available: >-
       {{ (ovos_facts_networkmanager_dir.stat.exists | default(false) | bool)
-         and ('NetworkManager.service' in (ansible_facts.services | default({}))) }}
+         and (_networkmanager_unit | length > 0)
+         and ((_networkmanager_unit.status | default('not-found')) not in ['not-found', 'masked'])
+         and ((_networkmanager_unit.state | default('unknown')) != 'not-found') }}
 
 - name: Define systemd drop-in paths
   ansible.builtin.set_fact:
