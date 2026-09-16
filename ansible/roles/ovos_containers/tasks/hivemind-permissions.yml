@@ -16,6 +16,10 @@
     command: hivemind-core export-clients
   register: ovos_containers_hivemind_clients
   changed_when: false
+  # The profile guard belongs on the exec itself, not only on the import: these
+  # containers exist for a hub, and a task that reaches into a container has to
+  # say which deployments have it.
+  when: ovos_containers_profile == 'listener' or ovos_containers_profile == 'server'
   # Deliberately fatal, as in the virtualenv path: a failure here yields no client
   # ids, the grant loop does nothing, and the play would report success having
   # granted nothing.
@@ -36,3 +40,7 @@
   failed_when: >-
     ovos_containers_hivemind_allow.rc != 0
     or 'Invalid Node ID' in ovos_containers_hivemind_allow.stdout
+  # The profile guard belongs on the exec itself, not only on the import: these
+  # containers exist for a hub, and a task that reaches into a container has to
+  # say which deployments have it.
+  when: ovos_containers_profile == 'listener' or ovos_containers_profile == 'server'
