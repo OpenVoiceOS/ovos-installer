@@ -173,6 +173,13 @@ ovos_containers_repo_directories:
   - "{{ ovos_containers_working_directory }}/{{ ovos_containers_repo_dest_ovos }}"
   - "{{ ovos_containers_working_directory }}/{{ ovos_containers_repo_dest_hivemind }}"
 ovos_containers_container_hivemind_cli: hivemind_cli
+# export-clients prints a header and hivemind-core logs above it, so the client id
+# is not simply the first field of the first line. A client id is an integer, so a
+# line starting with digits and a comma is a client and nothing else is. A fresh hub
+# has none, which yields [] and a loop that does nothing.
+ovos_containers_hivemind_client_ids: >-
+  {{ ovos_containers_hivemind_clients.stdout_lines | default([])
+     | select('match', '^[0-9]+,') | map('split', ',') | map('first') | list }}
 ovos_containers_container_ovos_cli: ovos_cli
 # Service and container names from ovos-docker's docker-compose.skills-extra.yml.
 # Keep them overridable in case upstream changes.

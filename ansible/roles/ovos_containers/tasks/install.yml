@@ -60,3 +60,9 @@
 
 - name: Include composer.yml
   ansible.builtin.import_tasks: composer.yml
+
+- name: Include HiveMind permission tasks
+  ansible.builtin.import_tasks: hivemind-permissions.yml
+  when:
+    - ovos_containers_profile in ['listener', 'server']
+    - not ansible_check_mode

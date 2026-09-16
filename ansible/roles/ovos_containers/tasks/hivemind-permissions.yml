@@ -1,0 +1,38 @@
+---
+# hivemind-core refuses a client every message type until one is explicitly
+# allowed, and `add-client` cannot seed it. The virtualenv method repairs this in
+# ovos_services/tasks/hivemind-permissions.yml; a hub deployed as containers had
+# no equivalent, so its satellites connected, authenticated, and had everything
+# they said rejected with nothing in the install to explain it.
+#
+# The grant lives in the hub's database. hivemind_cli mounts the same share
+# directory as the listener, so it reaches that database and carries the CLI.
+
+- name: Read the HiveMind clients from the hub database
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_container_exec:
+    container: "{{ ovos_containers_container_hivemind_cli }}"
+    command: hivemind-core export-clients
+  register: ovos_containers_hivemind_clients
+  changed_when: false
+  # Deliberately fatal, as in the virtualenv path: a failure here yields no client
+  # ids, the grant loop does nothing, and the play would report success having
+  # granted nothing.
+
+- name: Allow satellites to send utterances to the hub
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_container_exec:
+    container: "{{ ovos_containers_container_hivemind_cli }}"
+    command: hivemind-core allow-msg recognizer_loop:utterance {{ item }}
+  loop: "{{ ovos_containers_hivemind_client_ids }}"
+  register: ovos_containers_hivemind_allow
+  # "already allowed" exits 0, so re-runs are quiet rather than merely harmless.
+  changed_when: "'Allowed' in ovos_containers_hivemind_allow.stdout"
+  # failed_when replaces the return-code check rather than adding to it, so the
+  # return code is restated. hivemind-core prints "Invalid Node ID!" and still
+  # exits 0, which would otherwise be an unnoticed no-op.
+  failed_when: >-
+    ovos_containers_hivemind_allow.rc != 0
+    or 'Invalid Node ID' in ovos_containers_hivemind_allow.stdout
