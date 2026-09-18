@@ -557,7 +557,7 @@ jobs:
 
   linux-key-role-idempotency:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 120
 
     env:
@@ -747,7 +747,7 @@ jobs:
     if: >-
       needs.changes.outputs.run == 'true'
       && (github.event_name == 'pull_request' || github.event_name == 'push')
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
 
     steps:
@@ -824,7 +824,7 @@ jobs:
           - invalid-feature
           - satellite-missing-credentials
 
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
 
     steps:

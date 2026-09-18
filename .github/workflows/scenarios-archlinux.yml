@@ -34,7 +34,7 @@ jobs:
   # systemd work setup.sh performs, so this drives the ovos_virtualenv role
   # directly instead of the full installer.
   archlinux-virtualenv-role:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     container:
       image: ghcr.io/archlinux/archlinux:base-devel
     timeout-minutes: 45

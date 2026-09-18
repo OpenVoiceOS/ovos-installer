@@ -22,7 +22,7 @@ concurrency:
 jobs:
   contracts:
     name: Verify pinned contracts
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # A healthy run takes a few minutes. An unreachable registry is retried, so a total outage
     # costs three timeouts per image instead of one - without a bound that inherits the six-hour
     # default and holds a runner all morning to reach a verdict this bound reaches anyway.
