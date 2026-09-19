@@ -408,11 +408,18 @@ function setup() {
     run grep -F -q "\"ovos-persona-pipeline-plugin-high\"" "$conf_file"
     assert_success
 
-    run grep -F -q "\"ovos-padatious-pipeline-plugin-high\"" "$conf_file"
-    assert_success
-
     run grep -F -q "\"ovos-m2v-pipeline-high\"" "$conf_file"
     assert_success
+
+    run grep -F -q "\"ovos-m2v-pipeline-medium\"" "$conf_file"
+    assert_success
+
+    run grep -F -q "\"ovos-m2v-pipeline-low\"" "$conf_file"
+    assert_success
+
+    # the default matcher replaced padatious; the plugin stays installable
+    run grep -F -q "\"ovos-padatious-pipeline-plugin-high\"" "$conf_file"
+    assert_failure
 
     run grep -F -q "\"ovos-fallback-pipeline-plugin-high\"" "$conf_file"
     assert_success
@@ -438,7 +445,7 @@ function setup() {
     run grep -F -q "\"ovos-fallback-pipeline-plugin-low\"" "$conf_file"
     assert_success
 
-    run bash -c 'prev=0; for entry in "ovos-stop-pipeline-plugin-high" "ovos-converse-pipeline-plugin" "ovos-ocp-pipeline-plugin-high" "ovos-persona-pipeline-plugin-high" "ovos-padatious-pipeline-plugin-high" "ovos-m2v-pipeline-high" "ovos-fallback-pipeline-plugin-high" "ovos-adapt-pipeline-plugin-high" "ovos-stop-pipeline-plugin-medium" "ovos-adapt-pipeline-plugin-medium" "ovos-common-query-pipeline-plugin" "ovos-fallback-pipeline-plugin-medium" "ovos-persona-pipeline-plugin-low" "ovos-fallback-pipeline-plugin-low"; do line=$(grep -n -F -- "\"$entry\"" "$1" | head -n1 | cut -d: -f1); [ -n "$line" ] || exit 1; [ "$line" -gt "$prev" ] || exit 1; prev=$line; done' _ "$conf_file"
+    run bash -c 'prev=0; for entry in "ovos-stop-pipeline-plugin-high" "ovos-converse-pipeline-plugin" "ovos-ocp-pipeline-plugin-high" "ovos-persona-pipeline-plugin-high" "ovos-m2v-pipeline-high" "ovos-fallback-pipeline-plugin-high" "ovos-adapt-pipeline-plugin-high" "ovos-stop-pipeline-plugin-medium" "ovos-m2v-pipeline-medium" "ovos-adapt-pipeline-plugin-medium" "ovos-m2v-pipeline-low" "ovos-common-query-pipeline-plugin" "ovos-fallback-pipeline-plugin-medium" "ovos-persona-pipeline-plugin-low" "ovos-fallback-pipeline-plugin-low"; do line=$(grep -n -F -- "\"$entry\"" "$1" | head -n1 | cut -d: -f1); [ -n "$line" ] || exit 1; [ "$line" -gt "$prev" ] || exit 1; prev=$line; done' _ "$conf_file"
     assert_success
 }
 
