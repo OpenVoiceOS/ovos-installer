@@ -11,6 +11,7 @@ on:
   pull_request:
     paths:
       - .github/workflows/linting.yml
+      - .github/actionlint.yaml
       - .github/workflows/*.yml
       - .github/scripts/**
       - ansible.cfg
@@ -26,6 +27,7 @@ on:
       - main
     paths:
       - .github/workflows/linting.yml
+      - .github/actionlint.yaml
       - .github/workflows/*.yml
       - .github/scripts/**
       - ansible.cfg
