@@ -9,17 +9,10 @@
 {% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}
 {% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}
 {% set _ovos_is_devkit = _ovos_is_mark2_family and ('attiny1614' in (ovos_installer_i2c_devices | default([]))) %}
-{% if ovos_installer_profile != "server" %}
-{% set _ovos_is_macos = (ansible_facts.system | default('')) == 'Darwin' %}
-{% set _ovos_is_mark2 = _ovos_is_mark2_family and ('attiny1614' not in (ovos_installer_i2c_devices | default([]))) %}
-{% set _ovos_use_sounddevice_mic = _ovos_is_macos or _ovos_is_mark2_family %}
-{% set _ovos_listener_has_wake_word = (_ovos_is_macos and ((ovos_installer_cpu_is_capable | default(false)) | bool)) or (ovos_installer_tuning | bool) %}
-{% set _ovos_hotword_sensitivity = ovos_config_mark2_hotword_sensitivity if _ovos_is_mark2 else ovos_config_hotword_sensitivity %}
-{% set _ovos_hotword_trigger_level = ovos_config_mark2_hotword_trigger_level if _ovos_is_mark2 else ovos_config_hotword_trigger_level %}
-{% set _ovos_mark2_ocp_legacy = _ovos_is_mark2_family %}
-{% set _ovos_persona_llm_enabled = ovos_installer_feature_llm | default(false) | bool %}
-  "play_wav_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
-  "play_mp3_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
+{# The locale the operator chose applies to every profile. A server runs the
+   skills, so it needs the language, the units and the time/date formats as
+   much as a desktop does; only the audio, listener and hardware sections
+   below are meaningless without a microphone. #}
   "lang": "{{ ovos_installer_locale }}",
   "system_unit": "{{ ovos_config_system_unit }}",
   "temperature_unit": "{{ ovos_config_temperature_unit }}",
@@ -36,6 +29,17 @@
     }
   },
 {% endif %}
+{% if ovos_installer_profile != "server" %}
+{% set _ovos_is_macos = (ansible_facts.system | default('')) == 'Darwin' %}
+{% set _ovos_is_mark2 = _ovos_is_mark2_family and ('attiny1614' not in (ovos_installer_i2c_devices | default([]))) %}
+{% set _ovos_use_sounddevice_mic = _ovos_is_macos or _ovos_is_mark2_family %}
+{% set _ovos_listener_has_wake_word = (_ovos_is_macos and ((ovos_installer_cpu_is_capable | default(false)) | bool)) or (ovos_installer_tuning | bool) %}
+{% set _ovos_hotword_sensitivity = ovos_config_mark2_hotword_sensitivity if _ovos_is_mark2 else ovos_config_hotword_sensitivity %}
+{% set _ovos_hotword_trigger_level = ovos_config_mark2_hotword_trigger_level if _ovos_is_mark2 else ovos_config_hotword_trigger_level %}
+{% set _ovos_mark2_ocp_legacy = _ovos_is_mark2_family %}
+{% set _ovos_persona_llm_enabled = ovos_installer_feature_llm | default(false) | bool %}
+  "play_wav_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
+  "play_mp3_cmdline": "{{ 'afplay %1' if ansible_facts.system == 'Darwin' else 'play %1' }}",
   "listener": {
     "VAD": {
       "module": "{{ 'ovos-vad-plugin-silero' if (ovos_installer_cpu_is_capable | default(false)) | bool else 'ovos-vad-plugin-webrtcvad' }}"{{ ',' if ovos_installer_tuning | bool else '' }}

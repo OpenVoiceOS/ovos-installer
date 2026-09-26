@@ -230,6 +230,26 @@ function setup() {
     assert_success
 }
 
+@test "mycroft_conf_gives_every_profile_the_chosen_locale" {
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+    local guard_line
+    guard_line="$(grep -n '{% if ovos_installer_profile != "server" %}' "$conf_file" | cut -d: -f1)"
+
+    [ -n "$guard_line" ]
+
+    # A server runs the skills, so the language, the units, the time/date formats
+    # and the timezone must be written for it too. They used to sit inside the
+    # headless guard, which left a server on en-us with imperial units.
+    for key in '"lang"' '"system_unit"' '"temperature_unit"' '"precipitation_unit"' \
+               '"windspeed_unit"' '"time_format"' '"spoken_time_format"' \
+               '"date_format"' '"location"'; do
+        local key_line
+        key_line="$(grep -n "^  ${key}" "$conf_file" | head -n1 | cut -d: -f1)"
+        [ -n "$key_line" ]
+        [ "$key_line" -lt "$guard_line" ]
+    done
+}
+
 @test "mycroft_conf_uses_precise_onnx_for_macos_listener" {
     run grep -q "_ovos_listener_has_wake_word" ansible/roles/ovos_config/templates/mycroft.conf.j2
     assert_success
