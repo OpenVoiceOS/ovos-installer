@@ -1,0 +1,63 @@
+---
+name: Python tests
+
+# scripts/ holds three unittest suites - for the contract checker, for the image coherence
+# decisions and for the intent round-trip harness - and until this job nothing ran them. Each
+# one exists because the tool it covers could fail to verify anything and still exit 0, so a
+# suite that nobody runs is the same hole again one level up.
+#
+# These suites use unittest and not pytest. A fleet check that looks for a pytest `test_path`
+# cannot see this job; that is a property of the checker, not of this workflow.
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/python_tests.yml
+      - .github/scripts/**
+      - scripts/**
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/python_tests.yml
+      - .github/scripts/**
+      - scripts/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  scripts-suites:
+    name: scripts/ unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.13"
+
+      # PyYAML is what the contract checker parses with. websockets and websocket-client are the
+      # two ends of the stand-in bus in test_intent_roundtrip.py: without them those socket tests
+      # skip, and a skip here is less coverage, not a pass.
+      - name: Install test dependencies
+        run: pip install --disable-pip-version-check pyyaml websockets websocket-client
+
+      # test_image_coherence.py builds throwaway git repositories and commits into them.
+      - name: Give git an identity for the throwaway repositories
+        run: |
+          git config --global user.email "ci@openvoiceos.org"
+          git config --global user.name "ovos-installer CI"
+
+      - name: Run the scripts/ suites
+        run: python3 -m unittest discover -s scripts -t scripts -p 'test_*.py' -v
