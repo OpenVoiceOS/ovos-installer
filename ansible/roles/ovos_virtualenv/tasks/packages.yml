@@ -204,6 +204,14 @@
     name: "{{ ovos_virtualenv_packages_arch_aur | default([]) }}"
     use: makepkg
   register: ovos_virtualenv_aur_package_install_result
+  # The module clones and builds straight from aur.archlinux.org, and that host
+  # drops connections often enough to fail an otherwise good install
+  # (http.client.RemoteDisconnected out of the module, with nothing retried).
+  # Same treatment as the uv install below: retry the transient part rather than
+  # making the operator start the installer again.
+  until: ovos_virtualenv_aur_package_install_result is success
+  retries: "{{ ovos_virtualenv_aur_install_retries | int }}"
+  delay: "{{ ovos_virtualenv_aur_install_delay | int }}"
   when:
     - ansible_facts.os_family == "Archlinux"
     - ovos_virtualenv_needs_fann2 | bool
