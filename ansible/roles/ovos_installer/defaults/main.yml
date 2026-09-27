@@ -89,7 +89,19 @@ ovos_installer_supported_desktop_architectures:
 # OVOS testing stack resolves to plugin-manager 2.x. Keep it opt-in until
 # ovos-audio-transformer-plugin-ggwave is compatible with plugin-manager 2.x.
 ovos_installer_enable_ggwave: false
-ovos_installer_uv_allow_prerelease: "{{ (ovos_installer_venv_python_major | int) == 3 and (ovos_installer_venv_python_minor | int) >= 13 }}"
+# The alpha channel pins pre-releases almost everywhere (170 of 176 pins at the
+# time of writing; testing and stable pin none), and uv does not enable
+# pre-releases just because a constraints file asks for one - only this flag
+# does. Without it an alpha install cannot resolve at all on the default
+# Python 3.11: uv reports "No solution found" and hints at --prerelease=allow.
+ovos_installer_uv_allow_prerelease: >-
+  {{
+    (ovos_installer_channel | default('testing')) == 'alpha'
+    or (
+      (ovos_installer_venv_python_major | int) == 3
+      and (ovos_installer_venv_python_minor | int) >= 13
+    )
+  }}
 ovos_installer_tuning: false
 ovos_installer_setuptools_package: "setuptools<82"
 ovos_installer_tuning_performance: >-

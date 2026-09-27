@@ -691,7 +691,14 @@ function setup() {
     run grep -q "ovos_installer_venv_python_parts\\[1:\\] | first | default('0')" ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 
-    run grep -q "ovos_installer_uv_allow_prerelease: \"{{ (ovos_installer_venv_python_major | int) == 3 and (ovos_installer_venv_python_minor | int) >= 13 }}\"" ansible/roles/ovos_installer/defaults/main.yml
+    # Asserted as components rather than as one pinned line: the expression also
+    # answers true for the alpha channel now (see
+    # alpha_installs_let_uv_resolve_pre_releases), and what this test is about is
+    # which interpreter the version comes from - the target venv, not the controller.
+    run bash -c "grep -A10 -F -- 'ovos_installer_uv_allow_prerelease' ansible/roles/ovos_installer/defaults/main.yml | grep -q -- '(ovos_installer_venv_python_major | int) == 3'"
+    assert_success
+
+    run bash -c "grep -A10 -F -- 'ovos_installer_uv_allow_prerelease' ansible/roles/ovos_installer/defaults/main.yml | grep -q -- '(ovos_installer_venv_python_minor | int) >= 13'"
     assert_success
 
     run grep -q "ansible_facts.python.version" ansible/roles/ovos_installer/defaults/main.yml
@@ -1796,6 +1803,64 @@ function setup() {
 
     run grep -q "llm_feature: \"{{ ovos_telemetry_feature_llm | default(false) | bool }}\"" ansible/roles/ovos_telemetry/tasks/main.yml
     assert_success
+}
+
+@test "alpha_installs_let_uv_resolve_pre_releases" {
+    # constraints-alpha.txt pins pre-releases almost everywhere, and uv does not enable
+    # pre-releases because a constraints file names one - only --prerelease=allow does.
+    # This was gated on Python 3.13+ alone, so an alpha install on the default 3.11 died
+    # in the resolver ("No solution found", hinting at --prerelease=allow) before it
+    # finished. Asserted by evaluating the decision, not by grepping for the channel:
+    # the broken version mentioned neither channel nor flag anywhere near this variable.
+    local installer_defaults="$PWD/ansible/roles/ovos_installer/defaults/main.yml"
+    local virtualenv_defaults="$PWD/ansible/roles/ovos_virtualenv/defaults/main.yml"
+    local gate_playbook
+    gate_playbook="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/uv_prerelease_gate.XXXXXX.yml")"
+    cat >"$gate_playbook" <<YAML
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - ansible.builtin.include_vars:
+        file: "$installer_defaults"
+    - ansible.builtin.include_vars:
+        file: "$virtualenv_defaults"
+    - ansible.builtin.assert:
+        that:
+          - (ovos_installer_uv_allow_prerelease | bool) == (lookup('env', 'EXPECT_PRERELEASE') == 'yes')
+          - (ovos_virtualenv_uv_allow_prerelease | bool) == (lookup('env', 'EXPECT_PRERELEASE') == 'yes')
+        fail_msg: >-
+          channel={{ ovos_installer_channel }} python={{ ovos_installer_venv_python }}
+          installer={{ ovos_installer_uv_allow_prerelease }}
+          virtualenv={{ ovos_virtualenv_uv_allow_prerelease }}
+          but EXPECT_PRERELEASE={{ lookup('env', 'EXPECT_PRERELEASE') }}
+YAML
+
+    # Alpha needs the flag on every Python, which is the case that was broken.
+    local python_version
+    for python_version in 3.11 3.12 3.13; do
+        run env EXPECT_PRERELEASE=yes ansible-playbook -i localhost, -c local "$gate_playbook" \
+            -e "{\"ovos_installer_channel\":\"alpha\",\"ovos_installer_venv_python\":\"$python_version\"}"
+        assert_success
+    done
+
+    # The channels that pin no pre-release keep the Python 3.13 rule they had, so this
+    # cannot be mistaken for "always allow pre-releases".
+    local channel
+    for channel in testing stable; do
+        run env EXPECT_PRERELEASE=no ansible-playbook -i localhost, -c local "$gate_playbook" \
+            -e "{\"ovos_installer_channel\":\"$channel\",\"ovos_installer_venv_python\":\"3.11\"}"
+        assert_success
+
+        run env EXPECT_PRERELEASE=yes ansible-playbook -i localhost, -c local "$gate_playbook" \
+            -e "{\"ovos_installer_channel\":\"$channel\",\"ovos_installer_venv_python\":\"3.13\"}"
+        assert_success
+    done
+
+    # And the flag has to reach the install command, not just the variable.
+    run grep -q -- "--prerelease=allow" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    rm -f "$gate_playbook"
 }
 
 @test "telemetry_is_withheld_from_continuous_integration_runs" {
