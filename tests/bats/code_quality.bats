@@ -678,6 +678,37 @@ function setup() {
     assert_success
 }
 
+@test "the_aur_build_retries_the_network" {
+    # kewlfft.aur clones and builds from aur.archlinux.org inside the module, so a
+    # dropped connection there (http.client.RemoteDisconnected) fails the whole
+    # install with nothing retried - it took out the Arch CI job on a good commit.
+    local packages_file="ansible/roles/ovos_virtualenv/tasks/packages.yml"
+    local aur_task
+    aur_task="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/aur_task.XXXXXX.yml")"
+
+    run awk '/- name: Handle fann package from AUR/{found=1} found{print} found && /^  tags:/{exit}' "$packages_file"
+    assert_success
+    printf "%s\n" "$output" > "$aur_task"
+
+    run grep -q "until: ovos_virtualenv_aur_package_install_result is success" "$aur_task"
+    assert_success
+
+    run grep -q "retries:" "$aur_task"
+    assert_success
+
+    run grep -q "delay:" "$aur_task"
+    assert_success
+
+    # The counts stay overridable the same way every other retried step is.
+    run grep -q "ovos_virtualenv_aur_install_retries:" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_aur_install_delay:" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    rm -f "$aur_task"
+}
+
 @test "virtualenv_uv_prerelease_gating_uses_target_venv_python" {
     run grep -q "ovos_installer_venv_python_parts" ansible/roles/ovos_installer/defaults/main.yml
     assert_success
