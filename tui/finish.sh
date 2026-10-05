@@ -46,15 +46,7 @@ if [[ "$METHOD" == "containers" ]]; then
 elif [[ "${PROFILE:-ovos}" != "satellite" ]]; then
     OVOS_TEXT_CLIENT_COMMAND="ovos-tui"
 fi
-OVOS_TEXT_CLIENT_HINT=""
-if [[ -n "$OVOS_TEXT_CLIENT_COMMAND" ]]; then
-    OVOS_TEXT_CLIENT_HINT="
-To talk to it without a microphone, and to see which skill answered:
-
-  ${OVOS_TEXT_CLIENT_COMMAND}
-"
-fi
-export OVOS_TEXT_CLIENT_COMMAND OVOS_TEXT_CLIENT_HINT
+export OVOS_TEXT_CLIENT_COMMAND
 
 # A satellite cannot grant itself the right to be heard. hivemind-core refuses a
 # client every message type until one is allowed explicitly, and

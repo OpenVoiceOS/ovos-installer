@@ -2131,9 +2131,33 @@ function setup() {
         done
     done
 
-    # The screen has to actually print it, not just compute it.
-    run grep -q 'OVOS_TEXT_CLIENT_HINT' tui/locales/en-us/finish.sh
-    assert_success
+    # Every locale has to print it, not just en-us. The service-scope hint next to it is
+    # interpolated in en-us alone, so thirteen languages silently drop it - that is the
+    # trap this guards against. Each locale is rendered, with the satellite case checked
+    # too: a satellite has no ovos-tui and must be told nothing.
+    local locale rendered
+    for locale in tui/locales/*/; do
+        locale="$(basename "$locale")"
+
+        run bash -c "export RUN_AS_HOME=/x METHOD=virtualenv LOCALE=$locale PROFILE=ovos; \
+            source tui/finish.sh >/dev/null 2>&1 || true; \
+            source tui/locales/$locale/finish.sh; printf '%s' \"\$CONTENT\""
+        assert_success
+        assert_output --partial "ovos-tui"
+
+        run bash -c "export RUN_AS_HOME=/x METHOD=containers LOCALE=$locale PROFILE=ovos; \
+            source tui/finish.sh >/dev/null 2>&1 || true; \
+            source tui/locales/$locale/finish.sh; printf '%s' \"\$CONTENT\""
+        assert_success
+        assert_output --partial "docker exec -it ovos_cli ovos-tui"
+
+        run bash -c "export RUN_AS_HOME=/x METHOD=virtualenv LOCALE=$locale PROFILE=satellite \
+            SATELLITE_KEY=0123456789abcdef HIVEMIND_HOST=h HIVEMIND_PORT=5678; \
+            source tui/finish.sh >/dev/null 2>&1 || true; \
+            source tui/locales/$locale/finish.sh; printf '%s' \"\$CONTENT\""
+        assert_success
+        refute_output --partial "ovos-tui"
+    done
 
     # And the play says it too, for the installs that never reach the screen.
     run grep -q "ovos-tui" ansible/roles/ovos_finalize/tasks/main.yml
@@ -2141,6 +2165,26 @@ function setup() {
 
     run bash -c "grep -A14 -F -- 'Say how to talk to OVOS from a terminal' ansible/roles/ovos_finalize/tasks/main.yml | grep -q \"ovos_installer_profile != 'satellite'\""
     assert_success
+
+    # The containers half of that condition, pinned exactly rather than through a line
+    # window: docker-compose.server.yml defines no ovos_cli, so a containers server must
+    # not be told to exec into one. Dropping this would otherwise leave the assertions
+    # above passing.
+    run grep -Fq -- "ovos_installer_method != 'containers' or (ovos_installer_is_desktop_profile | default(false) | bool)" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_success
+
+    # The finish screen is shell and never sees Ansible's variables, so the container
+    # name is a literal there while the play resolves ovos_containers_container_ovos_cli.
+    # Two spellings of one name: tie them together so renaming the container breaks this
+    # instead of quietly printing a command that execs into nothing.
+    local cli_container
+    cli_container="$(grep -E '^ovos_containers_container_ovos_cli:' ansible/roles/ovos_containers/defaults/main.yml | awk '{print $2}')"
+    [ -n "$cli_container" ]
+
+    run bash -c "export RUN_AS_HOME=/x METHOD=containers LOCALE=en-us PROFILE=ovos; \
+        source tui/finish.sh >/dev/null 2>&1 || true; printf '%s' \"\${OVOS_TEXT_CLIENT_COMMAND}\""
+    assert_success
+    assert_output "docker exec -it ${cli_container} ovos-tui"
 }
 
 @test "uninstall_enables_package_removal_by_default" {

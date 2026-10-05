@@ -13,6 +13,15 @@ Mit list-clients finden Sie die Node ID, deren Zugangsschlüssel mit ${HIVEMIND_
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 
+# Shown only when the command exists on this install - a satellite has no core and
+# no ovos_cli container, so it has no ovos-tui. The command is not translated.
+OVOS_TEXT_CLIENT_NOTE="
+Um ohne Mikrofon über ein Terminal mit dem Assistenten zu sprechen:
+
+  ${OVOS_TEXT_CLIENT_COMMAND-}
+"
+OVOS_TEXT_CLIENT_HINT="${OVOS_TEXT_CLIENT_COMMAND:+$OVOS_TEXT_CLIENT_NOTE}"
+
 CONTENT="
 Die Installation wurde erfolgreich abgeschlossen! 🎉
 
@@ -30,8 +39,9 @@ Wenn Sie die Skill-Funktion aktiviert haben, können Sie mit Ihrem Assistenten i
 Die Einstellungen Ihres Assistenten können in der Konfigurationsdatei ${CONFIG_FILE:-} geändert werden.
 
 Sollten Sie in Zukunft Unterstützung oder Updates benötigen, können Sie sich gerne an uns wenden. Viel Spaß mit Open Voice OS!
+${OVOS_TEXT_CLIENT_HINT:-}
 $HIVEMIND_SATELLITE_HINT
 "
 TITLE="Open Voice OS Installations - Abschluß"
 
-export CONTENT TITLE HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT
+export CONTENT TITLE OVOS_TEXT_CLIENT_NOTE OVOS_TEXT_CLIENT_HINT HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT
