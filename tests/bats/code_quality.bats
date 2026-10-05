@@ -995,38 +995,39 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
     assert_output --partial "constraint=/opt/venv/constraints.txt"
 
+    # The copy is gated on a stat taken here, not on the one constraints.yml took
+    # before the download: that one says the file is absent on a first run, the copy
+    # would be skipped, and pip.conf would point at a file that does not exist -
+    # failing every install in the virtualenv, on the most common path there is.
+    run grep -q "Check the channel's constraints were fetched" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Keep the channel's constraints inside the virtualenv\" ansible/roles/ovos_virtualenv/tasks/venv.yml | grep -q 'ovos_virtualenv_constraints_fetched.stat.exists'"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Keep the channel's constraints inside the virtualenv\" ansible/roles/ovos_virtualenv/tasks/venv.yml | grep -q 'ovos_virtualenv_constraints_file.stat.exists'"
+    assert_failure
+
     # uv cannot be given the same treatment: its [pip] table has no constraint key, so
-    # the constraints file reaches uv through UV_CONSTRAINT in the activate script.
-    # What uv.toml can pin is the resolution strategy, so an "uv pip install" in this
-    # virtualenv behaves the way the installer's own installs do rather than following
-    # whatever uv's default becomes. uv finds no configuration beside a virtualenv on
-    # its own, hence UV_CONFIG_FILE.
-    local uv_tpl="ansible/roles/ovos_virtualenv/templates/uv.toml.j2"
-    [ -f "$uv_tpl" ]
-
-    run grep -q 'prerelease = "if-necessary"' "$uv_tpl"
+    # the constraints file reaches uv through UV_CONSTRAINT. The resolution strategy is
+    # pinned with UV_PRERELEASE rather than UV_CONFIG_FILE, which would replace the
+    # user's own project and user uv configuration - a private index among it -
+    # instead of adding to it.
+    run grep -q "export UV_PRERELEASE=" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    run grep -q "constraint" "$uv_tpl"
-    assert_success          # only in the comment explaining why it cannot be here
+    # Not exported - a comment may name it to explain why, so this looks for the
+    # export rather than the word.
+    run grep -q "export UV_CONFIG_FILE=" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_failure
 
-    run bash -c "grep -A4 -F -- 'export UV_CONFIG_FILE=' ansible/roles/ovos_virtualenv/tasks/venv.yml | grep -q 'ovos_virtualenv_uv_conf_path'"
+    run grep -q "ovos_virtualenv_uv_prerelease_strategy: if-necessary" ansible/roles/ovos_virtualenv/defaults/main.yml
     assert_success
 
-    run bash -c "grep -q 'export UV_CONSTRAINT=' ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    run grep -q "export UV_CONSTRAINT=" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
-    # And it has to be valid TOML that uv accepts, not just text.
-    run python3 -c "
-import tomllib
-from jinja2 import Environment, FileSystemLoader
-env = Environment(loader=FileSystemLoader('ansible/roles/ovos_virtualenv/templates'), keep_trailing_newline=True)
-data = tomllib.loads(env.get_template('uv.toml.j2').render())
-assert data['pip']['prerelease'] in ('disallow', 'allow', 'if-necessary', 'explicit'), data
-print('prerelease=' + data['pip']['prerelease'])
-"
-    assert_success
-    assert_output --partial "prerelease=if-necessary"
+    [ ! -f ansible/roles/ovos_virtualenv/templates/uv.toml.j2 ]
 }
 
 @test "virtualenv_ensures_python_command_shim_exists" {

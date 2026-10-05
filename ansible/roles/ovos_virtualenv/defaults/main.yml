@@ -93,8 +93,9 @@ ovos_virtualenv_swig_shim_path: "{{ ovos_installer_user_home }}/.local/bin/swig2
 # copy on every run.
 ovos_virtualenv_constraints_local_path: "{{ ovos_virtualenv_path }}/constraints.txt"
 ovos_virtualenv_pip_conf_path: "{{ ovos_virtualenv_path }}/pip.conf"
-# Pointed at by UV_CONFIG_FILE in the activate script; uv finds nothing by itself.
-ovos_virtualenv_uv_conf_path: "{{ ovos_virtualenv_path }}/uv.toml"
+# Exported by the activate script. uv has no per-virtualenv configuration, and
+# UV_CONFIG_FILE would replace the user's own uv configuration rather than add to it.
+ovos_virtualenv_uv_prerelease_strategy: if-necessary
 ovos_virtualenv_rust_messagebus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
 ovos_virtualenv_rust_messagebus_version: v2.1.1
 ovos_virtualenv_rust_messagebus_target_arch: >-

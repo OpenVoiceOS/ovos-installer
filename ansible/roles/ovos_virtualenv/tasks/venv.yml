@@ -347,6 +347,17 @@
 # somebody who activated first. This file is read by this virtualenv's pip however
 # it is called - ~/.venvs/ovos/bin/pip from any shell included - so the channel is
 # remembered rather than retyped.
+# Stat it here rather than reuse the one from constraints.yml: that one is taken
+# before the download, so on a first run it says the file is absent, the copy below
+# would be skipped, and pip.conf would point at a file that does not exist - which
+# fails every install in this virtualenv, on the most common path there is.
+- name: Check the channel's constraints were fetched
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_constraints_path }}"
+  register: ovos_virtualenv_constraints_fetched
+  changed_when: false
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
 - name: Keep the channel's constraints inside the virtualenv
   ansible.builtin.copy:
     src: "{{ ovos_virtualenv_constraints_path }}"
@@ -357,21 +368,12 @@
     mode: "0644"
   when:
     - not (ovos_virtualenv_is_cleaning | bool)
-    - ovos_virtualenv_constraints_file.stat.exists | default(false)
+    - ovos_virtualenv_constraints_fetched.stat.exists | default(false)
 
 - name: Teach the virtualenv's pip which channel this install came from
   ansible.builtin.template:
     src: pip.conf.j2
     dest: "{{ ovos_virtualenv_pip_conf_path }}"
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
-    mode: "0644"
-  when: not (ovos_virtualenv_is_cleaning | bool)
-
-- name: Teach the virtualenv's uv how this install resolves
-  ansible.builtin.template:
-    src: uv.toml.j2
-    dest: "{{ ovos_virtualenv_uv_conf_path }}"
     owner: "{{ ovos_installer_user }}"
     group: "{{ ovos_installer_group }}"
     mode: "0644"
@@ -402,10 +404,12 @@
     - line: "export UV_CONSTRAINT=\"{{ _ovos_release }}\""
       regexp: "^export UV_CONSTRAINT="
       insertafter: "^export PIP_CONSTRAINT="
-    # uv discovers no configuration of its own next to a virtualenv, so point it at
-    # the one written beside pip.conf.
-    - line: "export UV_CONFIG_FILE=\"{{ ovos_virtualenv_uv_conf_path }}\""
-      regexp: "^export UV_CONFIG_FILE="
+    # The strategy the installer itself resolves with, so an "uv pip install" here
+    # does not follow whatever uv's default becomes. Set as a variable rather than
+    # through UV_CONFIG_FILE: that would replace the user's own project and user uv
+    # configuration - a private index among it - instead of adding to it.
+    - line: "export UV_PRERELEASE=\"{{ ovos_virtualenv_uv_prerelease_strategy }}\""
+      regexp: "^export UV_PRERELEASE="
       insertafter: "^export UV_CONSTRAINT="
   loop_control:
     label: "{{ item.regexp }}"
