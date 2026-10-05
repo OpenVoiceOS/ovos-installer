@@ -2245,6 +2245,56 @@ function setup() {
     # Never while uninstalling: the virtualenv is on its way out.
     run bash -c "grep -A12 -F -- 'Check the virtualenv for packages that disagree' '$file' | grep -q 'ovos_virtualenv_is_cleaning'"
     assert_success
+
+    # After everything that installs into the virtualenv. The bootstrap numpy and
+    # setuptools go in after the requirements files, so a check placed before them
+    # inspects a halfway environment and can pass on an install that ends up broken.
+    local check_line bootstrap_line
+    check_line="$(grep -n 'Check the virtualenv for packages that disagree' "$file" | cut -d: -f1)"
+    bootstrap_line="$(grep -n 'Ensure runtime bootstrap Python libraries are installed' "$file" | cut -d: -f1)"
+    [ -n "$check_line" ]
+    [ -n "$bootstrap_line" ]
+    [ "$check_line" -gt "$bootstrap_line" ]
+
+    # The decision itself, run rather than read: the assertions above say where the
+    # filter lives, these say what it does with uv's actual output. The sample is passed
+    # as a list because that is what stderr_lines is.
+    if ! command -v ansible-playbook >/dev/null 2>&1; then
+        skip "ansible-playbook is not available"
+    fi
+    local play
+    play="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/pip_check_filter.XXXXXX.yml")"
+    cat >"$play" <<'YAML'
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - vars:
+        _disagreements: >-
+          {{ sample | default([])
+             | select('match', '^The package ')
+             | list }}
+      ansible.builtin.debug:
+        msg: "FINDINGS={{ _disagreements | length }} {{ _disagreements | join(' // ') }}"
+YAML
+
+    # What uv prints when a package disagrees.
+    run ansible-playbook -i localhost, -c local "$play" -e '{"sample": ["Using Python 3.11.15 environment at: /x", "Checked 17 packages in 0.44ms", "Found 1 incompatibility", "The package huggingface-hub requires httpx>=0.23.0,<1, but 1.0.dev6 is installed"]}'
+    assert_success
+    assert_output --partial "FINDINGS=1"
+    assert_output --partial "huggingface-hub"
+
+    # A clean environment has nothing to report.
+    run ansible-playbook -i localhost, -c local "$play" -e '{"sample": ["Using Python 3.11.15 environment at: /x", "Checked 16 packages in 0.39ms", "All installed packages are compatible"]}'
+    assert_success
+    assert_output --partial "FINDINGS=0"
+
+    # And uv failing for an unrelated reason is not a disagreement, so it must not
+    # produce a warning about packages disagreeing with that error underneath it.
+    run ansible-playbook -i localhost, -c local "$play" -e '{"sample": ["error: No virtual environment found for path /x/bin/python"]}'
+    assert_success
+    assert_output --partial "FINDINGS=0"
+
+    rm -f "$play"
 }
 
 @test "alpha_installs_let_uv_resolve_pre_releases" {
