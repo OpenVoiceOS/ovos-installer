@@ -13,8 +13,9 @@ list-clients चलाकर वह Node ID ढूँढें जिसकी �
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 
-# Shown only when the command exists on this install - a satellite has no core and
-# no ovos_cli container, so it has no ovos-tui. The command is not translated.
+# Shown only where the text client exists - finish.sh leaves the command empty for a
+# satellite and for a containers server, neither of which has ovos-tui. The command
+# itself is not translated.
 OVOS_TEXT_CLIENT_NOTE="
 To talk to it from a terminal, without a microphone:
 
@@ -38,9 +39,9 @@ CONTENT="
 आपके सहायक की सेटिंग्स को ${CONFIG_FILE:-} कॉन्फ़िगरेशन फ़ाइल(configuration file) में बदला जा सकता है।
 
 यदि आपको भविष्य में किसी सहायता या अपडेट की आवश्यकता हो तो बेझिझक संपर्क करें। अपने Open Voice OS अनुभव का आनंद लें!
-${OVOS_TEXT_CLIENT_HINT:-}
+$OVOS_TEXT_CLIENT_HINT
 $HIVEMIND_SATELLITE_HINT
 "
 TITLE="Open Voice OS Installation - अन्त"
 
-export CONTENT TITLE OVOS_TEXT_CLIENT_NOTE OVOS_TEXT_CLIENT_HINT HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT
+export CONTENT TITLE HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT OVOS_TEXT_CLIENT_NOTE OVOS_TEXT_CLIENT_HINT

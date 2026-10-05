@@ -13,8 +13,9 @@ Erabili list-clients sarbide-gakoaren hasieran ${HIVEMIND_KEY_PREFIX-} duen Node
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 
-# Shown only when the command exists on this install - a satellite has no core and
-# no ovos_cli container, so it has no ovos-tui. The command is not translated.
+# Shown only where the text client exists - finish.sh leaves the command empty for a
+# satellite and for a containers server, neither of which has ovos-tui. The command
+# itself is not translated.
 OVOS_TEXT_CLIENT_NOTE="
 To talk to it from a terminal, without a microphone:
 
@@ -38,9 +39,9 @@ Trebetasun-eginbide lehenetsia gaitu baduzu, zure laguntzailearekin elkarreragin
 Zure laguntzailearen ezarpenak ${CONFIG_FILE:-} konfigurazio fitxategian alda daitezke.
 
 Etorkizunean laguntza edo eguneratzerik behar baduzu, jar zaitez harremanetan. Gozatu Open Voice OS esperientzia!
-${OVOS_TEXT_CLIENT_HINT:-}
+$OVOS_TEXT_CLIENT_HINT
 $HIVEMIND_SATELLITE_HINT
 "
 TITLE="Ireki Voice OS instalazioa - Amaitu"
 
-export CONTENT TITLE OVOS_TEXT_CLIENT_NOTE OVOS_TEXT_CLIENT_HINT HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT
+export CONTENT TITLE HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT OVOS_TEXT_CLIENT_NOTE OVOS_TEXT_CLIENT_HINT
