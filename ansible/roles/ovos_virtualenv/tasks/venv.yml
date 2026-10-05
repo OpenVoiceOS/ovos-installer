@@ -300,6 +300,49 @@
   environment: "{{ ovos_virtualenv_uv_environment }}"
   when: not (ovos_virtualenv_is_cleaning | bool)
 
+# Each requirements file is installed in its own resolve with --upgrade (state:
+# latest), so only that file's requirements are in view: a later file can move a
+# package an earlier one capped, and nothing says so. That is how a Mark II ended up
+# with httpx 1.0.dev6 against huggingface_hub's httpx<1 - the install reported
+# success and the device answered nothing (#641).
+#
+# It runs after every task that installs into the virtualenv - the bootstrap numpy
+# and setuptools above included - so it inspects the environment the role actually
+# leaves behind rather than a halfway state.
+#
+# This does not prevent it, it ends the silence. Not fatal on purpose: the channels
+# carry upstream combinations the installer does not control, and refusing to finish
+# an otherwise working install over one of those would be worse than saying so.
+- name: Check the virtualenv for packages that disagree about their dependencies
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    cmd: uv pip check --python {{ ovos_virtualenv_path }}/bin/python
+  environment: "{{ ovos_virtualenv_uv_environment }}"
+  register: ovos_virtualenv_pip_check
+  changed_when: false
+  failed_when: false
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
+# uv writes all of this to stderr, stdout stays empty - reporting stdout here would
+# print a warning with nothing in it. The first two lines are the environment path and
+# the package count, which say nothing worth printing.
+- name: Report the packages that disagree
+  vars:
+    # Only the findings themselves. A non-zero exit that reports no incompatibility -
+    # uv failing for some other reason - must not print a warning about packages
+    # disagreeing with somebody else's error message under it.
+    _disagreements: >-
+      {{ ovos_virtualenv_pip_check.stderr_lines | default([])
+         | select('match', '^The package ')
+         | list }}
+  ansible.builtin.debug:
+    msg: "{{ ovos_virtualenv_pip_check_warning + _disagreements }}"
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - (ovos_virtualenv_pip_check.rc | default(0)) != 0
+    - _disagreements | length > 0
+
 - name: Check ovos virtualenv activate script exists
   ansible.builtin.stat:
     path: "{{ ovos_virtualenv_path }}/bin/activate"

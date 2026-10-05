@@ -2212,6 +2212,91 @@ function setup() {
     assert_success
 }
 
+@test "a_virtualenv_whose_packages_disagree_does_not_pass_silently" {
+    # Each requirements file is installed in its own resolve with --upgrade, so only
+    # that file's requirements are in view and a later file can move a package an
+    # earlier one capped (#641). That is how a Mark II ended up with httpx 1.0.dev6
+    # against huggingface_hub's httpx<1: the install reported success and the device
+    # answered nothing. This does not prevent it, it ends the silence.
+    local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -q "uv pip check --python" "$file"
+    assert_success
+
+    # Not fatal: the channels carry upstream combinations the installer does not
+    # control, and refusing to finish an otherwise working install over one of those
+    # would be worse than saying so.
+    run bash -c "grep -A10 -F -- 'Check the virtualenv for packages that disagree' '$file' | grep -q 'failed_when: false'"
+    assert_success
+
+    # uv writes the findings to stderr and leaves stdout empty, so reading stdout would
+    # print a warning with nothing in it.
+    run bash -c "grep -A14 -F -- 'Report the packages that disagree' '$file' | grep -q 'stderr_lines'"
+    assert_success
+
+    run bash -c "grep -A14 -F -- 'Report the packages that disagree' '$file' | grep -q 'stdout_lines'"
+    assert_failure
+
+    # And a non-zero exit that reports no incompatibility - uv failing for some other
+    # reason - must not print a warning about packages disagreeing.
+    run bash -c "grep -A16 -F -- 'Report the packages that disagree' '$file' | grep -q '_disagreements | length > 0'"
+    assert_success
+
+    # Never while uninstalling: the virtualenv is on its way out.
+    run bash -c "grep -A12 -F -- 'Check the virtualenv for packages that disagree' '$file' | grep -q 'ovos_virtualenv_is_cleaning'"
+    assert_success
+
+    # After everything that installs into the virtualenv. The bootstrap numpy and
+    # setuptools go in after the requirements files, so a check placed before them
+    # inspects a halfway environment and can pass on an install that ends up broken.
+    local check_line bootstrap_line
+    check_line="$(grep -n 'Check the virtualenv for packages that disagree' "$file" | cut -d: -f1)"
+    bootstrap_line="$(grep -n 'Ensure runtime bootstrap Python libraries are installed' "$file" | cut -d: -f1)"
+    [ -n "$check_line" ]
+    [ -n "$bootstrap_line" ]
+    [ "$check_line" -gt "$bootstrap_line" ]
+
+    # The decision itself, run rather than read: the assertions above say where the
+    # filter lives, these say what it does with uv's actual output. The sample is passed
+    # as a list because that is what stderr_lines is.
+    if ! command -v ansible-playbook >/dev/null 2>&1; then
+        skip "ansible-playbook is not available"
+    fi
+    local play
+    play="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/pip_check_filter.XXXXXX.yml")"
+    cat >"$play" <<'YAML'
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - vars:
+        _disagreements: >-
+          {{ sample | default([])
+             | select('match', '^The package ')
+             | list }}
+      ansible.builtin.debug:
+        msg: "FINDINGS={{ _disagreements | length }} {{ _disagreements | join(' // ') }}"
+YAML
+
+    # What uv prints when a package disagrees.
+    run ansible-playbook -i localhost, -c local "$play" -e '{"sample": ["Using Python 3.11.15 environment at: /x", "Checked 17 packages in 0.44ms", "Found 1 incompatibility", "The package huggingface-hub requires httpx>=0.23.0,<1, but 1.0.dev6 is installed"]}'
+    assert_success
+    assert_output --partial "FINDINGS=1"
+    assert_output --partial "huggingface-hub"
+
+    # A clean environment has nothing to report.
+    run ansible-playbook -i localhost, -c local "$play" -e '{"sample": ["Using Python 3.11.15 environment at: /x", "Checked 16 packages in 0.39ms", "All installed packages are compatible"]}'
+    assert_success
+    assert_output --partial "FINDINGS=0"
+
+    # And uv failing for an unrelated reason is not a disagreement, so it must not
+    # produce a warning about packages disagreeing with that error underneath it.
+    run ansible-playbook -i localhost, -c local "$play" -e '{"sample": ["error: No virtual environment found for path /x/bin/python"]}'
+    assert_success
+    assert_output --partial "FINDINGS=0"
+
+    rm -f "$play"
+}
+
 @test "alpha_installs_let_uv_resolve_pre_releases" {
     # constraints-alpha.txt pins pre-releases almost everywhere, and uv needs to be told
     # to consider them (from uv 0.12, --prerelease=if-necessary is enough: it honours
