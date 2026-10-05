@@ -1,0 +1,36 @@
+---
+# Write the homescreen skill id that the installed skill actually registers.
+#
+# ovos-gui logs "<id> not loaded!" and shows nothing when idle_display_skill
+# names a skill it never saw, and the id is not a constant: ovos-skill-homescreen
+# 3.0.3 and older register skill-ovos-homescreen.openvoiceos, 3.0.4 and newer
+# register ovos-skill-homescreen.openvoiceos. The channels do not agree today and
+# will not agree tomorrow either - stable's own pin already admits the version
+# that renames it - so the caller reads the id out of the installed skill and
+# passes it here as ovos_config_homescreen_skill_id.
+- name: Read mycroft.conf for the homescreen skill id
+  ansible.builtin.slurp:
+    src: "{{ ovos_config_mycroft_conf_path }}"
+  register: ovos_config_homescreen_conf
+  failed_when: false
+  changed_when: false
+  when: ovos_config_homescreen_skill_id | default('') | length > 0
+
+- name: Write the homescreen skill id the installed skill registers
+  vars:
+    _conf: >-
+      {{ (ovos_config_homescreen_conf.content | default('') | b64decode | from_json)
+         if (ovos_config_homescreen_conf.content is defined) else {} }}
+  ansible.builtin.copy:
+    content: >-
+      {{ _conf | combine({'gui': (_conf.gui | default({}))
+         | combine({'idle_display_skill': ovos_config_homescreen_skill_id})}, recursive=true)
+         | to_nice_json }}
+    dest: "{{ ovos_config_mycroft_conf_path }}"
+    owner: "{{ ovos_config_mycroft_conf_owner }}"
+    group: "{{ ovos_config_mycroft_conf_group }}"
+    mode: "{{ ovos_config_mycroft_conf_mode }}"
+  when:
+    - ovos_config_homescreen_skill_id | default('') | length > 0
+    - ovos_config_homescreen_conf.content is defined
+    - (_conf.gui | default({})).idle_display_skill | default('') != ovos_config_homescreen_skill_id

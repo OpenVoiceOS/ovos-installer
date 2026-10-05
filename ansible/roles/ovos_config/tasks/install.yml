@@ -71,6 +71,27 @@
         ovos_config_spoken_time_format: "half"
       when: ovos_config_geoip_country | default('') in ovos_config_geoip_half_time_countries
 
+# Read the configured homescreen back before the template overwrites the file, so
+# a re-run keeps the id the last run resolved instead of dropping it and waiting
+# for the post-install step to put it back (which would make every run changed).
+- name: Read the configured homescreen skill id
+  ansible.builtin.slurp:
+    src: "{{ ovos_config_mycroft_conf_path }}"
+  register: ovos_config_existing_conf
+  failed_when: false
+  changed_when: false
+
+- name: Keep the homescreen skill id this host already resolved
+  vars:
+    _existing: >-
+      {{ (ovos_config_existing_conf.content | default('') | b64decode | from_json)
+         if (ovos_config_existing_conf.content is defined) else {} }}
+  ansible.builtin.set_fact:
+    ovos_config_idle_display_skill: >-
+      {{ (_existing.gui | default({})).idle_display_skill | default('') }}
+  failed_when: false
+  changed_when: false
+
 - name: Generate mycroft.conf
   ansible.builtin.template:
     src: mycroft.conf.j2

@@ -230,6 +230,60 @@ function setup() {
     assert_success
 }
 
+@test "the_homescreen_skill_id_comes_from_the_installed_skill" {
+    # ovos-gui shows nothing but the boot logo when idle_display_skill names a skill
+    # it never saw, and the id is not a constant: ovos-skill-homescreen 3.0.3 and
+    # older register skill-ovos-homescreen.openvoiceos, 3.0.4 and newer register
+    # ovos-skill-homescreen.openvoiceos. The template used to hardcode the old one,
+    # which left alpha on the logo - and hardcoding the new one would do the same to
+    # testing and stable, which still pin 3.0.3.
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    run grep -q "skill-ovos-homescreen.openvoiceos" "$conf_file"
+    assert_failure
+
+    run grep -F -q '"idle_display_skill": "{{ ovos_config_idle_display_skill }}"' "$conf_file"
+    assert_success
+
+    # Both entry point groups: the skill moved from ovos.plugin.skill to opm.skill in
+    # the release that renamed it, so probing only one group answers for only one
+    # channel.
+    local defaults_file="ansible/roles/ovos_config/defaults/main.yml"
+    run grep -q "opm.skill" "$defaults_file"
+    assert_success
+
+    run grep -q "ovos.plugin.skill" "$defaults_file"
+    assert_success
+
+    # Resolved where the skill is installed. Only the virtualenv method installs it:
+    # the containers method runs no docker-compose.gui.yml, so there is no homescreen
+    # container to ask (the contract checker fails on a reference to one).
+    local resolver="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -q "ovos_config_homescreen_probe" "$resolver"
+    assert_success
+
+    run grep -q "tasks_from: homescreen.yml" "$resolver"
+    assert_success
+
+    # Nothing is written when the skill is not installed (the probe prints nothing),
+    # and the value is only rewritten when it actually differs, so a re-run of the
+    # installer does not report a change.
+    local homescreen_file="ansible/roles/ovos_config/tasks/homescreen.yml"
+    [ -f "$homescreen_file" ]
+
+    run grep -q "ovos_config_homescreen_skill_id | default('') | length > 0" "$homescreen_file"
+    assert_success
+
+    run grep -F -q "!= ovos_config_homescreen_skill_id" "$homescreen_file"
+    assert_success
+
+    # And the template keeps whatever the last run resolved, so it does not drop the
+    # id on every re-run and wait for the post-install step to put it back.
+    run grep -q "Keep the homescreen skill id this host already resolved" ansible/roles/ovos_config/tasks/install.yml
+    assert_success
+}
+
 @test "mycroft_conf_gives_every_profile_the_chosen_locale" {
     local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
     local guard_line
@@ -462,16 +516,22 @@ function setup() {
     assert_success
 }
 
-@test "mycroft_conf_sets_gui_idle_display_skill_to_current_homescreen_id" {
+@test "mycroft_conf_hardcodes_no_homescreen_skill_id" {
+    # This used to pin skill-ovos-homescreen.openvoiceos as "the current id". It is
+    # not current anywhere except the channels still on ovos-skill-homescreen 3.0.3:
+    # 3.0.4 renamed it to ovos-skill-homescreen.openvoiceos, which left alpha showing
+    # nothing but the boot logo. Neither literal belongs in the template - the id is
+    # read from the skill that is installed
+    # (see the_homescreen_skill_id_comes_from_the_installed_skill).
     local file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
 
-    run grep -q "{% if ovos_installer_feature_gui | bool %}" "$file"
+    run grep -q "{% if ovos_installer_feature_gui | bool" "$file"
     assert_success
 
-    run bash -c "grep -A4 -F -- \"{% if ovos_installer_feature_gui | bool %}\" \"$file\" | grep -q -- \"\\\"idle_display_skill\\\": \\\"skill-ovos-homescreen.openvoiceos\\\"\""
-    assert_success
+    run grep -q "skill-ovos-homescreen.openvoiceos" "$file"
+    assert_failure
 
-    run grep -q "\"idle_display_skill\": \"ovos-skill-homescreen.openvoiceos\"" "$file"
+    run grep -q "ovos-skill-homescreen.openvoiceos" "$file"
     assert_failure
 }
 
