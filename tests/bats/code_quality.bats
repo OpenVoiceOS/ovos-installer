@@ -1899,6 +1899,70 @@ function setup() {
     assert_success
 }
 
+@test "uninstall_removes_the_audio_tuning_on_any_hardware" {
+    # The audio tuning writes PipeWire filter-chains into the user's own config, and
+    # they show up as devices: "OVOS Noise Suppressed Source" and "OVOS Noise
+    # Suppressed Sink". Its cleanup lived in tuning.yml behind the same Raspberry Pi
+    # condition as the install, so a host that has those files and is not a Pi could
+    # never be cleaned - reported as a corrupted sound system that survived the
+    # uninstall, with the user deleting PipeWire drop-ins by hand.
+    local main_file="ansible/roles/ovos_installer/tasks/main.yml"
+    local scoped_file
+    scoped_file="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/audio_cleanup.XXXXXX.yml")"
+
+    run awk '/- name: Include ovos_audio_tuning role to clean non-Raspberry Pi hosts/{found=1} found{print} found && /tags:/{exit}' "$main_file"
+    assert_success
+    printf "%s\n" "$output" > "$scoped_file"
+
+    run grep -q "ovos_installer_is_cleaning" "$scoped_file"
+    assert_success
+
+    # Only on an uninstall, and only off a Pi - tuning.yml already covers the Pi.
+    run grep -q "ovos_installer_raspberrypi" "$scoped_file"
+    assert_success
+
+    run grep -F -q '== "N/A"' "$scoped_file"
+    assert_success
+
+    # Only this role. The other tuning roles edit the Pi boot config and Pi kernel
+    # modules, which have no business running on a desktop.
+    run grep -q "ovos_performance_tuning\|ovos_network_tuning\|ovos_storage_tuning" "$scoped_file"
+    assert_failure
+
+    rm -f "$scoped_file"
+}
+
+@test "the_audio_tuning_cleanup_owns_its_restart_handlers" {
+    # The shared "Restart PipeWire" belongs to ovos_services, which is imported with
+    # "when: not ovos_installer_is_cleaning" - and a static import applies that to its
+    # handlers too. They also test facts only the install sets. So during an uninstall
+    # they are registered but can never run: the files go and the sound server is
+    # never told, which leaves the devices there until the user reboots. The cleanup
+    # carries its own handlers instead.
+    local handlers_file="ansible/roles/ovos_audio_tuning/handlers/main.yml"
+    local uninstall_file="ansible/roles/ovos_audio_tuning/tasks/uninstall.yml"
+
+    [ -f "$handlers_file" ]
+
+    run grep -q "name: Restart PipeWire after audio tuning cleanup" "$handlers_file"
+    assert_success
+
+    run grep -q "name: Restart WirePlumber after audio tuning cleanup" "$handlers_file"
+    assert_success
+
+    # Nothing in the cleanup may notify the handlers that are not loaded.
+    run grep -E -q "notify: Restart (PipeWire|WirePlumber)$" "$uninstall_file"
+    assert_failure
+
+    run grep -q "notify: Restart PipeWire after audio tuning cleanup" "$uninstall_file"
+    assert_success
+
+    # And they must not depend on facts only an install sets. Comments may name one
+    # to explain why, so this looks at the code rather than the whole file.
+    run bash -c "grep -v '^[[:space:]]*#' '$handlers_file' | grep -q 'ovos_sound_detect_sound_server'"
+    assert_failure
+}
+
 @test "uninstall_enables_package_removal_by_default" {
     run grep -q 'ovos_installer_uninstall_remove_packages: "{{ ovos_installer_is_cleaning | bool }}"' ansible/roles/ovos_installer/defaults/main.yml
     assert_success
