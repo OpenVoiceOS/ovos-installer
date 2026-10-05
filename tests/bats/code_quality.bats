@@ -4562,6 +4562,47 @@ function teardown() {
     done
 }
 
+@test "an_empty_port_or_site_id_does_not_reach_the_env_file" {
+    # default(x) only replaces an UNDEFINED value. The port and site id prompts come
+    # pre-filled, but a user who clears one leaves the variable defined and empty, and
+    # setup.sh passes it on that way - so the plain form writes VOICE_SAT_PORT= into
+    # .env. hivemind-voice-sat reads --port as an integer, so that empty value stopped
+    # the satellite container with a click error about an integer
+    # (JarbasHiveMind/hivemind-docker#75). default(x, true) is the form that falls back
+    # on an empty value too.
+    local env_file="ansible/roles/ovos_containers/templates/docker/env.j2"
+
+    run bash -c "grep -E '^VOICE_SAT_PORT=' '$env_file' | grep -q 'default(.*, *true)'"
+    assert_success
+
+    run bash -c "grep -E '^HIVEMIND_SITEID=' '$env_file' | grep -q 'default(.*, *true)'"
+    assert_success
+
+    # Rendered, because the point is the value that comes out and not the spelling.
+    if ! python3 -c 'import jinja2' 2>/dev/null; then
+        skip "jinja2 is not available"
+    fi
+    run python3 -c "
+import sys
+from jinja2 import Environment
+src = open('$env_file', encoding='utf-8').read()
+lines = [l for l in src.splitlines() if l.startswith(('VOICE_SAT_PORT=', 'HIVEMIND_SITEID='))]
+env = Environment()
+env.globals['env'] = lambda v: str(v)
+out = []
+for l in lines:
+    out.append(env.from_string(l).render(ovos_installer_listener_port='',
+                                         ovos_installer_site_id='',
+                                         ovos_containers_listener_port_default=5678,
+                                         ovos_containers_site_id_default='default'))
+print(' '.join(out))
+"
+    assert_success
+    assert_output --partial "VOICE_SAT_PORT=5678"
+    assert_output --partial "HIVEMIND_SITEID=default"
+    refute_output --partial "VOICE_SAT_PORT="$'\n'
+}
+
 @test "a_satellite_install_says_what_the_listener_still_has_to_allow" {
     # The grant lives in the listener's database, so a satellite install cannot make it -
     # this machine has neither that database nor the hivemind-core command. What it can
