@@ -2098,6 +2098,51 @@ function setup() {
     assert_failure
 }
 
+@test "the_installer_says_how_to_talk_to_ovos_without_a_microphone" {
+    # The package is ovos-tui-client and the command is ovos-tui, which nobody guesses.
+    # It is the first thing to reach for after an install - it answers whether OVOS is
+    # alive at all, separately from audio - and a user reported never finding it:
+    # "I never found how to invoke the text-only GUI ... I'm not certain it ever
+    # installed". So the installer says it, on the finish screen and in the play, since
+    # a scenario install never sees the screen.
+    #
+    # Rendered rather than grepped: what matters is the command a given install is told
+    # to run, and only where that command exists.
+    local method profile out
+    for method in virtualenv containers; do
+        for profile in ovos server satellite; do
+            run bash -c "export RUN_AS_HOME=/x METHOD=$method LOCALE=en-us PROFILE=$profile; \
+                source tui/finish.sh >/dev/null 2>&1 || true; \
+                printf '%s' \"\${OVOS_TEXT_CLIENT_COMMAND}\""
+            assert_success
+            out="$output"
+
+            # A satellite has no core and no ovos_cli container, so it has no ovos-tui.
+            if [ "$profile" = "satellite" ]; then
+                [ -z "$out" ]
+            elif [ "$method" = "containers" ] && [ "$profile" = "server" ]; then
+                # docker-compose.server.yml defines no ovos_cli either.
+                [ -z "$out" ]
+            elif [ "$method" = "containers" ]; then
+                [ "$out" = "docker exec -it ovos_cli ovos-tui" ]
+            else
+                [ "$out" = "ovos-tui" ]
+            fi
+        done
+    done
+
+    # The screen has to actually print it, not just compute it.
+    run grep -q 'OVOS_TEXT_CLIENT_HINT' tui/locales/en-us/finish.sh
+    assert_success
+
+    # And the play says it too, for the installs that never reach the screen.
+    run grep -q "ovos-tui" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_success
+
+    run bash -c "grep -A14 -F -- 'Say how to talk to OVOS from a terminal' ansible/roles/ovos_finalize/tasks/main.yml | grep -q \"ovos_installer_profile != 'satellite'\""
+    assert_success
+}
+
 @test "uninstall_enables_package_removal_by_default" {
     run grep -q 'ovos_installer_uninstall_remove_packages: "{{ ovos_installer_is_cleaning | bool }}"' ansible/roles/ovos_installer/defaults/main.yml
     assert_success

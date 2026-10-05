@@ -11,6 +11,29 @@
     msg: The "mycroft.conf" configuration file has been restored, existing file has been backup.
   when: _drift | bool
 
+# The command nobody guesses: the package is ovos-tui-client, the command is ovos-tui.
+# It answers the question people have right after an install - is OVOS alive, or is my
+# audio broken - without a microphone, and it names the skill that replied. Printed from
+# the play as well as the finish screen because a scenario install never sees that
+# screen.
+#
+# Only where it exists: the virtualenv method installs it with the core and server
+# requirements (so every profile but a satellite), and the containers method has it in
+# the ovos_cli container, which only the desktop compositions define.
+- name: Say how to talk to OVOS from a terminal
+  vars:
+    _ovos_text_client_command: >-
+      {{ 'docker exec -it ' ~ (ovos_containers_container_ovos_cli | default('ovos_cli')) ~ ' ovos-tui'
+         if ovos_installer_method == 'containers' else 'ovos-tui' }}
+  ansible.builtin.debug:
+    msg:
+      - "To talk to it without a microphone, and to see which skill answered:"
+      - ""
+      - "  {{ _ovos_text_client_command }}"
+  when:
+    - ovos_installer_profile != 'satellite'
+    - ovos_installer_method != 'containers' or (ovos_installer_is_desktop_profile | default(false) | bool)
+
 # A satellite cannot grant itself the right to be heard. hivemind-core refuses a client
 # every message type until one is allowed explicitly, and recognizer_loop:utterance is no
 # longer granted by default - so a satellite connects, authenticates, and then has

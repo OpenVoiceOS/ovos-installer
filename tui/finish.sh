@@ -29,6 +29,33 @@ Check them with:
   ${OVOS_SERVICE_STATUS_COMMAND}
 "
 fi
+# Nobody finds this on their own: the package is ovos-tui-client and the command is
+# ovos-tui. It talks to the same bus the microphone does, so it answers the question
+# people actually have after an install - is OVOS alive, or is this an audio problem -
+# and it needs no microphone to do it. A user on Ubuntu Studio put it plainly: "I never
+# found how to invoke the text-only GUI ... I'm not certain it ever installed".
+#
+# Only where the command exists. The virtualenv method installs it with the core and
+# server requirements, so every profile but a satellite has it; the containers method
+# has it in the ovos_cli container, which only the desktop compositions define.
+OVOS_TEXT_CLIENT_COMMAND=""
+if [[ "$METHOD" == "containers" ]]; then
+    if [[ "${PROFILE:-ovos}" != "satellite" ]] && [[ "${PROFILE:-ovos}" != "server" ]]; then
+        OVOS_TEXT_CLIENT_COMMAND="docker exec -it ovos_cli ovos-tui"
+    fi
+elif [[ "${PROFILE:-ovos}" != "satellite" ]]; then
+    OVOS_TEXT_CLIENT_COMMAND="ovos-tui"
+fi
+OVOS_TEXT_CLIENT_HINT=""
+if [[ -n "$OVOS_TEXT_CLIENT_COMMAND" ]]; then
+    OVOS_TEXT_CLIENT_HINT="
+To talk to it without a microphone, and to see which skill answered:
+
+  ${OVOS_TEXT_CLIENT_COMMAND}
+"
+fi
+export OVOS_TEXT_CLIENT_COMMAND OVOS_TEXT_CLIENT_HINT
+
 # A satellite cannot grant itself the right to be heard. hivemind-core refuses a
 # client every message type until one is allowed explicitly, and
 # recognizer_loop:utterance is no longer granted by default - so a satellite
