@@ -1925,8 +1925,9 @@ function setup() {
 }
 
 @test "alpha_installs_let_uv_resolve_pre_releases" {
-    # constraints-alpha.txt pins pre-releases almost everywhere, and uv does not enable
-    # pre-releases because a constraints file names one - only --prerelease=allow does.
+    # constraints-alpha.txt pins pre-releases almost everywhere, and uv needs to be told
+    # to consider them (from uv 0.12, --prerelease=if-necessary is enough: it honours
+    # the pre-release specifiers reaching it through the constraints file).
     # This was gated on Python 3.13+ alone, so an alpha install on the default 3.11 died
     # in the resolver ("No solution found", hinting at --prerelease=allow) before it
     # finished. Asserted by evaluating the decision, not by grepping for the channel:
@@ -1976,7 +1977,26 @@ YAML
     done
 
     # And the flag has to reach the install command, not just the variable.
+    run grep -q -- "--prerelease=if-necessary" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    # Never "allow": that lets uv take a pre-release of ANY package, and it did - an
+    # alpha install pulled httpx 1.0.dev6, which huggingface_hub cannot import, and the
+    # device answered nothing.
     run grep -q -- "--prerelease=allow" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_failure
+
+    # if-necessary only behaves that way from uv 0.12; on 0.11 the same command cannot
+    # resolve the channel at all. So the installer has to make sure it has that uv, and
+    # checking that it is merely present is not enough - a reused installer virtualenv
+    # keeps the uv it was built with.
+    run grep -q 'uv_minimum_version="${UV_MINIMUM_VERSION:-0.12.0}"' utils/common.sh
+    assert_success
+
+    run grep -q 'pip3 install "uv>=0.4.10"' utils/common.sh
+    assert_failure
+
+    run bash -c "grep -A12 -F -- 'uv_minimum_version=' utils/common.sh | grep -q -- 'sort -V'"
     assert_success
 
     rm -f "$gate_playbook"
@@ -3218,10 +3238,12 @@ function anchors_of() {
 }
 
 @test "create_python_venv_bootstrap_installs_are_cache_aware" {
-    run grep -F -q 'run_with_errexit_guard pip3 install "uv>=0.4.10"' utils/common.sh
+    # Both variants still exist; the floor moved into uv_minimum_version because the
+    # alpha channel needs uv 0.12 (see alpha_installs_let_uv_resolve_pre_releases).
+    run grep -F -q 'run_with_errexit_guard pip3 install "uv>=${uv_minimum_version}"' utils/common.sh
     assert_success
 
-    run grep -F -q 'run_with_errexit_guard pip3 install --no-cache-dir "uv>=0.4.10"' utils/common.sh
+    run grep -F -q 'run_with_errexit_guard pip3 install --no-cache-dir "uv>=${uv_minimum_version}"' utils/common.sh
     assert_success
 
     run grep -F -q '$PIP_COMMAND install --upgrade pip setuptools' utils/common.sh
