@@ -40,6 +40,12 @@ ovos_audio_tuning_pipewire_ns_source_description: "OVOS Noise Suppressed Source"
 ovos_audio_tuning_pipewire_ns_sink_name: echo-cancel-sink
 ovos_audio_tuning_pipewire_ns_sink_description: "OVOS Noise Suppressed Sink"
 ovos_audio_tuning_wireplumber_conf_dir: "{{ ovos_audio_tuning_user_home }}/.config/wireplumber/wireplumber.conf.d"
+# Enough of the user's session to talk to their systemd instance from the cleanup
+# handlers, without depending on ovos_services having been loaded.
+ovos_audio_tuning_user_runtime_dir: "{{ ovos_services_user_runtime_dir | default('/run/user/' + (ovos_installer_uid | string)) }}"
+ovos_audio_tuning_user_bus_environment:
+  XDG_RUNTIME_DIR: "{{ ovos_audio_tuning_user_runtime_dir }}"
+  DBUS_SESSION_BUS_ADDRESS: "unix:path={{ ovos_audio_tuning_user_runtime_dir }}/bus"
 ovos_audio_tuning_wireplumber_idle_conf: 99-disable-idle.conf
 ovos_audio_tuning_wireplumber_capture_volume_conf: 99-ovos-capture-volume.conf
 ovos_audio_tuning_wireplumber_idle_output_match: "~alsa_output.*"

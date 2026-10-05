@@ -45,6 +45,27 @@
       (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_tuning | bool) or
       (ovos_installer_raspberrypi | default('N/A') != "N/A" and ovos_installer_is_cleaning | bool)
 
+# The audio tuning writes PipeWire filter-chains into the user's own config
+# (~/.config/pipewire/pipewire.conf.d), and those show up as devices: "OVOS Noise
+# Suppressed Source" and "OVOS Noise Suppressed Sink". Its cleanup sits inside
+# tuning.yml above, behind the same Raspberry Pi condition as the install, so a
+# machine that has those files but is not a Pi can never be cleaned by the
+# uninstaller - the user is left deleting PipeWire drop-ins by hand to get their
+# sound back. Removing files that were never written is a no-op, so run the
+# cleanup wherever an uninstall runs. Only this role: the other tuning roles edit
+# the Pi boot config and Pi kernel modules.
+- name: Include ovos_audio_tuning role to clean non-Raspberry Pi hosts
+  ansible.builtin.import_role:
+    name: ovos_audio_tuning
+  when:
+    - ansible_facts.system == 'Linux'
+    - ovos_installer_is_cleaning | bool
+    - ovos_installer_raspberrypi | default('N/A') == "N/A"
+  tags:
+    - tuning
+    - ovos_audio_tuning
+    - uninstall
+
 - name: Include ovos_sound role
   ansible.builtin.import_role:
     name: ovos_sound
