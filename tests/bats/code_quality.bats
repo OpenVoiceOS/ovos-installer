@@ -934,6 +934,50 @@ function setup() {
     assert_failure
 }
 
+@test "the_virtualenv_remembers_the_channel_it_was_installed_from" {
+    # The activate script exports PIP_CONSTRAINT, which only helps somebody who
+    # activated first. ~/.venvs/ovos/bin/pip from a plain shell gets nothing, and a
+    # bare "pip install <skill>" then resolves against PyPI alone: the newest release
+    # of a skill is often an older one that caps ovos-workshop below what this install
+    # runs, pip downgrades it under a running ovos-core, and ovos-core stops importing.
+    #
+    # pip reads <venv>/pip.conf on every invocation of that pip, activated or not, so
+    # the channel is remembered instead of retyped.
+    local tpl="ansible/roles/ovos_virtualenv/templates/pip.conf.j2"
+    [ -f "$tpl" ]
+
+    run grep -q "ovos_virtualenv_constraints_url" "$tpl"
+    assert_success
+
+    # It has to land inside the virtualenv, which is the path pip consults.
+    run bash -c "grep -F -- 'ovos_virtualenv_pip_conf_path:' ansible/roles/ovos_virtualenv/defaults/main.yml | grep -q 'ovos_virtualenv_path'"
+    assert_success
+
+    run bash -c "grep -F -- 'ovos_virtualenv_pip_conf_path:' ansible/roles/ovos_virtualenv/defaults/main.yml | grep -q 'pip.conf'"
+    assert_success
+
+    run grep -q "ovos_virtualenv_pip_conf_path" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    # Rendered and parsed the way pip parses it: an INI file whose global.constraint is
+    # this installation's channel file.
+    if ! python3 -c 'import jinja2' 2>/dev/null; then
+        skip "jinja2 is not available"
+    fi
+    run python3 -c "
+import configparser, io
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('ansible/roles/ovos_virtualenv/templates'), keep_trailing_newline=True)
+out = env.get_template('pip.conf.j2').render(
+    ovos_virtualenv_constraints_url='https://example.invalid/constraints-alpha.txt')
+cfg = configparser.ConfigParser()
+cfg.read_string(out)
+print('constraint=' + cfg['global']['constraint'])
+"
+    assert_success
+    assert_output --partial "constraint=https://example.invalid/constraints-alpha.txt"
+}
+
 @test "virtualenv_ensures_python_command_shim_exists" {
     run grep -q "Resolve OVOS venv base interpreter with uv" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success

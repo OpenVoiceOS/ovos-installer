@@ -1,0 +1,13 @@
+# Managed by ovos-installer. Local edits may be overwritten.
+#
+# pip reads this file for every invocation of this virtualenv's pip, whether or not
+# the environment was activated - so a skill installed by hand resolves against the
+# channel this box was installed from, the same as the installer does.
+#
+# Without it, "pip install <skill>" resolves against PyPI alone, and the newest
+# release of a skill is often an older one that caps ovos-workshop or
+# ovos-bus-client below what this install runs. pip downgrades them underneath a
+# running ovos-core, which then stops importing and is reported as a crash with no
+# obvious cause.
+[global]
+constraint = {{ ovos_virtualenv_constraints_url }}

@@ -80,6 +80,8 @@ ovos_virtualenv_padatious_cache_backup_dir: "{{ ovos_virtualenv_padatious_cache_
 ovos_virtualenv_padatious_cache_force_sync: "{{ ovos_installer_padatious_cache_force_sync | default(false) }}"
 ovos_virtualenv_messagebus_path: "{{ ovos_installer_user_home }}/.local/bin/ovos-messagebus"
 ovos_virtualenv_swig_shim_path: "{{ ovos_installer_user_home }}/.local/bin/swig2.0"
+# Read by this virtualenv's pip on every invocation, activated or not.
+ovos_virtualenv_pip_conf_path: "{{ ovos_virtualenv_path }}/pip.conf"
 ovos_virtualenv_rust_messagebus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
 ovos_virtualenv_rust_messagebus_version: v2.1.1
 ovos_virtualenv_rust_messagebus_target_arch: >-

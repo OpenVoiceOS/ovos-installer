@@ -300,6 +300,19 @@
   environment: "{{ ovos_virtualenv_uv_environment }}"
   when: not (ovos_virtualenv_is_cleaning | bool)
 
+# The activate script exports PIP_CONSTRAINT and UV_CONSTRAINT, which only helps
+# somebody who activated first. This file is read by this virtualenv's pip however
+# it is called - ~/.venvs/ovos/bin/pip from any shell included - so the channel is
+# remembered rather than retyped.
+- name: Teach the virtualenv's pip which channel this install came from
+  ansible.builtin.template:
+    src: pip.conf.j2
+    dest: "{{ ovos_virtualenv_pip_conf_path }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
 - name: Check ovos virtualenv activate script exists
   ansible.builtin.stat:
     path: "{{ ovos_virtualenv_path }}/bin/activate"
