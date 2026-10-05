@@ -313,6 +313,15 @@
     mode: "0644"
   when: not (ovos_virtualenv_is_cleaning | bool)
 
+- name: Teach the virtualenv's uv how this install resolves
+  ansible.builtin.template:
+    src: uv.toml.j2
+    dest: "{{ ovos_virtualenv_uv_conf_path }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
 - name: Check ovos virtualenv activate script exists
   ansible.builtin.stat:
     path: "{{ ovos_virtualenv_path }}/bin/activate"
@@ -336,6 +345,11 @@
     - line: "export UV_CONSTRAINT=\"{{ _ovos_release }}\""
       regexp: "^export UV_CONSTRAINT="
       insertafter: "^export PIP_CONSTRAINT="
+    # uv discovers no configuration of its own next to a virtualenv, so point it at
+    # the one written beside pip.conf.
+    - line: "export UV_CONFIG_FILE=\"{{ ovos_virtualenv_uv_conf_path }}\""
+      regexp: "^export UV_CONFIG_FILE="
+      insertafter: "^export UV_CONSTRAINT="
   loop_control:
     label: "{{ item.regexp }}"
   when: ovos_virtualenv_activate_script.stat.exists | default(false)

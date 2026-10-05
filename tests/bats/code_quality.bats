@@ -976,6 +976,39 @@ print('constraint=' + cfg['global']['constraint'])
 "
     assert_success
     assert_output --partial "constraint=https://example.invalid/constraints-alpha.txt"
+
+    # uv cannot be given the same treatment: its [pip] table has no constraint key, so
+    # the constraints file reaches uv through UV_CONSTRAINT in the activate script.
+    # What uv.toml can pin is the resolution strategy, so an "uv pip install" in this
+    # virtualenv behaves the way the installer's own installs do rather than following
+    # whatever uv's default becomes. uv finds no configuration beside a virtualenv on
+    # its own, hence UV_CONFIG_FILE.
+    local uv_tpl="ansible/roles/ovos_virtualenv/templates/uv.toml.j2"
+    [ -f "$uv_tpl" ]
+
+    run grep -q 'prerelease = "if-necessary"' "$uv_tpl"
+    assert_success
+
+    run grep -q "constraint" "$uv_tpl"
+    assert_success          # only in the comment explaining why it cannot be here
+
+    run bash -c "grep -A4 -F -- 'export UV_CONFIG_FILE=' ansible/roles/ovos_virtualenv/tasks/venv.yml | grep -q 'ovos_virtualenv_uv_conf_path'"
+    assert_success
+
+    run bash -c "grep -q 'export UV_CONSTRAINT=' ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    assert_success
+
+    # And it has to be valid TOML that uv accepts, not just text.
+    run python3 -c "
+import tomllib
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('ansible/roles/ovos_virtualenv/templates'), keep_trailing_newline=True)
+data = tomllib.loads(env.get_template('uv.toml.j2').render())
+assert data['pip']['prerelease'] in ('disallow', 'allow', 'if-necessary', 'explicit'), data
+print('prerelease=' + data['pip']['prerelease'])
+"
+    assert_success
+    assert_output --partial "prerelease=if-necessary"
 }
 
 @test "virtualenv_ensures_python_command_shim_exists" {
