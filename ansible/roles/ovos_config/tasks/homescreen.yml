@@ -16,21 +16,46 @@
   changed_when: false
   when: ovos_config_homescreen_skill_id | default('') | length > 0
 
+# mycroft.conf is JSON with comments as far as OVOS is concerned, and people do
+# edit it by hand - the workaround for this very bug was an edit to this file. A
+# file this cannot parse is not a reason to end the install: say so and leave it
+# alone, which costs the user one line of config rather than their installation.
+- name: Parse mycroft.conf
+  when:
+    - ovos_config_homescreen_skill_id | default('') | length > 0
+    - ovos_config_homescreen_conf.content is defined
+  block:
+    - name: Read the current configuration
+      ansible.builtin.set_fact:
+        ovos_config_homescreen_current: "{{ ovos_config_homescreen_conf.content | b64decode | from_json }}"
+        ovos_config_homescreen_readable: true
+      changed_when: false
+  rescue:
+    - name: Note that mycroft.conf could not be read as JSON
+      ansible.builtin.set_fact:
+        ovos_config_homescreen_readable: false
+      changed_when: false
+
+    - name: Report the homescreen skill id that has to be set by hand
+      ansible.builtin.debug:
+        msg: >-
+          {{ ovos_config_mycroft_conf_path }} is not plain JSON, so the installed
+          homescreen skill id was not written. Set "idle_display_skill":
+          "{{ ovos_config_homescreen_skill_id }}" under "gui" by hand, or the screen
+          stays on the boot logo.
+
 - name: Write the homescreen skill id the installed skill registers
   vars:
-    _conf: >-
-      {{ (ovos_config_homescreen_conf.content | default('') | b64decode | from_json)
-         if (ovos_config_homescreen_conf.content is defined) else {} }}
+    _conf: "{{ ovos_config_homescreen_current | default({}, true) }}"
+    _gui: "{{ (_conf.gui | default({}, true)) if (_conf.gui | default({}, true)) is mapping else {} }}"
   ansible.builtin.copy:
-    content: >-
-      {{ _conf | combine({'gui': (_conf.gui | default({}))
-         | combine({'idle_display_skill': ovos_config_homescreen_skill_id})}, recursive=true)
-         | to_nice_json }}
+    content: "{{ _conf | combine({'gui': _gui | combine({'idle_display_skill': ovos_config_homescreen_skill_id})}, recursive=true) | to_nice_json }}\n"
     dest: "{{ ovos_config_mycroft_conf_path }}"
     owner: "{{ ovos_config_mycroft_conf_owner }}"
     group: "{{ ovos_config_mycroft_conf_group }}"
     mode: "{{ ovos_config_mycroft_conf_mode }}"
   when:
     - ovos_config_homescreen_skill_id | default('') | length > 0
-    - ovos_config_homescreen_conf.content is defined
-    - (_conf.gui | default({})).idle_display_skill | default('') != ovos_config_homescreen_skill_id
+    - ovos_config_homescreen_readable | default(false) | bool
+    - _conf is mapping
+    - (_gui.idle_display_skill | default('')) != ovos_config_homescreen_skill_id

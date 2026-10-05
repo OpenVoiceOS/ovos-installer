@@ -282,6 +282,15 @@ function setup() {
     # id on every re-run and wait for the post-install step to put it back.
     run grep -q "Keep the homescreen skill id this host already resolved" ansible/roles/ovos_config/tasks/install.yml
     assert_success
+
+    # mycroft.conf is JSON-with-comments as far as OVOS is concerned and people edit
+    # it by hand - the published workaround for this very bug was an edit to this
+    # file. A file that will not parse must not end the install.
+    run grep -q "rescue:" "$homescreen_file"
+    assert_success
+
+    run grep -q "ovos_config_homescreen_readable" "$homescreen_file"
+    assert_success
 }
 
 @test "mycroft_conf_gives_every_profile_the_chosen_locale" {
