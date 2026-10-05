@@ -2212,6 +2212,41 @@ function setup() {
     assert_success
 }
 
+@test "a_virtualenv_whose_packages_disagree_does_not_pass_silently" {
+    # Each requirements file is installed in its own resolve with --upgrade, so only
+    # that file's requirements are in view and a later file can move a package an
+    # earlier one capped (#641). That is how a Mark II ended up with httpx 1.0.dev6
+    # against huggingface_hub's httpx<1: the install reported success and the device
+    # answered nothing. This does not prevent it, it ends the silence.
+    local file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+
+    run grep -q "uv pip check --python" "$file"
+    assert_success
+
+    # Not fatal: the channels carry upstream combinations the installer does not
+    # control, and refusing to finish an otherwise working install over one of those
+    # would be worse than saying so.
+    run bash -c "grep -A10 -F -- 'Check the virtualenv for packages that disagree' '$file' | grep -q 'failed_when: false'"
+    assert_success
+
+    # uv writes the findings to stderr and leaves stdout empty, so reading stdout would
+    # print a warning with nothing in it.
+    run bash -c "grep -A14 -F -- 'Report the packages that disagree' '$file' | grep -q 'stderr_lines'"
+    assert_success
+
+    run bash -c "grep -A14 -F -- 'Report the packages that disagree' '$file' | grep -q 'stdout_lines'"
+    assert_failure
+
+    # And a non-zero exit that reports no incompatibility - uv failing for some other
+    # reason - must not print a warning about packages disagreeing.
+    run bash -c "grep -A16 -F -- 'Report the packages that disagree' '$file' | grep -q '_disagreements | length > 0'"
+    assert_success
+
+    # Never while uninstalling: the virtualenv is on its way out.
+    run bash -c "grep -A12 -F -- 'Check the virtualenv for packages that disagree' '$file' | grep -q 'ovos_virtualenv_is_cleaning'"
+    assert_success
+}
+
 @test "alpha_installs_let_uv_resolve_pre_releases" {
     # constraints-alpha.txt pins pre-releases almost everywhere, and uv needs to be told
     # to consider them (from uv 0.12, --prerelease=if-necessary is enough: it honours
