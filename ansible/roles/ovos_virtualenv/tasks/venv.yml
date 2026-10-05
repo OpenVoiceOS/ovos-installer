@@ -304,6 +304,18 @@
 # somebody who activated first. This file is read by this virtualenv's pip however
 # it is called - ~/.venvs/ovos/bin/pip from any shell included - so the channel is
 # remembered rather than retyped.
+- name: Keep the channel's constraints inside the virtualenv
+  ansible.builtin.copy:
+    src: "{{ ovos_virtualenv_constraints_path }}"
+    dest: "{{ ovos_virtualenv_constraints_local_path }}"
+    remote_src: true
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - ovos_virtualenv_constraints_file.stat.exists | default(false)
+
 - name: Teach the virtualenv's pip which channel this install came from
   ansible.builtin.template:
     src: pip.conf.j2
@@ -329,7 +341,9 @@
 
 - name: Add OVOS constraints to venv activation
   vars:
-    _ovos_release: "{{ ovos_virtualenv_constraints_url }}"
+    # The local copy, for the same reason pip.conf uses it: nothing has to be
+    # reachable for an install in this environment to resolve.
+    _ovos_release: "{{ ovos_virtualenv_constraints_local_path }}"
   ansible.builtin.lineinfile:
     path: "{{ ovos_virtualenv_path }}/bin/activate"
     line: "{{ item.line }}"

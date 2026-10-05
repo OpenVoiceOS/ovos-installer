@@ -946,7 +946,25 @@ function setup() {
     local tpl="ansible/roles/ovos_virtualenv/templates/pip.conf.j2"
     [ -f "$tpl" ]
 
+    # It points at the copy inside the virtualenv, not at the URL. A constraint pip
+    # cannot fetch fails every install in the environment, including ones that need no
+    # constraint at all, so an offline box or a GitHub outage would otherwise take
+    # "pip install" with it.
+    run grep -q "ovos_virtualenv_constraints_local_path" "$tpl"
+    assert_success
+
     run grep -q "ovos_virtualenv_constraints_url" "$tpl"
+    assert_failure
+
+    run bash -c "grep -F -- 'ovos_virtualenv_constraints_local_path:' ansible/roles/ovos_virtualenv/defaults/main.yml | grep -q 'ovos_virtualenv_path'"
+    assert_success
+
+    # The activate script uses the same copy, so an activated shell and a bare
+    # <venv>/bin/pip resolve against the same file rather than two sources.
+    run bash -c "grep -A4 -F -- '_ovos_release:' ansible/roles/ovos_virtualenv/tasks/venv.yml | grep -q 'ovos_virtualenv_constraints_local_path'"
+    assert_success
+
+    run grep -q "Keep the channel's constraints inside the virtualenv" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success
 
     # It has to land inside the virtualenv, which is the path pip consults.
@@ -969,13 +987,13 @@ import configparser, io
 from jinja2 import Environment, FileSystemLoader
 env = Environment(loader=FileSystemLoader('ansible/roles/ovos_virtualenv/templates'), keep_trailing_newline=True)
 out = env.get_template('pip.conf.j2').render(
-    ovos_virtualenv_constraints_url='https://example.invalid/constraints-alpha.txt')
+    ovos_virtualenv_constraints_local_path='/opt/venv/constraints.txt')
 cfg = configparser.ConfigParser()
 cfg.read_string(out)
 print('constraint=' + cfg['global']['constraint'])
 "
     assert_success
-    assert_output --partial "constraint=https://example.invalid/constraints-alpha.txt"
+    assert_output --partial "constraint=/opt/venv/constraints.txt"
 
     # uv cannot be given the same treatment: its [pip] table has no constraint key, so
     # the constraints file reaches uv through UV_CONSTRAINT in the activate script.
