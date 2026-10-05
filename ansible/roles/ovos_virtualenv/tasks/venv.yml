@@ -396,8 +396,12 @@
       - "{{ ovos_config_homescreen_probe }}"
   register: ovos_virtualenv_homescreen_skill
   changed_when: false
-  failed_when: false
-  when: ovos_installer_feature_gui | default(false) | bool
+  # No failed_when here on purpose. The probe prints an empty line when the skill is
+  # not installed, so a non-zero exit means the venv's own Python did not run - and
+  # swallowing that would leave the previous id in mycroft.conf with nothing said.
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - ovos_installer_feature_gui | default(false) | bool
 
 - name: Configure the homescreen skill that is installed
   ansible.builtin.include_role:
@@ -405,7 +409,9 @@
     tasks_from: homescreen.yml
   vars:
     ovos_config_homescreen_skill_id: "{{ ovos_virtualenv_homescreen_skill.stdout | default('') | trim }}"
-  when: ovos_installer_feature_gui | default(false) | bool
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - ovos_installer_feature_gui | default(false) | bool
 
 - name: Merge ovos-config language recommendations into mycroft.conf
   become: true

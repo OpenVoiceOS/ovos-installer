@@ -291,6 +291,26 @@ function setup() {
 
     run grep -q "ovos_config_homescreen_readable" "$homescreen_file"
     assert_success
+
+    # Same trap on the read-back in the config role: from_json runs while the vars are
+    # templated, before the action, so failed_when cannot catch it there either.
+    local config_install="ansible/roles/ovos_config/tasks/install.yml"
+    run bash -c "awk '/Keep the homescreen skill id this host already resolved/,/Generate mycroft.conf/' '$config_install' | grep -q 'rescue:'"
+    assert_success
+
+    run bash -c "awk '/Keep the homescreen skill id this host already resolved/,/Generate mycroft.conf/' '$config_install' | grep -q 'failed_when: false'"
+    assert_failure
+
+    # ovos_virtualenv is imported for uninstalls too, so neither the probe nor the
+    # patch may run while cleaning - the venv is on its way out.
+    local venv_file="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    run bash -c "awk '/Resolve the installed homescreen skill id/,/Merge ovos-config language/' '$venv_file' | grep -c 'ovos_virtualenv_is_cleaning' | grep -q '^2$'"
+    assert_success
+
+    # And a probe that cannot run must not pass for "no skill installed": the probe
+    # prints an empty line in that case, so a non-zero exit means something else.
+    run bash -c "awk '/Resolve the installed homescreen skill id/,/Configure the homescreen skill/' '$venv_file' | grep -q 'failed_when: false'"
+    assert_failure
 }
 
 @test "mycroft_conf_gives_every_profile_the_chosen_locale" {

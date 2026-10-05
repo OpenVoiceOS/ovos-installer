@@ -81,16 +81,27 @@
   failed_when: false
   changed_when: false
 
+# from_json runs while Ansible templates the vars, before the action does anything,
+# so failed_when cannot catch it: a mycroft.conf carrying comments (OVOS reads those
+# happily, and people edit this file by hand) would end the install here, before the
+# template below ever runs. Keep what we can read, and carry on with the default
+# when we cannot.
 - name: Keep the homescreen skill id this host already resolved
-  vars:
-    _existing: >-
-      {{ (ovos_config_existing_conf.content | default('') | b64decode | from_json)
-         if (ovos_config_existing_conf.content is defined) else {} }}
-  ansible.builtin.set_fact:
-    ovos_config_idle_display_skill: >-
-      {{ (_existing.gui | default({})).idle_display_skill | default('') }}
-  failed_when: false
-  changed_when: false
+  when: ovos_config_existing_conf.content is defined
+  block:
+    - name: Read the homescreen skill id out of the current configuration
+      vars:
+        _existing: "{{ ovos_config_existing_conf.content | b64decode | from_json }}"
+      ansible.builtin.set_fact:
+        ovos_config_idle_display_skill: >-
+          {{ (_existing.gui | default({}, true)).idle_display_skill | default('')
+             if (_existing.gui | default({}, true)) is mapping else '' }}
+      changed_when: false
+  rescue:
+    - name: Keep the default when the current configuration cannot be read
+      ansible.builtin.set_fact:
+        ovos_config_idle_display_skill: ""
+      changed_when: false
 
 - name: Generate mycroft.conf
   ansible.builtin.template:
