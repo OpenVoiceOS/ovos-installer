@@ -730,8 +730,21 @@ function setup() {
     run grep -q "ovos_installer_linger_state_dir: /var/lib/ovos-installer" ansible/roles/ovos_installer/defaults/main.yml
     assert_success
 
-    run bash -c "grep -A4 -F -- 'ovos_services_linger_marker_path' ansible/roles/ovos_services/defaults/main.yml | grep -q -- '/var/lib/ovos-installer'"
+    # Per user, like lingering itself: one marker for two accounts would let an
+    # install for one of them answer for the other, and that uninstall would disable
+    # lingering it never enabled.
+    run bash -c "grep -F -- 'ovos_installer_linger_marker_path:' ansible/roles/ovos_installer/defaults/main.yml | grep -q -- '{{ ovos_installer_user }}'"
     assert_success
+
+    # One definition of the linger path - systemd owns the layout and every role
+    # resolves it from the same place, so a claim cannot inspect a different file
+    # from the one that was touched.
+    local path_file
+    for path_file in ansible/roles/ovos_sound/defaults/main.yml \
+                     ansible/roles/ovos_services/defaults/main.yml; do
+        run bash -c "grep -E '_linger_(path|marker_path):' '$path_file' | grep -vq 'var/lib'"
+        assert_success
+    done
 
     # And the uninstall only switches it off against that marker.
     local uninstall_file="ansible/roles/ovos_services/tasks/uninstall.yml"

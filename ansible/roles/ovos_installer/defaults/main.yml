@@ -6,12 +6,19 @@ ovos_installer_i2c_devices: []
 ovos_installer_systemd_system_path: /etc/systemd/system
 ovos_installer_systemd_user_path: "{{ ovos_installer_user_home }}/.config/systemd/user"
 ovos_installer_package_tracking_dir: "{{ ovos_installer_user_home }}/.cache/ovos-installer/package-tracking"
+# systemd owns this layout and does not make it configurable, so there is one
+# definition of it and every role resolves it from here. Two knobs for one path is
+# how the claim ends up inspecting a different file from the one that was touched.
 ovos_installer_linger_path: "/var/lib/systemd/linger/{{ ovos_installer_user }}"
 # Root-only, outside the user's home: this records a machine-wide setting, it must
 # not be forgeable by the account it is about, and ~/.cache/ovos-installer is wiped
 # by the uninstall's own remove-directories step.
 ovos_installer_linger_state_dir: /var/lib/ovos-installer
-ovos_installer_linger_marker_path: "{{ ovos_installer_linger_state_dir }}/linger.json"
+# Per user, like lingering itself. A single marker would let an install for one
+# account answer for another: the second install declines the claim because the
+# marker exists, and its uninstall then disables lingering it never enabled and
+# deletes the first account's marker on the way out.
+ovos_installer_linger_marker_path: "{{ ovos_installer_linger_state_dir }}/linger/{{ ovos_installer_user }}.json"
 ovos_installer_linger_disable_cmd: "loginctl disable-linger {{ ovos_installer_user }}"
 ovos_installer_pip_config_file: ""
 ovos_installer_tmp_dir: "{{ _ovos_installer_working_directory }}"
