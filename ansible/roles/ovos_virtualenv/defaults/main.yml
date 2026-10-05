@@ -32,6 +32,11 @@ ovos_virtualenv_uv_cache_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv
 ovos_virtualenv_uv_exec_path: "{{ ovos_installer_user_home }}/.local/bin:{{ ovos_virtualenv_installer_venv_path }}/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ovos_virtualenv_uv_install_retries: "{{ ovos_installer_uv_install_retries | default(3) }}"
 ovos_virtualenv_uv_install_delay: "{{ ovos_installer_uv_install_delay | default(2) }}"
+ovos_virtualenv_pip_check_warning:
+  - "Some installed packages disagree about their dependencies."
+  - "OVOS may still start: a package that cannot import the version it was given is how"
+  - "a skill or a pipeline goes missing with nothing in the log to say why."
+  - ""
 ovos_virtualenv_aur_install_retries: "{{ ovos_installer_aur_install_retries | default(3) }}"
 ovos_virtualenv_aur_install_delay: "{{ ovos_installer_aur_install_delay | default(5) }}"
 ovos_virtualenv_uv_environment: >-
