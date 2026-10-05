@@ -4535,6 +4535,36 @@ function teardown() {
     assert_success
 }
 
+@test "reading_the_hivemind_clients_does_not_race_the_listener" {
+    # hivemind-core writes its server config through json_database, which creates the
+    # directory as "if not isdir(d): makedirs(d)". The listener service starts at the
+    # same time and writes the same config, so the two race and the loser gets
+    # FileExistsError out of makedirs. That killed a macOS alpha/server install in CI,
+    # and the task is deliberately fatal, so it would kill a real one too.
+    local file="ansible/roles/ovos_services/tasks/hivemind-permissions.yml"
+    local defaults="ansible/roles/ovos_services/defaults/main.yml"
+
+    # The directory is created before the CLI is ever called, so neither side has to.
+    local dir_line cli_line
+    dir_line="$(grep -n 'Ensure the HiveMind configuration directory exists' "$file" | cut -d: -f1)"
+    cli_line="$(grep -n 'Read the HiveMind clients from the hub database' "$file" | cut -d: -f1)"
+    [ -n "$dir_line" ]
+    [ -n "$cli_line" ]
+    [ "$dir_line" -lt "$cli_line" ]
+
+    run grep -q 'ovos_services_hivemind_config_dir' "$defaults"
+    assert_success
+
+    # And the read retries, for what a service starting underneath it can still do.
+    run bash -c "grep -A14 -F -- 'Read the HiveMind clients from the hub database' '$file' | grep -q 'until: ovos_services_hivemind_clients is success'"
+    assert_success
+
+    # It stays fatal: a silent failure here grants nothing and reports success, which
+    # is the thing this whole file exists to prevent.
+    run bash -c "grep -A14 -F -- 'Read the HiveMind clients from the hub database' '$file' | grep -q 'failed_when: false'"
+    assert_failure
+}
+
 @test "a_hub_grants_satellites_permission_to_send_utterances" {
     local tasks="ansible/roles/ovos_services/tasks/hivemind-permissions.yml"
 

@@ -42,6 +42,11 @@ ovos_services_disable_linger_cmd: "{{ ovos_installer_linger_disable_cmd | defaul
 # from the single ovos_installer definition so they cannot drift apart.
 ovos_services_linger_marker_path: "{{ ovos_installer_linger_marker_path }}"
 ovos_services_linger_path: "{{ ovos_installer_linger_path }}"
+# Where hivemind-core keeps its server config. Created before the CLI is called so
+# the CLI never has to create it - see hivemind-permissions.yml.
+ovos_services_hivemind_config_dir: "{{ ovos_installer_user_home }}/.config/hivemind-core"
+ovos_services_hivemind_read_retries: 3
+ovos_services_hivemind_read_delay: 2
 ovos_services_user_bus_environment:
   XDG_RUNTIME_DIR: "{{ ovos_services_user_runtime_dir }}"
   DBUS_SESSION_BUS_ADDRESS: "unix:path={{ ovos_services_user_runtime_dir }}/bus"

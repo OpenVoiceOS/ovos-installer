@@ -9,6 +9,21 @@
 # it - a satellite install has neither the hivemind-core CLI nor the database.
 # This runs where both exist, and repairs clients added since the last run.
 
+# hivemind-core writes its server config on first use, through json_database, which
+# creates the directory as "if not isdir(d): makedirs(d)". The listener service is
+# starting at the same time and writes the same config, so the two race and whichever
+# loses gets FileExistsError out of makedirs - and this task is deliberately fatal, so
+# that ends the install. Creating the directory first means neither of them has to.
+- name: Ensure the HiveMind configuration directory exists
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.file:
+    path: "{{ ovos_services_hivemind_config_dir }}"
+    state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0755"
+
 - name: Read the HiveMind clients from the hub database
   ansible.builtin.command:
     cmd: "{{ ovos_services_venv_path }}/bin/hivemind-core export-clients"
@@ -18,6 +33,11 @@
     HOME: "{{ ovos_installer_user_home }}"
   register: ovos_services_hivemind_clients
   changed_when: false
+  # The directory above closes the race this task actually hit; the retries cover the
+  # rest of what a service starting underneath it can do to a database read.
+  until: ovos_services_hivemind_clients is success
+  retries: "{{ ovos_services_hivemind_read_retries | int }}"
+  delay: "{{ ovos_services_hivemind_read_delay | int }}"
   # Deliberately fatal. A failure here yields no client ids, the grant loop does nothing,
   # and the play reports success having granted nothing - the deployment would look
   # installed and every satellite would still be refused. Verified against hivemind-core
