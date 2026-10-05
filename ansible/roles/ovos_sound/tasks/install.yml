@@ -86,6 +86,12 @@
   notify: Start Sound Server
   when: ovos_sound_service_manager == 'systemd'
 
+- name: Persist lingering ownership once it is actually enabled
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: linger_confirm.yml
+  when: ovos_sound_service_manager == 'systemd'
+
 - name: Flush handlers sound
   ansible.builtin.meta: flush_handlers
 

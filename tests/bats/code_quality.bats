@@ -705,6 +705,34 @@ function setup() {
     run grep -q "not (ovos_installer_linger_state.stat.exists | default(false))" "$claim_file"
     assert_success
 
+    # The marker is written only once lingering is actually on, by a second half that
+    # runs AFTER the enable: a marker written before it would outlive an enable that
+    # failed, and a later uninstall would read it as permission to switch off
+    # lingering somebody else turned on.
+    local confirm_file="ansible/roles/ovos_installer/tasks/linger_confirm.yml"
+    [ -f "$confirm_file" ]
+
+    run grep -q "ovos_installer_linger_state_after.stat.exists | default(false)" "$confirm_file"
+    assert_success
+
+    for enable_file in ansible/roles/ovos_sound/tasks/install.yml \
+                       ansible/roles/ovos_services/tasks/systemd-user-runtime.yml; do
+        local confirm_line enable_line2
+        confirm_line="$(grep -n "tasks_from: linger_confirm.yml" "$enable_file" | head -n1 | cut -d: -f1)"
+        enable_line2="$(grep -n "Enable lingering" "$enable_file" | head -n1 | cut -d: -f1)"
+        [ -n "$confirm_line" ]
+        [ "$confirm_line" -gt "$enable_line2" ]
+    done
+
+    # The marker is root-owned and outside the user's home: it describes a
+    # machine-wide setting, the account it is about must not be able to forge it, and
+    # the uninstall wipes ~/.cache/ovos-installer itself.
+    run grep -q "ovos_installer_linger_state_dir: /var/lib/ovos-installer" ansible/roles/ovos_installer/defaults/main.yml
+    assert_success
+
+    run bash -c "grep -A4 -F -- 'ovos_services_linger_marker_path' ansible/roles/ovos_services/defaults/main.yml | grep -q -- '/var/lib/ovos-installer'"
+    assert_success
+
     # And the uninstall only switches it off against that marker.
     local uninstall_file="ansible/roles/ovos_services/tasks/uninstall.yml"
     run grep -q "disable-linger" ansible/roles/ovos_services/defaults/main.yml
@@ -717,6 +745,11 @@ function setup() {
     assert_success
 
     run bash -c "grep -A6 -F -- 'Remove the lingering ownership marker' '$uninstall_file' | grep -q -- 'state: absent'"
+    assert_success
+
+    # A failed disable keeps the marker. Dropping it would take the next uninstall's
+    # authority to retry with it, leaving lingering on for good.
+    run bash -c "grep -A8 -F -- 'Remove the lingering ownership marker' '$uninstall_file' | grep -q -- 'not (ovos_services_linger_after.stat.exists | default(true))'"
     assert_success
 }
 

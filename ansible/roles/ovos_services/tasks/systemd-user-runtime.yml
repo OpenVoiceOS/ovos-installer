@@ -11,6 +11,12 @@
   failed_when: false
   when: ovos_services_manage_linger | default(true) | bool
 
+- name: Persist lingering ownership once it is actually enabled
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: linger_confirm.yml
+  when: ovos_services_manage_linger | default(true) | bool
+
 - name: Ensure /run/user exists for {{ ovos_installer_uid }}
   ansible.builtin.file:
     path: "{{ ovos_services_user_runtime_dir }}"
