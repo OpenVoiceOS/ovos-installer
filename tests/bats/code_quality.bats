@@ -2098,6 +2098,95 @@ function setup() {
     assert_failure
 }
 
+@test "the_installer_says_how_to_talk_to_ovos_without_a_microphone" {
+    # The package is ovos-tui-client and the command is ovos-tui, which nobody guesses.
+    # It is the first thing to reach for after an install - it answers whether OVOS is
+    # alive at all, separately from audio - and a user reported never finding it:
+    # "I never found how to invoke the text-only GUI ... I'm not certain it ever
+    # installed". So the installer says it, on the finish screen and in the play, since
+    # a scenario install never sees the screen.
+    #
+    # Rendered rather than grepped: what matters is the command a given install is told
+    # to run, and only where that command exists.
+    local method profile out
+    for method in virtualenv containers; do
+        for profile in ovos server satellite; do
+            run bash -c "export RUN_AS_HOME=/x METHOD=$method LOCALE=en-us PROFILE=$profile; \
+                source tui/finish.sh >/dev/null 2>&1 || true; \
+                printf '%s' \"\${OVOS_TEXT_CLIENT_COMMAND}\""
+            assert_success
+            out="$output"
+
+            # A satellite has no core and no ovos_cli container, so it has no ovos-tui.
+            if [ "$profile" = "satellite" ]; then
+                [ -z "$out" ]
+            elif [ "$method" = "containers" ] && [ "$profile" = "server" ]; then
+                # docker-compose.server.yml defines no ovos_cli either.
+                [ -z "$out" ]
+            elif [ "$method" = "containers" ]; then
+                [ "$out" = "docker exec -it ovos_cli ovos-tui" ]
+            else
+                [ "$out" = "ovos-tui" ]
+            fi
+        done
+    done
+
+    # Every locale has to print it, not just en-us. The service-scope hint next to it is
+    # interpolated in en-us alone, so thirteen languages silently drop it - that is the
+    # trap this guards against. Each locale is rendered, with the satellite case checked
+    # too: a satellite has no ovos-tui and must be told nothing.
+    local locale rendered
+    for locale in tui/locales/*/; do
+        locale="$(basename "$locale")"
+
+        run bash -c "export RUN_AS_HOME=/x METHOD=virtualenv LOCALE=$locale PROFILE=ovos; \
+            source tui/finish.sh >/dev/null 2>&1 || true; \
+            source tui/locales/$locale/finish.sh; printf '%s' \"\$CONTENT\""
+        assert_success
+        assert_output --partial "ovos-tui"
+
+        run bash -c "export RUN_AS_HOME=/x METHOD=containers LOCALE=$locale PROFILE=ovos; \
+            source tui/finish.sh >/dev/null 2>&1 || true; \
+            source tui/locales/$locale/finish.sh; printf '%s' \"\$CONTENT\""
+        assert_success
+        assert_output --partial "docker exec -it ovos_cli ovos-tui"
+
+        run bash -c "export RUN_AS_HOME=/x METHOD=virtualenv LOCALE=$locale PROFILE=satellite \
+            SATELLITE_KEY=0123456789abcdef HIVEMIND_HOST=h HIVEMIND_PORT=5678; \
+            source tui/finish.sh >/dev/null 2>&1 || true; \
+            source tui/locales/$locale/finish.sh; printf '%s' \"\$CONTENT\""
+        assert_success
+        refute_output --partial "ovos-tui"
+    done
+
+    # And the play says it too, for the installs that never reach the screen.
+    run grep -q "ovos-tui" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_success
+
+    run bash -c "grep -A14 -F -- 'Say how to talk to OVOS from a terminal' ansible/roles/ovos_finalize/tasks/main.yml | grep -q \"ovos_installer_profile != 'satellite'\""
+    assert_success
+
+    # The containers half of that condition, pinned exactly rather than through a line
+    # window: docker-compose.server.yml defines no ovos_cli, so a containers server must
+    # not be told to exec into one. Dropping this would otherwise leave the assertions
+    # above passing.
+    run grep -Fq -- "ovos_installer_method != 'containers' or (ovos_installer_is_desktop_profile | default(false) | bool)" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_success
+
+    # The finish screen is shell and never sees Ansible's variables, so the container
+    # name is a literal there while the play resolves ovos_containers_container_ovos_cli.
+    # Two spellings of one name: tie them together so renaming the container breaks this
+    # instead of quietly printing a command that execs into nothing.
+    local cli_container
+    cli_container="$(grep -E '^ovos_containers_container_ovos_cli:' ansible/roles/ovos_containers/defaults/main.yml | awk '{print $2}')"
+    [ -n "$cli_container" ]
+
+    run bash -c "export RUN_AS_HOME=/x METHOD=containers LOCALE=en-us PROFILE=ovos; \
+        source tui/finish.sh >/dev/null 2>&1 || true; printf '%s' \"\${OVOS_TEXT_CLIENT_COMMAND}\""
+    assert_success
+    assert_output "docker exec -it ${cli_container} ovos-tui"
+}
+
 @test "uninstall_enables_package_removal_by_default" {
     run grep -q 'ovos_installer_uninstall_remove_packages: "{{ ovos_installer_is_cleaning | bool }}"' ansible/roles/ovos_installer/defaults/main.yml
     assert_success

@@ -13,6 +13,16 @@ Usa list-clients para localizar el Node ID cuya clave de acceso empieza por ${HI
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 
+# Shown only where the text client exists - finish.sh leaves the command empty for a
+# satellite and for a containers server, neither of which has ovos-tui. The command
+# itself is not translated.
+OVOS_TEXT_CLIENT_NOTE="
+Para hablar con él desde un terminal, sin micrófono:
+
+  ${OVOS_TEXT_CLIENT_COMMAND-}
+"
+OVOS_TEXT_CLIENT_HINT="${OVOS_TEXT_CLIENT_COMMAND:+$OVOS_TEXT_CLIENT_NOTE}"
+
 CONTENT="
 ¡La instalación se ha completado con éxito! 🎉
 
@@ -30,8 +40,9 @@ Si has activado la función de habilidades (skills), puedes interactuar con tu a
 Los ajustes de tu asistente pueden modificarse en el fichero de configuración ${CONFIG_FILE:-}.
 
 Si necesitas soporte o actualizaciones en el futuro, no dudes en ponerte en contacto con nosotros. ¡Diviértete con Open Voice OS!
+$OVOS_TEXT_CLIENT_HINT
 $HIVEMIND_SATELLITE_HINT
 "
 TITLE="Instalación de Open Voice OS - Finalización"
 
-export CONTENT TITLE HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT
+export CONTENT TITLE HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT OVOS_TEXT_CLIENT_NOTE OVOS_TEXT_CLIENT_HINT

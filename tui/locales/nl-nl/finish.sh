@@ -13,6 +13,16 @@ Gebruik list-clients om het Node ID te vinden waarvan de toegangssleutel begint 
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 
+# Shown only where the text client exists - finish.sh leaves the command empty for a
+# satellite and for a containers server, neither of which has ovos-tui. The command
+# itself is not translated.
+OVOS_TEXT_CLIENT_NOTE="
+Om er vanuit een terminal mee te praten, zonder microfoon:
+
+  ${OVOS_TEXT_CLIENT_COMMAND-}
+"
+OVOS_TEXT_CLIENT_HINT="${OVOS_TEXT_CLIENT_COMMAND:+$OVOS_TEXT_CLIENT_NOTE}"
+
 CONTENT="
 De installatie is met succes voltooid! 🎉
 
@@ -30,8 +40,9 @@ Als je de vaardigheidsfunctie hebt geactiveerd, kun je communiceren met je assis
 De instellingen van je wizard kun je veranderen in het configuratiebestand ${CONFIG_FILE:-}.
 
 Als je in de toekomst ondersteuning of updates nodig hebt, neem dan gerust contact met ons op. Veel plezier met Open Voice OS!
+$OVOS_TEXT_CLIENT_HINT
 $HIVEMIND_SATELLITE_HINT
 "
 TITLE="OpenVoice OS Installatie - Voltooid"
 
-export CONTENT TITLE HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT
+export CONTENT TITLE HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT OVOS_TEXT_CLIENT_NOTE OVOS_TEXT_CLIENT_HINT

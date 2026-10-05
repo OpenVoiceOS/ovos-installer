@@ -13,6 +13,16 @@ Seqdec list-clients akken ad d-tafeḍ Node ID i yesɛan tasarut n unekcum i yeb
 "
 HIVEMIND_SATELLITE_HINT="${SHOW_HIVEMIND_SATELLITE_NOTE:+$HIVEMIND_SATELLITE_NOTE}"
 
+# Shown only where the text client exists - finish.sh leaves the command empty for a
+# satellite and for a containers server, neither of which has ovos-tui. The command
+# itself is not translated.
+OVOS_TEXT_CLIENT_NOTE="
+To talk to it from a terminal, without a microphone:
+
+  ${OVOS_TEXT_CLIENT_COMMAND-}
+"
+OVOS_TEXT_CLIENT_HINT="${OVOS_TEXT_CLIENT_COMMAND:+$OVOS_TEXT_CLIENT_NOTE}"
+
 CONTENT="
 Asbeddi-nni yekfa akken iwata! 🎉
 
@@ -29,8 +39,9 @@ Ma yella tremdeḍ tamahilt n tmusniwin timezwura, tzemreḍ ad tebduḍ ad temm
 Iɣewwaren n umalal-ik zemren ad ttwabeddlen deg ufaylu n tawila n ${CONFIG_FILE:-}.
 
 Ma teḥwajeḍ tallalt neɣ ileqman sya d asawen, ḥulfu i yiman-ik tzemreḍ ad ten-id-tnermseḍ. Faṛes tarmit-ik n Open Voice OS!
+$OVOS_TEXT_CLIENT_HINT
 $HIVEMIND_SATELLITE_HINT
 "
 TITLE="Asbeddi n Open Voice OS - Tagara"
 
-export CONTENT TITLE HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT
+export CONTENT TITLE HIVEMIND_SATELLITE_NOTE HIVEMIND_SATELLITE_HINT OVOS_TEXT_CLIENT_NOTE OVOS_TEXT_CLIENT_HINT
