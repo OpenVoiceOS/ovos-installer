@@ -6,6 +6,9 @@ ovos_installer_i2c_devices: []
 ovos_installer_systemd_system_path: /etc/systemd/system
 ovos_installer_systemd_user_path: "{{ ovos_installer_user_home }}/.config/systemd/user"
 ovos_installer_package_tracking_dir: "{{ ovos_installer_user_home }}/.cache/ovos-installer/package-tracking"
+ovos_installer_linger_path: "/var/lib/systemd/linger/{{ ovos_installer_user }}"
+ovos_installer_linger_marker_path: "{{ ovos_installer_package_tracking_dir }}/linger.json"
+ovos_installer_linger_disable_cmd: "loginctl disable-linger {{ ovos_installer_user }}"
 ovos_installer_pip_config_file: ""
 ovos_installer_tmp_dir: "{{ _ovos_installer_working_directory }}"
 ovos_installer_profile: "ovos"

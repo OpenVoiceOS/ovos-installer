@@ -120,5 +120,31 @@
   changed_when: false
   failed_when: false
 
+# Lingering keeps the user's systemd instance (and with it PipeWire and
+# WirePlumber) running with no login session. Left enabled after an uninstall it
+# is not inert: a sound server started outside the session takes the devices the
+# session then cannot, which is reported as audio that died and as phantom
+# devices that will not go away. Only switch it off where the marker says this
+# installer is what switched it on - a machine that already had it keeps it.
+- name: Check for the lingering ownership marker
+  ansible.builtin.stat:
+    path: "{{ ovos_services_linger_marker_path }}"
+  register: ovos_services_linger_marker
+  changed_when: false
+
+- name: Disable lingering this installer enabled  # noqa command-instead-of-module
+  ansible.builtin.command: "{{ ovos_services_disable_linger_cmd }}"
+  changed_when: true
+  failed_when: false
+  when:
+    - ansible_facts.system == 'Linux'
+    - ovos_services_linger_marker.stat.exists | default(false)
+
+- name: Remove the lingering ownership marker
+  ansible.builtin.file:
+    path: "{{ ovos_services_linger_marker_path }}"
+    state: absent
+  when: ovos_services_linger_marker.stat.exists | default(false)
+
 - name: Flush handlers ovos (uninstall)
   ansible.builtin.meta: flush_handlers

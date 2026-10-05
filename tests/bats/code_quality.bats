@@ -678,6 +678,48 @@ function setup() {
     assert_success
 }
 
+@test "uninstall_gives_back_the_lingering_it_turned_on" {
+    # Lingering keeps the user's systemd instance - and PipeWire with it - running
+    # with no login session. Left behind by an uninstall it is not inert: a sound
+    # server started outside the session holds the devices the session then cannot.
+    # It was reported as "the audio system died" and phantom devices that would not
+    # go away on an Ubuntu Studio desktop.
+    local claim_file="ansible/roles/ovos_installer/tasks/linger_claim.yml"
+    [ -f "$claim_file" ]
+
+    # The claim has to be recorded before lingering is switched on, while "was it
+    # already on?" still has an answer.
+    local enable_file
+    for enable_file in ansible/roles/ovos_sound/tasks/install.yml \
+                       ansible/roles/ovos_services/tasks/systemd-user-runtime.yml; do
+        local claim_line enable_line
+        claim_line="$(grep -n "tasks_from: linger_claim.yml" "$enable_file" | head -n1 | cut -d: -f1)"
+        enable_line="$(grep -n "Enable lingering" "$enable_file" | head -n1 | cut -d: -f1)"
+        [ -n "$claim_line" ]
+        [ -n "$enable_line" ]
+        [ "$claim_line" -lt "$enable_line" ]
+    done
+
+    # A machine that already had lingering keeps it: the claim is only recorded when
+    # the linger path does not exist yet.
+    run grep -q "not (ovos_installer_linger_state.stat.exists | default(false))" "$claim_file"
+    assert_success
+
+    # And the uninstall only switches it off against that marker.
+    local uninstall_file="ansible/roles/ovos_services/tasks/uninstall.yml"
+    run grep -q "disable-linger" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_services_disable_linger_cmd" "$uninstall_file"
+    assert_success
+
+    run bash -c "grep -A8 -F -- 'ovos_services_disable_linger_cmd' '$uninstall_file' | grep -q -- 'ovos_services_linger_marker.stat.exists'"
+    assert_success
+
+    run bash -c "grep -A6 -F -- 'Remove the lingering ownership marker' '$uninstall_file' | grep -q -- 'state: absent'"
+    assert_success
+}
+
 @test "the_aur_build_retries_the_network" {
     # kewlfft.aur clones and builds from aur.archlinux.org inside the module, so a
     # dropped connection there (http.client.RemoteDisconnected) fails the whole
@@ -3482,11 +3524,19 @@ function anchors_of() {
     run grep -q "show-user" "$uninstall_file"
     assert_failure
 
+    # The uninstall must still never enable lingering itself - that is what
+    # ovos_services_manage_linger: false above is for, and it is why there is no
+    # "enabled it temporarily, now switch it back" dance here.
     run grep -q "Disable lingering if uninstall enabled it temporarily" "$uninstall_file"
     assert_failure
 
-    run grep -q "ovos_services_disable_linger_cmd" ansible/roles/ovos_services/defaults/main.yml
-    assert_failure
+    # It does switch off lingering the INSTALL turned on, which is a different
+    # thing and is gated on the ownership marker, never on what the uninstall did
+    # (see uninstall_gives_back_the_lingering_it_turned_on). Nothing may record
+    # that claim while cleaning: the claim task is gated on the same
+    # manage_linger flag that is false here.
+    run bash -c "grep -A4 -F -- 'tasks_from: linger_claim.yml' ansible/roles/ovos_services/tasks/systemd-user-runtime.yml | grep -q -- 'ovos_services_manage_linger'"
+    assert_success
 }
 
 @test "services_uninstall_removes_requested_runtime_artifacts" {
