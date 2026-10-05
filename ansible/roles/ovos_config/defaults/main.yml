@@ -67,6 +67,22 @@ ovos_config_geoip_enabled: "{{ ovos_installer_geoip_enabled | default(false) }}"
 ovos_config_geoip_timeout: 5
 ovos_config_mark2_network_tests_ip_url: "{{ ovos_installer_mark2_network_tests_ip_url }}"
 ovos_config_mycroft_conf_relpath: "{{ '.config/mycroft' if ovos_installer_method == 'virtualenv' else 'ovos/config' }}"
+ovos_config_mycroft_conf_path: "{{ ovos_installer_user_home }}/{{ ovos_config_mycroft_conf_relpath }}/mycroft.conf"
+# ovos-gui displays nothing when idle_display_skill names a skill that is not
+# loaded, and the homescreen skill changed the id it registers under: 3.0.3 and
+# older register skill-ovos-homescreen.openvoiceos, 3.0.4 and newer register
+# ovos-skill-homescreen.openvoiceos. Which one is installed depends on the channel
+# and on the day, so this is not a literal: it is read back from the file (keeping
+# whatever the last run resolved) and set from the installed skill once there is
+# one to ask - see ovos_config/tasks/homescreen.yml.
+ovos_config_idle_display_skill: ""
+# Prints the id the installed homescreen skill registers under, or an empty line
+# if the skill is not installed. Both entry point groups are consulted: the skill
+# moved from ovos.plugin.skill to opm.skill in the same release that renamed it.
+ovos_config_homescreen_probe: >-
+  from importlib.metadata import entry_points;
+  print(next((e.name for g in ('opm.skill', 'ovos.plugin.skill')
+  for e in entry_points(group=g) if 'homescreen' in e.name), ''))
 ovos_config_mycroft_conf_owner: >-
   {{
     ovos_installer_user

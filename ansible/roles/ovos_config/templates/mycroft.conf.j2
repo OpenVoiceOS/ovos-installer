@@ -94,9 +94,9 @@
     }
   },
 {% endif %}
-{% if ovos_installer_feature_gui | bool %}
+{% if ovos_installer_feature_gui | bool and (ovos_config_idle_display_skill | default('') | length > 0) %}
   "gui": {
-    "idle_display_skill": "skill-ovos-homescreen.openvoiceos"
+    "idle_display_skill": "{{ ovos_config_idle_display_skill }}"
   },
 {% endif %}
 {% if _ovos_mark2_ocp_legacy %}

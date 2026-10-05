@@ -389,6 +389,36 @@
   changed_when: false
   when: ovos_installer_profile == "satellite"
 
+# The homescreen skill registers under a different id depending on its version,
+# and ovos-gui shows nothing when the configured id is not the one that loaded.
+# Ask the skill that is installed rather than guessing from the channel.
+- name: Resolve the installed homescreen skill id
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv:
+      - "{{ ovos_virtualenv_path }}/bin/python"
+      - -c
+      - "{{ ovos_config_homescreen_probe }}"
+  register: ovos_virtualenv_homescreen_skill
+  changed_when: false
+  # No failed_when here on purpose. The probe prints an empty line when the skill is
+  # not installed, so a non-zero exit means the venv's own Python did not run - and
+  # swallowing that would leave the previous id in mycroft.conf with nothing said.
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - ovos_installer_feature_gui | default(false) | bool
+
+- name: Configure the homescreen skill that is installed
+  ansible.builtin.include_role:
+    name: ovos_config
+    tasks_from: homescreen.yml
+  vars:
+    ovos_config_homescreen_skill_id: "{{ ovos_virtualenv_homescreen_skill.stdout | default('') | trim }}"
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - ovos_installer_feature_gui | default(false) | bool
+
 - name: Merge ovos-config language recommendations into mycroft.conf
   become: true
   become_user: "{{ ovos_installer_user }}"
