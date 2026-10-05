@@ -343,6 +343,42 @@
     - (ovos_virtualenv_pip_check.rc | default(0)) != 0
     - _disagreements | length > 0
 
+# The activate script exports PIP_CONSTRAINT and UV_CONSTRAINT, which only helps
+# somebody who activated first. This file is read by this virtualenv's pip however
+# it is called - ~/.venvs/ovos/bin/pip from any shell included - so the channel is
+# remembered rather than retyped.
+# Stat it here rather than reuse the one from constraints.yml: that one is taken
+# before the download, so on a first run it says the file is absent, the copy below
+# would be skipped, and pip.conf would point at a file that does not exist - which
+# fails every install in this virtualenv, on the most common path there is.
+- name: Check the channel's constraints were fetched
+  ansible.builtin.stat:
+    path: "{{ ovos_virtualenv_constraints_path }}"
+  register: ovos_virtualenv_constraints_fetched
+  changed_when: false
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
+- name: Keep the channel's constraints inside the virtualenv
+  ansible.builtin.copy:
+    src: "{{ ovos_virtualenv_constraints_path }}"
+    dest: "{{ ovos_virtualenv_constraints_local_path }}"
+    remote_src: true
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - ovos_virtualenv_constraints_fetched.stat.exists | default(false)
+
+- name: Teach the virtualenv's pip which channel this install came from
+  ansible.builtin.template:
+    src: pip.conf.j2
+    dest: "{{ ovos_virtualenv_pip_conf_path }}"
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
+    mode: "0644"
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
 - name: Check ovos virtualenv activate script exists
   ansible.builtin.stat:
     path: "{{ ovos_virtualenv_path }}/bin/activate"
@@ -350,7 +386,9 @@
 
 - name: Add OVOS constraints to venv activation
   vars:
-    _ovos_release: "{{ ovos_virtualenv_constraints_url }}"
+    # The local copy, for the same reason pip.conf uses it: nothing has to be
+    # reachable for an install in this environment to resolve.
+    _ovos_release: "{{ ovos_virtualenv_constraints_local_path }}"
   ansible.builtin.lineinfile:
     path: "{{ ovos_virtualenv_path }}/bin/activate"
     line: "{{ item.line }}"
@@ -366,6 +404,13 @@
     - line: "export UV_CONSTRAINT=\"{{ _ovos_release }}\""
       regexp: "^export UV_CONSTRAINT="
       insertafter: "^export PIP_CONSTRAINT="
+    # The strategy the installer itself resolves with, so an "uv pip install" here
+    # does not follow whatever uv's default becomes. Set as a variable rather than
+    # through UV_CONFIG_FILE: that would replace the user's own project and user uv
+    # configuration - a private index among it - instead of adding to it.
+    - line: "export UV_PRERELEASE=\"{{ ovos_virtualenv_uv_prerelease_strategy }}\""
+      regexp: "^export UV_PRERELEASE="
+      insertafter: "^export UV_CONSTRAINT="
   loop_control:
     label: "{{ item.regexp }}"
   when: ovos_virtualenv_activate_script.stat.exists | default(false)

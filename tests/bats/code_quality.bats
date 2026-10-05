@@ -934,6 +934,102 @@ function setup() {
     assert_failure
 }
 
+@test "the_virtualenv_remembers_the_channel_it_was_installed_from" {
+    # The activate script exports PIP_CONSTRAINT, which only helps somebody who
+    # activated first. ~/.venvs/ovos/bin/pip from a plain shell gets nothing, and a
+    # bare "pip install <skill>" then resolves against PyPI alone: the newest release
+    # of a skill is often an older one that caps ovos-workshop below what this install
+    # runs, pip downgrades it under a running ovos-core, and ovos-core stops importing.
+    #
+    # pip reads <venv>/pip.conf on every invocation of that pip, activated or not, so
+    # the channel is remembered instead of retyped.
+    local tpl="ansible/roles/ovos_virtualenv/templates/pip.conf.j2"
+    [ -f "$tpl" ]
+
+    # It points at the copy inside the virtualenv, not at the URL. A constraint pip
+    # cannot fetch fails every install in the environment, including ones that need no
+    # constraint at all, so an offline box or a GitHub outage would otherwise take
+    # "pip install" with it.
+    run grep -q "ovos_virtualenv_constraints_local_path" "$tpl"
+    assert_success
+
+    run grep -q "ovos_virtualenv_constraints_url" "$tpl"
+    assert_failure
+
+    run bash -c "grep -F -- 'ovos_virtualenv_constraints_local_path:' ansible/roles/ovos_virtualenv/defaults/main.yml | grep -q 'ovos_virtualenv_path'"
+    assert_success
+
+    # The activate script uses the same copy, so an activated shell and a bare
+    # <venv>/bin/pip resolve against the same file rather than two sources.
+    run bash -c "grep -A4 -F -- '_ovos_release:' ansible/roles/ovos_virtualenv/tasks/venv.yml | grep -q 'ovos_virtualenv_constraints_local_path'"
+    assert_success
+
+    run grep -q "Keep the channel's constraints inside the virtualenv" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    # It has to land inside the virtualenv, which is the path pip consults.
+    run bash -c "grep -F -- 'ovos_virtualenv_pip_conf_path:' ansible/roles/ovos_virtualenv/defaults/main.yml | grep -q 'ovos_virtualenv_path'"
+    assert_success
+
+    run bash -c "grep -F -- 'ovos_virtualenv_pip_conf_path:' ansible/roles/ovos_virtualenv/defaults/main.yml | grep -q 'pip.conf'"
+    assert_success
+
+    run grep -q "ovos_virtualenv_pip_conf_path" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    # Rendered and parsed the way pip parses it: an INI file whose global.constraint is
+    # this installation's channel file.
+    if ! python3 -c 'import jinja2' 2>/dev/null; then
+        skip "jinja2 is not available"
+    fi
+    run python3 -c "
+import configparser, io
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('ansible/roles/ovos_virtualenv/templates'), keep_trailing_newline=True)
+out = env.get_template('pip.conf.j2').render(
+    ovos_virtualenv_constraints_local_path='/opt/venv/constraints.txt')
+cfg = configparser.ConfigParser()
+cfg.read_string(out)
+print('constraint=' + cfg['global']['constraint'])
+"
+    assert_success
+    assert_output --partial "constraint=/opt/venv/constraints.txt"
+
+    # The copy is gated on a stat taken here, not on the one constraints.yml took
+    # before the download: that one says the file is absent on a first run, the copy
+    # would be skipped, and pip.conf would point at a file that does not exist -
+    # failing every install in the virtualenv, on the most common path there is.
+    run grep -q "Check the channel's constraints were fetched" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Keep the channel's constraints inside the virtualenv\" ansible/roles/ovos_virtualenv/tasks/venv.yml | grep -q 'ovos_virtualenv_constraints_fetched.stat.exists'"
+    assert_success
+
+    run bash -c "grep -A12 -F -- \"Keep the channel's constraints inside the virtualenv\" ansible/roles/ovos_virtualenv/tasks/venv.yml | grep -q 'ovos_virtualenv_constraints_file.stat.exists'"
+    assert_failure
+
+    # uv cannot be given the same treatment: its [pip] table has no constraint key, so
+    # the constraints file reaches uv through UV_CONSTRAINT. The resolution strategy is
+    # pinned with UV_PRERELEASE rather than UV_CONFIG_FILE, which would replace the
+    # user's own project and user uv configuration - a private index among it -
+    # instead of adding to it.
+    run grep -q "export UV_PRERELEASE=" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    # Not exported - a comment may name it to explain why, so this looks for the
+    # export rather than the word.
+    run grep -q "export UV_CONFIG_FILE=" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_failure
+
+    run grep -q "ovos_virtualenv_uv_prerelease_strategy: if-necessary" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "export UV_CONSTRAINT=" ansible/roles/ovos_virtualenv/tasks/venv.yml
+    assert_success
+
+    [ ! -f ansible/roles/ovos_virtualenv/templates/uv.toml.j2 ]
+}
+
 @test "virtualenv_ensures_python_command_shim_exists" {
     run grep -q "Resolve OVOS venv base interpreter with uv" ansible/roles/ovos_virtualenv/tasks/venv.yml
     assert_success

@@ -85,6 +85,17 @@ ovos_virtualenv_padatious_cache_backup_dir: "{{ ovos_virtualenv_padatious_cache_
 ovos_virtualenv_padatious_cache_force_sync: "{{ ovos_installer_padatious_cache_force_sync | default(false) }}"
 ovos_virtualenv_messagebus_path: "{{ ovos_installer_user_home }}/.local/bin/ovos-messagebus"
 ovos_virtualenv_swig_shim_path: "{{ ovos_installer_user_home }}/.local/bin/swig2.0"
+# Read by this virtualenv's pip on every invocation, activated or not.
+# The channel file, kept inside the virtualenv. pip.conf points at this rather than
+# at the URL: a constraint pip cannot fetch fails every install in the environment,
+# including ones that need no constraint at all, so an offline box or a GitHub
+# outage would otherwise take "pip install" with it. The installer refreshes this
+# copy on every run.
+ovos_virtualenv_constraints_local_path: "{{ ovos_virtualenv_path }}/constraints.txt"
+ovos_virtualenv_pip_conf_path: "{{ ovos_virtualenv_path }}/pip.conf"
+# Exported by the activate script. uv has no per-virtualenv configuration, and
+# UV_CONFIG_FILE would replace the user's own uv configuration rather than add to it.
+ovos_virtualenv_uv_prerelease_strategy: if-necessary
 ovos_virtualenv_rust_messagebus_repo: https://github.com/OscillateLabsLLC/ovos-rust-messagebus
 ovos_virtualenv_rust_messagebus_version: v2.1.1
 ovos_virtualenv_rust_messagebus_target_arch: >-
