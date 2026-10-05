@@ -1138,13 +1138,25 @@ function create_python_venv() {
     source "$VENV_PATH/bin/activate"
 
     export PIP_COMMAND="uv pip"
-    if ! command -v uv &>>"$LOG_FILE"; then
+    # uv 0.12.0 is the floor on purpose, not a tidy-up. The alpha channel installs
+    # with --prerelease=if-necessary, and only from 0.12 does uv honour the
+    # pre-release specifiers that reach it through a constraints file. On 0.11 the
+    # same command cannot resolve the channel at all ("No solution found"). The
+    # check is on the version and not just on uv being present, because a reused
+    # installer virtualenv keeps whatever uv it was built with.
+    local uv_minimum_version="${UV_MINIMUM_VERSION:-0.12.0}"
+    local uv_present_version=""
+    if command -v uv &>>"$LOG_FILE"; then
+        uv_present_version="$(uv --version 2>>"$LOG_FILE" | awk '{print $2}')"
+    fi
+    if [ -z "$uv_present_version" ] ||
+        [ "$(printf '%s\n%s\n' "$uv_minimum_version" "$uv_present_version" | sort -V | head -n1)" != "$uv_minimum_version" ]; then
         local uv_install_status=0
         if [ "$reuse_cached_artifacts" == "true" ]; then
-            run_with_errexit_guard pip3 install "uv>=0.4.10" &>>"$LOG_FILE"
+            run_with_errexit_guard pip3 install "uv>=${uv_minimum_version}" &>>"$LOG_FILE"
             uv_install_status=$?
         else
-            run_with_errexit_guard pip3 install --no-cache-dir "uv>=0.4.10" &>>"$LOG_FILE"
+            run_with_errexit_guard pip3 install --no-cache-dir "uv>=${uv_minimum_version}" &>>"$LOG_FILE"
             uv_install_status=$?
         fi
         if [ "$uv_install_status" -ne 0 ]; then

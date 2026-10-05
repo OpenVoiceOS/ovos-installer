@@ -220,7 +220,13 @@
   become_user: "{{ ovos_installer_user }}"
   vars:
     _pip_constraints: "--constraint {{ ovos_virtualenv_constraints_path }}"
-    _uv_extra_args: "{{ _pip_constraints }}{{ ' --prerelease=allow' if ovos_virtualenv_uv_allow_prerelease | bool else '' }}"
+    # if-necessary, not allow: allow lets uv pick a pre-release for ANY package, and
+    # it did - a fresh alpha install took httpx 1.0.dev6, which huggingface_hub
+    # cannot import, and the device answered nothing. if-necessary still resolves the
+    # channel's own alphas, because from uv 0.12 the pre-release specifiers in
+    # constraints-<channel>.txt are honoured; third-party packages stay on stable
+    # unless there is no stable solution at all.
+    _uv_extra_args: "{{ _pip_constraints }}{{ ' --prerelease=if-necessary' if ovos_virtualenv_uv_allow_prerelease | bool else '' }}"
     _ovos_virtualenv_install_env: >-
       {{
         ovos_virtualenv_uv_environment
