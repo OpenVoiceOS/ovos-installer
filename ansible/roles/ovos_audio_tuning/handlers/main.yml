@@ -1,11 +1,15 @@
 ---
 # The shared "Restart PipeWire" / "Restart WirePlumber" handlers belong to
-# ovos_services, and an uninstall loads that role with handlers_from: noop - so
-# notifying them from the cleanup aborts the whole run with "handler not found"
-# as soon as a file is really removed. They also test facts the install sets and
-# a cleaning run never does. These are the cleanup's own: own names, no
-# install-time facts, and failures are not fatal because the point is only to make
-# the removed filter-chains disappear without waiting for a reboot.
+# ovos_services, and they cannot run during an uninstall. That role is imported with
+# "when: not ovos_installer_is_cleaning", which a static import applies to its
+# handlers as well, and they additionally test facts only the install path sets
+# (ovos_sound_detect_sound_server). So the cleanup would remove the filter-chain
+# files and the sound server would never be told, leaving the devices in place until
+# the user reboots or logs out - which is the complaint this fixes.
+#
+# These are the cleanup's own: own names, no install-time facts, and no dependency on
+# another role being loaded. Failures are not fatal, because the point is only to
+# make the removed filter-chains disappear without waiting for a reboot.
 - name: Restart PipeWire after audio tuning cleanup
   become: true
   become_user: "{{ ovos_installer_user }}"

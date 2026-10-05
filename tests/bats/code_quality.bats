@@ -1933,10 +1933,12 @@ function setup() {
 }
 
 @test "the_audio_tuning_cleanup_owns_its_restart_handlers" {
-    # An uninstall loads ovos_services with handlers_from: noop, so notifying its
-    # shared "Restart PipeWire" aborts the run with "handler not found" the moment a
-    # file is actually removed - which is every uninstall that has something to
-    # clean. The cleanup carries its own handlers instead.
+    # The shared "Restart PipeWire" belongs to ovos_services, which is imported with
+    # "when: not ovos_installer_is_cleaning" - and a static import applies that to its
+    # handlers too. They also test facts only the install sets. So during an uninstall
+    # they are registered but can never run: the files go and the sound server is
+    # never told, which leaves the devices there until the user reboots. The cleanup
+    # carries its own handlers instead.
     local handlers_file="ansible/roles/ovos_audio_tuning/handlers/main.yml"
     local uninstall_file="ansible/roles/ovos_audio_tuning/tasks/uninstall.yml"
 
@@ -1955,8 +1957,9 @@ function setup() {
     run grep -q "notify: Restart PipeWire after audio tuning cleanup" "$uninstall_file"
     assert_success
 
-    # And they must not depend on facts only an install sets.
-    run grep -q "ovos_sound_detect_sound_server" "$handlers_file"
+    # And they must not depend on facts only an install sets. Comments may name one
+    # to explain why, so this looks at the code rather than the whole file.
+    run bash -c "grep -v '^[[:space:]]*#' '$handlers_file' | grep -q 'ovos_sound_detect_sound_server'"
     assert_failure
 }
 
