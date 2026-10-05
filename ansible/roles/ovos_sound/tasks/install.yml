@@ -68,6 +68,12 @@
     - ansible_facts.distribution not in ovos_sound_pipewire_group_excluded_distributions
     - ovos_sound_pipewire_group in ansible_facts.getent_group
 
+- name: Record whether this install is what enables lingering
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: linger_claim.yml
+  when: ovos_sound_service_manager == 'systemd'
+
 - name: Enable lingering for {{ ovos_installer_user }}
   ansible.builtin.file:
     path: "{{ ovos_sound_linger_path }}"
@@ -78,6 +84,12 @@
     access_time: preserve
     state: touch
   notify: Start Sound Server
+  when: ovos_sound_service_manager == 'systemd'
+
+- name: Persist lingering ownership once it is actually enabled
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: linger_confirm.yml
   when: ovos_sound_service_manager == 'systemd'
 
 - name: Flush handlers sound

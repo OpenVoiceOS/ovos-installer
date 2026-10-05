@@ -1,0 +1,31 @@
+---
+# Lingering is enabled so the OVOS user units can run without a login session. It
+# is a machine-wide setting that predates us on plenty of systems (servers,
+# tmux/mosh users, Flatpak services), so the uninstall may only switch it back off
+# where this installer is what switched it on.
+#
+# This half runs BEFORE the task that enables it, while "was it already on?" is
+# still answerable, and only reads. The marker is written afterwards by
+# linger_confirm.yml, once lingering is actually on: a claim written here would
+# outlive an enable that failed or was interrupted, and a later uninstall would
+# then read it as permission to disable lingering somebody else turned on.
+- name: Check whether lingering is already enabled
+  ansible.builtin.stat:
+    path: "{{ ovos_installer_linger_path }}"
+  register: ovos_installer_linger_state
+  changed_when: false
+
+- name: Check for an existing lingering ownership marker
+  ansible.builtin.stat:
+    path: "{{ ovos_installer_linger_marker_path }}"
+  register: ovos_installer_linger_marker_state
+  changed_when: false
+
+- name: Record the lingering state this install found
+  ansible.builtin.set_fact:
+    ovos_installer_linger_claimable: >-
+      {{
+        not (ovos_installer_linger_state.stat.exists | default(false))
+        and not (ovos_installer_linger_marker_state.stat.exists | default(false))
+      }}
+  changed_when: false

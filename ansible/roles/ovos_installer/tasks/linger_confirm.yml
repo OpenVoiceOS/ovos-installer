@@ -1,0 +1,31 @@
+---
+# Second half of the claim (see linger_claim.yml). Writes the ownership marker only
+# when lingering was off before this install, nothing had claimed it, and it is now
+# genuinely on - so the marker records a confirmed change, not an attempt.
+- name: Check whether lingering is now enabled
+  ansible.builtin.stat:
+    path: "{{ ovos_installer_linger_path }}"
+  register: ovos_installer_linger_state_after
+  changed_when: false
+  when: ovos_installer_linger_claimable | default(false) | bool
+
+- name: Persist lingering ownership
+  when:
+    - ovos_installer_linger_claimable | default(false) | bool
+    - ovos_installer_linger_state_after.stat.exists | default(false)
+  block:
+    - name: Ensure the lingering ownership directory exists
+      ansible.builtin.file:
+        path: "{{ ovos_installer_linger_marker_path | dirname }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Persist lingering ownership marker
+      ansible.builtin.copy:
+        dest: "{{ ovos_installer_linger_marker_path }}"
+        content: "{{ {'user': ovos_installer_user} | to_nice_json }}\n"
+        owner: root
+        group: root
+        mode: "0644"

@@ -120,5 +120,57 @@
   changed_when: false
   failed_when: false
 
+# Lingering keeps the user's systemd instance (and with it PipeWire and
+# WirePlumber) running with no login session. Left enabled after an uninstall it
+# is not inert: a sound server started outside the session takes the devices the
+# session then cannot, which is reported as audio that died and as phantom
+# devices that will not go away. Only switch it off where the marker says this
+# installer is what switched it on - a machine that already had it keeps it.
+- name: Check for the lingering ownership marker
+  ansible.builtin.stat:
+    path: "{{ ovos_services_linger_marker_path }}"
+  register: ovos_services_linger_marker
+  changed_when: false
+
+- name: Disable lingering this installer enabled  # noqa command-instead-of-module
+  ansible.builtin.command: "{{ ovos_services_disable_linger_cmd }}"
+  register: ovos_services_disable_linger
+  changed_when: ovos_services_disable_linger.rc == 0
+  failed_when: false
+  when:
+    - ansible_facts.system == 'Linux'
+    - ovos_services_linger_marker.stat.exists | default(false)
+
+# Confirm against the file rather than the exit status: this is the thing the next
+# uninstall would have to retry.
+- name: Check whether lingering is now off
+  ansible.builtin.stat:
+    path: "{{ ovos_services_linger_path }}"
+  register: ovos_services_linger_after
+  changed_when: false
+  when: ovos_services_linger_marker.stat.exists | default(false)
+
+# Only once lingering is really off. A marker dropped after a failed disable would
+# take the next uninstall's authority to retry with it, leaving lingering on for
+# good - the exact state this change exists to prevent.
+- name: Remove the lingering ownership marker
+  ansible.builtin.file:
+    path: "{{ ovos_services_linger_marker_path }}"
+    state: absent
+  when:
+    - ovos_services_linger_marker.stat.exists | default(false)
+    - not (ovos_services_linger_after.stat.exists | default(true))
+
+- name: Report lingering that could not be switched off
+  ansible.builtin.debug:
+    msg: >-
+      Lingering is still enabled for {{ ovos_installer_user }} and this installer
+      enabled it. Run "{{ ovos_services_disable_linger_cmd }}" by hand; the
+      ownership marker at {{ ovos_services_linger_marker_path }} is kept so a later
+      uninstall retries it.
+  when:
+    - ovos_services_linger_marker.stat.exists | default(false)
+    - ovos_services_linger_after.stat.exists | default(false)
+
 - name: Flush handlers ovos (uninstall)
   ansible.builtin.meta: flush_handlers
