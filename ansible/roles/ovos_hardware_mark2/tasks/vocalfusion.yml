@@ -105,26 +105,53 @@
   loop_control:
     label: "{{ item.dest }}"
 
+# The unit used to live in the user's systemd directory and call sudo. Stop that
+# copy before installing the system one, or both run and the user one keeps
+# failing on every boot.
+- name: Check for the SJ201 unit left in the user scope
+  ansible.builtin.stat:
+    path: "{{ ovos_hardware_mark2_sj201_legacy_user_unit_path }}"
+  register: ovos_hardware_mark2_sj201_legacy_unit
+  changed_when: false
+
+- name: Stop and disable the SJ201 unit left in the user scope
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_hardware_mark2_sj201_unit_name }}"
+    enabled: false
+    state: stopped
+    scope: user
+    daemon_reload: true
+  environment: "{{ ovos_hardware_mark2_user_bus_environment }}"
+  failed_when: false
+  when: ovos_hardware_mark2_sj201_legacy_unit.stat.exists | default(false)
+
+- name: Remove the SJ201 unit left in the user scope
+  ansible.builtin.file:
+    path: "{{ ovos_hardware_mark2_sj201_legacy_user_unit_path }}"
+    state: absent
+  notify: Reload Systemd User
+  when: ovos_hardware_mark2_sj201_legacy_unit.stat.exists | default(false)
+
 - name: Copy SJ201 systemd unit file
   ansible.builtin.template:
     src: sj201.service.j2
     dest: "{{ ovos_hardware_mark2_sj201_unit_path }}"
-    owner: "{{ ovos_installer_user }}"
-    group: "{{ ovos_installer_group }}"
+    owner: root
+    group: root
     mode: "{{ ovos_hardware_mark2_sj201_unit_mode }}"
-  notify: Reload Systemd User
+  notify: Reload Systemd
 
 - name: Flush handlers vocalfusion
   ansible.builtin.meta: flush_handlers
 
 - name: Enable SJ201 systemd unit
-  become: true
-  become_user: "{{ ovos_installer_user }}"
   ansible.builtin.systemd_service:
     name: "{{ ovos_hardware_mark2_sj201_unit_name }}"
     enabled: true
     force: true
-    scope: user
+    daemon_reload: true
 
 - name: Delete vocalfusion source once compiled
   ansible.builtin.file:

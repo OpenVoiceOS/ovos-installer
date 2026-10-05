@@ -1872,7 +1872,13 @@ function setup() {
     run grep -F -q 'dtoverlay=vc4-fkms-v3d' "$defaults_file"
     assert_success
 
+    # The unit is a system unit now (it needs root to flash the XVF3510 and had to
+    # call sudo to get there), so the uninstall stops it in the system scope...
     run bash -c "grep -A8 -F -- \"- name: Stop and disable SJ201 systemd unit\" \"$uninstall_file\" | grep -F -q -- 'scope: user'"
+    assert_failure
+
+    # ...and still stops the copy an older install left in the user scope.
+    run bash -c "grep -A10 -F -- \"- name: Stop and disable the SJ201 unit left in the user scope\" \"$uninstall_file\" | grep -F -q -- 'scope: user'"
     assert_success
 
     run bash -c "grep -A10 -F -- \"- name: Remove Mark 2 boot config lines\" \"$uninstall_file\" | grep -F -q -- 'ovos_hardware_mark2_boot_config_cleanup_lines'"
@@ -1885,6 +1891,44 @@ function setup() {
     assert_success
 }
 
+@test "mark2_sj201_flash_runs_without_sudo" {
+    # Flashing the XVF3510 needs root. As a user unit it reached for sudo, and a
+    # Raspberry Pi OS image written by Raspberry Pi Imager grants no passwordless
+    # sudo, so the unit failed on every boot ("a password is required", restart
+    # counter climbing) and the SJ201 microphone returned silence. It is a system
+    # unit now: root to begin with, nothing to escalate.
+    local service_file="ansible/roles/ovos_hardware_mark2/templates/sj201.service.j2"
+    local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
+    local vocalfusion_file="ansible/roles/ovos_hardware_mark2/tasks/vocalfusion.yml"
+
+    run grep -q "sudo" "$service_file"
+    assert_failure
+
+    run grep -q "WantedBy=multi-user.target" "$service_file"
+    assert_success
+
+    run bash -c "grep -F -- 'ovos_hardware_mark2_sj201_unit_path:' '$defaults_file' | grep -q -- 'ovos_hardware_mark2_systemd_system_dir'"
+    assert_success
+
+    # Installed as root, and enabled in the system scope rather than the user one.
+    run bash -c "grep -A8 -F -- '- name: Copy SJ201 systemd unit file' '$vocalfusion_file' | grep -q -- 'owner: root'"
+    assert_success
+
+    run bash -c "grep -A8 -F -- '- name: Enable SJ201 systemd unit' '$vocalfusion_file' | grep -q -- 'scope: user'"
+    assert_failure
+
+    # An install made before the move still has the unit that cannot work, in both
+    # the install path and the uninstall path.
+    run grep -q "ovos_hardware_mark2_sj201_legacy_user_unit_path" "$defaults_file"
+    assert_success
+
+    run grep -q "Stop and disable the SJ201 unit left in the user scope" "$vocalfusion_file"
+    assert_success
+
+    run bash -c "grep -A10 -F -- 'ovos_hardware_mark2_uninstall_paths:' '$defaults_file' | grep -q -- 'ovos_hardware_mark2_sj201_legacy_user_unit_path'"
+    assert_success
+}
+
 @test "mark2_sj201_service_includes_sbin_in_runtime_path" {
     local defaults_file="ansible/roles/ovos_hardware_mark2/defaults/main.yml"
     local service_file="ansible/roles/ovos_hardware_mark2/templates/sj201.service.j2"
@@ -1892,7 +1936,9 @@ function setup() {
     run grep -q "ovos_hardware_mark2_sj201_runtime_path: /usr/local/bin:/usr/sbin:/usr/bin:/bin" "$defaults_file"
     assert_success
 
-    run grep -F -q "ExecStart={{ ovos_hardware_mark2_sudo_path }} -E env PATH={{ ovos_hardware_mark2_sj201_runtime_path }}" "$service_file"
+    # The runtime PATH is what this test is about; the unit runs as root now, so
+    # there is no sudo in front of it (see mark2_sj201_flash_runs_without_sudo).
+    run grep -F -q "ExecStart=/usr/bin/env PATH={{ ovos_hardware_mark2_sj201_runtime_path }}" "$service_file"
     assert_success
 
     run grep -F -q "ExecStartPost=/usr/bin/env PATH={{ ovos_hardware_mark2_sj201_runtime_path }}" "$service_file"

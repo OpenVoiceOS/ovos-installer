@@ -33,6 +33,15 @@
       or ovos_hardware_mark2_kernel_headers_uninstall_result is not ansible.builtin.failed
 
 - name: Stop and disable SJ201 systemd unit
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_hardware_mark2_sj201_unit_name }}"
+    enabled: false
+    state: stopped
+    daemon_reload: true
+  failed_when: false
+
+# Installs made before the unit moved out of the user scope still have it there.
+- name: Stop and disable the SJ201 unit left in the user scope
   become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.systemd_service:
