@@ -46,7 +46,7 @@ including one that runs speech recognition and the voice on a Raspberry Pi 5
 | `llm.key` | API key for that endpoint, required with `features.llm` |
 | `llm.model` | Model name to use, required with `features.llm` |
 | `llm.persona` | System prompt for `ovos-persona`, required with `features.llm` |
-| `speech_engine` | Where speech recognition and the voice run: `public` (the default) uses the Open Voice OS public servers, `local` runs them on the device. Local needs the `alpha` channel, the `virtualenv` method, a profile with audio and a Raspberry Pi 5 with 8 GB or an equivalent machine; anywhere else the installer says so and uses `public` |
+| `speech_engine` | Where speech recognition and the voice run: `public` (the default) uses the community's public servers, which run on goodwill rather than as a production service and can go offline at any time; `local` runs them on the device. Local needs the `alpha` channel, the `virtualenv` method, a profile with audio and a Raspberry Pi 5 with 8 GB or an equivalent machine; anywhere else the installer says so and uses `public` |
 | `raspberry_pi_tuning` | Maximum-performance tuning for a Pi, including an overclocking prompt |
 | `share_telemetry` | Share anonymous usage statistics — see [Telemetry](telemetry.md) |
 | `share_usage_telemetry` | Share detailed usage data — see [Telemetry](telemetry.md) |

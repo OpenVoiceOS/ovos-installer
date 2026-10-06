@@ -58,9 +58,9 @@
   },
   "speech.sh": {
     "title": "Open Voice OS Installation - Tale",
-    "content": "Open Voice OS omsætter det, du siger, til tekst (talegenkendelse) og læser sine svar højt (talesyntese). Denne maskine er kraftig nok til selv at klare begge dele.\n\n- local: alt kører på denne maskine. Din stemme bliver her, og intet afhænger af internettet eller af, hvor travlt serverne har. Installationsprogrammet henter talemodellerne til dit sprog, fra et par hundrede megabyte til et par gigabyte, og genkendelsen holder processoren beskæftiget, mens du taler.\n- public: de offentlige Open Voice OS-servere klarer arbejdet. Der skal ikke hentes noget, men hver forespørgsel går over internettet til servere, som hele fællesskabet deler. Det giver netværksforsinkelse og bliver langsommere, når mange bruger dem på samme tid. Dine optagelser og svarene behandles på de servere.\n\nHvis den lokale genkendelse fejler eller ikke hører noget, sendes netop den optagelse til de offentlige servere i stedet.\n\nVælg venligst, hvor tale skal behandles:",
+    "content": "Open Voice OS omsætter det, du siger, til tekst (talegenkendelse) og læser sine svar højt (talesyntese). Denne maskine er kraftig nok til selv at klare begge dele.\n\n- local: alt kører på denne maskine. Din stemme bliver her, og intet afhænger af internettet eller af, hvor travlt serverne har. Installationsprogrammet henter talemodellerne til dit sprog, fra et par hundrede megabyte til et par gigabyte, og genkendelsen holder processoren beskæftiget, mens du taler.\n- public: fællesskabets servere klarer arbejdet. De drives af god vilje, som reserve og som eksempel på selvhostet talebehandling, ikke som en produktionstjeneste: svarene bliver langsommere, når mange bruger dem på samme tid, og serverne kan gå ned når som helst. Der skal ikke hentes noget, men dine optagelser og svarene sendes over internettet og behandles på de servere.\n\nHvis den lokale genkendelse fejler eller ikke hører noget, sendes netop den optagelse til de offentlige servere i stedet.\n\nVælg venligst, hvor tale skal behandles:",
     "local_description": "Behandl tale på denne maskine",
-    "public_description": "Brug de offentlige Open Voice OS-servere"
+    "public_description": "Offentlige servere (jeg ved, de kan gå ned)"
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Resume",

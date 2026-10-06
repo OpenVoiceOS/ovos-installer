@@ -58,9 +58,9 @@
   },
   "speech.sh": {
     "title": "Open Voice OS Installatie - Spraak",
-    "content": "Open Voice OS zet wat je zegt om in tekst (spraakherkenning) en leest zijn antwoorden voor (spraaksynthese). Deze machine is krachtig genoeg om beide zelf te doen.\n\n- local: alles draait op deze machine. Je stem blijft hier, en niets hangt af van internet of van hoe druk de servers zijn. Het installatieprogramma downloadt de spraakmodellen voor je taal, van een paar honderd megabyte tot een paar gigabyte, en de herkenning houdt de processor bezig terwijl je praat.\n- public: de openbare servers van Open Voice OS doen het werk. Je hoeft niets te downloaden, maar elk verzoek gaat via internet naar servers die de hele community deelt. Dat voegt netwerkvertraging toe en wordt trager wanneer veel mensen ze tegelijk gebruiken. Je opnames en de antwoorden worden op die servers verwerkt.\n\nAls de lokale herkenning mislukt of niets hoort, wordt die ene opname naar de openbare servers gestuurd.\n\nSelecteer waar spraak wordt verwerkt:",
+    "content": "Open Voice OS zet wat je zegt om in tekst (spraakherkenning) en leest zijn antwoorden voor (spraaksynthese). Deze machine is krachtig genoeg om beide zelf te doen.\n\n- local: alles draait op deze machine. Je stem blijft hier, en niets hangt af van internet of van hoe druk de servers zijn. Het installatieprogramma downloadt de spraakmodellen voor je taal, van een paar honderd megabyte tot een paar gigabyte, en de herkenning houdt de processor bezig terwijl je praat.\n- public: servers van de community doen het werk. Ze draaien uit goede wil, als reserve en als voorbeeld van zelf gehoste spraakverwerking, niet als productiedienst: antwoorden duren langer wanneer veel mensen ze tegelijk gebruiken, en de servers kunnen op elk moment uitvallen. Je hoeft niets te downloaden, maar je opnames en de antwoorden gaan via internet en worden op die servers verwerkt.\n\nAls de lokale herkenning mislukt of niets hoort, wordt die ene opname naar de openbare servers gestuurd.\n\nSelecteer waar spraak wordt verwerkt:",
     "local_description": "Spraak op deze machine verwerken",
-    "public_description": "De openbare Open Voice OS-servers gebruiken"
+    "public_description": "Openbare servers (ik weet dat ze kunnen uitvallen)"
   },
   "summary.sh": {
     "title": "OpenVoice OS Installatie - Samenvatting",
