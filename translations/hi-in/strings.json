@@ -67,7 +67,7 @@
     "speech_local": "इसी मशीन पर",
     "speech_public": "सार्वजनिक सर्वर",
     "speech_public_hardware": "सार्वजनिक सर्वर (लोकल: 8 GB वाला Pi 5 या बेहतर)",
-    "speech_public_setup": "सार्वजनिक सर्वर (लोकल: alpha और virtualenv)",
+    "speech_public_setup": "सार्वजनिक सर्वर (यहाँ लोकल उपलब्ध नहीं)",
     "speech_unused": "यह प्रोफ़ाइल इसका उपयोग नहीं करती"
   },
   "telemetry.sh": {

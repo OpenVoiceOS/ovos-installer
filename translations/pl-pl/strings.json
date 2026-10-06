@@ -68,7 +68,7 @@
     "speech_local": "na tym komputerze",
     "speech_public": "serwery publiczne",
     "speech_public_hardware": "serwery publiczne (lokalnie: Pi 5 z 8 GB lub lepszy)",
-    "speech_public_setup": "serwery publiczne (lokalnie: alpha i virtualenv)",
+    "speech_public_setup": "serwery publiczne (tryb lokalny tu niedostępny)",
     "speech_unused": "nieużywana w tym profilu"
   },
   "telemetry.sh": {

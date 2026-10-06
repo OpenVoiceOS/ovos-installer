@@ -71,7 +71,7 @@
     "speech_local": "ɣef tmacint-a",
     "speech_public": "iqeddacen izayazen",
     "speech_public_hardware": "iqeddacen izayazen (adigan: Pi 5 s 8 GB neɣ ugar)",
-    "speech_public_setup": "iqeddacen izayazen (adigan: alpha d virtualenv)",
+    "speech_public_setup": "iqeddacen izayazen (adigan ulac-it dagi)",
     "speech_unused": "ur yettwaseqdac ara deg umaɣnu-a"
   },
   "telemetry.sh": {

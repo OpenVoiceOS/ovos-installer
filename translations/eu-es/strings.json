@@ -67,7 +67,7 @@
     "speech_local": "makina honetan",
     "speech_public": "zerbitzari publikoak",
     "speech_public_hardware": "zerbitzari publikoak (lokala: 8 GB-ko Pi 5 edo hobea)",
-    "speech_public_setup": "zerbitzari publikoak (lokala: alpha eta virtualenv)",
+    "speech_public_setup": "zerbitzari publikoak (lokala ez dago hemen)",
     "speech_unused": "profil honek ez du erabiltzen"
   },
   "telemetry.sh": {

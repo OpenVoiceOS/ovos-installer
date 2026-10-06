@@ -40,10 +40,12 @@
 - name: Assert local speech constraints
   ansible.builtin.assert:
     that:
-      - ovos_installer_method == 'virtualenv'
       - ovos_installer_channel == 'alpha'
       - ovos_installer_profile != 'server'
-    fail_msg: "Local speech is only available on alpha virtualenv installs whose profile has audio."
+      - ovos_installer_method == 'virtualenv' or ovos_installer_profile in ['ovos', 'listener']
+    fail_msg: >-
+      Local speech is only available on alpha installs whose profile has audio,
+      and with containers only for the ovos and listener profiles.
   when:
     - not (ovos_installer_is_cleaning | bool)
     - ovos_installer_speech_engine == 'local'

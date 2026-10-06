@@ -73,7 +73,7 @@
     "speech_local": "on this machine",
     "speech_public": "public servers",
     "speech_public_hardware": "public servers (local needs a Pi 5 with 8 GB or better)",
-    "speech_public_setup": "public servers (local needs alpha and virtualenv)",
+    "speech_public_setup": "public servers (local is not available here)",
     "speech_unused": "not used by this profile"
   },
   "telemetry.sh": {

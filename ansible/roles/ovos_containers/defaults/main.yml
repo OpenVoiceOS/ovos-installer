@@ -181,6 +181,13 @@ ovos_containers_hivemind_client_ids: >-
   {{ ovos_containers_hivemind_clients.stdout_lines | default([])
      | select('match', '^[0-9]+,') | map('split', ',') | map('first') | list }}
 ovos_containers_container_ovos_cli: ovos_cli
+ovos_containers_container_ovos_listener: ovos_listener
+ovos_containers_container_ovos_audio: ovos_audio
+# Local speech (ovos_installer_speech_engine: local) raises the limits ovos-docker
+# gives the listener and the audio service: onnx-asr's recognition model alone
+# peaks around 1.2 GB, and some languages get larger models than that.
+ovos_containers_speech_listener_memory_limit: "{{ ovos_installer_speech_listener_memory_limit | default('4G') }}"
+ovos_containers_speech_audio_memory_limit: "{{ ovos_installer_speech_audio_memory_limit | default('1G') }}"
 # Service and container names from ovos-docker's docker-compose.skills-extra.yml.
 # Keep them overridable in case upstream changes.
 ovos_containers_service_skill_homeassistant: ovos_skill_homeassistant

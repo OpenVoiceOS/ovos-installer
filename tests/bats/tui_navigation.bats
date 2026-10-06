@@ -776,3 +776,16 @@ function rendered_titles() {
     run rendered_titles
     refute_line "Open Voice OS Installation - Speech"
 }
+
+@test "tui: a containers install on alpha is asked where speech runs" {
+    export LOCAL_SPEECH_CAPABLE="true"
+    WHIPTAIL_PREFERRED_TAGS="containers alpha"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    assert_equal "$METHOD" "containers"
+    run rendered_titles
+    assert_line --index 6 "Open Voice OS Installation - Speech"
+    assert_equal "$SPEECH_ENGINE" "local"
+}

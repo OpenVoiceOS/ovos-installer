@@ -8,7 +8,9 @@
 # per-language defaults for units, wake words and intents, which this installer
 # sets itself.
 #
-# The caller passes ovos_config_speech_python, the OVOS virtualenv's Python.
+# The caller says where OVOS runs: ovos_config_speech_python, the virtualenv's
+# Python, or ovos_config_speech_containers, the names of the listener and audio
+# containers.
 - name: Pick, download and check the local speech plugins
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -23,20 +25,56 @@
       - "{{ ovos_config_speech_stt_memory_budget_mb }}"
   register: ovos_config_speech_setup
   changed_when: false
+  when: ovos_config_speech_containers is not defined
+
+# Each half is set up where it will run - the recognizer in the listener, the
+# voice in the audio service - so each model lands in that container's volume
+# (ovos_stt_models, ovos_tts_models).
+- name: Pick, download and check the local speech plugins in their containers
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_container_exec:
+    container: "{{ ovos_config_speech_containers[item.container] }}"
+    argv:
+      - python3
+      - -c
+      - "{{ lookup('ansible.builtin.file', 'speech_setup.py') }}"
+      - "{{ item.kind }}"
+      - "{{ ovos_installer_locale }}"
+      - "{{ 'female' if ovos_installer_ovos_config_tts_gender == '--female' else 'male' }}"
+      - "{{ ovos_config_speech_stt_memory_budget_mb }}"
+  loop:
+    - { kind: stt, container: listener }
+    - { kind: tts, container: audio }
+  loop_control:
+    label: "{{ item.kind }}"
+  register: ovos_config_speech_setup_containers
+  changed_when: false
+  # The listener and audio containers only exist in the desktop profiles.
+  when:
+    - ovos_config_speech_containers is defined
+    - ovos_containers_is_desktop_profile | bool
 
 # A failed local recognition, or one that hears nothing, goes to the public
 # server for that utterance instead of leaving the user unanswered.
 - name: Keep what works on this machine
   vars:
-    _setup: "{{ ovos_config_speech_setup.stdout | from_json }}"
+    _results: >-
+      {{
+        (ovos_config_speech_setup_containers.results | map(attribute='stdout') | map('from_json') | list)
+        if ovos_config_speech_containers is defined
+        else [ovos_config_speech_setup.stdout | from_json]
+      }}
+    _stt: "{{ _results | map(attribute='stt') | select | list | first | default(none) }}"
+    _tts: "{{ _results | map(attribute='tts') | select | list | first | default(none) }}"
   ansible.builtin.set_fact:
     ovos_config_speech_wanted: >-
       {{
-        ({'stt': _setup.stt | combine({'fallback_module': ovos_config_speech_stt_fallback})}
-         if _setup.stt else {})
-        | combine({'tts': _setup.tts} if _setup.tts else {})
+        ({'stt': _stt | combine({'fallback_module': ovos_config_speech_stt_fallback})}
+         if _stt else {})
+        | combine({'tts': _tts} if _tts else {})
       }}
-    ovos_config_speech_notes: "{{ _setup.notes | default([]) }}"
+    ovos_config_speech_notes: "{{ _results | map(attribute='notes') | flatten }}"
 
 - name: Report what the local speech setup had to work around
   ansible.builtin.debug:

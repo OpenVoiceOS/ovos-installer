@@ -68,7 +68,7 @@
     "speech_local": "op deze machine",
     "speech_public": "openbare servers",
     "speech_public_hardware": "openbare servers (lokaal: Pi 5 met 8 GB of beter)",
-    "speech_public_setup": "openbare servers (lokaal: alpha en virtualenv)",
+    "speech_public_setup": "openbare servers (lokaal hier niet beschikbaar)",
     "speech_unused": "niet gebruikt door dit profiel"
   },
   "telemetry.sh": {

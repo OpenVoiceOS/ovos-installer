@@ -2699,8 +2699,14 @@ YAML
     run grep -F -q "{{ ovos_installer_ovos_config_tts_gender }}" "$container_tasks"
     assert_success
 
-    run bash -c "awk '/ovos-config autoconfigure --lang/ { in_command=1 } in_command { print } in_command && /ovos_installer_ovos_config_tts_gender/ { exit }' \"$container_tasks\" | grep -F -q -- '--online'"
-    assert_failure
+    # Always a mode: with neither flag autoconfigure goes hybrid (the voice on the
+    # device, recognition on the public servers), which is not one of the two
+    # speech choices the installer offers.
+    run grep -F -q "{{ '--offline' if ovos_containers_speech_engine == 'local' else '--online' }}" "$container_tasks"
+    assert_success
+
+    run grep -F -q "{{ '--offline' if (ovos_installer_speech_engine | default('public')) == 'local' else '--online' }}" "$virtualenv_tasks"
+    assert_success
 
     run grep -F -q "ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool" "$container_tasks"
     assert_success
@@ -5185,4 +5191,34 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     run grep -qF 'the uninstall left ${path} behind' "$workflow"
     assert_success
     [ -x .github/scripts/assert_local_speech.sh ]
+}
+
+@test "local_speech_reaches_containers_only_when_ovos_docker_can_run_it" {
+    local composer="ansible/roles/ovos_containers/tasks/composer.yml"
+
+    # The compose of the pinned release must give the listener room for the model and a
+    # volume to keep it in, and the pulled images must carry both plugins; short of
+    # either, containers stay public instead of OOM-killing or crash-looping the listener.
+    run grep -F -q "'LISTENER_MEMORY_LIMIT' in _compose and 'ovos_stt_models' in _compose" "$composer"
+    assert_success
+    run grep -F -q "'ovos-stt-plugin-onnx-asr' in find_stt_plugins()" "$composer"
+    assert_success
+    run grep -F -q "'ovos-tts-plugin-phoonnx' in find_tts_plugins()" "$composer"
+    assert_success
+
+    # Local speech is configured through the same tasks as the virtualenv, run in the
+    # cli, listener and audio containers.
+    run bash -c "awk '/- name: Configure local speech/,/- name: Compute optional skills flags/' '$composer' | grep -q 'ovos_config_speech_containers:'"
+    assert_success
+    run grep -q "^ovos_containers_container_ovos_listener: ovos_listener$" ansible/roles/ovos_containers/defaults/main.yml
+    assert_success
+    run grep -q "^ovos_containers_container_ovos_audio: ovos_audio$" ansible/roles/ovos_containers/defaults/main.yml
+    assert_success
+
+    # The raised limits only go into .env when local speech was asked for.
+    local env_template="ansible/roles/ovos_containers/templates/docker/env.j2"
+    run bash -c "grep -B1 '^LISTENER_MEMORY_LIMIT=' '$env_template' | grep -q \"ovos_installer_speech_engine | default('public')) == 'local'\""
+    assert_success
+    run bash -c "grep -B1 '^AUDIO_MEMORY_LIMIT=' '$env_template' | grep -q \"ovos_installer_speech_engine | default('public')) == 'local'\""
+    assert_success
 }

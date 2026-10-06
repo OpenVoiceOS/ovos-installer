@@ -71,13 +71,22 @@ function detect_local_speech_support() {
 }
 
 # Capable hardware is not enough. Local speech is only offered on the alpha
-# channel, the container images do not carry its plugins, and a server has no
-# audio to process.
+# channel, and a server has no audio to process. A containers satellite runs the
+# hivemind-docker images, which do not carry the speech plugins.
 function local_speech_available() {
-    [ "${LOCAL_SPEECH_CAPABLE:-false}" == "true" ] &&
-        [ "${CHANNEL:-}" == "alpha" ] &&
-        [ "${METHOD:-}" == "virtualenv" ] &&
+    [ "${LOCAL_SPEECH_CAPABLE:-false}" == "true" ] && [ "${CHANNEL:-}" == "alpha" ] || return 1
+
+    case "${METHOD:-}" in
+    virtualenv)
         [ "${PROFILE:-}" != "server" ]
+        ;;
+    containers)
+        [ "${PROFILE:-}" == "ovos" ] || [ "${PROFILE:-}" == "listener" ]
+        ;;
+    *)
+        return 1
+        ;;
+    esac
 }
 
 # Settle SPEECH_ENGINE before the playbook runs. A scenario file, an earlier
@@ -85,7 +94,7 @@ function local_speech_available() {
 # all ask for local where it is not available; those runs get public.
 function normalize_speech_engine() {
     if [ "${SPEECH_ENGINE:-}" == "local" ] && ! local_speech_available; then
-        echo "Local speech needs the alpha channel, a virtualenv install, a profile with audio and a Raspberry Pi 5 with 8 GB or an equivalent machine. Using the public servers instead." | tee -a "$LOG_FILE"
+        echo "Local speech needs the alpha channel, a profile with audio (ovos or listener with containers) and a Raspberry Pi 5 with 8 GB or an equivalent machine. Using the public servers instead." | tee -a "$LOG_FILE"
     fi
 
     if [ "${SPEECH_ENGINE:-}" == "local" ] && local_speech_available; then

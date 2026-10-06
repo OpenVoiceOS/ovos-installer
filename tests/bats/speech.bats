@@ -150,7 +150,7 @@ function teardown() {
     assert_equal "$LOCAL_SPEECH_CAPABLE" "false"
 }
 
-@test "speech: local is only available on alpha virtualenv installs with audio" {
+@test "speech: local is only available on alpha installs with audio" {
     LOCAL_SPEECH_CAPABLE="true"
     CHANNEL="alpha"
     METHOD="virtualenv"
@@ -172,10 +172,6 @@ function teardown() {
     assert_failure
 
     CHANNEL="alpha"
-    METHOD="containers"
-    run local_speech_available
-    assert_failure
-
     METHOD="virtualenv"
     LOCAL_SPEECH_CAPABLE="false"
     run local_speech_available
@@ -267,4 +263,32 @@ function run_scenario_with_speech_engine() {
     run_scenario_with_speech_engine "offline"
     assert_success
     assert_output "unset|true|speech_engine: offline (expected: local, public)"
+}
+
+@test "speech: containers get local speech for the ovos and listener profiles only" {
+    LOCAL_SPEECH_CAPABLE="true"
+    CHANNEL="alpha"
+    METHOD="containers"
+
+    PROFILE="ovos"
+    run local_speech_available
+    assert_success
+
+    PROFILE="listener"
+    run local_speech_available
+    assert_success
+
+    # A containers satellite runs hivemind-docker, whose images carry no speech plugins.
+    PROFILE="satellite"
+    run local_speech_available
+    assert_failure
+
+    PROFILE="server"
+    run local_speech_available
+    assert_failure
+
+    PROFILE="ovos"
+    CHANNEL="testing"
+    run local_speech_available
+    assert_failure
 }

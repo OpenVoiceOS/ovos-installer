@@ -60,6 +60,80 @@
     - not ansible_check_mode
     - ovos_installer_profile == "satellite"
 
+# Local speech needs two things from ovos-docker, and both are checked rather than
+# assumed. The compose files of the pinned release have to give the listener room
+# for the recognition model and a volume to keep it in - with less, the model gets
+# the listener OOM-killed - and the images this stack just pulled have to carry the
+# onnx-asr and phoonnx plugins, or the listener cannot load its recognizer. Short
+# of either, speech stays on the public servers.
+- name: Read the compose files this stack runs
+  ansible.builtin.slurp:
+    src: "{{ ovos_containers_composition_directory }}/{{ item }}"
+  loop: "{{ ovos_containers_composition_files }}"
+  register: ovos_containers_composition_contents
+  when:
+    - (ovos_installer_speech_engine | default('public')) == 'local'
+    - ovos_containers_is_desktop_profile | bool
+
+- name: Check the listener and audio images carry the local speech plugins
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_container_exec:
+    container: "{{ item.container }}"
+    argv:
+      - python3
+      - -c
+      - "{{ item.probe }}"
+  loop:
+    - container: "{{ ovos_containers_container_ovos_listener }}"
+      probe: >-
+        from ovos_plugin_manager.stt import find_stt_plugins;
+        raise SystemExit(0 if 'ovos-stt-plugin-onnx-asr' in find_stt_plugins() else 1)
+    - container: "{{ ovos_containers_container_ovos_audio }}"
+      probe: >-
+        from ovos_plugin_manager.tts import find_tts_plugins;
+        raise SystemExit(0 if 'ovos-tts-plugin-phoonnx' in find_tts_plugins() else 1)
+  loop_control:
+    label: "{{ item.container }}"
+  register: ovos_containers_speech_plugins
+  failed_when: false
+  changed_when: false
+  when:
+    - not ansible_check_mode
+    - (ovos_installer_speech_engine | default('public')) == 'local'
+    - ovos_containers_is_desktop_profile | bool
+
+- name: Decide where speech runs
+  vars:
+    _compose: >-
+      {{ ovos_containers_composition_contents.results | default([])
+         | map(attribute='content', default='') | map('b64decode') | join('\n') }}
+    _compose_ready: "{{ 'LISTENER_MEMORY_LIMIT' in _compose and 'ovos_stt_models' in _compose }}"
+    _plugins_ready: >-
+      {{ (ovos_containers_speech_plugins.results | default([]) | length) == 2
+         and (ovos_containers_speech_plugins.results | map(attribute='rc', default=1) | max) == 0 }}
+  ansible.builtin.set_fact:
+    ovos_containers_speech_engine: >-
+      {{
+        'local'
+        if (ovos_installer_speech_engine | default('public')) == 'local'
+           and _compose_ready | bool and _plugins_ready | bool
+        else 'public'
+      }}
+
+- name: Say why speech stays on the public servers
+  ansible.builtin.debug:
+    msg: >-
+      The ovos-docker release this installer runs, or the images it pulled, cannot
+      run speech on the device yet, so speech stays on the public servers. Re-run
+      the installer once they can.
+  when:
+    - (ovos_installer_speech_engine | default('public')) == 'local'
+    - ovos_containers_speech_engine == 'public'
+
+# --offline or --online, never neither: without one autoconfigure picks its hybrid
+# mode (voice on the device, recognition on the public servers), which is neither
+# of the two choices the installer offers.
 - name: Merge ovos-config language recommendations into mounted config
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -67,6 +141,7 @@
     container: "{{ ovos_containers_container_ovos_cli }}"
     command: >-
       ovos-config autoconfigure --lang {{ ovos_installer_locale }}
+      {{ '--offline' if ovos_containers_speech_engine == 'local' else '--online' }}
       {{ ovos_installer_ovos_config_tts_gender }}
   when:
     - not ansible_check_mode
@@ -75,6 +150,20 @@
     # and every one of those is gated on a desktop profile. A satellite has
     # none of them, so without this the install dies here on "Could not find
     # container ovos_cli" after the stack is already up.
+    - ovos_containers_is_desktop_profile | bool
+
+- name: Configure local speech
+  ansible.builtin.include_role:
+    name: ovos_config
+    tasks_from: speech.yml
+  vars:
+    ovos_config_speech_containers:
+      cli: "{{ ovos_containers_container_ovos_cli }}"
+      listener: "{{ ovos_containers_container_ovos_listener }}"
+      audio: "{{ ovos_containers_container_ovos_audio }}"
+  when:
+    - not ansible_check_mode
+    - ovos_containers_speech_engine == 'local'
     - ovos_containers_is_desktop_profile | bool
 
 - name: Compute optional skills flags
