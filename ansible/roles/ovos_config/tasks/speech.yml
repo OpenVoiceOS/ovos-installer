@@ -1,45 +1,53 @@
 ---
-# Local speech: STT and TTS run on this host with the plugins and models the
-# installed ovos-config recommends for the locale. Those are the files
-# `ovos-config autoconfigure --offline` reads, but only their stt and tts
-# sections are taken: autoconfigure also merges per-language defaults for units,
-# wake words and intents, which this installer sets itself.
+# Local speech: STT and TTS run on this host. speech_setup.py picks the plugins and
+# models - ovos-config's recommendation for the locale, or the plugin's own choice
+# for the language when that does not work here - downloads them, and proves they
+# run before anything is written: a voice the installed phoonnx cannot speak, or a
+# model too big for the machine, would otherwise leave a device mute or deaf. Only
+# the stt and tts sections are taken: `ovos-config autoconfigure` also merges
+# per-language defaults for units, wake words and intents, which this installer
+# sets itself.
 #
 # The caller passes ovos_config_speech_python, the OVOS virtualenv's Python.
-- name: Resolve the speech plugins ovos-config recommends for this locale
+- name: Pick, download and check the local speech plugins
   become: true
   become_user: "{{ ovos_installer_user }}"
   ansible.builtin.command:
     argv:
       - "{{ ovos_config_speech_python }}"
       - -c
-      - "{{ lookup('ansible.builtin.file', 'speech_recommendation.py') }}"
+      - "{{ lookup('ansible.builtin.file', 'speech_setup.py') }}"
+      - stt,tts
       - "{{ ovos_installer_locale }}"
       - "{{ 'female' if ovos_installer_ovos_config_tts_gender == '--female' else 'male' }}"
-  register: ovos_config_speech_probe
+      - "{{ ovos_config_speech_stt_memory_budget_mb }}"
+  register: ovos_config_speech_setup
   changed_when: false
 
 # A failed local recognition, or one that hears nothing, goes to the public
 # server for that utterance instead of leaving the user unanswered.
-- name: Keep the recommended sections
+- name: Keep what works on this machine
   vars:
-    _recommended: "{{ ovos_config_speech_probe.stdout | from_json }}"
+    _setup: "{{ ovos_config_speech_setup.stdout | from_json }}"
   ansible.builtin.set_fact:
     ovos_config_speech_wanted: >-
       {{
-        ({'stt': _recommended.stt | combine({'fallback_module': ovos_config_speech_stt_fallback})}
-         if _recommended.stt else {})
-        | combine({'tts': _recommended.tts} if _recommended.tts else {})
+        ({'stt': _setup.stt | combine({'fallback_module': ovos_config_speech_stt_fallback})}
+         if _setup.stt else {})
+        | combine({'tts': _setup.tts} if _setup.tts else {})
       }}
+    ovos_config_speech_notes: "{{ _setup.notes | default([]) }}"
 
-# ovos-config does not recommend on-device speech for every language, and which
-# ones it covers changes from one release to the next.
+- name: Report what the local speech setup had to work around
+  ansible.builtin.debug:
+    msg: "{{ item }}"
+  loop: "{{ ovos_config_speech_notes }}"
+
 - name: Report what stays on the public servers
   ansible.builtin.debug:
     msg: >-
-      The ovos-config release in this virtualenv recommends no on-device
-      {{ item | upper }} for {{ ovos_installer_locale }}, so {{ item | upper }}
-      stays on the public servers.
+      No on-device {{ item | upper }} works for {{ ovos_installer_locale }} on this
+      machine, so {{ item | upper }} stays on the public servers.
   loop: "{{ ['stt', 'tts'] | difference(ovos_config_speech_wanted.keys() | list) }}"
 
 - name: Read mycroft.conf for the speech configuration
@@ -93,36 +101,3 @@
   ansible.builtin.set_fact:
     ovos_config_speech_stt_engine: "{{ 'local' if _applied and 'stt' in ovos_config_speech_wanted else 'public' }}"
     ovos_config_speech_tts_engine: "{{ 'local' if _applied and 'tts' in ovos_config_speech_wanted else 'public' }}"
-
-# Both plugins fetch their model when they are created. Doing that here turns a
-# download of up to a few gigabytes into part of the install, instead of a
-# listener that sits silent through its first start.
-- name: Download the local speech models
-  when:
-    - ovos_config_speech_conf_readable | default(false) | bool
-    - ovos_config_speech_wanted | length > 0
-  block:
-    - name: Load the local speech plugins once so they fetch their models
-      become: true
-      become_user: "{{ ovos_installer_user }}"
-      ansible.builtin.command:
-        argv:
-          - "{{ ovos_config_speech_python }}"
-          - -c
-          - "{{ lookup('ansible.builtin.file', 'speech_prefetch.py') }}"
-          # Encoded because Ansible turns a templated string that looks like a
-          # dict back into one, and the script would get its Python repr.
-          - "{{ ovos_config_speech_wanted | to_json | b64encode }}"
-          - "{{ ovos_installer_locale }}"
-      register: ovos_config_speech_prefetch
-      changed_when: false
-      until: ovos_config_speech_prefetch is success
-      retries: "{{ ovos_config_speech_prefetch_retries | int }}"
-      delay: "{{ ovos_config_speech_prefetch_delay | int }}"
-  rescue:
-    - name: Report the models that could not be downloaded
-      ansible.builtin.debug:
-        msg: >-
-          The local speech models could not be downloaded
-          ({{ (ovos_config_speech_prefetch.stderr_lines | default(['unknown error'], true)) | last }}).
-          The speech services download them when they start instead.

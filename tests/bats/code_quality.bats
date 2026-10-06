@@ -5136,14 +5136,14 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     run bash -c "awk '/Configure local speech/,0' '$venv_tasks' | grep -q \"ovos_installer_speech_engine | default('public')) == 'local'\""
     assert_success
 
-    # Only the stt and tts sections are written, the public STT server stays as the
-    # fallback, and the models are fetched during the install.
+    # Only what speech_setup.py proved works here is written - it also downloads the
+    # models, within a memory budget - and the public STT server stays as the fallback.
     local speech_tasks="ansible/roles/ovos_config/tasks/speech.yml"
-    run grep -q "speech_recommendation.py" "$speech_tasks"
+    run grep -q "speech_setup.py" "$speech_tasks"
+    assert_success
+    run grep -q "ovos_config_speech_stt_memory_budget_mb" "$speech_tasks"
     assert_success
     run grep -q "'fallback_module': ovos_config_speech_stt_fallback" "$speech_tasks"
-    assert_success
-    run grep -q "speech_prefetch.py" "$speech_tasks"
     assert_success
     run grep -q "^ovos_config_speech_stt_fallback: ovos-stt-plugin-server$" ansible/roles/ovos_config/defaults/main.yml
     assert_success
