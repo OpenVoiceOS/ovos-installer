@@ -77,6 +77,10 @@ ovos_virtualenv_padatious_cache_repo_url: https://github.com/OpenVoiceOS/padatio
 ovos_virtualenv_padatious_cache_repo_version: dev
 ovos_virtualenv_padatious_cache_repo_path: "{{ ovos_installer_user_home }}/.cache/ovos-installer/padatious_cache"
 ovos_virtualenv_padatious_cache_repo_refresh_interval: 21600
+# The clone is the first thing a run asks of github.com on a cold cache, and one
+# connect timeout (75 s) there used to fail the whole install.
+ovos_virtualenv_padatious_cache_clone_retries: "{{ ovos_installer_padatious_cache_clone_retries | default(3) }}"
+ovos_virtualenv_padatious_cache_clone_delay: "{{ ovos_installer_padatious_cache_clone_delay | default(10) }}"
 ovos_virtualenv_gui_repo_refresh_interval: "{{ ovos_installer_gui_repo_refresh_interval | default(21600) }}"
 ovos_virtualenv_gui_repo_force_sync: "{{ ovos_installer_gui_repo_force_sync | default(false) }}"
 ovos_virtualenv_padatious_cache_dir: "{{ ovos_installer_user_home }}/.local/share/mycroft/intent_cache"

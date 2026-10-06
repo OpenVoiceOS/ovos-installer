@@ -36,6 +36,9 @@
     force: true
     depth: 1
   register: ovos_virtualenv_padatious_cache_checkout
+  until: ovos_virtualenv_padatious_cache_checkout is success
+  retries: "{{ ovos_virtualenv_padatious_cache_clone_retries | int }}"
+  delay: "{{ ovos_virtualenv_padatious_cache_clone_delay | int }}"
 
 - name: Ensure OVOS intent cache parent directory exists
   ansible.builtin.file:

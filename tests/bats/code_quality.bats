@@ -886,6 +886,39 @@ function setup() {
     rm -f "$aur_task"
 }
 
+@test "the_padatious_cache_clone_retries_the_network" {
+    # The macOS Intel job on main failed on a good commit when github.com did not
+    # answer for 75 s during this clone (git ls-remote, rc 128), and nothing retried.
+    local tasks_file="ansible/roles/ovos_virtualenv/tasks/intent_cache.yml"
+    local clone_task
+    clone_task="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/padatious_clone.XXXXXX.yml")"
+
+    run awk '/- name: Checkout padatious cache repository/{found=1; print; next} found && /^- name:/{exit} found{print}' "$tasks_file"
+    assert_success
+    printf "%s\n" "$output" > "$clone_task"
+
+    run grep -q "ansible.builtin.git:" "$clone_task"
+    assert_success
+
+    run grep -q "until: ovos_virtualenv_padatious_cache_checkout is success" "$clone_task"
+    assert_success
+
+    run grep -q "retries: \"{{ ovos_virtualenv_padatious_cache_clone_retries | int }}\"" "$clone_task"
+    assert_success
+
+    run grep -q "delay: \"{{ ovos_virtualenv_padatious_cache_clone_delay | int }}\"" "$clone_task"
+    assert_success
+
+    # The counts stay overridable the same way every other retried step is.
+    run grep -q "ovos_virtualenv_padatious_cache_clone_retries:.*ovos_installer_padatious_cache_clone_retries" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    run grep -q "ovos_virtualenv_padatious_cache_clone_delay:.*ovos_installer_padatious_cache_clone_delay" ansible/roles/ovos_virtualenv/defaults/main.yml
+    assert_success
+
+    rm -f "$clone_task"
+}
+
 @test "virtualenv_uv_prerelease_gating_uses_target_venv_python" {
     run grep -q "ovos_installer_venv_python_parts" ansible/roles/ovos_installer/defaults/main.yml
     assert_success
