@@ -27,6 +27,19 @@ ovos-microphone-plugin-sounddevice
 ovos-ww-plugin-precise-onnx
 {% endif %}
 {% endif %}
+{% if (ovos_installer_channel | default('testing')) == 'alpha' %}
+# The alpha default configuration makes wakeforge the wake word engine
+# (OpenVoiceOS/ovos-config#336): "hey_mycroft" becomes the
+# wakehubert_hey_mycroft model and the precise/vosk/pocketsphinx fallback chain
+# leaves the defaults, so nothing else in this file installs an engine those
+# defaults can load. 0.8.0a1 is the first release that fetches models from
+# OpenVoiceOS/wakehubert-wakewords, where that model lives - up to 0.7.0a1 the
+# plugin looks in TigreGotico/wakehubert-tiny, which carries one generic model
+# and no hey_mycroft. Stable and testing keep the precise chain as their
+# default, and stable pins ovos-plugin-manager < 0.10, which cannot satisfy
+# this plugin's floor of 2.1.0.
+ovos-ww-plugin-wakeforge>=0.8.0a1
+{% endif %}
 ovos-PHAL[{{ 'mac' if ansible_facts.system == 'Darwin' else 'linux' }}]
 ovos-phal-plugin-ipgeo
 {% if (ovos_installer_locale != "ca-es") and (ovos_installer_locale != "eu-es") and (ovos_installer_locale != "gl-es") %}
