@@ -56,14 +56,25 @@
     "content_key": "Please enter the HiveMind listener key related to the satellite:",
     "content_password": "Please enter the HiveMind listener password related to the satellite:"
   },
+  "speech.sh": {
+    "title": "Open Voice OS Installation - Speech",
+    "content": "Open Voice OS turns what you say into text (speech recognition) and reads its answers out loud (speech synthesis). This machine is powerful enough to do both itself.\n\n  - local: everything runs on this machine. Your voice stays here, and nothing depends on the internet or on how busy the servers are. The installer downloads the speech models for your language, from a few hundred megabytes to a few gigabytes, and recognition keeps the processor busy while you talk.\n  - public: the Open Voice OS public servers do the work. Nothing to download, but every request travels over the internet to servers the whole community shares, which adds network delay and slows down when many people use them at once. Your recordings and the answers are processed on those servers.\n\nWhen local recognition fails or hears nothing, that one recording is sent to the public servers instead.\n\nPlease select where speech is processed:",
+    "local_description": "Run speech on this machine",
+    "public_description": "Use the Open Voice OS public servers"
+  },
   "summary.sh": {
     "title": "Open Voice OS Installation - Summary",
-    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   ${METHOD:-}\n    - Version:  ${CHANNEL:-}\n    - Profile:  ${PROFILE:-}\n    - Skills:   ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra:    ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - HA:       ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:      ${LLM_SUMMARY_STATE:-}\n    - Tuning:   ${TUNING_SUMMARY_STATE:-}\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, select ${BACK_BUTTON:-} to go back and make changes.",
+    "content": "You are almost done, here is a summary of choices you made to install Open Voice OS:\n\n    - Method:   ${METHOD:-}\n    - Version:  ${CHANNEL:-}\n    - Profile:  ${PROFILE:-}\n    - Skills:   ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra:    ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - HA:       ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:      ${LLM_SUMMARY_STATE:-}\n    - Speech:   ${SPEECH_SUMMARY_STATE:-}\n    - Tuning:   ${TUNING_SUMMARY_STATE:-}\n\nThe choices made during the Open Voice OS installation process have been carefully considered to tailor our system to your unique needs and preferences.\n\nDoes this summary look correct to you? If not, select ${BACK_BUTTON:-} to go back and make changes.",
     "state_enabled": "enabled",
     "state_disabled": "disabled",
     "state_unsupported_profile": "selected (not supported for this profile)",
     "state_missing_url": "selected (missing URL; will be skipped)",
-    "state_missing_configuration": "selected (missing configuration; will be skipped)"
+    "state_missing_configuration": "selected (missing configuration; will be skipped)",
+    "speech_local": "on this machine",
+    "speech_public": "public servers",
+    "speech_public_hardware": "public servers (local needs a Pi 5 with 8 GB or better)",
+    "speech_public_setup": "public servers (local needs alpha and virtualenv)",
+    "speech_unused": "not used by this profile"
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Telemetry",

@@ -20,6 +20,7 @@ export EXIT_PERMISSION_DENIED=2
 export EXIT_SUCCESS=0
 export I2C_BUS="1"
 export INSTALLER_VENV_NAME="ovos-installer"
+export LOCAL_SPEECH_MIN_MEMORY_MB=7680
 export LOG_FILE=/var/log/ovos-installer.log
 export NEWT_COLORS="
     root=white,black
@@ -54,6 +55,8 @@ else
 fi
 export PASTE_URL="https://paste.uoi.io"
 export PULSE_SOCKET_WSL2=/mnt/wslg/PulseServer
+# Raspberry Pi 5, Pi 500 and Compute Module 5, as the device tree names them.
+export RASPBERRY_PI_5_FAMILY_REGEX='(^|[[:space:]])Raspberry[[:space:]]Pi[[:space:]](5|500|Compute[[:space:]]Module[[:space:]]5)([^0-9]|$)'
 export REBOOT_FILE_PATH=/tmp/ovos.reboot
 declare -ra SCENARIO_ALLOWED_FEATURES=(skills extra_skills gui homeassistant llm)
 export SCENARIO_ALLOWED_FEATURES
@@ -61,7 +64,7 @@ declare -ra SCENARIO_ALLOWED_HIVEMIND_OPTIONS=(host port key password)
 export SCENARIO_ALLOWED_HIVEMIND_OPTIONS
 declare -ra SCENARIO_ALLOWED_LLM_OPTIONS=(api_url key model persona max_tokens temperature top_p)
 export SCENARIO_ALLOWED_LLM_OPTIONS
-declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)
+declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm speech_engine)
 export SCENARIO_ALLOWED_OPTIONS
 export SCENARIO_NAME="scenario.yaml"
 export SCENARIO_PATH=""

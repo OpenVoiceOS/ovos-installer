@@ -76,6 +76,9 @@
           gui_feature: "{{ ovos_telemetry_feature_gui | default(false) | bool }}"
           llm_feature: "{{ ovos_telemetry_feature_llm | default(false) | bool }}"
           cpu_capable: "{{ ovos_installer_cpu_is_capable | default(false) | bool }}"
+          local_speech_capable: "{{ ovos_installer_local_speech_capable | default(false) | bool }}"
+          stt_engine: "{{ ovos_telemetry_stt_engine }}"
+          tts_engine: "{{ ovos_telemetry_tts_engine }}"
           tuning_enabled: "{{ (ovos_installer_tuning | default('no')) == 'yes' }}"
           country: "{{ _telemetry_country }}"
           hardware: >-

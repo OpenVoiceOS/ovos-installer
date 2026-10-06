@@ -9,6 +9,7 @@ Gairebé heu acabat, aquí teniu un resum de les opcions que heu triat en instal
     - Habilitats extra: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}
     - Home Assistant:   ${HOMEASSISTANT_SUMMARY_STATE:-}
     - LLM:              ${LLM_SUMMARY_STATE:-}
+    - Veu:              ${SPEECH_SUMMARY_STATE:-}
     - Afinació:         ${TUNING_SUMMARY_STATE:-}
 
 Les opcions seleccionades durant el procés d'instal·lació de l'Open Voice OS s'han considerat acuradament per a adaptar el nostre sistema a les vostres necessitats i preferències úniques.
@@ -22,5 +23,10 @@ SUMMARY_STATE_DISABLED="disabled"
 SUMMARY_STATE_UNSUPPORTED_PROFILE="selected (not supported for this profile)"
 SUMMARY_STATE_MISSING_URL="selected (missing URL; will be skipped)"
 SUMMARY_STATE_MISSING_CONFIGURATION="selected (missing configuration; will be skipped)"
+SUMMARY_SPEECH_LOCAL="en aquest equip"
+SUMMARY_SPEECH_PUBLIC="servidors públics"
+SUMMARY_SPEECH_PUBLIC_HARDWARE="servidors públics (local: Pi 5 de 8 GB o més)"
+SUMMARY_SPEECH_PUBLIC_SETUP="servidors públics (local: alpha i virtualenv)"
+SUMMARY_SPEECH_UNUSED="aquest perfil no la fa servir"
 
-export CONTENT TITLE SUMMARY_STATE_ENABLED SUMMARY_STATE_DISABLED SUMMARY_STATE_UNSUPPORTED_PROFILE SUMMARY_STATE_MISSING_URL SUMMARY_STATE_MISSING_CONFIGURATION
+export CONTENT TITLE SUMMARY_STATE_ENABLED SUMMARY_STATE_DISABLED SUMMARY_STATE_UNSUPPORTED_PROFILE SUMMARY_STATE_MISSING_URL SUMMARY_STATE_MISSING_CONFIGURATION SUMMARY_SPEECH_LOCAL SUMMARY_SPEECH_PUBLIC SUMMARY_SPEECH_PUBLIC_HARDWARE SUMMARY_SPEECH_PUBLIC_SETUP SUMMARY_SPEECH_UNUSED

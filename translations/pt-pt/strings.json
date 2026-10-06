@@ -56,9 +56,20 @@
     "content_key": "Introduza a chave de acesso do servidor HiveMind para o satélite:",
     "content_password": "Introduza a palavra-passe do servidor HiveMind para o satélite:"
   },
+  "speech.sh": {
+    "title": "Open Voice OS Instalação - Voz",
+    "content": "O Open Voice OS converte o que diz em texto (reconhecimento de voz) e lê as respostas em voz alta (síntese de voz). Esta máquina é suficientemente potente para fazer as duas coisas sozinha.\n\n  - local: tudo corre nesta máquina. A sua voz fica aqui e nada depende da internet nem da ocupação dos servidores. O instalador descarrega os modelos de voz do seu idioma, de algumas centenas de megabytes a alguns gigabytes, e o reconhecimento mantém o processador ocupado enquanto fala.\n  - public: os servidores públicos do Open Voice OS fazem o trabalho. Não há nada para descarregar, mas cada pedido viaja pela internet até servidores partilhados por toda a comunidade, o que acrescenta atraso de rede e fica mais lento quando muitas pessoas os usam ao mesmo tempo. As suas gravações e as respostas são processadas nesses servidores.\n\nSe o reconhecimento local falhar ou não ouvir nada, essa gravação é enviada para os servidores públicos.\n\nSeleccione onde a voz é processada:",
+    "local_description": "Processar a voz nesta máquina",
+    "public_description": "Usar os servidores públicos do Open Voice OS"
+  },
   "summary.sh": {
     "title": "Open Voice OS Instalação - Resumo",
-    "content": "Quase a terminar. Um breve resumo:\n\n    - Implementação:  ${METHOD:-}\n    - Versão:         ${CHANNEL:-}\n    - Perfil:         ${PROFILE:-}\n    - Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Skills extra:   ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - Otimização:     ${TUNING_SUMMARY_STATE:-}\n\nAs decisões tomadas durante o processo de instalação do Open Voice OS foram cuidadosamente consideradas para personalizar o nosso sistema de acordo com as suas necessidades e preferências individuais.\n\nAs definições estão correctas? Se não, seleccione ${BACK_BUTTON:-} para voltar atrás e fazer alterações."
+    "content": "Quase a terminar. Um breve resumo:\n\n    - Implementação:  ${METHOD:-}\n    - Versão:         ${CHANNEL:-}\n    - Perfil:         ${PROFILE:-}\n    - Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Skills extra:   ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - Voz:            ${SPEECH_SUMMARY_STATE:-}\n    - Otimização:     ${TUNING_SUMMARY_STATE:-}\n\nAs decisões tomadas durante o processo de instalação do Open Voice OS foram cuidadosamente consideradas para personalizar o nosso sistema de acordo com as suas necessidades e preferências individuais.\n\nAs definições estão correctas? Se não, seleccione ${BACK_BUTTON:-} para voltar atrás e fazer alterações.",
+    "speech_local": "nesta máquina",
+    "speech_public": "servidores públicos",
+    "speech_public_hardware": "servidores públicos (local: Pi 5 com 8 GB ou melhor)",
+    "speech_public_setup": "servidores públicos (local: alpha e virtualenv)",
+    "speech_unused": "não utilizado por este perfil"
   },
   "telemetry.sh": {
     "title": "Open Voice OS Instalação - Telemetria",

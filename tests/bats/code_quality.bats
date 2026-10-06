@@ -2751,7 +2751,7 @@ YAML
     run grep -q "SCENARIO_ALLOWED_FEATURES=(skills extra_skills gui homeassistant llm)" utils/constants.sh
     assert_success
 
-    run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)" utils/constants.sh
+    run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm speech_engine)" utils/constants.sh
     assert_success
 
     run grep -q "SCENARIO_ALLOWED_LLM_OPTIONS=(api_url key model persona max_tokens temperature top_p)" utils/constants.sh
@@ -3335,7 +3335,7 @@ function anchors_of() {
     run grep -q 'export HARDWARE_CONFIRMATION="\${HARDWARE_CONFIRMATION:-}"' utils/argparse.sh
     assert_success
 
-    run grep -q 'declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)' utils/constants.sh
+    run grep -q 'declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm speech_engine)' utils/constants.sh
     assert_success
 
     run grep -q 'hardware)' utils/scenario.sh
@@ -5113,5 +5113,53 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     # "ValueError: Model not found" and the install has no wake word. Naming the model
     # precise-onnx would download anyway keeps that out, on every channel.
     run bash -c "grep -A14 -F '\"module\": \"ovos-ww-plugin-precise-onnx\",' '$conf_file' | grep -q '\"model\": \"https://'"
+    assert_success
+}
+
+@test "local_speech_is_wired_from_requirements_to_telemetry" {
+    # The plugins are only installed when local speech was chosen, and onnx-asr
+    # needs its hub extra: without huggingface_hub it cannot fetch a model at all.
+    local requirements
+    for requirements in core-requirements satellite-requirements; do
+        local file="ansible/roles/ovos_virtualenv/templates/virtualenv/${requirements}.txt.j2"
+        run bash -c "awk \"/ovos_installer_speech_engine/,/endif/\" '$file'"
+        assert_output --partial "ovos-stt-plugin-onnx-asr"
+        assert_output --partial "onnx-asr[cpu,hub]"
+        assert_output --partial "phoonnx"
+    done
+
+    # The models come from the ovos-config installed in the virtualenv, so the
+    # speech configuration runs after the install and only for local speech.
+    local venv_tasks="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    run grep -q "tasks_from: speech.yml" "$venv_tasks"
+    assert_success
+    run bash -c "awk '/Configure local speech/,0' '$venv_tasks' | grep -q \"ovos_installer_speech_engine | default('public')) == 'local'\""
+    assert_success
+
+    # Only the stt and tts sections are written, the public STT server stays as the
+    # fallback, and the models are fetched during the install.
+    local speech_tasks="ansible/roles/ovos_config/tasks/speech.yml"
+    run grep -q "speech_recommendation.py" "$speech_tasks"
+    assert_success
+    run grep -q "'fallback_module': ovos_config_speech_stt_fallback" "$speech_tasks"
+    assert_success
+    run grep -q "speech_prefetch.py" "$speech_tasks"
+    assert_success
+    run grep -q "^ovos_config_speech_stt_fallback: ovos-stt-plugin-server$" ansible/roles/ovos_config/defaults/main.yml
+    assert_success
+
+    # A re-run keeps the sections the last run wrote instead of dropping them.
+    run grep -q "ovos_config_speech_current" ansible/roles/ovos_config/templates/mycroft.conf.j2
+    assert_success
+
+    # Telemetry reports where speech ended up, and uninstall removes the models.
+    local telemetry="ansible/roles/ovos_telemetry/tasks/main.yml"
+    run grep -q 'stt_engine: "{{ ovos_telemetry_stt_engine }}"' "$telemetry"
+    assert_success
+    run grep -q 'tts_engine: "{{ ovos_telemetry_tts_engine }}"' "$telemetry"
+    assert_success
+    run grep -q "local_speech_capable:" "$telemetry"
+    assert_success
+    run grep -q "/.local/share/ovos_stt_plugin_onnxasr" ansible/roles/ovos_services/defaults/main.yml
     assert_success
 }

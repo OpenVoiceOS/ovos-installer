@@ -147,6 +147,13 @@
 {% endif %}
   },
 {% endif %}
+{# Local speech is written by tasks/speech.yml once the virtualenv can say what
+   ovos-config recommends; a re-run carries the last result through here. #}
+{% if (ovos_installer_speech_engine | default('public')) == 'local' %}
+{% for _speech_section, _speech_value in (ovos_config_speech_current | default({}, true)).items() %}
+  "{{ _speech_section }}": {{ _speech_value | to_json }},
+{% endfor %}
+{% endif %}
   "websocket": {
     "host": "{{ '0.0.0.0' if ovos_installer_method == "containers" else '127.0.0.1' }}",
     "max_msg_size": 25

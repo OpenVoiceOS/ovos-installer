@@ -16,6 +16,8 @@
 
 # shellcheck source=tui/dialogs.sh
 source tui/dialogs.sh
+# shellcheck source=utils/speech.sh
+source utils/speech.sh
 
 TUI_NAV="${TUI_NAV:-next}"
 export TUI_NAV
@@ -34,6 +36,7 @@ declare -a TUI_FLOW=(
   profiles
   features
   satellite
+  speech
   tuning
   summary
   telemetry
@@ -152,6 +155,9 @@ function tui_flow_step_enabled() {
       ;;
     satellite)
       [[ "${PROFILE:-}" == "satellite" ]]
+      ;;
+    speech)
+      local_speech_available
       ;;
     tuning)
       [[ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]]

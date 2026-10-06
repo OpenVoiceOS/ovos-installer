@@ -56,9 +56,20 @@
     "content_key": "Voer de HiveMind listener sleutel in, behorende bij de satelliet:",
     "content_password": "Voer het HiveMind listener wachtwoord in, behorende bij de satelliet:"
   },
+  "speech.sh": {
+    "title": "Open Voice OS Installatie - Spraak",
+    "content": "Open Voice OS zet wat je zegt om in tekst (spraakherkenning) en leest zijn antwoorden voor (spraaksynthese). Deze machine is krachtig genoeg om beide zelf te doen.\n\n- local: alles draait op deze machine. Je stem blijft hier, en niets hangt af van internet of van hoe druk de servers zijn. Het installatieprogramma downloadt de spraakmodellen voor je taal, van een paar honderd megabyte tot een paar gigabyte, en de herkenning houdt de processor bezig terwijl je praat.\n- public: de openbare servers van Open Voice OS doen het werk. Je hoeft niets te downloaden, maar elk verzoek gaat via internet naar servers die de hele community deelt. Dat voegt netwerkvertraging toe en wordt trager wanneer veel mensen ze tegelijk gebruiken. Je opnames en de antwoorden worden op die servers verwerkt.\n\nAls de lokale herkenning mislukt of niets hoort, wordt die ene opname naar de openbare servers gestuurd.\n\nSelecteer waar spraak wordt verwerkt:",
+    "local_description": "Spraak op deze machine verwerken",
+    "public_description": "De openbare Open Voice OS-servers gebruiken"
+  },
   "summary.sh": {
     "title": "OpenVoice OS Installatie - Samenvatting",
-    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving:       ${METHOD:-}\n    - Versie:         ${CHANNEL:-}\n    - Profiel:        ${PROFILE:-}\n    - Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra skills:   ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - Tuning:         ${TUNING_SUMMARY_STATE:-}\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen zo in orde? Zo niet, kies ${BACK_BUTTON:-} om terug te gaan en wijzigingen te maken."
+    "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving:       ${METHOD:-}\n    - Versie:         ${CHANNEL:-}\n    - Profiel:        ${PROFILE:-}\n    - Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra skills:   ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - Spraak:         ${SPEECH_SUMMARY_STATE:-}\n    - Tuning:         ${TUNING_SUMMARY_STATE:-}\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen zo in orde? Zo niet, kies ${BACK_BUTTON:-} om terug te gaan en wijzigingen te maken.",
+    "speech_local": "op deze machine",
+    "speech_public": "openbare servers",
+    "speech_public_hardware": "openbare servers (lokaal: Pi 5 met 8 GB of beter)",
+    "speech_public_setup": "openbare servers (lokaal: alpha en virtualenv)",
+    "speech_unused": "niet gebruikt door dit profiel"
   },
   "telemetry.sh": {
     "title": "OpenVoice OS Installatie - Telemetrie",

@@ -45,6 +45,9 @@ source utils/banner.sh
 # shellcheck source=utils/common.sh
 source utils/common.sh
 
+# shellcheck source=utils/speech.sh
+source utils/speech.sh
+
 # # shellcheck source=utils/argparse.sh
 source utils/argparse.sh
 
@@ -86,6 +89,7 @@ required_packages
 check_python_compatibility
 detect_sound
 detect_display
+detect_local_speech_support
 create_python_venv
 install_ansible
 detect_scenario
@@ -131,6 +135,7 @@ if [ "$EXISTING_INSTANCE" == "true" ]; then
 fi
 
 normalize_feature_gui_support
+normalize_speech_engine
 
 log_info "➤ Starting Ansible playbook... ☕🍵🧋"
 
@@ -250,6 +255,8 @@ ansible_command=(
   -e "ovos_installer_satellite_key=${SATELLITE_KEY}" \
   -e "ovos_installer_satellite_password=${SATELLITE_PASSWORD}" \
   -e "ovos_installer_cpu_is_capable=${CPU_IS_CAPABLE}" \
+  -e "ovos_installer_local_speech_capable=${LOCAL_SPEECH_CAPABLE:-false}" \
+  -e "ovos_installer_speech_engine=${SPEECH_ENGINE:-public}" \
   -e "ovos_installer_cleaning=${ansible_cleaning}" \
   -e "ovos_installer_display_server=${DISPLAY_SERVER}" \
   -e "ovos_installer_telemetry=${SHARE_TELEMETRY}" \

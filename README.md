@@ -24,6 +24,10 @@ speech, skills, services, the lot.
 - **Give it a brain.** An optional LLM fallback answers what the skills do not,
   pointed at whichever OpenAI-compatible endpoint you like — including one you
   host yourself.
+- **Keep your voice at home.** On a Raspberry Pi 5 with 8 GB, or anything at
+  least as capable, speech recognition and the assistant's voice can run on the
+  device itself instead of on the community's public servers. Alpha channel
+  only, for now.
 - **Put it in every room.** HiveMind satellites share a single assistant across
   several devices, so the Pi in the hallway and the one in the kitchen are the
   same assistant.

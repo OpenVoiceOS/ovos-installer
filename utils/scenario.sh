@@ -160,6 +160,17 @@ if [ -f "$SCENARIO_PATH" ]; then
                 fi
                 export TUNING
                 ;;
+            speech_engine)
+                case "${options[$option]}" in
+                local | public)
+                    export SPEECH_ENGINE="${options[$option]}"
+                    ;;
+                *)
+                    scenario_reject "speech_engine" "${options[$option]}" "local, public"
+                    break
+                    ;;
+                esac
+                ;;
             features)
                 for feature in "${!features[@]}"; do
                     # Ensure the feature is supported by the installer

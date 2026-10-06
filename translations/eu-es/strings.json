@@ -55,9 +55,20 @@
     "content_key": "Mesedez, sartu satelitearekin erlazionatutako HiveMind entzule-gakoa:",
     "content_password": "Mesedez, idatzi satelitearekin erlazionatutako HiveMind entzulearen pasahitza:"
   },
+  "speech.sh": {
+    "title": "Open Voice OS instalazioa - Ahotsa",
+    "content": "Open Voice OS-k esaten duzuna testu bihurtzen du (ahots-ezagutza) eta bere erantzunak ozen irakurtzen ditu (ahots-sintesia). Makina honek bi lanak berak egiteko adina indar du.\n\n  - local: dena makina honetan exekutatzen da. Zure ahotsa hemen geratzen da, eta ezer ez dago Interneten edo zerbitzarien lan-kargaren mende. Instalatzaileak zure hizkuntzako ahots-ereduak deskargatzen ditu, ehunka megabytetik gigabyte gutxi batzuetara, eta ezagutzak prozesadorea lanpetuta mantentzen du hitz egiten duzun bitartean.\n  - public: Open Voice OS-en zerbitzari publikoek egiten dute lana. Ez dago ezer deskargatu beharrik, baina eskaera bakoitza Internet bidez komunitate osoak partekatzen dituen zerbitzarietara doa. Horrek sareko atzerapena gehitzen du, eta motelago doa jende askok aldi berean erabiltzen dituenean. Zure grabazioak eta erantzunak zerbitzari horietan prozesatzen dira.\n\nEzagutza lokalak huts egiten badu edo ezer entzuten ez badu, grabazio hori zerbitzari publikoetara bidaltzen da.\n\nAukeratu non prozesatzen den ahotsa:",
+    "local_description": "Prozesatu ahotsa makina honetan",
+    "public_description": "Erabili Open Voice OS-en zerbitzari publikoak"
+  },
   "summary.sh": {
     "title": "Ireki Voice OS instalazioa - Laburpena",
-    "content": "Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:\n\n    - Metodoa:                ${METHOD:-}\n    - Bertsioa:               ${CHANNEL:-}\n    - Profila:                ${PROFILE:-}\n    - Trebetasunak:           ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Trebetasun gehigarriak: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:         ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:                    ${LLM_SUMMARY_STATE:-}\n    - Afinazioa:              ${TUNING_SUMMARY_STATE:-}\n\nOpen Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.\n\nLaburpen hau zuzena iruditzen zaizu? Hala ez bada, hautatu ${BACK_BUTTON:-} atzera egiteko eta aldaketak egiteko."
+    "content": "Ia amaitu duzu, hona hemen Open Voice OS instalatzeko egin dituzun aukeren laburpena:\n\n    - Metodoa:                ${METHOD:-}\n    - Bertsioa:               ${CHANNEL:-}\n    - Profila:                ${PROFILE:-}\n    - Trebetasunak:           ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Trebetasun gehigarriak: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:         ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:                    ${LLM_SUMMARY_STATE:-}\n    - Ahotsa:                 ${SPEECH_SUMMARY_STATE:-}\n    - Afinazioa:              ${TUNING_SUMMARY_STATE:-}\n\nOpen Voice OS instalazio-prozesuan egindako aukerak arretaz aztertu dira gure sistema zure behar eta lehentasun berezietara egokitzeko.\n\nLaburpen hau zuzena iruditzen zaizu? Hala ez bada, hautatu ${BACK_BUTTON:-} atzera egiteko eta aldaketak egiteko.",
+    "speech_local": "makina honetan",
+    "speech_public": "zerbitzari publikoak",
+    "speech_public_hardware": "zerbitzari publikoak (lokala: 8 GB-ko Pi 5 edo hobea)",
+    "speech_public_setup": "zerbitzari publikoak (lokala: alpha eta virtualenv)",
+    "speech_unused": "profil honek ez du erabiltzen"
   },
   "telemetry.sh": {
     "title": "Ireki Voice OS instalazioa - Telemetria",

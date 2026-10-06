@@ -43,12 +43,31 @@ function summary_feature_state() {
   printf '%s\n' "$incomplete_state"
 }
 
+# What the playbook will do with speech, which is not always what was picked:
+# normalize_speech_engine keeps a run that cannot use local speech on public.
+function summary_speech_state() {
+  if [ "${PROFILE:-}" == "server" ]; then
+    printf '%s\n' "${SUMMARY_SPEECH_UNUSED:-not used by this profile}"
+  elif local_speech_available; then
+    if [ "${SPEECH_ENGINE:-}" == "local" ]; then
+      printf '%s\n' "${SUMMARY_SPEECH_LOCAL:-on this machine}"
+    else
+      printf '%s\n' "${SUMMARY_SPEECH_PUBLIC:-public servers}"
+    fi
+  elif [ "${LOCAL_SPEECH_CAPABLE:-false}" != "true" ]; then
+    printf '%s\n' "${SUMMARY_SPEECH_PUBLIC_HARDWARE:-public servers}"
+  else
+    printf '%s\n' "${SUMMARY_SPEECH_PUBLIC_SETUP:-public servers}"
+  fi
+}
+
 # Recomputed on every pass: the user can go back, change a choice, and come
 # straight back to this screen.
 function summary_refresh_states() {
   FEATURE_SKILLS_SUMMARY_STATE="$(summary_toggle_state "${FEATURE_SKILLS:-false}")"
   FEATURE_EXTRA_SKILLS_SUMMARY_STATE="$(summary_toggle_state "${FEATURE_EXTRA_SKILLS:-false}")"
   TUNING_SUMMARY_STATE="$(summary_toggle_state "${TUNING:-no}")"
+  SPEECH_SUMMARY_STATE="$(summary_speech_state)"
 
   local homeassistant_configured="false"
   if [ -n "${HOMEASSISTANT_URL:-}" ]; then
@@ -78,6 +97,7 @@ function summary_refresh_states() {
 export FEATURE_SKILLS_SUMMARY_STATE=""
 export FEATURE_EXTRA_SKILLS_SUMMARY_STATE=""
 export TUNING_SUMMARY_STATE=""
+export SPEECH_SUMMARY_STATE=""
 export HOMEASSISTANT_SUMMARY_STATE=""
 export LLM_SUMMARY_STATE=""
 

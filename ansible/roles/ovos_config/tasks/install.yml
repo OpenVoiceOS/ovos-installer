@@ -71,10 +71,11 @@
         ovos_config_spoken_time_format: "half"
       when: ovos_config_geoip_country | default('') in ovos_config_geoip_half_time_countries
 
-# Read the configured homescreen back before the template overwrites the file, so
-# a re-run keeps the id the last run resolved instead of dropping it and waiting
-# for the post-install step to put it back (which would make every run changed).
-- name: Read the configured homescreen skill id
+# Read the configured homescreen and local speech back before the template
+# overwrites the file, so a re-run keeps what the last run resolved instead of
+# dropping it and waiting for the post-install steps to put it back (which would
+# make every run changed).
+- name: Read the configuration the last run wrote
   ansible.builtin.slurp:
     src: "{{ ovos_config_mycroft_conf_path }}"
   register: ovos_config_existing_conf
@@ -101,6 +102,23 @@
     - name: Keep the default when the current configuration cannot be read
       ansible.builtin.set_fact:
         ovos_config_idle_display_skill: ""
+      changed_when: false
+
+- name: Keep the local speech configuration this host already resolved
+  when:
+    - ovos_config_existing_conf.content is defined
+    - (ovos_installer_speech_engine | default('public')) == 'local'
+  block:
+    - name: Read the speech sections out of the current configuration
+      vars:
+        _existing: "{{ ovos_config_existing_conf.content | b64decode | from_json }}"
+      ansible.builtin.set_fact:
+        ovos_config_speech_current: "{{ _existing | dict2items | selectattr('key', 'in', ['stt', 'tts']) | items2dict }}"
+      changed_when: false
+  rescue:
+    - name: Start over when the current configuration cannot be read
+      ansible.builtin.set_fact:
+        ovos_config_speech_current: {}
       changed_when: false
 
 - name: Generate mycroft.conf

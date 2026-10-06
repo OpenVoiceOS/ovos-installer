@@ -155,6 +155,11 @@ ovos_installer_mark2_vad_pre_wake_enabled: false
 ovos_installer_listener_multiplier: 1.5
 ovos_installer_tuning_source_volume: 1.0
 ovos_installer_cpu_is_capable: false
+# Where STT and TTS run: "public" (the Open Voice OS servers, the default) or
+# "local" (on this host, see ovos_config/tasks/speech.yml). setup.sh only passes
+# local for alpha virtualenv installs on hardware that can run it.
+ovos_installer_speech_engine: public
+ovos_installer_local_speech_capable: false
 ovos_installer_locale: "en-us"
 ovos_installer_feature_skills: true
 ovos_installer_feature_extra_skills: false

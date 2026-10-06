@@ -129,6 +129,52 @@ function setup() {
     done
 }
 
+@test "locales_speech_scripts_are_complete_and_sourceable" {
+    for locale_dir in tui/locales/*; do
+        local locale_file="$locale_dir/speech.sh"
+
+        if [ ! -f "$locale_file" ]; then
+            echo "Missing speech locale: $locale_file" >&2
+            return 1
+        fi
+
+        run bash -euc "
+            source '$locale_file'
+            test -n \"\$TITLE\"
+            test -n \"\$CONTENT\"
+            test -n \"\$LOCAL_DESCRIPTION\"
+            test -n \"\$PUBLIC_DESCRIPTION\"
+        "
+        assert_success
+    done
+}
+
+@test "locales_summary_scripts_show_where_speech_runs" {
+    for f in tui/locales/*/summary.sh; do
+        run bash -euc "
+            METHOD='virtualenv'
+            CHANNEL='alpha'
+            PROFILE='ovos'
+            SPEECH_SUMMARY_STATE='speech-state-marker'
+            BACK_BUTTON='Back'
+            source '$f'
+            test -n \"\$SUMMARY_SPEECH_LOCAL\"
+            test -n \"\$SUMMARY_SPEECH_PUBLIC\"
+            test -n \"\$SUMMARY_SPEECH_PUBLIC_HARDWARE\"
+            test -n \"\$SUMMARY_SPEECH_PUBLIC_SETUP\"
+            test -n \"\$SUMMARY_SPEECH_UNUSED\"
+            printf '%s\\n' \"\$CONTENT\"
+        "
+
+        if [ "$status" -ne 0 ]; then
+            echo "Failed to source $f" >&2
+            echo "$output" >&2
+            return 1
+        fi
+        assert_output --partial "speech-state-marker"
+    done
+}
+
 @test "locales_usage_telemetry_scripts_are_complete_and_sourceable" {
     for locale_dir in tui/locales/*; do
         local locale_file="$locale_dir/usage_telemetry.sh"
@@ -310,6 +356,26 @@ function setup() {
             [ \"\$GUI_DESCRIPTION\" != \"\$en_gui_description\" ]
             [ \"\$LLM_DESCRIPTION\" != \"\$en_llm_description\" ]
             [ \"\$HOMEASSISTANT_DESCRIPTION\" != \"\$en_homeassistant_description\" ]
+        "
+        assert_success
+    done
+}
+
+@test "locales_speech_strings_are_localized_outside_en_us" {
+    for f in tui/locales/*/speech.sh; do
+        if [ "$f" = "tui/locales/en-us/speech.sh" ]; then
+            continue
+        fi
+
+        run bash -euc "
+            source tui/locales/en-us/speech.sh
+            en_content=\$CONTENT
+            en_local_description=\$LOCAL_DESCRIPTION
+            en_public_description=\$PUBLIC_DESCRIPTION
+            source '$f'
+            [ \"\$CONTENT\" != \"\$en_content\" ]
+            [ \"\$LOCAL_DESCRIPTION\" != \"\$en_local_description\" ]
+            [ \"\$PUBLIC_DESCRIPTION\" != \"\$en_public_description\" ]
         "
         assert_success
     done

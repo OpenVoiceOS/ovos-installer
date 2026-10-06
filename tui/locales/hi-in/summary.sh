@@ -8,6 +8,7 @@ CONTENT="
     - अतिरिक्त कौशल:  ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}
     - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}
     - LLM:            ${LLM_SUMMARY_STATE:-}
+    - आवाज़:          ${SPEECH_SUMMARY_STATE:-}
     - ट्यूनिंग:       ${TUNING_SUMMARY_STATE:-}
 
 ओपन वॉयस ओएस (Open Voice OS) इंस्टॉलेशन प्रक्रिया के दौरान चुने गए विकल्पों पर हमारे सिस्टम (System) को आपकी विशिष्ट आवश्यकताओं और प्राथमिकताओं के अनुरूप बनाने के लिए सावधानीपूर्वक विचार किया गया है।
@@ -20,5 +21,10 @@ SUMMARY_STATE_DISABLED="disabled"
 SUMMARY_STATE_UNSUPPORTED_PROFILE="selected (not supported for this profile)"
 SUMMARY_STATE_MISSING_URL="selected (missing URL; will be skipped)"
 SUMMARY_STATE_MISSING_CONFIGURATION="selected (missing configuration; will be skipped)"
+SUMMARY_SPEECH_LOCAL="इसी मशीन पर"
+SUMMARY_SPEECH_PUBLIC="सार्वजनिक सर्वर"
+SUMMARY_SPEECH_PUBLIC_HARDWARE="सार्वजनिक सर्वर (लोकल: 8 GB वाला Pi 5 या बेहतर)"
+SUMMARY_SPEECH_PUBLIC_SETUP="सार्वजनिक सर्वर (लोकल: alpha और virtualenv)"
+SUMMARY_SPEECH_UNUSED="यह प्रोफ़ाइल इसका उपयोग नहीं करती"
 
-export CONTENT TITLE SUMMARY_STATE_ENABLED SUMMARY_STATE_DISABLED SUMMARY_STATE_UNSUPPORTED_PROFILE SUMMARY_STATE_MISSING_URL SUMMARY_STATE_MISSING_CONFIGURATION
+export CONTENT TITLE SUMMARY_STATE_ENABLED SUMMARY_STATE_DISABLED SUMMARY_STATE_UNSUPPORTED_PROFILE SUMMARY_STATE_MISSING_URL SUMMARY_STATE_MISSING_CONFIGURATION SUMMARY_SPEECH_LOCAL SUMMARY_SPEECH_PUBLIC SUMMARY_SPEECH_PUBLIC_HARDWARE SUMMARY_SPEECH_PUBLIC_SETUP SUMMARY_SPEECH_UNUSED

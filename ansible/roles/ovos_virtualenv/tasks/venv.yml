@@ -523,3 +523,15 @@
   changed_when: false
   when:
     - ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool
+
+# The plugins and models come from the ovos-config this virtualenv now holds,
+# so local speech can only be configured once it is installed.
+- name: Configure local speech
+  ansible.builtin.include_role:
+    name: ovos_config
+    tasks_from: speech.yml
+  vars:
+    ovos_config_speech_python: "{{ ovos_virtualenv_path }}/bin/python"
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - (ovos_installer_speech_engine | default('public')) == 'local'

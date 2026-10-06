@@ -26,6 +26,7 @@ The table below lists the collected data. See the [Ansible task](https://github.
 | `container`             | OVOS installed into containers                           |
 | `country`               | Country where OVOS was installed                          |
 | `cpu_capable`           | Whether the CPU supports AVX2 or SIMD instructions        |
+| `local_speech_capable`  | Whether the hardware could run speech on the device       |
 | `display_server`        | Whether X or Wayland is used as the display server         |
 | `extra_skills_feature`  | Extra OVOS skills enabled during the installation         |
 | `gui_feature`           | GUI enabled during the installation                       |
@@ -42,6 +43,8 @@ The table below lists the collected data. See the [Ansible task](https://github.
 | `raspberry_pi`          | Whether OVOS was installed on a Raspberry Pi                |
 | `skills_feature`        | Default OVOS skills enabled during the installation        |
 | `sound_server`          | Whether PulseAudio or PipeWire is used                     |
+| `stt_engine`            | `local` or `public`: where speech recognition runs         |
+| `tts_engine`            | `local` or `public`: where the assistant's voice is made   |
 | `tuning_enabled`        | Whether the Raspberry Pi tuning feature was used            |
 | `venv`                  | OVOS installed into a Python virtual environment           |
 

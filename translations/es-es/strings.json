@@ -56,9 +56,20 @@
     "content_key": "Introduce la clave de escucha HiveMind del satélite:",
     "content_password": "Introduce la contraseña de escucha HiveMind del satélite:"
   },
+  "speech.sh": {
+    "title": "Instalación de Open Voice OS - Voz",
+    "content": "Open Voice OS convierte lo que dice en texto (reconocimiento de voz) y lee sus respuestas en voz alta (síntesis de voz). Este equipo es lo bastante potente para hacer ambas cosas por sí mismo.\n\n- local: todo se ejecuta en este equipo. Su voz se queda aquí y nada depende de internet ni de lo ocupados que estén los servidores. El instalador descarga los modelos de voz de su idioma, desde unos cientos de megabytes hasta unos pocos gigabytes, y el reconocimiento mantiene ocupado el procesador mientras habla.\n- public: los servidores públicos de Open Voice OS hacen el trabajo. No hay nada que descargar, pero cada petición viaja por internet hasta servidores que comparte toda la comunidad, lo que añade retardo de red y se vuelve más lento cuando muchas personas los usan a la vez. Sus grabaciones y las respuestas se procesan en esos servidores.\n\nSi el reconocimiento local falla o no oye nada, esa grabación se envía a los servidores públicos.\n\nSeleccione dónde se procesa la voz:",
+    "local_description": "Procesar la voz en este equipo",
+    "public_description": "Usar los servidores públicos de Open Voice OS"
+  },
   "summary.sh": {
     "title": "Instalación de Open Voice OS - Resumen",
-    "content": "¡Ya casi has terminado! Aquí tienes un resumen de las opciones que has elegido para instalar Open Voice OS:\n\n- Método:         ${METHOD:-}\n- Versión:        ${CHANNEL:-}\n- Perfil:         ${PROFILE:-}\n- Habilidades:    ${FEATURE_SKILLS_SUMMARY_STATE:-}\n- Extras:         ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n- Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n- LLM:            ${LLM_SUMMARY_STATE:-}\n- Ajustes:        ${TUNING_SUMMARY_STATE:-}\n\nLas decisiones que has tomado durante el proceso de instalación de Open Voice OS han sido cuidadosamente consideradas para adaptar el sistema a tus necesidades y preferencias.\n\n¿Este resumen es correcto? Si no, selecciona ${BACK_BUTTON:-} para volver atrás y hacer cambios."
+    "content": "¡Ya casi has terminado! Aquí tienes un resumen de las opciones que has elegido para instalar Open Voice OS:\n\n- Método:         ${METHOD:-}\n- Versión:        ${CHANNEL:-}\n- Perfil:         ${PROFILE:-}\n- Habilidades:    ${FEATURE_SKILLS_SUMMARY_STATE:-}\n- Extras:         ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n- Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n- LLM:            ${LLM_SUMMARY_STATE:-}\n- Voz:            ${SPEECH_SUMMARY_STATE:-}\n- Ajustes:        ${TUNING_SUMMARY_STATE:-}\n\nLas decisiones que has tomado durante el proceso de instalación de Open Voice OS han sido cuidadosamente consideradas para adaptar el sistema a tus necesidades y preferencias.\n\n¿Este resumen es correcto? Si no, selecciona ${BACK_BUTTON:-} para volver atrás y hacer cambios.",
+    "speech_local": "en este equipo",
+    "speech_public": "servidores públicos",
+    "speech_public_hardware": "servidores públicos (local: Pi 5 con 8 GB o más)",
+    "speech_public_setup": "servidores públicos (local: alpha y virtualenv)",
+    "speech_unused": "este perfil no la usa"
   },
   "telemetry.sh": {
     "title": "Instalación de Open Voice OS - Telemetría",
