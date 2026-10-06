@@ -226,6 +226,22 @@ jobs:
         feature_set:
           - minimal
           - all
+        speech_engine:
+          - public
+        # Local speech is alpha and virtualenv only. Both runners have the 16 GB and
+        # the AVX2/NEON the installer's hardware check asks for, so a run that falls
+        # back to public here is a regression, not a runner limit.
+        include:
+          - runner: ubuntu-24.04
+            method: virtualenv
+            channel: alpha
+            feature_set: all
+            speech_engine: local
+          - runner: ubuntu-24.04-arm
+            method: virtualenv
+            channel: alpha
+            feature_set: all
+            speech_engine: local
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
@@ -317,6 +333,7 @@ jobs:
           raspberry_pi_tuning: false
           share_telemetry: false
           share_usage_telemetry: false
+          speech_engine: ${{ matrix.speech_engine }}
           EOF
 
       - name: Run installer scenario exhaustive
@@ -382,6 +399,10 @@ jobs:
             --utterance "what time is it" --expect-speak \
             --ready-timeout 420 --reply-timeout 120 --speak-timeout 120
 
+      - name: Validate speech runs on the device
+        if: matrix.speech_engine == 'local'
+        run: .github/scripts/assert_local_speech.sh "$HOME/.venvs/ovos/bin/python"
+
       - name: Create uninstall scenario file
         shell: bash
         run: |
@@ -402,6 +423,16 @@ jobs:
 
       - name: Run uninstall scenario exhaustive
         run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Validate the uninstall removed the speech models
+        if: matrix.speech_engine == 'local'
+        run: |
+          for path in "$HOME/.local/share/ovos_stt_plugin_onnxasr" "$HOME/.cache/phoonnx"; do
+            if [ -e "$path" ]; then
+              echo "the uninstall left ${path} behind" >&2
+              exit 1
+            fi
+          done
 
       - name: Dump diagnostics on failure
         if: failure()

@@ -5163,3 +5163,26 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     run grep -q "/.local/share/ovos_stt_plugin_onnxasr" ansible/roles/ovos_services/defaults/main.yml
     assert_success
 }
+
+@test "local_speech_is_exercised_by_scenarios" {
+    # The example scenario asks for local speech where it is available.
+    local scenario="scenarios/scenario-local-speech.yml"
+    run grep -qE '^speech_engine: local$' "$scenario"
+    assert_success
+    run grep -qE '^channel: alpha$' "$scenario"
+    assert_success
+    run grep -qE '^method: virtualenv$' "$scenario"
+    assert_success
+
+    # The nightly matrix installs it through a scenario file, then checks that the
+    # device speaks and hears without the public servers and that the uninstall
+    # takes the models away.
+    local workflow=".github/workflows/scenarios-ubuntu2404.yml"
+    run grep -qF 'speech_engine: ${{ matrix.speech_engine }}' "$workflow"
+    assert_success
+    run grep -qF '.github/scripts/assert_local_speech.sh' "$workflow"
+    assert_success
+    run grep -qF 'the uninstall left ${path} behind' "$workflow"
+    assert_success
+    [ -x .github/scripts/assert_local_speech.sh ]
+}

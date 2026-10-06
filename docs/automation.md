@@ -27,7 +27,9 @@ EOF
 ```
 
 Then run the installer as usual. More examples live in
-[scenarios/](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scenarios).
+[scenarios/](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scenarios),
+including one that runs speech recognition and the voice on a Raspberry Pi 5
+([scenario-local-speech.yml](https://github.com/OpenVoiceOS/ovos-installer/blob/main/scenarios/scenario-local-speech.yml)).
 
 ## Scenario settings
 
