@@ -5055,13 +5055,20 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     for channel in ('stable', 'testing', 'alpha'):
         out = env.get_template(template).render(ovos_installer_channel=channel, **common)
         asked = [l for l in out.splitlines() if 'wakeforge' in l and not l.lstrip().startswith('#')]
-        print(f'{channel}:{len(asked)}')
+        print(f'{template}:{channel}:{len(asked)}')
 "
     assert_success
-    assert_output --partial "stable:0"
-    assert_output --partial "testing:0"
-    assert_output --partial "alpha:1"
-    refute_output --partial "stable:1"
+    for template in core satellite; do
+        assert_output --partial "${template}-requirements.txt.j2:alpha:1"
+        assert_output --partial "${template}-requirements.txt.j2:testing:0"
+        assert_output --partial "${template}-requirements.txt.j2:stable:0"
+    done
+    # Named per template, because one count per channel reads the same whichever
+    # template produced it: a satellite install that stopped asking for the engine
+    # would still leave an "alpha:1" in the output.
+    refute_output --partial ":alpha:0"
+    refute_output --partial ":testing:1"
+    refute_output --partial ":stable:1"
 
     # The installer writes its own hey_mycroft hotword on the paths that need one (macOS,
     # and any install with audio tuning), and a hotword that replaces only "module" keeps
