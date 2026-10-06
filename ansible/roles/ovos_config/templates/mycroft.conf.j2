@@ -79,6 +79,15 @@
   "hotwords": {
     "hey_mycroft": {
       "module": "ovos-ww-plugin-precise-onnx",
+      {# Name the model this engine would pick itself. The default configuration
+         this merges into carries a "model" for its own wake word engine - on the
+         alpha channel that is wakehubert_hey_mycroft, for wakeforge - and a
+         hotword that replaces only "module" keeps that key through the merge.
+         precise-onnx reads "model" as a path or a URL, so it would look for a
+         file called wakehubert_hey_mycroft, not find one and raise
+         ValueError: Model not found - leaving the install with no wake word at
+         all. #}
+      "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_mycroft.onnx",
       "sensitivity": {{ _ovos_hotword_sensitivity }},
       "trigger_level": {{ _ovos_hotword_trigger_level }},
       "listen": true,

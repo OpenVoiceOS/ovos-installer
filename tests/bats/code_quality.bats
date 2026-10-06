@@ -5006,3 +5006,70 @@ print(' '.join(out))
     run python3 -m unittest discover -s scripts -p "test_*.py" -q
     assert_success
 }
+
+@test "an_alpha_install_gets_the_wake_word_engine_its_default_configuration_names" {
+    local core_file="ansible/roles/ovos_virtualenv/templates/virtualenv/core-requirements.txt.j2"
+    local satellite_file="ansible/roles/ovos_virtualenv/templates/virtualenv/satellite-requirements.txt.j2"
+    local conf_file="ansible/roles/ovos_config/templates/mycroft.conf.j2"
+
+    # ovos-config#336 makes wakeforge the default wake word engine on the alpha channel:
+    # "hey_mycroft" becomes the wakehubert_hey_mycroft model and the precise, vosk and
+    # pocketsphinx fallback chain leaves the default configuration. Nothing else in these
+    # files installs that engine - ovos-dinkum-listener's [extras] carries vosk and
+    # precise-onnx and nothing newer - so without this line an alpha install comes up with
+    # a listener and no wake word at all.
+    #
+    # The floor is where the model lives, not cosmetics. Both ends were run against the
+    # real index: 0.7.0a1 fetches from TigreGotico/wakehubert-tiny and raises
+    # "ValueError: Model not found: wakehubert_hey_mycroft", while 0.8.0a1 is the first
+    # release that reads OpenVoiceOS/wakehubert-wakewords, where that model is published,
+    # and it loads both default hotwords.
+    run grep -F -q 'ovos-ww-plugin-wakeforge>=0.8.0a1' "$core_file"
+    assert_success
+
+    run grep -F -q 'ovos-ww-plugin-wakeforge>=0.8.0a1' "$satellite_file"
+    assert_success
+
+    # Rendered, because what matters is which channels ask for it. The engine belongs to
+    # the alpha default configuration only: stable and testing still default to the precise
+    # chain, and the stable channel pins ovos-plugin-manager < 0.10 while this plugin needs
+    # >= 2.1.0 - an unconditional line would make every stable install unresolvable
+    # ("No solution found", confirmed with uv 0.12.23 against constraints-stable.txt).
+    if ! python3 -c 'import jinja2' 2>/dev/null; then
+        skip "jinja2 is not available"
+    fi
+    run python3 -c "
+import re
+from jinja2 import Environment, FileSystemLoader
+env = Environment(loader=FileSystemLoader('ansible/roles/ovos_virtualenv/templates/virtualenv'),
+                  trim_blocks=True, lstrip_blocks=True)
+env.filters['bool'] = lambda v: str(v).strip().lower() in ('true', 'yes', '1', 'on') if isinstance(v, str) else bool(v)
+env.filters['regex_search'] = lambda v, p, *a, **k: (lambda m: m.group(0) if m else None)(re.search(p, str(v)))
+common = dict(ansible_facts={'system': 'Linux', 'architecture': 'x86_64'},
+              ovos_installer_raspberrypi='', ovos_installer_raspberry_pi_4_regex='Raspberry Pi 4',
+              ovos_installer_i2c_devices=[], ovos_installer_cpu_is_capable=True,
+              ovos_virtualenv_needs_fann2=False, ovos_installer_locale='en-us',
+              ovos_installer_feature_gui=False, ovos_installer_enable_ggwave=False,
+              ovos_virtualenv_setuptools_package='setuptools<82')
+for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
+    for channel in ('stable', 'testing', 'alpha'):
+        out = env.get_template(template).render(ovos_installer_channel=channel, **common)
+        asked = [l for l in out.splitlines() if 'wakeforge' in l and not l.lstrip().startswith('#')]
+        print(f'{channel}:{len(asked)}')
+"
+    assert_success
+    assert_output --partial "stable:0"
+    assert_output --partial "testing:0"
+    assert_output --partial "alpha:1"
+    refute_output --partial "stable:1"
+
+    # The installer writes its own hey_mycroft hotword on the paths that need one (macOS,
+    # and any install with audio tuning), and a hotword that replaces only "module" keeps
+    # the rest of the default entry through the configuration merge - including the "model"
+    # the default names for ITS engine. precise-onnx reads "model" as a path or a URL, so
+    # an alpha default of "wakehubert_hey_mycroft" reaches it as a filename, raises
+    # "ValueError: Model not found" and the install has no wake word. Naming the model
+    # precise-onnx would download anyway keeps that out, on every channel.
+    run bash -c "grep -A14 -F '\"module\": \"ovos-ww-plugin-precise-onnx\",' '$conf_file' | grep -q '\"model\": \"https://'"
+    assert_success
+}
