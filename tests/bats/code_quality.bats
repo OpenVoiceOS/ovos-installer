@@ -5055,6 +5055,8 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     for channel in ('stable', 'testing', 'alpha'):
         out = env.get_template(template).render(ovos_installer_channel=channel, **common)
         asked = [l for l in out.splitlines() if 'wakeforge' in l and not l.lstrip().startswith('#')]
+        expected = 1 if channel == 'alpha' else 0
+        assert len(asked) == expected, (template, channel, asked)
         print(f'{template}:{channel}:{len(asked)}')
 "
     assert_success
