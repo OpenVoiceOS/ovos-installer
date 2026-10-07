@@ -73,6 +73,13 @@ services:
     ovos_phal: ovos_phal
     ovos_phal_admin: ovos_phal_admin
 env:
+  AUDIO_MEMORY_LIMIT:
+    required: false
+    compose_files:
+      - docker-compose.macos.yml
+      - docker-compose.raspberrypi.yml
+      - docker-compose.windows.yml
+      - docker-compose.yml
   CORE_MEMORY_LIMIT:
     required: false
     compose_files:
@@ -125,6 +132,13 @@ env:
       - docker-compose.server.yml
       - docker-compose.skills-extra.yml
       - docker-compose.skills.yml
+      - docker-compose.yml
+  LISTENER_MEMORY_LIMIT:
+    required: false
+    compose_files:
+      - docker-compose.macos.yml
+      - docker-compose.raspberrypi.yml
+      - docker-compose.windows.yml
       - docker-compose.yml
   OVOS_CONFIG_FOLDER:
     required: true
