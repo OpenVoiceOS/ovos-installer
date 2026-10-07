@@ -1754,6 +1754,27 @@ print('constraint=' + cfg['global']['constraint'])
     done
 }
 
+@test "every_brew_uninstall_leaves_alone_what_was_unneeded_before" {
+    # brew uninstall runs a global autoremove afterwards unless told not to, and that
+    # takes formulae the machine had no use for before the install as well.
+    # A task uninstalls through brew when its argv says so, or when it is the
+    # Homebrew module with state: absent.
+    run awk '
+        function check() {
+            if ((runs || (module && absent)) && !guarded) { print FILENAME ": " name; bad = 1 }
+            runs = module = absent = guarded = 0
+        }
+        FNR == 1 { check() }
+        /^- name:/ { check(); name = $0 }
+        /^[[:space:]]*argv:.*brew.?, *.?uninstall/ { runs = 1 }
+        /community\.general\.homebrew:/ { module = 1 }
+        /^[[:space:]]*state: absent/ { absent = 1 }
+        /HOMEBREW_NO_AUTOREMOVE/ { guarded = 1 }
+        END { check(); exit bad }
+    ' ansible/roles/*/tasks/*.yml
+    assert_success
+}
+
 @test "a_satellite_uninstall_needs_no_hivemind_credentials" {
     # scenarios/scenario-uninstall.yml uninstalls a satellite and names no hive, and
     # the satellite assertion runs on every play: it stopped that uninstall before

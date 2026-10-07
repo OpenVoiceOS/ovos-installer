@@ -16,6 +16,9 @@
 
 # A file from the second list counts only when it is a file of its own, not a link,
 # and holds nothing but whitespace once the uninstall has taken its own lines out.
+# Nothing this uninstall runs on goes either, the interpreter, the links on the way
+# to it or a directory holding one: the rest of the uninstall would stop. Those are
+# printed apart, to say why they stay.
 - name: Keep the candidates no symbolic link leads to
   vars:
     _recorded: "{{ ovos_installer_footprint.absent | default([]) }}"
@@ -43,17 +46,38 @@
           with open(path, "rb") as handle:
               return not handle.read().strip()
 
+      in_use = [sys.base_prefix, os.path.realpath(sys.base_prefix), os.path.realpath(sys.executable)]
+      link = sys.executable
+      for _ in range(40):
+          in_use.append(os.path.abspath(link))
+          if not os.path.islink(link):
+              break
+          link = os.path.join(os.path.dirname(link), os.readlink(link))
+
+      def runs_this(path):
+          return any(used == path or used.startswith(path.rstrip(os.sep) + os.sep) for used in in_use)
+
+      def keep_or_print(path):
+          print(path, file=sys.stderr if runs_this(path) else sys.stdout)
+
       for path in args[:cut]:
           if reachable(path):
-              print(path)
+              keep_or_print(path)
       for path in args[cut + 1:]:
           if reachable(path) and empty(path):
-              print(path)
+              keep_or_print(path)
   ansible.builtin.command:
     argv: "{{ [ansible_playbook_python, '-c', _script, ovos_installer_user_home] + _paths + ['--if-empty'] + _files_if_empty }}"
   register: ovos_installer_footprint_safe
   changed_when: false
   when: (_paths + _files_if_empty) | length > 0
+
+- name: Say what stays because this uninstall runs on it
+  ansible.builtin.debug:
+    msg: >-
+      Left in place, because this uninstall runs on it: {{ ovos_installer_footprint_safe.stderr_lines | join(', ') }}.
+      Remove it once the uninstall is over.
+  when: (ovos_installer_footprint_safe.stderr_lines | default([])) | length > 0
 
 - name: Remove what the install created in the user's home
   ansible.builtin.file:
@@ -62,7 +86,17 @@
   loop: >-
     {{ ovos_installer_footprint_safe.stdout_lines | default([])
        | reject('in', ovos_installer_footprint_parent_dirs) | list }}
+  register: ovos_installer_footprint_removed
   failed_when: false
+
+# A removal that fails is not a reason to stop the uninstall, but it is not a quiet
+# "ok" either.
+- name: Say what could not be removed from the user's home
+  ansible.builtin.debug:
+    msg: "{{ item.item }} stays: {{ item.msg }}"
+  loop: "{{ ovos_installer_footprint_removed.results | default([]) | selectattr('msg', 'defined') | list }}"
+  loop_control:
+    label: "{{ item.item }}"
 
 # rmdir refuses a directory that is not empty, which is the point: only what the
 # install created and nothing else uses goes. Deepest first, as listed.

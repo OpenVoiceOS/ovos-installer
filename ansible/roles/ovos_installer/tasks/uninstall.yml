@@ -74,6 +74,8 @@
     - ovos_installer_footprint.orphans is defined
     - ovos_installer_footprint.orphans is not none
 
+# HOMEBREW_NO_AUTOREMOVE: brew uninstall otherwise runs a global autoremove of its
+# own afterwards, which takes what was unneeded before as well.
 - name: Remove the formulae this uninstall left unneeded
   vars:
     _now: >-
@@ -85,11 +87,23 @@
     argv: "{{ ['brew', 'uninstall'] + (_now | difference(ovos_installer_footprint.orphans)) }}"
   environment:
     PATH: "{{ ovos_installer_homebrew_path | default('/opt/homebrew/bin:/usr/local/bin') }}:/usr/bin:/bin:/usr/sbin:/sbin"
+    HOMEBREW_NO_AUTOREMOVE: "1"
   changed_when: true
   failed_when: false
   when:
     - ovos_installer_brew_orphans_now.stdout_lines is defined
     - (_now | difference(ovos_installer_footprint.orphans)) | length > 0
+
+- name: Say why the formulae the install added may stay
+  ansible.builtin.debug:
+    msg: >-
+      This install predates the record of what was already installed, so the formulae
+      it added are only marked as no longer installed on request, rather than removed
+      along with whatever else nothing needs. `brew autoremove --dry-run` lists them.
+  when:
+    - ovos_installer_uninstall_autoremove | default(true) | bool
+    - ansible_facts.system == 'Darwin'
+    - ovos_installer_footprint.orphans is not defined or ovos_installer_footprint.orphans is none
 
 - name: Autoremove orphaned packages (RedHat)
   ansible.builtin.dnf:

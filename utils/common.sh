@@ -752,6 +752,22 @@ function get_os_information() {
     echo -e "[$done_format]"
 }
 
+# The Python uv puts in the user's ~/.local for the OVOS virtualenv belongs to the
+# install, and the uninstall removes it. An installer virtualenv built on it loses
+# its own interpreter halfway through that uninstall. macOS is where it happens:
+# sudo keeps the user's PATH there, ~/.local/bin included. sys.base_prefix sees
+# through the links on the way.
+function python_belongs_to_the_install() {
+    local python_cmd="$1"
+    local base_prefix=""
+    [ -n "${RUN_AS_HOME:-}" ] || return 1
+    base_prefix="$("$python_cmd" -c 'import sys; print(sys.base_prefix)' 2>>"$LOG_FILE")" || return 1
+    case "${base_prefix}/" in
+    "${RUN_AS_HOME}/.local/"*) return 0 ;;
+    esac
+    return 1
+}
+
 # Validate the requested Python version before creating the virtualenv.
 function check_python_compatibility() {
     printf '%s' "➤ Validating Python version... "
@@ -765,7 +781,8 @@ function check_python_compatibility() {
         if [[ "${requested_python}" =~ ^[0-9]+\.[0-9]+$ ]]; then
             python_version="${requested_python}"
             requested_python_cmd="python${requested_python}"
-            if command -v "${requested_python_cmd}" &>>"$LOG_FILE"; then
+            if command -v "${requested_python_cmd}" &>>"$LOG_FILE" &&
+                ! python_belongs_to_the_install "${requested_python_cmd}"; then
                 python_cmd="${requested_python_cmd}"
             fi
         elif [[ "${requested_python}" =~ ^python([0-9]+\.[0-9]+)$ ]]; then

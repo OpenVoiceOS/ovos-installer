@@ -153,18 +153,13 @@
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
 
-- name: Remove tracked virtualenv package requirements (macOS)
-  become: true
-  become_user: "{{ ovos_installer_user }}"
-  community.general.homebrew:
-    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
-    state: absent
-    path: "{{ ovos_virtualenv_homebrew_path }}"
-    update_homebrew: false
-  register: ovos_virtualenv_package_uninstall_macos
-  environment:
-    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
-  ignore_errors: true
+# The uninstall's final autoremove removes them, with what they pulled in.
+- name: Release tracked virtualenv package requirements (macOS)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_release_macos.yml
+  vars:
+    ovos_installer_package_tracking_homebrew_path: "{{ ovos_virtualenv_homebrew_path }}"
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
@@ -178,7 +173,7 @@
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
     - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
-      or ovos_virtualenv_package_uninstall_macos is not ansible.builtin.failed
+      or (ovos_installer_package_tracking_homebrew_released.rc | default(0)) == 0
 
 - name: Check for OVOS venv activation script
   ansible.builtin.stat:

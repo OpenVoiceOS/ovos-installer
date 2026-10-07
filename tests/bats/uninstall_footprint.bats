@@ -235,3 +235,45 @@ YAML
         [ -d "$H/.local/state" ]
     done
 }
+
+@test "footprint: nothing the uninstall runs on is removed, and it says so" {
+    play record
+    install_side_effects
+    # The uninstall's interpreter, reached through ~/.local/bin/python3.11 the way
+    # an installer virtualenv built on uv's Python reaches it: the chain ends at the
+    # Python Ansible itself runs on, and Ansible comes from its usual place.
+    local playbook ansible_python site venv="$T/installer-venv"
+    playbook="$(command -v ansible-playbook)"
+    ansible_python="$(head -n 1 "$playbook" | sed 's/^#!//')"
+    site="$("$ansible_python" -c 'import ansible, os; print(os.path.dirname(os.path.dirname(ansible.__file__)))')"
+    mkdir -p "$venv/bin"
+    ln -sf "$("$ansible_python" -c 'import os, sys; print(os.path.realpath(sys.executable))')" \
+        "$H/.local/share/uv/python/cpython-3.11/bin/python3.11"
+    ln -s "$H/.local/bin/python3.11" "$venv/bin/python"
+
+    run env PYTHONPATH="$site" "$venv/bin/python" "$playbook" -i localhost, -c local "$T/restore.yml" -e "{
+        \"ansible_become\": false,
+        \"ovos_installer_user\": \"$ME\",
+        \"ovos_installer_user_home\": \"$H\",
+        \"ovos_installer_venv_python\": \"3.11\",
+        \"ovos_installer_footprint_owner\": \"$ME\"
+    }"
+    assert_success
+    assert_output --partial "Left in place, because this uninstall runs on it"
+    [ -L "$H/.local/bin/python3.11" ]
+    [ -e "$H/.local/share/uv/python/cpython-3.11/bin/python3.11" ]
+    # Everything else still goes.
+    gone "$H/.local/bin/uv"
+    gone "$H/.config/pulse"
+}
+
+@test "footprint: a removal that fails is reported, and the uninstall goes on" {
+    play record
+    install_side_effects
+    # A directory the uninstall cannot empty: its parent refuses the removal.
+    chmod 0555 "$H/.config/pulse"
+
+    play restore
+    assert_output --partial "stays:"
+    chmod 0755 "$H/.config/pulse"
+}

@@ -25,6 +25,23 @@
   environment:
     PATH: "{{ ovos_installer_package_tracking_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
 
+# Under Homebrew's own names: pkg-config is pkgconf and icu4c is icu4c@NN, which is
+# what `brew list` shows. Compared under the names asked for, a formula the machine
+# already had looked new, and its uninstall would have removed it.
+- name: Resolve the requested formulae to Homebrew's own names
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv: >-
+      {{ ['brew', 'info', '--json=v2', '--formula']
+         + ((ovos_installer_package_tracking_requested_packages | default([])) | flatten | reject('equalto', '') | unique | list) }}
+  register: ovos_installer_package_tracking_homebrew_info
+  changed_when: false
+  failed_when: false
+  when: (ovos_installer_package_tracking_requested_packages | default([]) | flatten | reject('equalto', '') | list) | length > 0
+  environment:
+    PATH: "{{ ovos_installer_package_tracking_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+
 - name: Resolve tracked package ownership state
   vars:
     _ovos_installer_package_tracking_existing_packages: >-
@@ -38,14 +55,12 @@
       }}
     _ovos_installer_package_tracking_requested_packages: >-
       {{
-        (ovos_installer_package_tracking_requested_packages | default([]))
-        | flatten
-        | reject('equalto', '')
-        | unique
-        | sort
+        ((ovos_installer_package_tracking_homebrew_info.stdout | from_json).formulae | map(attribute='name') | list)
+        if (ovos_installer_package_tracking_homebrew_info.rc | default(1)) == 0
+        else ((ovos_installer_package_tracking_requested_packages | default([])) | flatten | reject('equalto', '') | list)
       }}
     _ovos_installer_package_tracking_preinstalled_packages: >-
-      {{ _ovos_installer_package_tracking_requested_packages | intersect(ovos_installer_package_tracking_homebrew_list.stdout_lines | default([])) | unique | sort }}
+      {{ _ovos_installer_package_tracking_requested_packages | unique | sort | intersect(ovos_installer_package_tracking_homebrew_list.stdout_lines | default([])) | unique | sort }}
     _ovos_installer_package_tracking_new_packages: >-
       {{ _ovos_installer_package_tracking_requested_packages | difference(_ovos_installer_package_tracking_preinstalled_packages) | unique | sort }}
   ansible.builtin.set_fact:
