@@ -28,7 +28,10 @@ Versions the installer has been tested against.
 | WSL2 | `20.04` |
 | Zorin OS | `>= 16` |
 
-macOS is supported on Intel and Apple Silicon, with [some extra setup](macos.md).
+macOS is supported on Apple Silicon, macOS 15 or later, with
+[some extra setup](macos.md). Homebrew no longer builds its packages for Intel
+Macs or for macOS 14, so an install there can stop at the first package
+Homebrew has none for.
 
 A distribution not on this list may still work if it is close to one that is:
 the roles declare which OS families they support in

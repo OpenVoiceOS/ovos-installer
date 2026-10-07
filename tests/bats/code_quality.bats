@@ -4430,18 +4430,26 @@ function anchors_of() {
     assert_success
 }
 
-@test "macos_scenario_smoke_runs_on_intel_and_arm" {
+@test "macos_ci_runs_where_homebrew_still_builds_packages" {
+    # Homebrew builds nothing for Intel Macs or macOS 14 any more (its Tier 3), and
+    # an install there stops at the first formula without a package. The macOS
+    # jobs run on the two newest Apple Silicon runners instead.
     run grep -F -q "macos-scenario-matrix:" .github/workflows/macos_ci.yml
     assert_success
 
     run grep -F -q "runs-on: \${{ matrix.runner }}" .github/workflows/macos_ci.yml
     assert_success
 
-    run grep -E -q -- "- macos-[0-9]+-intel" .github/workflows/macos_ci.yml
-    assert_success
+    run grep -E -- "macos-1[0-4]\b|macos-[0-9]+-intel|-large\b" .github/workflows/macos_ci.yml
+    assert_failure
 
-    run grep -E -q -- "- macos-[0-9]+$" .github/workflows/macos_ci.yml
-    assert_success
+    local runner
+    for runner in macos-15 macos-26; do
+        run grep -F -q -- "\"runner\":\"${runner}\"" .github/workflows/macos_ci.yml
+        assert_success
+        run grep -E -q -- "^          - ${runner}$" .github/workflows/macos_ci.yml
+        assert_success
+    done
 }
 
 @test "workflows_enable_concurrency_cancel_in_progress" {
