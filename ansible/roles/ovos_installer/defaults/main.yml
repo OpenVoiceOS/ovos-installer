@@ -25,11 +25,26 @@ ovos_installer_package_family: "{{ ansible_facts.os_family | default('') }}"
 ovos_installer_footprint_paths:
   - "{{ ovos_installer_user_home }}/.local/bin/uv"
   - "{{ ovos_installer_user_home }}/.local/bin/python{{ ovos_installer_venv_python }}"
-  - "{{ ovos_installer_user_home }}/.local/share/uv"
-  - "{{ ovos_installer_user_home }}/.cache/huggingface"
   - "{{ ovos_installer_user_home }}/.cache/Microsoft/DeveloperTools/.onnxruntime"
+  # WirePlumber's own state: what a user configures goes in ~/.config/wireplumber.
   - "{{ ovos_installer_user_home }}/.local/state/wireplumber"
-  - "{{ ovos_installer_user_home }}/.config/pulse"
+# Created by the install too, but places the user can keep their own things in later:
+# models they download and their Hugging Face token, uv tools and other Pythons,
+# their own PulseAudio client.conf. Only what the install put there goes, and the
+# directory itself only once nothing is left in it but the tool's own bookkeeping.
+# Patterns match paths inside the directory; a directory that matches goes whole.
+ovos_installer_footprint_shared_dirs:
+  - path: "{{ ovos_installer_user_home }}/.cache/huggingface"
+    owned: >-
+      {{ ovos_installer_footprint_hf_models | map('regex_replace', '^', 'hub/') | list
+         + ovos_installer_footprint_hf_models | map('regex_replace', '^', 'hub/.locks/') | list }}
+    bookkeeping: [".*", "xet", "hub/.locks", "hub/CACHEDIR.TAG", "hub/version.txt"]
+  - path: "{{ ovos_installer_user_home }}/.local/share/uv"
+    owned: ["python/cpython-{{ ovos_installer_venv_python }}[-.]*"]
+    bookkeeping: [".lock", ".gitignore", "python/.lock", "python/.gitignore", "python/.temp", "python/.cache"]
+  - path: "{{ ovos_installer_user_home }}/.config/pulse"
+    owned: ["cookie", "*-runtime", "*.tdb", "*-default-sink", "*-default-source"]
+    bookkeeping: []
 # Created on the way to the paths above. Removed when they were not there before and
 # nothing else is left in them, deepest first.
 ovos_installer_footprint_parent_dirs:

@@ -20,7 +20,8 @@
       loop: >-
         {{ ovos_installer_footprint_paths
            + ovos_installer_footprint_parent_dirs
-           + ovos_installer_footprint_files_if_empty }}
+           + ovos_installer_footprint_files_if_empty
+           + (ovos_installer_footprint_shared_dirs | map(attribute='path') | list) }}
       register: ovos_installer_footprint_stats
 
     - name: List the packages apt already considers unneeded
@@ -76,7 +77,8 @@
       vars:
         _configured: >-
           {{ ovos_installer_footprint_paths + ovos_installer_footprint_parent_dirs
-             + ovos_installer_footprint_files_if_empty }}
+             + ovos_installer_footprint_files_if_empty
+             + (ovos_installer_footprint_shared_dirs | map(attribute='path') | list) }}
         # What setup.sh created for its state is there by now, but it is the install's.
         # Only that directory or one above it inside the home is believed.
         _from_setup: "{{ ovos_installer_state_created_from }}"

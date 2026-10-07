@@ -7,15 +7,20 @@
 # root, which it has to: a sudo that keeps HOME leaves root-owned files there that the
 # user cannot remove. Whatever still fails is left for the comparison to report, not
 # a reason to stop the uninstall.
-- name: Find the models OVOS downloaded into a Hugging Face cache
+- name: Find the models OVOS downloaded into a Hugging Face cache, and their locks
   ansible.builtin.find:
-    paths: "{{ ovos_installer_user_home }}/.cache/huggingface/hub"
+    paths:
+      - "{{ ovos_installer_user_home }}/.cache/huggingface/hub"
+      - "{{ ovos_installer_user_home }}/.cache/huggingface/hub/.locks"
     patterns: "{{ ovos_installer_footprint_hf_models }}"
     file_type: directory
   register: ovos_installer_footprint_hf_found
 
 # A file from the second list counts only when it is a file of its own, not a link,
 # and holds nothing but whitespace once the uninstall has taken its own lines out.
+# A shared directory the install created goes whole only when nothing is left in it
+# but what the install put there and the tool's own bookkeeping; otherwise only the
+# install's part of it goes.
 # Nothing this uninstall runs on goes either, the interpreter, the links on the way
 # to it or a directory holding one: the rest of the uninstall would stop. Those are
 # printed apart, to say why they stay.
@@ -27,8 +32,9 @@
          | select('in', _recorded) | list
          + (ovos_installer_footprint_hf_found.files | default([]) | map(attribute='path') | list) }}
     _files_if_empty: "{{ ovos_installer_footprint_files_if_empty | select('in', _recorded) | list }}"
+    _shared: "{{ ovos_installer_footprint_shared_dirs | selectattr('path', 'in', _recorded) | list }}"
     _script: |
-      import os, sys
+      import fnmatch, json, os, sys
       home, args = sys.argv[1], sys.argv[2:]
       cut = args.index("--if-empty")
       real_home = os.path.realpath(home)
@@ -66,11 +72,38 @@
       for path in args[cut + 1:]:
           if reachable(path) and empty(path):
               keep_or_print(path)
+
+      def matches(rel, patterns):
+          return any(fnmatch.fnmatch(rel, p) or fnmatch.fnmatch(rel, p + "/*") for p in patterns)
+
+      for spec in json.loads(os.environ.get("OVOS_FOOTPRINT_SHARED") or "[]"):
+          base, owned, bookkeeping = spec["path"], spec["owned"], spec["bookkeeping"]
+          if not reachable(base) or os.path.islink(base) or not os.path.isdir(base):
+              continue
+          theirs = False
+          for root, dirs, files in os.walk(base):
+              for name in files + [d for d in dirs if os.path.islink(os.path.join(root, d))]:
+                  rel = os.path.relpath(os.path.join(root, name), base)
+                  if not matches(rel, owned) and not matches(rel, bookkeeping):
+                      theirs = True
+          if not theirs:
+              keep_or_print(base)
+              continue
+          for root, dirs, files in os.walk(base):
+              for name in sorted(dirs + files):
+                  path = os.path.join(root, name)
+                  if any(fnmatch.fnmatch(os.path.relpath(path, base), p) for p in owned):
+                      if reachable(path):
+                          keep_or_print(path)
+                      if name in dirs:
+                          dirs.remove(name)
   ansible.builtin.command:
     argv: "{{ [ansible_playbook_python, '-c', _script, ovos_installer_user_home] + _paths + ['--if-empty'] + _files_if_empty }}"
+  environment:
+    OVOS_FOOTPRINT_SHARED: "{{ _shared | to_json }}"
   register: ovos_installer_footprint_safe
   changed_when: false
-  when: (_paths + _files_if_empty) | length > 0
+  when: (_paths + _files_if_empty + _shared) | length > 0
 
 - name: Say what stays because this uninstall runs on it
   ansible.builtin.debug:

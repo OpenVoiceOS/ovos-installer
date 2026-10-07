@@ -63,21 +63,27 @@ function play() {
     assert_success
 }
 
-# What an install leaves in a home: its uv and Python, an OVOS model, onnxruntime's
-# device id and database, the sound stack's state, a user unit directory. uv's
-# Python is a link into uv's own tree.
+# What an install leaves in a home: its uv and the Python uv manages, laid out as uv
+# lays it out, an OVOS model with its lock and the cache's own bookkeeping,
+# onnxruntime's device id and database, the sound stack's state, a user unit
+# directory. uv's Python is a link into uv's own tree.
+UV_PYTHON=".local/share/uv/python/cpython-3.11.13-linux-x86_64-gnu"
+OVOS_MODEL=".cache/huggingface/hub/models--OpenVoiceOS--ovos-m2v-intents-multilingual"
 function install_side_effects() {
-    mkdir -p "$H/.local/bin" "$H/.local/share/uv/python/cpython-3.11/bin" "$H/.local/state/wireplumber" \
-        "$H/.config/pulse" "$H/.config/systemd/user" \
-        "$H/.cache/huggingface/hub/models--OpenVoiceOS--ovos-m2v-intents-multilingual/snapshots" \
-        "$H/.cache/Microsoft/DeveloperTools/.onnxruntime"
+    mkdir -p "$H/.local/bin" "$H/$UV_PYTHON/bin" "$H/.local/share/uv/python/.temp" "$H/.local/state/wireplumber" \
+        "$H/.config/pulse" "$H/.config/systemd/user" "$H/$OVOS_MODEL/snapshots" \
+        "$H/.cache/huggingface/hub/.locks/models--OpenVoiceOS--ovos-m2v-intents-multilingual" \
+        "$H/.cache/huggingface/xet/chunk-cache" "$H/.cache/Microsoft/DeveloperTools/.onnxruntime"
     local file
-    for file in .local/bin/uv .local/share/uv/python/cpython-3.11/bin/python3.11 .config/pulse/cookie \
-        .local/state/wireplumber/default-nodes .cache/Microsoft/DeveloperTools/.onnxruntime/onnxruntime.db; do
+    for file in .local/bin/uv "$UV_PYTHON/bin/python3.11" .local/share/uv/python/.lock \
+        .local/share/uv/python/.gitignore .config/pulse/cookie .local/state/wireplumber/default-nodes \
+        .cache/huggingface/.agent_harnesses.json .cache/huggingface/hub/CACHEDIR.TAG \
+        .cache/huggingface/xet/chunk-cache/0 .cache/Microsoft/DeveloperTools/.onnxruntime/onnxruntime.db; do
         [ -e "$H/$file" ] || : >"$H/$file"
     done
-    [ -e "$H/.local/bin/python3.11" ] ||
-        ln -s "$H/.local/share/uv/python/cpython-3.11/bin/python3.11" "$H/.local/bin/python3.11"
+    [ -e "$H/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu" ] ||
+        ln -s "$H/$UV_PYTHON" "$H/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu"
+    [ -e "$H/.local/bin/python3.11" ] || ln -s "$H/$UV_PYTHON/bin/python3.11" "$H/.local/bin/python3.11"
 }
 
 # Gone, and not even a dangling link left in its place.
@@ -115,7 +121,7 @@ function gone() {
     assert_output "export EDITOR=vim"
     [ -d "$H/.cache/huggingface/hub/models--someone--their-model" ]
     # The install's: gone, even inside a cache that was already there.
-    gone "$H/.cache/huggingface/hub/models--OpenVoiceOS--ovos-m2v-intents-multilingual"
+    gone "$H/$OVOS_MODEL"
     gone "$H/.local/share/uv"
     gone "$H/.local/bin/python3.11"
     gone "$H/.local/state"
@@ -250,7 +256,7 @@ YAML
     site="$("$ansible_python" -c 'import ansible, os; print(os.path.dirname(os.path.dirname(ansible.__file__)))')"
     mkdir -p "$venv/bin"
     ln -sf "$("$ansible_python" -c 'import os, sys; print(os.path.realpath(sys.executable))')" \
-        "$H/.local/share/uv/python/cpython-3.11/bin/python3.11"
+        "$H/$UV_PYTHON/bin/python3.11"
     ln -s "$H/.local/bin/python3.11" "$venv/bin/python"
 
     run env PYTHONPATH="$site" "$venv/bin/python" "$playbook" -i localhost, -c local "$T/restore.yml" -e "{
@@ -263,7 +269,7 @@ YAML
     assert_success
     assert_output --partial "Left in place, because this uninstall runs on it"
     [ -L "$H/.local/bin/python3.11" ]
-    [ -e "$H/.local/share/uv/python/cpython-3.11/bin/python3.11" ]
+    [ -e "$H/$UV_PYTHON/bin/python3.11" ]
     # Everything else still goes.
     gone "$H/.local/bin/uv"
     gone "$H/.config/pulse"
@@ -323,4 +329,45 @@ YAML
     printf '{"absent": [], "orphans": ["libfoo"]}\n' >"$record"
     play read
     assert_output --partial "KNOWN=True"
+}
+
+@test "footprint: models and a token the user put in the cache the install created stay" {
+    play record
+    install_side_effects
+    mkdir -p "$H/.cache/huggingface/hub/models--someone--their-model/snapshots"
+    echo "hf_their_token" >"$H/.cache/huggingface/token"
+
+    play restore
+    gone "$H/$OVOS_MODEL"
+    gone "$H/.cache/huggingface/hub/.locks/models--OpenVoiceOS--ovos-m2v-intents-multilingual"
+    [ -d "$H/.cache/huggingface/hub/models--someone--their-model/snapshots" ]
+    run cat "$H/.cache/huggingface/token"
+    assert_output "hf_their_token"
+}
+
+@test "footprint: uv tools and Pythons the user added stay, the install's Python goes" {
+    play record
+    install_side_effects
+    mkdir -p "$H/.local/share/uv/tools/ruff/bin" "$H/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/bin"
+    : >"$H/.local/share/uv/tools/ruff/bin/ruff"
+    ln -s "$H/.local/share/uv/tools/ruff/bin/ruff" "$H/.local/bin/ruff"
+
+    play restore
+    gone "$H/$UV_PYTHON"
+    gone "$H/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu"
+    gone "$H/.local/bin/python3.11"
+    [ -f "$H/.local/share/uv/tools/ruff/bin/ruff" ]
+    [ -d "$H/.local/share/uv/python/cpython-3.12.13-linux-x86_64-gnu/bin" ]
+    [ -L "$H/.local/bin/ruff" ] && [ -e "$H/.local/bin/ruff" ]
+}
+
+@test "footprint: the user's own PulseAudio settings stay, the install's cookie goes" {
+    play record
+    install_side_effects
+    echo "autospawn = no" >"$H/.config/pulse/client.conf"
+
+    play restore
+    gone "$H/.config/pulse/cookie"
+    run cat "$H/.config/pulse/client.conf"
+    assert_output "autospawn = no"
 }
