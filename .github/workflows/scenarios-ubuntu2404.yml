@@ -228,9 +228,9 @@ jobs:
           - all
         speech_engine:
           - public
-        # Local speech is alpha and virtualenv only. Both runners have the 16 GB and
-        # the AVX2/NEON the installer's hardware check asks for, so a run that falls
-        # back to public here is a regression, not a runner limit.
+        # Local speech is alpha only. Both runners have the 16 GB and the AVX2/NEON the
+        # installer's hardware check asks for, so a run that falls back to public here
+        # is a regression, not a runner limit.
         include:
           - runner: ubuntu-24.04
             method: virtualenv
@@ -239,6 +239,16 @@ jobs:
             speech_engine: local
           - runner: ubuntu-24.04-arm
             method: virtualenv
+            channel: alpha
+            feature_set: all
+            speech_engine: local
+          - runner: ubuntu-24.04
+            method: containers
+            channel: alpha
+            feature_set: all
+            speech_engine: local
+          - runner: ubuntu-24.04-arm
+            method: containers
             channel: alpha
             feature_set: all
             speech_engine: local
@@ -401,7 +411,12 @@ jobs:
 
       - name: Validate speech runs on the device
         if: matrix.speech_engine == 'local'
-        run: .github/scripts/assert_local_speech.sh "$HOME/.venvs/ovos/bin/python"
+        run: |
+          if [ "${{ matrix.method }}" = "containers" ]; then
+            .github/scripts/assert_local_speech.sh --containers
+          else
+            .github/scripts/assert_local_speech.sh "$HOME/.venvs/ovos/bin/python"
+          fi
 
       - name: Create uninstall scenario file
         shell: bash
@@ -427,6 +442,15 @@ jobs:
       - name: Validate the uninstall removed the speech models
         if: matrix.speech_engine == 'local'
         run: |
+          if [ "${{ matrix.method }}" = "containers" ]; then
+            for volume in ovos_stt_models ovos_tts_models; do
+              if docker volume inspect "$volume" >/dev/null 2>&1; then
+                echo "the uninstall left the ${volume} volume behind" >&2
+                exit 1
+              fi
+            done
+            exit 0
+          fi
           for path in "$HOME/.local/share/ovos_stt_plugin_onnxasr" "$HOME/.cache/phoonnx"; do
             if [ -e "$path" ]; then
               echo "the uninstall left ${path} behind" >&2

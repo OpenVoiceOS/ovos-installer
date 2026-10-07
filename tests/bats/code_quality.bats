@@ -5191,6 +5191,13 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     run grep -qF 'the uninstall left ${path} behind' "$workflow"
     assert_success
     [ -x .github/scripts/assert_local_speech.sh ]
+
+    # Containers too: the voice speaks in ovos_audio, the listener hears it in
+    # ovos_listener, and the uninstall takes the model volumes away.
+    run grep -qF '.github/scripts/assert_local_speech.sh --containers' "$workflow"
+    assert_success
+    run grep -qF 'the uninstall left the ${volume} volume behind' "$workflow"
+    assert_success
 }
 
 @test "local_speech_reaches_containers_only_when_ovos_docker_can_run_it" {
