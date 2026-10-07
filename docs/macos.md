@@ -1,6 +1,10 @@
 # macOS
 
-Open Voice OS runs on both Intel and Apple Silicon Macs.
+Open Voice OS runs on Apple Silicon Macs with macOS 15 or later. Homebrew has
+stopped building new packages for Intel Macs, and rarely builds them for
+macOS 14, which it no longer supports. It will not install a formula that has
+no package for your Mac unless asked to build it from source, which the
+installer does not do, so an install there stops at the first such formula.
 [Back to the README](../README.md).
 
 ## Before you install
