@@ -4832,6 +4832,42 @@ function teardown() {
     assert_failure
 }
 
+# apt_update_against <how many calls hang> - run apt_update.sh with an apt-get that hangs
+# on its first calls and then succeeds, a sudo that runs the command as it is, and no
+# third-party sources to remove.
+function apt_update_against() {
+    command -v timeout >/dev/null 2>&1 || skip "apt_update.sh runs on the Linux runners, with GNU timeout"
+    local bin="$BATS_TEST_TMPDIR/bin"
+    mkdir -p "$bin" "$BATS_TEST_TMPDIR/sources"
+    printf '#!/usr/bin/env bash\nexec "$@"\n' >"$bin/sudo"
+    cat >"$bin/apt-get" <<'FAKE'
+#!/usr/bin/env bash
+calls=$(( $(cat "$BATS_TEST_TMPDIR/calls" 2>/dev/null || echo 0) + 1 ))
+echo "$calls" >"$BATS_TEST_TMPDIR/calls"
+[ "$calls" -le "$HANG" ] && exec sleep 60
+echo "updated"
+FAKE
+    chmod +x "$bin/sudo" "$bin/apt-get"
+    run env PATH="$bin:$PATH" HANG="$1" BATS_TEST_TMPDIR="$BATS_TEST_TMPDIR" \
+        APT_SOURCES_DIR="$BATS_TEST_TMPDIR/sources" APT_UPDATE_SECONDS=1 APT_UPDATE_PAUSE=0 \
+        .github/scripts/apt_update.sh
+}
+
+@test "apt_update_tries_a_stalled_mirror_again_instead_of_waiting_for_it" {
+    # A mirror that stopped answering mid-transfer held three jobs over 40 minutes.
+    apt_update_against 1
+    assert_success
+    assert_output --partial "still running after 1s (attempt 1 of 3)"
+    assert_output --partial "updated"
+}
+
+@test "apt_update_gives_up_on_a_mirror_that_keeps_stalling" {
+    apt_update_against 3
+    assert_failure
+    assert_output --partial "attempt 3 of 3"
+    refute_output --partial "updated"
+}
+
 @test "workflow_actions_are_pinned_to_an_immutable_commit" {
     # A tag is not immutable: whoever owns the action can move v7 to any commit, and every
     # workflow here would run it on the next push - with the repository checked out and, in
