@@ -53,29 +53,30 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: ./.github/scripts/platform_changes.sh macos "$BASE_SHA" >>"$GITHUB_OUTPUT"
 
-      # macos-15-intel is the scarcest runner, so a pull request gets one
-      # Intel job rather than three, and it is the heaviest scenario, because
-      # architecture-specific breakage shows up in the build of the full
-      # stack. Between them the three still cover both architectures, both
-      # channels, both profiles and both feature sets. main and the nightly
-      # schedule run the whole grid.
+      # Homebrew builds its packages for Apple Silicon on macOS 15 and later only.
+      # Intel Macs and macOS 14 are its Tier 3: nothing is built for them any more,
+      # and an install there stops at the first formula without a package (mpg123,
+      # sox, mpv and libomp in October 2026). So the runners are macos-26 and
+      # macos-15. A pull request gets three jobs, the heaviest scenario on the newest
+      # macOS; between them they cover both versions, both channels, both profiles
+      # and both feature sets. main and the nightly schedule run the whole grid.
       - name: Choose the scenario matrix
         id: matrix
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             printf 'scenarios=%s\n' '[
-              {"runner":"macos-15-intel","channel":"testing","profile":"ovos","feature_set":"all"},
-              {"runner":"macos-14","channel":"testing","profile":"ovos","feature_set":"minimal"},
-              {"runner":"macos-14","channel":"alpha","profile":"server","feature_set":"minimal"}
+              {"runner":"macos-26","channel":"testing","profile":"ovos","feature_set":"all"},
+              {"runner":"macos-15","channel":"testing","profile":"ovos","feature_set":"minimal"},
+              {"runner":"macos-15","channel":"alpha","profile":"server","feature_set":"minimal"}
             ]' | tr -d '\n ' >>"$GITHUB_OUTPUT"
           else
             printf 'scenarios=%s\n' '[
-              {"runner":"macos-15-intel","channel":"testing","profile":"ovos","feature_set":"minimal"},
-              {"runner":"macos-15-intel","channel":"testing","profile":"ovos","feature_set":"all"},
-              {"runner":"macos-15-intel","channel":"alpha","profile":"server","feature_set":"minimal"},
-              {"runner":"macos-14","channel":"testing","profile":"ovos","feature_set":"minimal"},
-              {"runner":"macos-14","channel":"testing","profile":"ovos","feature_set":"all"},
-              {"runner":"macos-14","channel":"alpha","profile":"server","feature_set":"minimal"}
+              {"runner":"macos-26","channel":"testing","profile":"ovos","feature_set":"minimal"},
+              {"runner":"macos-26","channel":"testing","profile":"ovos","feature_set":"all"},
+              {"runner":"macos-26","channel":"alpha","profile":"server","feature_set":"minimal"},
+              {"runner":"macos-15","channel":"testing","profile":"ovos","feature_set":"minimal"},
+              {"runner":"macos-15","channel":"testing","profile":"ovos","feature_set":"all"},
+              {"runner":"macos-15","channel":"alpha","profile":"server","feature_set":"minimal"}
             ]' | tr -d '\n ' >>"$GITHUB_OUTPUT"
           fi
 
@@ -86,8 +87,8 @@ jobs:
       fail-fast: false
       matrix:
         runner:
-          - macos-15-intel
-          - macos-14
+          - macos-26
+          - macos-15
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
 
