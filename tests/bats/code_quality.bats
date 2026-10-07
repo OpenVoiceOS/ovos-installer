@@ -1698,6 +1698,31 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 }
 
+@test "every_ci_job_that_uninstalls_proves_the_machine_was_given_back" {
+    # An uninstall step that only has to exit zero proved nothing for two years: the
+    # scenario "uninstall" was an install, and the cleanup it runs had not run since
+    # March. Any job that uninstalls has to snapshot the machine before its install
+    # and compare it after the uninstall.
+    local workflow
+    for workflow in .github/workflows/scenarios-ubuntu2404.yml .github/workflows/macos_ci.yml; do
+        run awk '
+            /^  [a-z0-9-]+:$/ { if (job != "" && uninstalls && !(snap && compare)) bad = bad " " job
+                                 job = $1; uninstalls = snap = compare = 0 }
+            /uninstall: true|scenario-uninstall\.yml|s\/\^uninstall: false\$\/uninstall: true\// { uninstalls = 1 }
+            /machine_state\.sh snapshot/ { snap = 1 }
+            /machine_state\.sh compare/ { compare = 1 }
+            END { if (job != "" && uninstalls && !(snap && compare)) bad = bad " " job
+                  if (bad != "") { print "uninstalls without proving it:" bad; exit 1 } }
+        ' "$workflow"
+        assert_success
+    done
+
+    [ -x .github/scripts/machine_state.sh ]
+    # Every allowed difference carries its reason on the lines above it.
+    run awk '/^[a-z]+ (added|removed) / { if (prev !~ /^#/) { print "no reason for: " $0; exit 1 } } { prev = $0 }' .github/scripts/machine_state.allow
+    assert_success
+}
+
 @test "a_satellite_uninstall_needs_no_hivemind_credentials" {
     # scenarios/scenario-uninstall.yml uninstalls a satellite and names no hive, and
     # the satellite assertion runs on every play: it stopped that uninstall before

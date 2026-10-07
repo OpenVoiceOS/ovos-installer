@@ -1,0 +1,6 @@
+# What machine_state.sh compare accepts as different after an uninstall.
+#
+# One entry per line: <kind> <added|removed> <extended regex matching the whole
+# entry>. $HOME stands for the install user's home. Every entry says why it is not
+# a leftover, or not collateral damage - an entry without a reason is a bug hidden
+# from the check that exists to find it.

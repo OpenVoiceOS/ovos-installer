@@ -112,6 +112,14 @@ jobs:
       - name: Run ovos_virtualenv uninstall
         run: .github/scripts/run_virtualenv_role.sh true
 
+      - name: Validate the uninstall removed the virtualenv
+        run: |
+          venv="${OVOS_CI_INSTALL_HOME}/.venvs/ovos"
+          if [ -e "$venv" ]; then
+            echo "The virtualenv survived the uninstall: $venv"
+            exit 1
+          fi
+
       - name: Validate uninstall removed the build shim
         run: |
           shim="${OVOS_CI_INSTALL_HOME}/.local/bin/swig2.0"

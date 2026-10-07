@@ -179,6 +179,11 @@ jobs:
             echo "BASH_BIN=$(command -v bash)" >> "$GITHUB_ENV"
           fi
 
+      # Taken before the scenario file exists: the uninstall removes that directory
+      # too. machine_state.sh needs bash 4, so Homebrew's.
+      - name: Record the machine before the install
+        run: '"$BASH_BIN" .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"'
+
       - name: Create non-interactive scenario
         shell: bash
         run: |
@@ -333,6 +338,11 @@ jobs:
 
       - name: Run uninstall smoke test
         run: sudo -E env REUSE_CACHED_ARTIFACTS=true "$BASH_BIN" setup.sh
+
+      # Everything the install added has to be gone - files, launchd jobs, Homebrew
+      # packages - and everything that was there before has to still be there.
+      - name: Validate the uninstall gave the machine back
+        run: '"$BASH_BIN" .github/scripts/machine_state.sh compare "$RUNNER_TEMP/machine-before"'
 
       - name: Dump launchd diagnostics on failure
         if: failure()
