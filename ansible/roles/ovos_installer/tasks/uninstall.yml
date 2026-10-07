@@ -48,14 +48,21 @@
     - (_now | difference(ovos_installer_footprint.orphans)) | length > 0
 
 - name: Say why packages pulled in as dependencies may stay
+  vars:
+    _lists:
+      Debian: apt-get --simulate autoremove
+      Zorin OS: apt-get --simulate autoremove
+      RedHat: dnf repoquery --unneeded
+      Suse: zypper packages --unneeded
+      Archlinux: pacman -Qtdq
   ansible.builtin.debug:
     msg: >-
       This install predates the record of what was already installed, so packages it
       pulled in as dependencies were left in place rather than guessed at.
-      `apt-get --simulate autoremove` lists what nothing needs any more.
+      `{{ _lists[ovos_installer_package_family] }}` lists what nothing needs any more.
   when:
     - ovos_installer_uninstall_autoremove | default(true) | bool
-    - ansible_facts.os_family in ['Debian', 'Zorin OS']
+    - ovos_installer_package_family in _lists
     - ovos_installer_footprint.orphans is not defined or ovos_installer_footprint.orphans is none
 
 - name: List the formulae Homebrew now considers unneeded
@@ -105,46 +112,20 @@
     - ansible_facts.system == 'Darwin'
     - ovos_installer_footprint.orphans is not defined or ovos_installer_footprint.orphans is none
 
-- name: Autoremove orphaned packages (RedHat)
-  ansible.builtin.dnf:
-    autoremove: true
+# dnf's autoremove, zypper and pacman's alike, also took what was unneeded before the
+# install. SUSE's took worse: `zypper packages --orphaned` lists the packages no
+# repository provides, such as an RPM installed by hand, which it removed with their
+# dependencies. Only what this uninstall left unneeded goes now, by name.
+- name: Remove the packages this uninstall left unneeded (dnf, zypper, pacman)
+  ansible.builtin.script:
+    cmd: "unneeded_packages.sh remove {{ ovos_installer_package_family }}"
+  environment:
+    OVOS_UNNEEDED_BEFORE: "{{ ovos_installer_footprint.orphans | join('\n') }}"
+  register: ovos_installer_scoped_autoremove
+  changed_when: "'removing:' in (ovos_installer_scoped_autoremove.stdout | default(''))"
   failed_when: false
   when:
     - ovos_installer_uninstall_autoremove | default(true) | bool
-    - ansible_facts.os_family == "RedHat"
-
-- name: Autoremove orphaned packages (SUSE)
-  ansible.builtin.shell: |
-    set -euo pipefail
-    orphans="$(zypper -q packages --orphaned | awk 'NR>2 {print $5}')"
-    if [ -n "$orphans" ]; then
-      zypper -n rm --clean-deps $orphans
-    fi
-  args:
-    executable: /bin/bash
-  register: ovos_installer_zypper_autoremove
-  changed_when: ovos_installer_zypper_autoremove.stdout | default('') | length > 0
-  failed_when: false
-  when:
-    - ovos_installer_uninstall_autoremove | default(true) | bool
-    - ansible_facts.os_family == "Suse"
-  tags:
-    - skip_ansible_lint
-
-- name: Autoremove orphaned packages (Archlinux)
-  ansible.builtin.shell: |
-    set -euo pipefail
-    orphans="$(pacman -Qtdq || true)"
-    if [ -n "$orphans" ]; then
-      pacman -Rns --noconfirm $orphans
-    fi
-  args:
-    executable: /bin/bash
-  register: ovos_installer_pacman_autoremove
-  changed_when: ovos_installer_pacman_autoremove.stdout | default('') | length > 0
-  failed_when: false
-  when:
-    - ovos_installer_uninstall_autoremove | default(true) | bool
-    - ansible_facts.os_family == "Archlinux"
-  tags:
-    - skip_ansible_lint
+    - ovos_installer_package_family in ['RedHat', 'Suse', 'Archlinux']
+    - ovos_installer_footprint.orphans is defined
+    - ovos_installer_footprint.orphans is not none

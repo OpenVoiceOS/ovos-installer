@@ -244,7 +244,9 @@ YAML
     # Python Ansible itself runs on, and Ansible comes from its usual place.
     local playbook ansible_python site venv="$T/installer-venv"
     playbook="$(command -v ansible-playbook)"
-    ansible_python="$(head -n 1 "$playbook" | sed 's/^#!//')"
+    # --version names the interpreter; the shebang may be "/usr/bin/env python3".
+    ansible_python="$(ansible-playbook --version </dev/null 2>/dev/null | sed -n 's/^ *python version = .*(\(\/[^)]*\))$/\1/p')"
+    [ -x "$ansible_python" ]
     site="$("$ansible_python" -c 'import ansible, os; print(os.path.dirname(os.path.dirname(ansible.__file__)))')"
     mkdir -p "$venv/bin"
     ln -sf "$("$ansible_python" -c 'import os, sys; print(os.path.realpath(sys.executable))')" \
@@ -276,4 +278,49 @@ YAML
     play restore
     assert_output --partial "stays:"
     chmod 0755 "$H/.config/pulse"
+}
+
+@test "footprint: the record holds what the package manager already considered unneeded" {
+    mkdir -p "$T/bin"
+    printf '#!/usr/bin/env bash\n[ "$1" = "-Qtdq" ] && printf "%%s\\n" old-orphan other-orphan\n' >"$T/bin/pacman"
+    chmod +x "$T/bin/pacman"
+    PATH="$T/bin:$PATH" play record -e ovos_installer_package_family=Archlinux
+    run python3 -c 'import json, sys; print(json.load(open(sys.argv[1]))["orphans"])' \
+        "$H/.cache/ovos-installer/package-tracking/footprint.json"
+    assert_output "['old-orphan', 'other-orphan']"
+}
+
+@test "footprint: a package manager that could not say is recorded as not knowing" {
+    # An empty list would let the uninstall remove everything unneeded at the time.
+    mkdir -p "$T/bin"
+    printf '#!/usr/bin/env bash\nexit 9\n' >"$T/bin/pacman"
+    chmod +x "$T/bin/pacman"
+    PATH="$T/bin:$PATH" play record -e ovos_installer_package_family=Archlinux
+    run python3 -c 'import json, sys; print("orphans" in json.load(open(sys.argv[1])))' \
+        "$H/.cache/ovos-installer/package-tracking/footprint.json"
+    assert_output "False"
+}
+
+@test "footprint: a record that holds no list of orphans is read as not knowing" {
+    # Older records wrote "" where the package manager could not say.
+    local record="$H/.cache/ovos-installer/package-tracking/footprint.json" orphans
+    mkdir -p "$(dirname "$record")"
+    cat >"$T/read.yml" <<'YAML'
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - ansible.builtin.include_role:
+        name: ovos_installer
+        tasks_from: footprint_read.yml
+    - ansible.builtin.debug:
+        msg: "KNOWN={{ ovos_installer_footprint.orphans is defined }} ABSENT={{ ovos_installer_footprint.absent | length }}"
+YAML
+    for orphans in '""' 'null' '{}' '"libfoo"'; do
+        printf '{"absent": ["%s/.zshrc"], "orphans": %s}\n' "$H" "$orphans" >"$record"
+        play read
+        assert_output --partial "KNOWN=False ABSENT=1"
+    done
+    printf '{"absent": [], "orphans": ["libfoo"]}\n' >"$record"
+    play read
+    assert_output --partial "KNOWN=True"
 }

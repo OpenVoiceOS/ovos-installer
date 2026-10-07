@@ -12,11 +12,21 @@
   register: ovos_installer_footprint_record_raw
   when: ovos_installer_footprint_record_stat.stat.exists | default(false) | bool
 
+# orphans counts only as a list. Where the package manager could not say, a record
+# holds no orphans at all, and an older one holds "": read as an empty list, that
+# would let the uninstall remove everything unneeded at the time.
 - name: Remember what the first install found
-  ansible.builtin.set_fact:
-    ovos_installer_footprint: >-
+  vars:
+    _record: >-
       {{
         (ovos_installer_footprint_record_raw.content | b64decode | from_json)
         if ovos_installer_footprint_record_raw.content is defined
         else {}
       }}
+    _orphans_known: >-
+      {{ _record.orphans is defined and _record.orphans is sequence
+         and _record.orphans is not string and _record.orphans is not mapping }}
+  ansible.builtin.set_fact:
+    ovos_installer_footprint: >-
+      {{ _record | dict2items | rejectattr('key', 'equalto', 'orphans') | items2dict
+         | combine({'orphans': _record.orphans} if (_orphans_known | bool) else {}) }}

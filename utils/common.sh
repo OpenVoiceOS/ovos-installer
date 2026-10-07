@@ -1143,7 +1143,8 @@ function create_python_venv() {
         else
             # Make sure everything is clean before starting when cache reuse
             # is disabled or a stale/broken venv is detected.
-            rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
+            rm -rf "$VENV_PATH" &>>"$LOG_FILE"
+            remove_installer_ansible_state
         fi
     fi
 
@@ -2209,6 +2210,24 @@ function apt_ensure() {
         fi
     else
         echo "No missing packages"
+    fi
+}
+
+# root's ~/.ansible is Ansible's working directory when the installer runs under a
+# sudo that gives root its own HOME, and an admin's collections and settings live
+# there too: setup.sh reads collections from it. So it goes only when this run
+# created it, noted before anything could.
+function note_root_ansible_state() {
+    if [ -e "${ROOT_ANSIBLE_DIR:-/root/.ansible}" ]; then
+        export ROOT_ANSIBLE_EXISTED="true"
+    else
+        export ROOT_ANSIBLE_EXISTED="false"
+    fi
+}
+
+function remove_installer_ansible_state() {
+    if [ "${ROOT_ANSIBLE_EXISTED:-true}" == "false" ]; then
+        rm -rf "${ROOT_ANSIBLE_DIR:-/root/.ansible}"
     fi
 }
 

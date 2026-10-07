@@ -874,6 +874,28 @@ EOF
     rm -rf "$RUN_AS_HOME"
 }
 
+@test "function_remove_installer_ansible_state_keeps_an_admins_own" {
+    # root's ~/.ansible goes only when this run created it.
+    ROOT_ANSIBLE_DIR="$(mktemp -d)/.ansible"
+    mkdir -p "$ROOT_ANSIBLE_DIR/collections"
+    note_root_ansible_state
+    remove_installer_ansible_state
+    [ -d "$ROOT_ANSIBLE_DIR/collections" ]
+
+    rm -rf "$ROOT_ANSIBLE_DIR"
+    note_root_ansible_state
+    mkdir -p "$ROOT_ANSIBLE_DIR/tmp"
+    remove_installer_ansible_state
+    [ ! -e "$ROOT_ANSIBLE_DIR" ]
+
+    # Never noted: kept, rather than guessed at.
+    unset ROOT_ANSIBLE_EXISTED
+    mkdir -p "$ROOT_ANSIBLE_DIR"
+    remove_installer_ansible_state
+    [ -d "$ROOT_ANSIBLE_DIR" ]
+    rm -rf "$(dirname "$ROOT_ANSIBLE_DIR")"
+}
+
 @test "function_state_directory_existing" {
     RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
     mkdir -p "$RUN_AS_HOME/.local/state/ovos"

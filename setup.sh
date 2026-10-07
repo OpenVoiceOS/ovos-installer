@@ -74,6 +74,7 @@ fi
 set -eE
 trap on_error ERR
 detect_user
+note_root_ansible_state
 reset_reboot_request_for_current_run
 delete_log
 detect_existing_instance
@@ -310,9 +311,11 @@ if [ "$ansible_rc" -eq 0 ]; then
       # shellcheck source=tui/finish.sh
       source tui/finish.sh
     fi
-    rm -rf "$VENV_PATH" /root/.ansible
+    rm -rf "$VENV_PATH"
+    remove_installer_ansible_state
   else
-    rm -rf "$VENV_PATH" /root/.ansible
+    rm -rf "$VENV_PATH"
+    remove_installer_ansible_state
     if [ -n "${RUN_AS_HOME:-}" ]; then
       remove_installer_state
     fi

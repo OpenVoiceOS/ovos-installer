@@ -31,6 +31,11 @@ home added $HOME/Library/HTTPStorages/com\.apple\.[^/]+(/.*)?
 home added $HOME/Library/Preferences/(ByHost/)?com\.apple\.[^/]+\.plist
 home added $HOME/Library/(DuetExpertCenter|PersonalizationPortrait|PrivateCloudCompute|Suggestions|Metadata/CoreSpotlight)(/.*)?
 
+# macOS's identity services park what they are about to delete in
+# ~/Library/IdentityServices/delete and empty it on their own schedule.
+home added $HOME/Library/IdentityServices/delete(/.*)?
+home removed $HOME/Library/IdentityServices/delete(/.*)?
+
 # macOS keeps an HTTP store per program name; it appears the first time any python
 # makes a request and belongs to the system, not to this installer.
 home added $HOME/Library/HTTPStorages/python(/.*)?

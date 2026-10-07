@@ -369,4 +369,11 @@ jobs:
           # The installer tells you to read this file when it gives up, so it
           # belongs in the job output. Without it a CI failure is undebuggable.
           sudo tail -n 200 /var/log/ovos-installer.log || true
+          # A formula that would not link says only "the brew link step did not
+          # complete successfully" through Ansible. Homebrew's own view says why: what
+          # it left unlinked, what sits under its prefix that it does not manage, and
+          # what python@3.14, the one that would not link, collides with.
+          brew doctor 2>&1 | tail -n 60 || true
+          brew link --dry-run --overwrite python@3.14 2>&1 | tail -n 40 || true
+          ls -la "$(brew --prefix)/bin" | grep -i -E 'python|pip|idle|pydoc' || true
           sudo tail -n 200 /var/log/ovos-ansible.log || true

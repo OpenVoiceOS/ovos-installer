@@ -15,6 +15,9 @@ ovos_installer_footprint_marker_path: "{{ ovos_installer_package_tracking_dir }}
 # (state_directory in utils/common.sh). setup.sh runs first, so without this the
 # record would find ~/.local and take it for the user's.
 ovos_installer_state_created_from: ""
+# Which package manager the footprint record and the uninstall's autoremove ask:
+# Ansible's os_family (Debian, Zorin OS, RedHat, Suse, Archlinux, Darwin).
+ovos_installer_package_family: "{{ ansible_facts.os_family | default('') }}"
 # Created as side effects of installing: the installer's own uv and the Python uv
 # manages for the virtualenv, the models OVOS downloads, onnxruntime's device id and
 # database, and the state of the sound stack the sound role installs. Removed when

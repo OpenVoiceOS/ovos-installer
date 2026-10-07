@@ -28,7 +28,15 @@
         argv: [apt-get, --simulate, autoremove]
       register: ovos_installer_footprint_apt_orphans
       changed_when: false
-      when: ansible_facts.os_family == 'Debian'
+      when: ovos_installer_package_family in ['Debian', 'Zorin OS']
+
+    - name: List the packages dnf, zypper or pacman already considers unneeded
+      ansible.builtin.script:
+        cmd: "unneeded_packages.sh list {{ ovos_installer_package_family }}"
+      register: ovos_installer_footprint_pkg_orphans
+      changed_when: false
+      failed_when: false
+      when: ovos_installer_package_family in ['RedHat', 'Suse', 'Archlinux']
 
     - name: List the formulae Homebrew already considers unneeded
       become: true
@@ -40,7 +48,7 @@
       register: ovos_installer_footprint_brew_orphans
       changed_when: false
       failed_when: false
-      when: ansible_facts.system == 'Darwin'
+      when: ovos_installer_package_family == 'Darwin'
 
     # The user's, whoever created them: a directory root owns in the user's home is one
     # the user can no longer write to, and a sudo that keeps HOME makes exactly that.
@@ -82,21 +90,31 @@
           {{ (ovos_installer_footprint_stats.results
               | rejectattr('stat.exists') | map(attribute='item') | list
               + _setup_created) | unique | list }}
+        # No orphans at all, rather than an empty list, when the package manager
+        # could not say: the uninstall then removes nothing the install pulled in,
+        # rather than everything unneeded at the time. (none would not do: Ansible
+        # writes it out as "".)
+        _orphans_known: >-
+          {{ (ovos_installer_footprint_apt_orphans.stdout_lines is defined)
+             or ((ovos_installer_footprint_pkg_orphans.rc | default(1)) == 0)
+             or ((ovos_installer_footprint_brew_orphans.rc | default(1)) == 0) }}
         _orphans: >-
           {{
             (ovos_installer_footprint_apt_orphans.stdout_lines
              | select('match', '^Remv ') | map('split', ' ') | map(attribute=1) | list)
             if ovos_installer_footprint_apt_orphans.stdout_lines is defined
-            else (
-              (ovos_installer_footprint_brew_orphans.stdout_lines
-               | reject('match', '^==>') | map('trim') | select | list)
-              if (ovos_installer_footprint_brew_orphans.rc | default(1)) == 0
-              else none
-            )
+            else (ovos_installer_footprint_pkg_orphans.stdout_lines | map('trim') | select | list)
+            if (ovos_installer_footprint_pkg_orphans.rc | default(1)) == 0
+            else (ovos_installer_footprint_brew_orphans.stdout_lines
+                  | reject('match', '^==>') | map('trim') | select | list)
+            if (ovos_installer_footprint_brew_orphans.rc | default(1)) == 0
+            else []
           }}
       ansible.builtin.copy:
         dest: "{{ ovos_installer_footprint_marker_path }}"
-        content: "{{ {'absent': _absent, 'orphans': _orphans} | to_nice_json }}\n"
+        content: >-
+          {{ ({'absent': _absent} | combine({'orphans': _orphans} if (_orphans_known | bool) else {}))
+             | to_nice_json }}
         owner: "{{ ovos_installer_footprint_owner }}"
         group: "{{ omit if ovos_installer_footprint_owner != 'root' else ('wheel' if ansible_facts.system == 'Darwin' else 'root') }}"
         mode: "0644"

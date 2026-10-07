@@ -1775,6 +1775,14 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 }
 
+@test "setup_never_removes_roots_ansible_directory_it_did_not_create" {
+    # An admin's collections live in /root/.ansible too; setup.sh reads them.
+    run bash -c "grep -nE 'rm -rf .*/root/\\.ansible' setup.sh utils/common.sh | grep -v 'ROOT_ANSIBLE_DIR'"
+    assert_failure
+    run bash -c 'note=$(grep -n "^note_root_ansible_state$" setup.sh | cut -d: -f1); venv=$(grep -n "^create_python_venv$" setup.sh | cut -d: -f1); [ -n "$note" ] && [ -n "$venv" ] && [ "$note" -lt "$venv" ]'
+    assert_success
+}
+
 @test "a_satellite_uninstall_needs_no_hivemind_credentials" {
     # scenarios/scenario-uninstall.yml uninstalls a satellite and names no hive, and
     # the satellite assertion runs on every play: it stopped that uninstall before
@@ -1971,10 +1979,10 @@ YAML
 }
 
 @test "uninstall_package_removals_request_dependency_cleanup_across_distros" {
-    # Debian: each role removes its own tracked packages without apt's autoremove,
-    # which also takes packages that were unneeded before the install (the runners'
-    # lldb libraries). What they leave unneeded goes in one final step that removes
-    # only what was not unneeded at the first install.
+    # Each role removes its own tracked packages without the package manager's
+    # autoremove, which also takes packages that were unneeded before the install
+    # (the runners' lldb libraries, with apt). What they leave unneeded goes in one
+    # final step that removes only what was not unneeded at the first install.
     run grep -F -q "difference(ovos_installer_footprint.orphans)" ansible/roles/ovos_installer/tasks/uninstall.yml
     assert_success
     run grep -F -q -- "argv: [apt-get, --simulate, autoremove]" ansible/roles/ovos_installer/tasks/footprint_record.yml
@@ -2045,7 +2053,7 @@ YAML
     run bash -c "grep -A12 -F -- \"- name: Remove rtkit package ownership marker\" \"$audio_file\" | grep -F -q -- 'ansible_facts.os_family in [\"Debian\", \"RedHat\", \"Suse\", \"Archlinux\"]'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (SUSE)\" \"$audio_file\" | grep -F -q -- \"clean_deps: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (SUSE)\" \"$audio_file\" | grep -F -q -- \"clean_deps: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Archlinux)\" \"$audio_file\" | grep -F -q -- \"remove_nosave: true\""
@@ -2084,11 +2092,15 @@ YAML
     run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"ignore_errors: true\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (SUSE)\" \"$virtualenv_file\" | grep -F -q -- \"clean_deps: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (SUSE)\" \"$virtualenv_file\" | grep -F -q -- \"clean_deps: false\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"extra_args: --recursive\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"remove_nosave: true\""
     assert_success
+    # dnf, zypper and pacman remove only the tracked packages too: no autoremove,
+    # clean_deps or --recursive, which also take what was unneeded before.
+    run grep -rn -E "autoremove: true|clean_deps: true|extra_args: --recursive" ansible/roles/*/tasks
+    assert_failure
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"remove_nosave: true\""
     assert_success
@@ -2138,7 +2150,7 @@ YAML
     run bash -c "grep -A12 -F -- \"- name: Remove cpupower package ownership marker\" \"$performance_file\" | grep -F -q -- 'ansible_facts.os_family in [\"Debian\", \"RedHat\", \"Suse\", \"Archlinux\"]'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on SUSE family\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on SUSE family\" \"$performance_file\" | grep -F -q -- \"clean_deps: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Arch family\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
@@ -2150,7 +2162,7 @@ YAML
     run bash -c "grep -A12 -F -- \"- name: Remove zram package ownership marker\" \"$performance_file\" | grep -F -q -- 'ansible_facts.os_family in [\"Debian\", \"RedHat\", \"Suse\", \"Archlinux\"]'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (SUSE)\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (SUSE)\" \"$performance_file\" | grep -F -q -- \"clean_deps: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (Arch Linux)\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
