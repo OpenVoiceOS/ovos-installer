@@ -1675,6 +1675,20 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 }
 
+@test "containers_uninstall_survives_overlays_compose_cannot_validate_alone" {
+    # The uninstall brings each compose file down on its own, and most of them are
+    # overlays that do not validate without docker-compose.yml (skills.yml depends on
+    # its ovos_core). docker compose refused them and the uninstall stopped there.
+    # Only the base file has to come down; the label sweep removes the rest.
+    local uninstall_file="ansible/roles/ovos_containers/tasks/uninstall.yml"
+    run bash -c "awk '/- name: Remove docker-compose OVOS stack/,/- name: Remove docker-compose HiveMind stack/' '$uninstall_file' | grep -A2 '^  failed_when:' | grep -q 'item == ovos_containers_compose_file_default'"
+    assert_success
+
+    # And that sweep is still there to remove what the overlays added.
+    run grep -q -- "- name: List all containers, networks and volumes" "$uninstall_file"
+    assert_success
+}
+
 @test "gui_and_mark2_git_refresh_are_throttled" {
     local venv_defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
     local gui_tasks_file="ansible/roles/ovos_virtualenv/tasks/gui.yml"
