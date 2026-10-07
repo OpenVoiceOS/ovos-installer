@@ -47,8 +47,7 @@ function formulae() {
 function play() {
     cat >"$T/play.yml" <<YAML
 - hosts: localhost
-  gather_facts: true
-  gather_subset: [min]
+  gather_facts: false
   tasks:
     - ansible.builtin.include_role:
         name: ovos_installer

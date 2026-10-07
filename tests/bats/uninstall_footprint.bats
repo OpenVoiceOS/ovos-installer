@@ -20,18 +20,18 @@ function setup() {
 
     cat >"$T/record.yml" <<'YAML'
 - hosts: localhost
-  gather_facts: true
-  gather_subset: [min]
+  gather_facts: false
   tasks:
     - ansible.builtin.include_role:
         name: ovos_installer
         tasks_from: footprint_record.yml
 YAML
+    # No facts: these tasks need none, and gathering them costs over a minute a play on
+    # the macOS runners, which pushed the suite past its time limit there.
     # Read, then what the uninstall's directory removal does in between, then restore.
     cat >"$T/restore.yml" <<'YAML'
 - hosts: localhost
-  gather_facts: true
-  gather_subset: [min]
+  gather_facts: false
   tasks:
     - ansible.builtin.include_role:
         name: ovos_installer
