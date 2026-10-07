@@ -1736,7 +1736,8 @@ print('constraint=' + cfg['global']['constraint'])
 
     [ -x .github/scripts/machine_state.sh ]
     # Every allowed difference carries its reason on the lines above it.
-    run awk '/^[a-z]+ (added|removed) / { if (prev !~ /^#/) { print "no reason for: " $0; exit 1 } } { prev = $0 }' .github/scripts/machine_state.allow
+    run awk '/^#/ { reasoned = 1 } /^[[:space:]]*$/ { reasoned = 0 }
+             /^[a-z]+ (added|removed) / { if (!reasoned) { print "no reason for: " $0; exit 1 } }' .github/scripts/machine_state.allow
     assert_success
 }
 

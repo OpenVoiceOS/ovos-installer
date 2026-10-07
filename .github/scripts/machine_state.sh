@@ -180,12 +180,19 @@ allowed() {
 
 compare() {
     local before="$1"
-    local after
+    local after kind
+    # A missing snapshot compares as empty against empty, and would pass.
+    for kind in home system packages docker groups services; do
+        if [ ! -f "$before/$kind" ]; then
+            echo "no snapshot of '${kind}' in ${before}: record one before the install" >&2
+            return 2
+        fi
+    done
     after="$(mktemp -d)"
     trap 'rm -rf "$after"' RETURN
     snapshot "$after"
 
-    local failed=0 kind change entry
+    local failed=0 change entry
     for kind in home system packages docker groups services; do
         for change in added removed; do
             local -a found=()

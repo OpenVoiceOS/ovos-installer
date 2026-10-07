@@ -4,3 +4,28 @@
 # entry>. $HOME stands for the install user's home. Every entry says why it is not
 # a leftover, or not collateral damage - an entry without a reason is a bug hidden
 # from the check that exists to find it.
+
+# The runner's own .NET and PowerShell tooling records its state here between job
+# steps. Nothing of the installer's.
+home added $HOME/\.cache/Microsoft(/.*)?
+
+# The runner unpacks its diagnostics here and removes them again, on its own schedule.
+home added $HOME/extracted(/.*)?
+home removed $HOME/extracted(/.*)?
+
+# rpm's database. Ansible's package_facts queries every package manager present, rpm
+# included on the Ubuntu runners, and the CI runs setup.sh with sudo -E, so HOME is
+# the runner's instead of root's. A Debian machine without rpm never gets one.
+home added $HOME/\.rpmdb(/.*)?
+
+# Homebrew prunes its own logs whenever it installs or removes something.
+home removed $HOME/Library/Logs/Homebrew(/.*)?
+
+# macOS keeps an HTTP store per program name; it appears the first time any python
+# makes a request and belongs to the system, not to this installer.
+home added $HOME/Library/HTTPStorages/python(/.*)?
+
+# setup.sh builds the installer's own virtualenv as root, and pip keeps those wheels
+# in root's cache so the next run does not download them again (REUSE_CACHED_ARTIFACTS).
+# The CI restores that cache itself, so only the directory shows up here.
+system added /root/\.cache
