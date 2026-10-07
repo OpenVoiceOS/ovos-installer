@@ -1330,7 +1330,12 @@ print('constraint=' + cfg['global']['constraint'])
     run bash -c "grep -A6 -F -- \"- name: Include ovos_services role\" \"$file\" | grep -F -q -- \"not (ovos_installer_is_cleaning | bool)\""
     assert_success
 
-    run bash -c "grep -A4 -F -- \"- name: Include uninstall tasks\" \"$file\" | grep -F -q -- \"ansible.builtin.include_tasks: uninstall.yml\""
+    run bash -c "grep -A3 -F -- \"- name: Include uninstall tasks\" \"$file\" | grep -F -q -- \"file: uninstall.yml\""
+    assert_success
+
+    # Every uninstall runs with --tags uninstall, which a dynamic include does not hand
+    # down: without apply, nothing in uninstall.yml ran, from March 2026 on.
+    run bash -c "grep -A6 -F -- \"- name: Include uninstall tasks\" \"$file\" | grep -A2 -F -- \"apply:\" | grep -F -q -- \"- uninstall\""
     assert_success
 
     run bash -c "grep -A4 -F -- \"- name: Include uninstall tasks\" \"$file\" | grep -F -q -- \"ansible.builtin.import_tasks: uninstall.yml\""
@@ -1348,6 +1353,10 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 
     run bash -c "grep -A5 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"handlers_from: noop\""
+    assert_success
+
+    # The same tag has to reach the role's own tasks, or the directories stay.
+    run bash -c "grep -A10 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -A2 -F -- \"apply:\" | grep -F -q -- \"- uninstall\""
     assert_success
 
     run bash -c "grep -A5 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"ansible.builtin.import_role:\""
@@ -1672,6 +1681,20 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 
     run bash -c "grep -A8 -F -- \"- name: Remove docker-compose HiveMind stack(s)\" \"$uninstall_file\" | grep -q -- \"project_src: \\\"{{ ovos_containers_composition_directory_hivemind }}\\\"\""
+    assert_success
+}
+
+@test "containers_uninstall_survives_overlays_compose_cannot_validate_alone" {
+    # The uninstall brings each compose file down on its own, and most of them are
+    # overlays that do not validate without docker-compose.yml (skills.yml depends on
+    # its ovos_core). docker compose refused them and the uninstall stopped there.
+    # Only the base file has to come down; the label sweep removes the rest.
+    local uninstall_file="ansible/roles/ovos_containers/tasks/uninstall.yml"
+    run bash -c "awk '/- name: Remove docker-compose OVOS stack/,/- name: Remove docker-compose HiveMind stack/' '$uninstall_file' | grep -A2 '^  failed_when:' | grep -q 'item == ovos_containers_compose_file_default'"
+    assert_success
+
+    # And that sweep is still there to remove what the overlays added.
+    run grep -q -- "- name: List all containers, networks and volumes" "$uninstall_file"
     assert_success
 }
 
