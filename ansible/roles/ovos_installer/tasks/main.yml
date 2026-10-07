@@ -28,6 +28,14 @@
   tags:
     - always
 
+# Before any role can create something in the user's home or install a package: the
+# uninstall gives back what this finds, and nothing else.
+- name: Record the machine as the first install finds it
+  ansible.builtin.import_tasks: footprint_record.yml
+  when: not (ovos_installer_is_cleaning | bool)
+  tags:
+    - always
+
 - name: Include ovos_services role for uninstall pre-stop
   ansible.builtin.include_role:
     name: ovos_services

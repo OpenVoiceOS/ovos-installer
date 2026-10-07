@@ -13,7 +13,9 @@
     install_recommends: false
     state: absent
     purge: true
-    autoremove: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; apt's own does not.
+    autoremove: false
   register: ovos_performance_tuning_cpupower_uninstall_debian
   ignore_errors: true
   when:
@@ -252,7 +254,9 @@
     install_recommends: false
     state: absent
     purge: true
-    autoremove: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; apt's own does not.
+    autoremove: false
   register: ovos_performance_tuning_zram_uninstall_debian
   ignore_errors: true
   when:

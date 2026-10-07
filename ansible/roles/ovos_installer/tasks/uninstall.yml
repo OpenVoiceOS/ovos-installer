@@ -1,4 +1,8 @@
 ---
+# Read before the directories go: the record lives in ~/.cache/ovos-installer.
+- name: Read what the first install found
+  ansible.builtin.import_tasks: footprint_read.yml
+
 - name: Remove OVOS service directories after tuning cleanup
   ansible.builtin.include_role:
     name: ovos_services
@@ -9,16 +13,83 @@
     apply:
       tags:
         - uninstall
-  when:
-    - ansible_facts.system == 'Linux'
 
-- name: Autoremove orphaned packages (Debian/Zorin)
-  ansible.builtin.apt:
-    autoremove: true
+- name: Give back the user's home as the first install found it
+  ansible.builtin.import_tasks: footprint_restore.yml
+
+# Only what this uninstall left unneeded. apt's own autoremove also takes packages
+# that were unneeded before the install, which were never the installer's: on the
+# CI runners that removed two lldb libraries on every uninstall.
+- name: List the packages apt now considers unneeded
+  ansible.builtin.command:
+    argv: [apt-get, --simulate, autoremove]
+  register: ovos_installer_apt_orphans_now
+  changed_when: false
   failed_when: false
   when:
     - ovos_installer_uninstall_autoremove | default(true) | bool
     - ansible_facts.os_family in ['Debian', 'Zorin OS']
+
+- name: Remove the packages this uninstall left unneeded
+  vars:
+    _now: >-
+      {{ ovos_installer_apt_orphans_now.stdout_lines | default([])
+         | select('match', '^Remv ') | map('split', ' ') | map(attribute=1) | list }}
+  ansible.builtin.apt:
+    name: "{{ _now | difference(ovos_installer_footprint.orphans) }}"
+    state: absent
+    purge: true
+  failed_when: false
+  when:
+    - ovos_installer_uninstall_autoremove | default(true) | bool
+    - ansible_facts.os_family in ['Debian', 'Zorin OS']
+    - ovos_installer_footprint.orphans is defined
+    - ovos_installer_footprint.orphans is not none
+    - (_now | difference(ovos_installer_footprint.orphans)) | length > 0
+
+- name: Say why packages pulled in as dependencies may stay
+  ansible.builtin.debug:
+    msg: >-
+      This install predates the record of what was already installed, so packages it
+      pulled in as dependencies were left in place rather than guessed at.
+      `apt-get --simulate autoremove` lists what nothing needs any more.
+  when:
+    - ovos_installer_uninstall_autoremove | default(true) | bool
+    - ansible_facts.os_family in ['Debian', 'Zorin OS']
+    - ovos_installer_footprint.orphans is not defined or ovos_installer_footprint.orphans is none
+
+- name: List the formulae Homebrew now considers unneeded
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv: [brew, autoremove, --dry-run]
+  environment:
+    PATH: "{{ ovos_installer_homebrew_path | default('/opt/homebrew/bin:/usr/local/bin') }}:/usr/bin:/bin:/usr/sbin:/sbin"
+  register: ovos_installer_brew_orphans_now
+  changed_when: false
+  failed_when: false
+  when:
+    - ovos_installer_uninstall_autoremove | default(true) | bool
+    - ansible_facts.system == 'Darwin'
+    - ovos_installer_footprint.orphans is defined
+    - ovos_installer_footprint.orphans is not none
+
+- name: Remove the formulae this uninstall left unneeded
+  vars:
+    _now: >-
+      {{ ovos_installer_brew_orphans_now.stdout_lines | default([])
+         | reject('match', '^==>') | map('trim') | select | list }}
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv: "{{ ['brew', 'uninstall'] + (_now | difference(ovos_installer_footprint.orphans)) }}"
+  environment:
+    PATH: "{{ ovos_installer_homebrew_path | default('/opt/homebrew/bin:/usr/local/bin') }}:/usr/bin:/bin:/usr/sbin:/sbin"
+  changed_when: true
+  failed_when: false
+  when:
+    - ovos_installer_brew_orphans_now.stdout_lines is defined
+    - (_now | difference(ovos_installer_footprint.orphans)) | length > 0
 
 - name: Autoremove orphaned packages (RedHat)
   ansible.builtin.dnf:

@@ -1,0 +1,65 @@
+---
+# Give back the user's home as the first install found it. Only paths that are both
+# in the record and in the configured lists go, so the record cannot point anywhere
+# else, and all of it runs as the user, so it cannot remove anything the user could
+# not.
+- name: Remove what the install created in the user's home
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop: >-
+    {{ ovos_installer_footprint_paths
+       | select('in', ovos_installer_footprint.absent | default([])) | list }}
+
+- name: Find the models OVOS downloaded into a Hugging Face cache that stays
+  ansible.builtin.find:
+    paths: "{{ ovos_installer_user_home }}/.cache/huggingface/hub"
+    patterns: "{{ ovos_installer_footprint_hf_models }}"
+    file_type: directory
+  register: ovos_installer_footprint_hf_found
+
+- name: Remove the models OVOS downloaded into that cache
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ ovos_installer_footprint_hf_found.files | default([]) }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: Read the files the install created that may now be empty
+  ansible.builtin.slurp:
+    src: "{{ item }}"
+  loop: >-
+    {{ ovos_installer_footprint_files_if_empty
+       | select('in', ovos_installer_footprint.absent | default([])) | list }}
+  register: ovos_installer_footprint_files
+  failed_when: false
+
+- name: Remove the files the install created that hold nothing any more
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.file:
+    path: "{{ item.item }}"
+    state: absent
+  loop: "{{ ovos_installer_footprint_files.results | default([]) | selectattr('content', 'defined') | list }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: (item.content | b64decode | trim | length) == 0
+
+# rmdir refuses a directory that is not empty, which is the point: only what the
+# install created and nothing else uses goes.
+- name: Remove the directories the install created, where nothing is left in them
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv: [rmdir, "{{ item }}"]
+  loop: >-
+    {{ ovos_installer_footprint_parent_dirs
+       | select('in', ovos_installer_footprint.absent | default([])) | list }}
+  register: ovos_installer_footprint_rmdir
+  changed_when: ovos_installer_footprint_rmdir.rc == 0
+  failed_when: false

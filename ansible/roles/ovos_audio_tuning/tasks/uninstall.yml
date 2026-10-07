@@ -36,7 +36,9 @@
     name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     purge: true
-    autoremove: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; apt's own does not.
+    autoremove: false
   register: ovos_audio_tuning_rtkit_uninstall_debian
   ignore_errors: true
   when:

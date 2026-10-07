@@ -6,6 +6,42 @@ ovos_installer_i2c_devices: []
 ovos_installer_systemd_system_path: /etc/systemd/system
 ovos_installer_systemd_user_path: "{{ ovos_installer_user_home }}/.config/systemd/user"
 ovos_installer_package_tracking_dir: "{{ ovos_installer_user_home }}/.cache/ovos-installer/package-tracking"
+# Owner of the records the uninstall trusts: root, so the user cannot rewrite them.
+ovos_installer_footprint_owner: root
+# What the first install finds on the machine, so the uninstall can give back what it
+# found and nothing else (tasks/footprint_record.yml, tasks/footprint_restore.yml).
+ovos_installer_footprint_marker_path: "{{ ovos_installer_package_tracking_dir }}/footprint.json"
+# Created as side effects of installing: the installer's own uv and the Python uv
+# manages for the virtualenv, the models OVOS downloads, and the state of the sound
+# stack the sound role installs. Removed when they were not there before.
+ovos_installer_footprint_paths:
+  - "{{ ovos_installer_user_home }}/.local/bin/uv"
+  - "{{ ovos_installer_user_home }}/.local/bin/python{{ ovos_installer_venv_python }}"
+  - "{{ ovos_installer_user_home }}/.local/share/uv"
+  - "{{ ovos_installer_user_home }}/.cache/huggingface"
+  - "{{ ovos_installer_user_home }}/.local/state/wireplumber"
+  - "{{ ovos_installer_user_home }}/.config/pulse"
+# Created on the way to the paths above. Removed when they were not there before and
+# nothing else is left in them, deepest first.
+ovos_installer_footprint_parent_dirs:
+  - "{{ ovos_installer_user_home }}/.local/bin"
+  - "{{ ovos_installer_user_home }}/.local/share"
+  - "{{ ovos_installer_user_home }}/.local/state"
+  - "{{ ovos_installer_user_home }}/.local"
+  - "{{ ovos_installer_user_home }}/.config/systemd/user"
+  - "{{ ovos_installer_user_home }}/.config/systemd"
+  - "{{ ovos_installer_user_home }}/.config"
+  - "{{ ovos_installer_user_home }}/.cache"
+# Removed when they were not there before and hold nothing but whitespace once the
+# uninstall has taken its own lines out: the macOS wrapper is sourced from ~/.zshrc.
+ovos_installer_footprint_files_if_empty:
+  - "{{ ovos_installer_user_home }}/.zshrc"
+# The models OVOS downloads into a Hugging Face cache that may well be the user's own:
+# these go even when the cache itself was there before.
+ovos_installer_footprint_hf_models:
+  - "models--OpenVoiceOS--*"
+  - "models--Jarbas--*"
+  - "models--TigreGotico--*"
 # systemd owns this layout and does not make it configurable, so there is one
 # definition of it and every role resolves it from here. Two knobs for one path is
 # how the claim ends up inspecting a different file from the one that was touched.

@@ -245,6 +245,7 @@ ovos_services_remove_directories:
   - "{{ ovos_installer_user_home }}/.cache/ovos-installer"
   - "{{ ovos_installer_user_home }}/.config/mycroft"
   - "{{ ovos_installer_user_home }}/.config/hivemind"
+  - "{{ ovos_installer_user_home }}/.config/hivemind-core"
   - "{{ ovos_installer_user_home }}/.config/OpenVoiceOS"
   - "{{ ovos_installer_user_home }}/.config/OvosTheme"
   - "{{ ovos_installer_user_home }}/.config/OvosDisplay.conf"
@@ -253,6 +254,7 @@ ovos_services_remove_directories:
   - "{{ ovos_installer_user_home }}/.config/wireplumber/wireplumber.conf.d/90-sj201-profile.conf"
   - "{{ ovos_installer_user_home }}/.local/share/vosk"
   - "{{ ovos_installer_user_home }}/.local/share/mycroft"
+  - "{{ ovos_installer_user_home }}/.local/share/hivemind-core"
   - "{{ ovos_installer_user_home }}/.local/share/OpenVoiceOS"
   - "{{ ovos_installer_user_home }}/.local/share/precise-onnx"
   - "{{ ovos_installer_user_home }}/.local/share/precise-lite"
@@ -264,3 +266,5 @@ ovos_services_remove_directories:
   - "{{ ovos_installer_user_home }}/.ovos-installer"
   - "{{ ovos_installer_user_home }}/nltk_data"
   - "{{ ovos_installer_user_home }}/stdout"
+  # ovos-phal-admin runs as root, so its logs land in root's home.
+  - /root/.local/state/mycroft

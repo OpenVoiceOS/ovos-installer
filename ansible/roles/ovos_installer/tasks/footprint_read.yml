@@ -1,0 +1,22 @@
+---
+# Read before the uninstall removes ~/.cache/ovos-installer, where the record lives.
+- name: Check for the footprint record
+  ansible.builtin.stat:
+    path: "{{ ovos_installer_footprint_marker_path }}"
+  register: ovos_installer_footprint_record_stat
+  changed_when: false
+
+- name: Read the footprint record
+  ansible.builtin.slurp:
+    src: "{{ ovos_installer_footprint_marker_path }}"
+  register: ovos_installer_footprint_record_raw
+  when: ovos_installer_footprint_record_stat.stat.exists | default(false) | bool
+
+- name: Remember what the first install found
+  ansible.builtin.set_fact:
+    ovos_installer_footprint: >-
+      {{
+        (ovos_installer_footprint_record_raw.content | b64decode | from_json)
+        if ovos_installer_footprint_record_raw.content is defined
+        else {}
+      }}

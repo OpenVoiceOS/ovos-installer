@@ -29,6 +29,11 @@
   loop: "{{ ovos_services_uninstall_units }}"
   failed_when: false
 
+- name: Remove the PHAL admin wrapper script
+  ansible.builtin.file:
+    path: "{{ ovos_services_wrapper_path }}"
+    state: absent
+
 - name: Remove OVOS systemd unit files
   ansible.builtin.file:
     path: "{{ item }}"
