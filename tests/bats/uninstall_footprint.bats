@@ -377,6 +377,20 @@ YAML
     assert_output "hf_their_token"
 }
 
+@test "footprint: what huggingface_hub records for a download elsewhere is its own bookkeeping" {
+    play record
+    install_side_effects
+    # The local recognizer downloads its model into a directory of its own, and
+    # huggingface_hub still writes the revision it looked up into the cache.
+    mkdir -p "$H/.cache/huggingface/hub/models--istupakov--parakeet-tdt-0.6b-v3-onnx/refs"
+    echo 0123456789abcdef0123456789abcdef01234567 \
+        >"$H/.cache/huggingface/hub/models--istupakov--parakeet-tdt-0.6b-v3-onnx/refs/main"
+
+    play restore
+    run find "$H" -mindepth 1
+    assert_output ""
+}
+
 @test "footprint: a file in the cache's store stays while one of the user's models links to it" {
     play record
     install_side_effects

@@ -43,7 +43,10 @@ ovos_installer_footprint_shared_dirs:
     owned: >-
       {{ ovos_installer_footprint_hf_models | map('regex_replace', '^', 'hub/') | list
          + ovos_installer_footprint_hf_models | map('regex_replace', '^', 'hub/.locks/') | list }}
-    bookkeeping: [".*", "xet", "hub/.locks", "hub/CACHEDIR.TAG", "hub/version.txt"]
+    # A repository's refs and its record of files that do not exist hold no model:
+    # huggingface_hub writes them even for a download into a directory of its own,
+    # which is how the local recognizer fetches its model.
+    bookkeeping: [".*", "xet", "hub/.locks", "hub/CACHEDIR.TAG", "hub/version.txt", "hub/*--*/refs", "hub/*--*/.no_exist"]
     store: hub/blobs
     owned_even_if_there_before: true
   - path: "{{ ovos_installer_user_home }}/.local/share/uv"
