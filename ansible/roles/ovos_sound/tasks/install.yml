@@ -1,36 +1,60 @@
 ---
-- name: Install PipeWire with ALSA support
+- name: Choose the sound stack for this distribution
   vars:
     # Debian Unstable hack
     _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
-    _pipewire_package: >-
+  ansible.builtin.set_fact:
+    ovos_sound_use_pulseaudio: >-
+      {{
+        (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<='))
+        or (ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
+      }}
+    ovos_sound_pipewire_package: >-
       {{ (ansible_facts.distribution not in ovos_sound_pipewire_distributions_skip_alsa)
          | ternary(ovos_sound_pipewire_alsa_package, ovos_sound_pipewire_fallback_package) }}
+
+# Tracked like the other roles' packages: the uninstall removes what was not there
+# before, and leaves a sound stack the machine already had.
+- name: Prepare tracked sound package ownership
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_prepare_linux.yml
+  vars:
+    ovos_installer_package_tracking_marker_path: "{{ ovos_sound_package_marker_path }}"
+    ovos_installer_package_tracking_requested_packages:
+      - "{{ ovos_sound_pulseaudio_package if ovos_sound_use_pulseaudio | bool else ovos_sound_pipewire_package }}"
+      - "{{ ovos_sound_alsa_utils_package }}"
+
+- name: Install PipeWire with ALSA support
   ansible.builtin.package:
     name:
-      - "{{ _pipewire_package }}"
+      - "{{ ovos_sound_pipewire_package }}"
       - "{{ ovos_sound_alsa_utils_package }}"
   register: ovos_sound_pipewire_install
-  when:
-    not (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
-    ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
+  when: not (ovos_sound_use_pulseaudio | bool)
 
 - name: Install PulseAudio on older Debian and Ubuntu versions
-  vars:
-    # Debian Unstable hack
-    _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
   ansible.builtin.apt:
     name:
       - "{{ ovos_sound_pulseaudio_package }}"
       - "{{ ovos_sound_alsa_utils_package }}"
   register: ovos_sound_pulseaudio_install
-  when:
-    (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
-    ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
+  when: ovos_sound_use_pulseaudio | bool
+
+- name: Persist tracked sound package ownership
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_persist.yml
+  vars:
+    ovos_installer_package_tracking_marker_path: "{{ ovos_sound_package_marker_path }}"
 
 - name: Determine available groups
   ansible.builtin.getent:
     database: group
+
+- name: Note which sound groups the user is already in
+  ansible.builtin.set_fact:
+    ovos_sound_groups_before: "{{ lookup('ansible.builtin.template', 'sound_groups_member.j2') | trim | from_json }}"
 
 - name: Resolve service manager for sound role
   ansible.builtin.set_fact:
@@ -54,20 +78,51 @@
   when: ovos_sound_rtkit_group in ansible_facts.getent_group
 
 - name: Add installer user to pipewire group
-  vars:
-    # Debian Unstable hack
-    _distribution_version: "{{ '99' if ansible_facts.distribution == 'Debian' and ansible_facts.distribution_version == 'n/a' else ansible_facts.distribution_version }}"
   ansible.builtin.user:
     name: "{{ ovos_installer_user }}"
     groups: "{{ ovos_sound_pipewire_group }}"
     append: true
   when:
-    - not (ansible_facts.distribution == 'Ubuntu' and _distribution_version is version(ovos_sound_pipewire_min_ubuntu_version, '<=') or
-           ansible_facts.distribution == 'Debian' and _distribution_version is version(ovos_sound_pipewire_min_debian_version, '<='))
+    - not (ovos_sound_use_pulseaudio | bool)
     - ansible_facts.os_family not in ovos_sound_pipewire_group_excluded_os_families
     - ansible_facts.distribution not in ovos_sound_pipewire_group_excluded_distributions
     - ovos_sound_pipewire_group in ansible_facts.getent_group
 
+
+# Membership before and after: the groups this run added are the ones the uninstall
+# takes the user out of, merged with what earlier runs added.
+- name: Read the groups again after adding the user to them
+  ansible.builtin.getent:
+    database: group
+
+- name: Note which sound groups the user is in now
+  ansible.builtin.set_fact:
+    ovos_sound_groups_after: "{{ lookup('ansible.builtin.template', 'sound_groups_member.j2') | trim | from_json }}"
+
+- name: Check for groups an earlier run added
+  ansible.builtin.stat:
+    path: "{{ ovos_sound_groups_marker_path }}"
+  register: ovos_sound_groups_marker_stat
+
+- name: Read the groups an earlier run added
+  ansible.builtin.slurp:
+    src: "{{ ovos_sound_groups_marker_path }}"
+  register: ovos_sound_groups_marker_raw
+  when: ovos_sound_groups_marker_stat.stat.exists | default(false) | bool
+
+- name: Record the groups this install added the user to
+  vars:
+    _earlier: >-
+      {{ (ovos_sound_groups_marker_raw.content | b64decode | from_json)
+         if ovos_sound_groups_marker_raw.content is defined else [] }}
+    _added: "{{ ovos_sound_groups_after | difference(ovos_sound_groups_before) }}"
+  ansible.builtin.copy:
+    dest: "{{ ovos_sound_groups_marker_path }}"
+    content: "{{ (_earlier + _added) | unique | sort | to_nice_json }}\n"
+    owner: root
+    group: root
+    mode: "0644"
+  when: (_earlier + _added) | length > 0
 - name: Record whether this install is what enables lingering
   ansible.builtin.include_role:
     name: ovos_installer

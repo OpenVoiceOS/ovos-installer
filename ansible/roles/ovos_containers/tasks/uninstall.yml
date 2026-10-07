@@ -17,58 +17,11 @@
   register: ovos_containers_compose_project_stat_hivemind
   changed_when: false
 
-- name: Remove docker-compose OVOS stack(s)
-  become: true
-  community.docker.docker_compose_v2:
-    project_src: "{{ ovos_containers_composition_directory_ovos }}"
-    project_name: "{{ ovos_containers_uninstall_project_name_ovos }}"
-    files: "{{ item }}"
-    remove_orphans: "{{ ovos_containers_docker_compose_remove_orphans }}"
-    remove_images: "{{ ovos_containers_docker_compose_remove_images }}"
-    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
-    timeout: "{{ ovos_containers_compose_timeout }}"
-    state: absent
-  loop: "{{ ovos_containers_uninstall_compose_files_ovos }}"
-  loop_control:
-    label: "{{ ovos_containers_uninstall_project_name_ovos }}:{{ item }}"
-  environment:
-    DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
-  register: ovos_containers_composer_deletion
-  # Each file is brought down on its own, and most of ovos-docker's are overlays
-  # that only validate on top of docker-compose.yml: skills.yml depends on its
-  # ovos_core, raspberrypi.yml needs GIDs only a Raspberry Pi install sets. docker
-  # compose refuses those alone, which ended every containers uninstall here
-  # while the composition directory still existed. The base file brings the stack
-  # down and has to succeed; what an overlay added is removed by label below.
-  failed_when:
-    - ovos_containers_composer_deletion is failed
-    - item == ovos_containers_compose_file_default
-  when:
-    - ovos_containers_docker_socket_stat.stat.exists | default(false) | bool
-    - ovos_containers_compose_project_stat_ovos.stat.isdir | default(false) | bool
-
-- name: Remove docker-compose HiveMind stack(s)
-  become: true
-  community.docker.docker_compose_v2:
-    project_src: "{{ ovos_containers_composition_directory_hivemind }}"
-    project_name: "{{ ovos_containers_uninstall_project_name_hivemind }}"
-    files: "{{ item }}"
-    remove_orphans: "{{ ovos_containers_docker_compose_remove_orphans }}"
-    remove_images: "{{ ovos_containers_docker_compose_remove_images }}"
-    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
-    timeout: "{{ ovos_containers_compose_timeout }}"
-    state: absent
-  loop: "{{ ovos_containers_uninstall_compose_files_hivemind }}"
-  loop_control:
-    label: "{{ ovos_containers_uninstall_project_name_hivemind }}:{{ item }}"
-  environment:
-    DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
-  register: ovos_containers_composer_deletion_hivemind
-  when:
-    - ovos_containers_docker_socket_stat.stat.exists | default(false) | bool
-    - ovos_containers_compose_project_stat_hivemind.stat.isdir | default(false) | bool
-
-# The docker-compose removal above is skipped when the composition directories
+# Taken before docker compose brings the stack down: bringing the base file down
+# also removes the overlays' containers as orphans, and a listing taken after that
+# no longer knows their images, so the skill images stayed behind.
+#
+# The docker-compose removal below is skipped when the composition directories
 # are gone (they live under a temporary directory which is wiped on reboot on
 # most distributions), so leftovers are collected and removed by label/name to
 # make this path equivalent to "docker compose down --rmi all --volumes",
@@ -167,6 +120,57 @@
     ovos_containers_uninstall_target_networks: "{{ _ovos_containers_uninstall_networks_raw | from_yaml }}"
     ovos_containers_uninstall_target_volumes: "{{ _ovos_containers_uninstall_volumes_raw | from_yaml }}"
   when: ovos_containers_host_info is defined
+
+- name: Remove docker-compose OVOS stack(s)
+  become: true
+  community.docker.docker_compose_v2:
+    project_src: "{{ ovos_containers_composition_directory_ovos }}"
+    project_name: "{{ ovos_containers_uninstall_project_name_ovos }}"
+    files: "{{ item }}"
+    remove_orphans: "{{ ovos_containers_docker_compose_remove_orphans }}"
+    remove_images: "{{ ovos_containers_docker_compose_remove_images }}"
+    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
+    timeout: "{{ ovos_containers_compose_timeout }}"
+    state: absent
+  loop: "{{ ovos_containers_uninstall_compose_files_ovos }}"
+  loop_control:
+    label: "{{ ovos_containers_uninstall_project_name_ovos }}:{{ item }}"
+  environment:
+    DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
+  register: ovos_containers_composer_deletion
+  # Each file is brought down on its own, and most of ovos-docker's are overlays
+  # that only validate on top of docker-compose.yml: skills.yml depends on its
+  # ovos_core, raspberrypi.yml needs GIDs only a Raspberry Pi install sets. docker
+  # compose refuses those alone, which ended every containers uninstall here
+  # while the composition directory still existed. The base file brings the stack
+  # down and has to succeed; what an overlay added is removed by label below.
+  failed_when:
+    - ovos_containers_composer_deletion is failed
+    - item == ovos_containers_compose_file_default
+  when:
+    - ovos_containers_docker_socket_stat.stat.exists | default(false) | bool
+    - ovos_containers_compose_project_stat_ovos.stat.isdir | default(false) | bool
+
+- name: Remove docker-compose HiveMind stack(s)
+  become: true
+  community.docker.docker_compose_v2:
+    project_src: "{{ ovos_containers_composition_directory_hivemind }}"
+    project_name: "{{ ovos_containers_uninstall_project_name_hivemind }}"
+    files: "{{ item }}"
+    remove_orphans: "{{ ovos_containers_docker_compose_remove_orphans }}"
+    remove_images: "{{ ovos_containers_docker_compose_remove_images }}"
+    remove_volumes: "{{ ovos_containers_docker_compose_remove_volumes }}"
+    timeout: "{{ ovos_containers_compose_timeout }}"
+    state: absent
+  loop: "{{ ovos_containers_uninstall_compose_files_hivemind }}"
+  loop_control:
+    label: "{{ ovos_containers_uninstall_project_name_hivemind }}:{{ item }}"
+  environment:
+    DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
+  register: ovos_containers_composer_deletion_hivemind
+  when:
+    - ovos_containers_docker_socket_stat.stat.exists | default(false) | bool
+    - ovos_containers_compose_project_stat_hivemind.stat.isdir | default(false) | bool
 
 - name: Remove containers
   become: true

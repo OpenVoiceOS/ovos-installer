@@ -1265,7 +1265,7 @@ print('constraint=' + cfg['global']['constraint'])
     run bash -c "grep -A40 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"purge: true\""
     assert_success
 
-    run bash -c "grep -A40 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"autoremove: true\""
+    run bash -c "grep -A40 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$file\" | grep -q -- \"autoremove: false\""
     assert_success
 
     run grep -F -q "regex_search(ovos_installer_raspberry_pi_4_regex)" "$file"
@@ -1362,7 +1362,7 @@ print('constraint=' + cfg['global']['constraint'])
     run bash -c "grep -A5 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"ansible.builtin.import_role:\""
     assert_failure
 
-    run bash -c 'remove_line=$(grep -n -F -- "- name: Remove OVOS service directories after tuning cleanup" "$1" | head -n1 | cut -d: -f1); autoremove_line=$(grep -n -F -- "- name: Autoremove orphaned packages (Debian/Zorin)" "$1" | head -n1 | cut -d: -f1); [ -n "$remove_line" ] && [ -n "$autoremove_line" ] && [ "$remove_line" -lt "$autoremove_line" ]' _ "$uninstall_file"
+    run bash -c 'remove_line=$(grep -n -F -- "- name: Remove OVOS service directories after tuning cleanup" "$1" | head -n1 | cut -d: -f1); autoremove_line=$(grep -n -F -- "- name: Remove the packages this uninstall left unneeded" "$1" | head -n1 | cut -d: -f1); [ -n "$remove_line" ] && [ -n "$autoremove_line" ] && [ "$remove_line" -lt "$autoremove_line" ]' _ "$uninstall_file"
     assert_success
 
     run grep -F -q 'loop: "{{ ovos_services_remove_directories }}"' "$services_uninstall_file"
@@ -1684,6 +1684,23 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 }
 
+@test "uninstall_orders_its_steps_so_nothing_is_lost_before_it_is_used" {
+    # macOS: the launchd uninstall removed the directories first, package-tracking
+    # records among them, so the Homebrew packages were never found again. The
+    # directories go at the end, from ovos_installer, on every system.
+    run grep -F -q "loop: \"{{ ovos_services_remove_directories }}\"" ansible/roles/ovos_services/tasks/uninstall-launchd.yml
+    assert_failure
+    run bash -c "grep -A12 -F -- '- name: Remove OVOS service directories after tuning cleanup' ansible/roles/ovos_installer/tasks/uninstall.yml | grep -q \"ansible_facts.system == 'Linux'\""
+    assert_failure
+
+    # Containers: the inventory is taken before docker compose brings the base file
+    # down, which removes the overlays' containers as orphans and, with them, the
+    # only record of their images.
+    local tasks="ansible/roles/ovos_containers/tasks/uninstall.yml"
+    run bash -c 'list=$(grep -n -F -- "- name: List all containers, networks and volumes" "$1" | cut -d: -f1); down=$(grep -n -F -- "- name: Remove docker-compose OVOS stack(s)" "$1" | cut -d: -f1); [ -n "$list" ] && [ -n "$down" ] && [ "$list" -lt "$down" ]' _ "$tasks"
+    assert_success
+}
+
 @test "containers_uninstall_survives_overlays_compose_cannot_validate_alone" {
     # The uninstall brings each compose file down on its own, and most of them are
     # overlays that do not validate without docker-compose.yml (skills.yml depends on
@@ -1696,6 +1713,125 @@ print('constraint=' + cfg['global']['constraint'])
     # And that sweep is still there to remove what the overlays added.
     run grep -q -- "- name: List all containers, networks and volumes" "$uninstall_file"
     assert_success
+}
+
+@test "every_ci_job_that_uninstalls_proves_the_machine_was_given_back" {
+    # An uninstall step that only has to exit zero proved nothing for two years: the
+    # scenario "uninstall" was an install, and the cleanup it runs had not run since
+    # March. Any job that uninstalls has to snapshot the machine before its install
+    # and compare it after the uninstall.
+    local workflow
+    for workflow in .github/workflows/scenarios-ubuntu2404.yml .github/workflows/macos_ci.yml; do
+        run awk '
+            /^  [a-z0-9-]+:$/ { if (job != "" && uninstalls && !(snap && compare)) bad = bad " " job
+                                 job = $1; uninstalls = snap = compare = 0 }
+            /uninstall: true|scenario-uninstall\.yml|s\/\^uninstall: false\$\/uninstall: true\// { uninstalls = 1 }
+            /machine_state\.sh snapshot/ { snap = 1 }
+            /machine_state\.sh compare/ { compare = 1 }
+            END { if (job != "" && uninstalls && !(snap && compare)) bad = bad " " job
+                  if (bad != "") { print "uninstalls without proving it:" bad; exit 1 } }
+        ' "$workflow"
+        assert_success
+    done
+
+    [ -x .github/scripts/machine_state.sh ]
+    # Every allowed difference carries its reason on the lines above it.
+    run awk '/^#/ { reasoned = 1 } /^[[:space:]]*$/ { reasoned = 0 }
+             /^[a-z]+ (added|removed) / { if (!reasoned) { print "no reason for: " $0; exit 1 } }' .github/scripts/machine_state.allow
+    assert_success
+}
+
+@test "the_ci_proves_an_uninstall_keeps_the_users_own_virtualenvs" {
+    # setup.sh removed ~/.venvs whole after every uninstall, and with it every
+    # virtualenv the user kept beside the installer's. The runners have none, so the
+    # comparison could not see it until the CI planted one before the install.
+    run grep -nE 'rm -rf "?[$][{]?(venv_root|RUN_AS_HOME[}]?/[.]venvs)[}"]*$' setup.sh utils/common.sh
+    assert_failure
+    local workflow
+    for workflow in .github/workflows/scenarios-ubuntu2404.yml .github/workflows/macos_ci.yml; do
+        run grep -c 'mkdir -p .*~/[.]venvs/users-own' "$workflow"
+        assert_output "1"
+    done
+}
+
+@test "every_brew_uninstall_leaves_alone_what_was_unneeded_before" {
+    # brew uninstall runs a global autoremove afterwards unless told not to, and that
+    # takes formulae the machine had no use for before the install as well.
+    # A task uninstalls through brew when its argv says so, or when it is the
+    # Homebrew module with state: absent.
+    run awk '
+        function check() {
+            if ((runs || (module && absent)) && !guarded) { print FILENAME ": " name; bad = 1 }
+            runs = module = absent = guarded = 0
+        }
+        FNR == 1 { check() }
+        /^- name:/ { check(); name = $0 }
+        /^[[:space:]]*argv:.*brew.?, *.?uninstall/ { runs = 1 }
+        /community\.general\.homebrew:/ { module = 1 }
+        /^[[:space:]]*state: absent/ { absent = 1 }
+        /HOMEBREW_NO_AUTOREMOVE/ { guarded = 1 }
+        END { check(); exit bad }
+    ' ansible/roles/*/tasks/*.yml
+    assert_success
+}
+
+@test "setup_never_removes_roots_ansible_directory_it_did_not_create" {
+    # An admin's collections live in /root/.ansible too; setup.sh reads them.
+    run bash -c "grep -nE 'rm -rf .*/root/\\.ansible' setup.sh utils/common.sh | grep -v 'ROOT_ANSIBLE_DIR'"
+    assert_failure
+    run bash -c 'note=$(grep -n "^note_root_ansible_state$" setup.sh | cut -d: -f1); venv=$(grep -n "^create_python_venv$" setup.sh | cut -d: -f1); [ -n "$note" ] && [ -n "$venv" ] && [ "$note" -lt "$venv" ]'
+    assert_success
+}
+
+@test "a_failed_homebrew_install_on_macos_is_tried_again_and_says_why" {
+    # The homebrew module keeps only brew's stderr: "the brew link step did not
+    # complete successfully", with what it collided with lost on stdout.
+    local file="ansible/roles/ovos_virtualenv/tasks/packages.yml"
+    run bash -c "awk '/- name: Install the virtualenv package requirements \\(ovos\\/hivemind\\) on macOS/,/- name: Persist tracked virtualenv package ownership \\(macOS\\)/' '$file'"
+    assert_success
+    assert_output --partial "rescue:"
+    assert_output --partial "argv: \"{{ ['brew', 'install', '--formula'] + ovos_virtualenv_macos_packages }}\""
+    assert_output --partial "- name: Show what Homebrew said"
+    assert_output --partial "when: ovos_virtualenv_brew_again.rc != 0"
+}
+
+@test "a_satellite_uninstall_needs_no_hivemind_credentials" {
+    # scenarios/scenario-uninstall.yml uninstalls a satellite and names no hive, and
+    # the satellite assertion runs on every play: it stopped that uninstall before
+    # anything was removed. An install without them must still be refused.
+    if ! command -v ansible-playbook >/dev/null 2>&1; then
+        skip "ansible-playbook is not available"
+    fi
+    run grep -q '^uninstall: true$' scenarios/scenario-uninstall.yml
+    assert_success
+    run grep -q '^hivemind:' scenarios/scenario-uninstall.yml
+    assert_failure
+
+    # The assertions read a play variable site.yml defines; take it from there.
+    local play regex_line
+    regex_line="$(grep -m1 'ovos_installer_raspberry_pi_4_regex:' ansible/site.yml | sed 's/^ *//')"
+    [ -n "$regex_line" ]
+    play="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/assert.XXXXXX.yml")"
+    cat >"$play" <<YAML
+- hosts: localhost
+  gather_facts: true
+  gather_subset: [min]
+  vars:
+    ${regex_line}
+  tasks:
+    - name: Run the installer's assertions
+      ansible.builtin.include_role:
+        name: ovos_installer
+        tasks_from: assert.yml
+YAML
+
+    run ansible-playbook -i localhost, -c local "$play" -e '{"ovos_installer_profile": "satellite", "ovos_installer_cleaning": true}'
+    assert_success
+
+    run ansible-playbook -i localhost, -c local "$play" -e '{"ovos_installer_profile": "satellite", "ovos_installer_cleaning": false}'
+    assert_failure
+    assert_output --partial "Satellite profile requires"
+    rm -f "$play"
 }
 
 @test "a_mark2_or_devkit_with_the_gui_runs_a_memory_watchdog" {
@@ -1841,7 +1977,7 @@ YAML
     run grep -F -q "Remove tracked kernel headers package" "$uninstall_file"
     assert_success
 
-    run bash -c "grep -A8 -F -- \"- name: Remove tracked kernel headers package\" \"$uninstall_file\" | grep -F -q -- \"autoremove: true\""
+    run bash -c "grep -A8 -F -- \"- name: Remove tracked kernel headers package\" \"$uninstall_file\" | grep -F -q -- \"autoremove: false\""
     assert_success
 
     run grep -F -q "Remove Mark 2 boot config lines" "$uninstall_file"
@@ -1855,6 +1991,14 @@ YAML
 }
 
 @test "uninstall_package_removals_request_dependency_cleanup_across_distros" {
+    # Each role removes its own tracked packages without the package manager's
+    # autoremove, which also takes packages that were unneeded before the install
+    # (the runners' lldb libraries, with apt). What they leave unneeded goes in one
+    # final step that removes only what was not unneeded at the first install.
+    run grep -F -q "difference(ovos_installer_footprint.orphans)" ansible/roles/ovos_installer/tasks/uninstall.yml
+    assert_success
+    run grep -F -q -- "argv: [apt-get, --simulate, autoremove]" ansible/roles/ovos_installer/tasks/footprint_record.yml
+    assert_success
     local installer_defaults="ansible/roles/ovos_installer/defaults/main.yml"
     local audio_defaults="ansible/roles/ovos_audio_tuning/defaults/main.yml"
     local audio_install="ansible/roles/ovos_audio_tuning/tasks/main.yml"
@@ -1909,7 +2053,7 @@ YAML
     run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"name: \\\"{{ ovos_installer_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"autoremove: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"autoremove: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Debian family)\" \"$audio_file\" | grep -F -q -- \"ignore_errors: true\""
@@ -1921,7 +2065,7 @@ YAML
     run bash -c "grep -A12 -F -- \"- name: Remove rtkit package ownership marker\" \"$audio_file\" | grep -F -q -- 'ansible_facts.os_family in [\"Debian\", \"RedHat\", \"Suse\", \"Archlinux\"]'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (SUSE)\" \"$audio_file\" | grep -F -q -- \"clean_deps: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (SUSE)\" \"$audio_file\" | grep -F -q -- \"clean_deps: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked rtkit package (Archlinux)\" \"$audio_file\" | grep -F -q -- \"remove_nosave: true\""
@@ -1954,17 +2098,21 @@ YAML
     run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"name: \\\"{{ ovos_installer_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Debian family)\" \"$virtualenv_file\" | grep -F -q -- \"ignore_errors: true\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (SUSE)\" \"$virtualenv_file\" | grep -F -q -- \"clean_deps: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (SUSE)\" \"$virtualenv_file\" | grep -F -q -- \"clean_deps: false\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"extra_args: --recursive\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"remove_nosave: true\""
     assert_success
+    # dnf, zypper and pacman remove only the tracked packages too: no autoremove,
+    # clean_deps or --recursive, which also take what was unneeded before.
+    run grep -rn -E "autoremove: true|clean_deps: true|extra_args: --recursive" ansible/roles/*/tasks
+    assert_failure
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked virtualenv package requirements (Archlinux)\" \"$virtualenv_file\" | grep -F -q -- \"remove_nosave: true\""
     assert_success
@@ -1975,7 +2123,7 @@ YAML
     run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"name: \\\"{{ ovos_installer_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"autoremove: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked ovos-gui package requirements (Debian Trixie Mark II/DevKit)\" \"$virtualenv_file\" | grep -F -q -- \"ignore_errors: true\""
@@ -2008,25 +2156,25 @@ YAML
     run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"name: \\\"{{ ovos_installer_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Debian family\" \"$performance_file\" | grep -F -q -- \"autoremove: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove cpupower package ownership marker\" \"$performance_file\" | grep -F -q -- 'ansible_facts.os_family in [\"Debian\", \"RedHat\", \"Suse\", \"Archlinux\"]'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on SUSE family\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on SUSE family\" \"$performance_file\" | grep -F -q -- \"clean_deps: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked cpupower package on Arch family\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (Debian)\" \"$performance_file\" | grep -F -q -- \"autoremove: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (Debian)\" \"$performance_file\" | grep -F -q -- \"autoremove: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove zram package ownership marker\" \"$performance_file\" | grep -F -q -- 'ansible_facts.os_family in [\"Debian\", \"RedHat\", \"Suse\", \"Archlinux\"]'"
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (SUSE)\" \"$performance_file\" | grep -F -q -- \"clean_deps: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (SUSE)\" \"$performance_file\" | grep -F -q -- \"clean_deps: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked systemd-zram-generator (Arch Linux)\" \"$performance_file\" | grep -F -q -- \"remove_nosave: true\""
@@ -2044,7 +2192,7 @@ YAML
     run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"name: \\\"{{ ovos_installer_package_tracking_tracked_packages_to_remove }}\\\"\""
     assert_success
 
-    run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"autoremove: true\""
+    run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"autoremove: false\""
     assert_success
 
     run bash -c "grep -A12 -F -- \"- name: Remove tracked kernel headers package\" \"$mark2_uninstall_file\" | grep -F -q -- \"ignore_errors: true\""
@@ -3501,9 +3649,10 @@ function anchors_of() {
 }
 
 @test "setup_successful_uninstall_clears_tui_state_directory" {
-    local file="setup.sh"
-
-    run grep -F -q 'rm -rf "${RUN_AS_HOME}/.local/state/ovos"' "$file"
+    # remove_installer_state does it; hardware_detection.bats runs it for real.
+    run grep -E -q '^      remove_installer_state$' setup.sh
+    assert_success
+    run grep -F -q 'local state_directory="${RUN_AS_HOME}/.local/state/ovos"' utils/common.sh
     assert_success
 }
 
@@ -4681,6 +4830,42 @@ function teardown() {
     # Every workflow must go through it rather than calling apt-get update directly.
     run bash -c "command grep -rn 'sudo apt-get update' .github/workflows/ | command grep -v apt_update.sh"
     assert_failure
+}
+
+# apt_update_against <how many calls hang> - run apt_update.sh with an apt-get that hangs
+# on its first calls and then succeeds, a sudo that runs the command as it is, and no
+# third-party sources to remove.
+function apt_update_against() {
+    command -v timeout >/dev/null 2>&1 || skip "apt_update.sh runs on the Linux runners, with GNU timeout"
+    local bin="$BATS_TEST_TMPDIR/bin"
+    mkdir -p "$bin" "$BATS_TEST_TMPDIR/sources"
+    printf '#!/usr/bin/env bash\nexec "$@"\n' >"$bin/sudo"
+    cat >"$bin/apt-get" <<'FAKE'
+#!/usr/bin/env bash
+calls=$(( $(cat "$BATS_TEST_TMPDIR/calls" 2>/dev/null || echo 0) + 1 ))
+echo "$calls" >"$BATS_TEST_TMPDIR/calls"
+[ "$calls" -le "$HANG" ] && exec sleep 60
+echo "updated"
+FAKE
+    chmod +x "$bin/sudo" "$bin/apt-get"
+    run env PATH="$bin:$PATH" HANG="$1" BATS_TEST_TMPDIR="$BATS_TEST_TMPDIR" \
+        APT_SOURCES_DIR="$BATS_TEST_TMPDIR/sources" APT_UPDATE_SECONDS=1 APT_UPDATE_PAUSE=0 \
+        .github/scripts/apt_update.sh
+}
+
+@test "apt_update_tries_a_stalled_mirror_again_instead_of_waiting_for_it" {
+    # A mirror that stopped answering mid-transfer held three jobs over 40 minutes.
+    apt_update_against 1
+    assert_success
+    assert_output --partial "still running after 1s (attempt 1 of 3)"
+    assert_output --partial "updated"
+}
+
+@test "apt_update_gives_up_on_a_mirror_that_keeps_stalling" {
+    apt_update_against 3
+    assert_failure
+    assert_output --partial "attempt 3 of 3"
+    refute_output --partial "updated"
 }
 
 @test "workflow_actions_are_pinned_to_an_immutable_commit" {

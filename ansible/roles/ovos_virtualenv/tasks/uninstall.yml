@@ -40,7 +40,9 @@
     name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     purge: true
-    autoremove: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; apt's own does not.
+    autoremove: false
   register: ovos_virtualenv_gui_package_uninstall_result
   ignore_errors: true
   when:
@@ -78,7 +80,9 @@
     install_recommends: false
     state: absent
     purge: true
-    autoremove: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; apt's own does not.
+    autoremove: false
   register: ovos_virtualenv_package_uninstall_debian
   ignore_errors: true
   when:
@@ -90,7 +94,9 @@
   ansible.builtin.dnf:
     name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
-    autoremove: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; dnf's own does not.
+    autoremove: false
   register: ovos_virtualenv_package_uninstall_redhat
   ignore_errors: true
   when:
@@ -102,7 +108,9 @@
   community.general.zypper:
     name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
-    clean_deps: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; zypper's does not.
+    clean_deps: false
   register: ovos_virtualenv_package_uninstall_suse
   ignore_errors: true
   when:
@@ -114,7 +122,8 @@
   community.general.pacman:
     name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
-    extra_args: --recursive
+    # No --recursive: what these leave unneeded goes in ovos_installer's final
+    # autoremove, which keeps the packages that were unneeded before the install.
     remove_nosave: true
   register: ovos_virtualenv_package_uninstall_archlinux
   ignore_errors: true
@@ -149,18 +158,13 @@
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
 
-- name: Remove tracked virtualenv package requirements (macOS)
-  become: true
-  become_user: "{{ ovos_installer_user }}"
-  community.general.homebrew:
-    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
-    state: absent
-    path: "{{ ovos_virtualenv_homebrew_path }}"
-    update_homebrew: false
-  register: ovos_virtualenv_package_uninstall_macos
-  environment:
-    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
-  ignore_errors: true
+# The uninstall's final autoremove removes them, with what they pulled in.
+- name: Release tracked virtualenv package requirements (macOS)
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_release_macos.yml
+  vars:
+    ovos_installer_package_tracking_homebrew_path: "{{ ovos_virtualenv_homebrew_path }}"
   when:
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
@@ -174,7 +178,7 @@
     - ovos_installer_uninstall_remove_packages | default(false) | bool
     - ansible_facts.system == "Darwin"
     - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
-      or ovos_virtualenv_package_uninstall_macos is not ansible.builtin.failed
+      or (ovos_installer_package_tracking_homebrew_released.rc | default(0)) == 0
 
 - name: Check for OVOS venv activation script
   ansible.builtin.stat:
@@ -246,34 +250,19 @@
     state: absent
   when: ovos_virtualenv_shell_init.stat.exists | default(false) | bool
 
-- name: Remove ovos Python virtualenv and requirements.txt files
+- name: Remove the OVOS virtualenv
+  ansible.builtin.import_tasks: uninstall_virtualenv.yml
+
+- name: Remove requirements.txt files and the virtualenv's helpers
   vars:
     _requirements_paths: "{{ ovos_virtualenv_requirements_files | map(attribute='dest') | list }}"
-    _venv_executable: >-
-      {{ ansible_playbook_python
-         | default(ansible_python_interpreter | default(ansible_facts.get('python', {}).get('executable', ''))) }}
-    _running_from_ovos_venv: >-
-      {{ _venv_executable is search('^' ~ (ovos_virtualenv_root_dir | regex_escape)) }}
-    _remove_venv_paths: >-
-      {{ [] if (_running_from_ovos_venv and not (ovos_virtualenv_force_remove | bool))
-         else [ovos_virtualenv_path, ovos_virtualenv_root_dir] }}
     _uninstall_paths: >-
-      {{ _remove_venv_paths
-         + _requirements_paths
-         + ovos_virtualenv_uninstall_extra_paths
-         + [ovos_virtualenv_messagebus_path, ovos_virtualenv_rust_messagebus_binary_path,
-            ovos_virtualenv_swig_shim_path]
+      {{ (_requirements_paths
+          + ovos_virtualenv_uninstall_extra_paths
+          + [ovos_virtualenv_messagebus_path, ovos_virtualenv_rust_messagebus_binary_path,
+             ovos_virtualenv_swig_shim_path])
          | unique }}
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop: "{{ _uninstall_paths }}"
-
-- name: Warn when skipping venv removal during uninstall
-  ansible.builtin.debug:
-    msg: >-
-      Skipping removal of {{ ovos_virtualenv_root_dir }} because Ansible is
-      running from that venv. Set ovos_virtualenv_force_remove=true to override.
-  when:
-    - ansible_facts.get('python', {}).get('executable', '') is search('^' ~ (ovos_virtualenv_root_dir | regex_escape))
-    - not (ovos_virtualenv_force_remove | bool)

@@ -14,7 +14,7 @@
     fail_msg: "On Mark 2/DevKit hardware only virtualenv mode is currently supported."
   when:
     - not (ovos_installer_is_cleaning | bool)
-    - (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)
+    - ((ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)) is not none
     - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
 
 - name: Assert GUI support constraints
@@ -24,7 +24,7 @@
       - ansible_facts.system == 'Linux'
       - ansible_facts.distribution == 'Debian'
       - ansible_facts.distribution_major_version == '13'
-      - (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)
+      - ((ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex)) is not none
       - "'tas5806' in (ovos_installer_i2c_devices | default([]))"
     fail_msg: "GUI support is only available on Debian Trixie Mark II/DevKit virtualenv installs."
   when:
@@ -45,7 +45,11 @@
       - ovos_installer_satellite_key | default('') | length > 0
       - ovos_installer_satellite_password | default('') | length > 0
     fail_msg: "Satellite profile requires listener host, satellite key, and satellite password."
-  when: ovos_installer_profile == 'satellite'
+  # An uninstall connects to no hive: scenarios/scenario-uninstall.yml names a
+  # satellite and no credentials, and this stopped it before anything was removed.
+  when:
+    - ovos_installer_profile == 'satellite'
+    - not (ovos_installer_is_cleaning | bool)
 
 - name: Assert LLM required variables when LLM feature is enabled
   ansible.builtin.assert:

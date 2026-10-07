@@ -3,3 +3,71 @@
   ansible.builtin.file:
     path: "{{ ovos_sound_asoundrc_path }}"
     state: absent
+
+- name: Load tracked sound package ownership
+  ansible.builtin.include_role:
+    name: ovos_installer
+    tasks_from: package_tracking_load.yml
+  vars:
+    ovos_installer_package_tracking_marker_path: "{{ ovos_sound_package_marker_path }}"
+  when: ovos_installer_uninstall_remove_packages | default(false) | bool
+
+# Purged, so the global user-unit links and the limits drop-in PipeWire's packages
+# add go with them. What they leave unneeded goes in ovos_installer's final
+# autoremove.
+- name: Remove tracked sound packages (Debian family)
+  ansible.builtin.apt:
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
+    state: absent
+    purge: true
+    autoremove: false
+  register: ovos_sound_package_uninstall
+  ignore_errors: true
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family == "Debian"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+
+- name: Remove tracked sound packages (other families)
+  ansible.builtin.package:
+    name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
+    state: absent
+  register: ovos_sound_package_uninstall_other
+  ignore_errors: true
+  when:
+    - ovos_installer_uninstall_remove_packages | default(false) | bool
+    - ansible_facts.os_family != "Debian"
+    - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) > 0
+
+- name: Check for the groups the install added the user to
+  ansible.builtin.stat:
+    path: "{{ ovos_sound_groups_marker_path }}"
+  register: ovos_sound_groups_marker_stat
+
+- name: Read the groups the install added the user to
+  ansible.builtin.slurp:
+    src: "{{ ovos_sound_groups_marker_path }}"
+  register: ovos_sound_groups_marker_raw
+  when: ovos_sound_groups_marker_stat.stat.exists | default(false) | bool
+
+- name: Read the groups the user is in now
+  ansible.builtin.getent:
+    database: group
+  when: ovos_sound_groups_marker_raw.content is defined
+
+- name: Note which of them the user is still in
+  ansible.builtin.set_fact:
+    ovos_sound_groups_now: "{{ lookup('ansible.builtin.template', 'sound_groups_member.j2') | trim | from_json }}"
+  when: ovos_sound_groups_marker_raw.content is defined
+
+# Only the groups the record names and the user is still in: being in a group the
+# install did not add is the user's own business.
+- name: Take the user out of the groups the install added them to
+  ansible.builtin.command:
+    argv: [gpasswd, --delete, "{{ ovos_installer_user }}", "{{ item }}"]
+  loop: >-
+    {{ (ovos_sound_groups_marker_raw.content | b64decode | from_json)
+       | intersect(ovos_sound_groups_now | default([])) }}
+  changed_when: true
+  failed_when: false
+  when: ovos_sound_groups_marker_raw.content is defined
