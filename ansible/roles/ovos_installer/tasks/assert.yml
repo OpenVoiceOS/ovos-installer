@@ -45,7 +45,11 @@
       - ovos_installer_satellite_key | default('') | length > 0
       - ovos_installer_satellite_password | default('') | length > 0
     fail_msg: "Satellite profile requires listener host, satellite key, and satellite password."
-  when: ovos_installer_profile == 'satellite'
+  # An uninstall connects to no hive: scenarios/scenario-uninstall.yml names a
+  # satellite and no credentials, and this stopped it before anything was removed.
+  when:
+    - ovos_installer_profile == 'satellite'
+    - not (ovos_installer_is_cleaning | bool)
 
 - name: Assert LLM required variables when LLM feature is enabled
   ansible.builtin.assert:

@@ -1698,6 +1698,45 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 }
 
+@test "a_satellite_uninstall_needs_no_hivemind_credentials" {
+    # scenarios/scenario-uninstall.yml uninstalls a satellite and names no hive, and
+    # the satellite assertion runs on every play: it stopped that uninstall before
+    # anything was removed. An install without them must still be refused.
+    if ! command -v ansible-playbook >/dev/null 2>&1; then
+        skip "ansible-playbook is not available"
+    fi
+    run grep -q '^uninstall: true$' scenarios/scenario-uninstall.yml
+    assert_success
+    run grep -q '^hivemind:' scenarios/scenario-uninstall.yml
+    assert_failure
+
+    # The assertions read a play variable site.yml defines; take it from there.
+    local play regex_line
+    regex_line="$(grep -m1 'ovos_installer_raspberry_pi_4_regex:' ansible/site.yml | sed 's/^ *//')"
+    [ -n "$regex_line" ]
+    play="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/assert.XXXXXX.yml")"
+    cat >"$play" <<YAML
+- hosts: localhost
+  gather_facts: true
+  gather_subset: [min]
+  vars:
+    ${regex_line}
+  tasks:
+    - name: Run the installer's assertions
+      ansible.builtin.include_role:
+        name: ovos_installer
+        tasks_from: assert.yml
+YAML
+
+    run ansible-playbook -i localhost, -c local "$play" -e '{"ovos_installer_profile": "satellite", "ovos_installer_cleaning": true}'
+    assert_success
+
+    run ansible-playbook -i localhost, -c local "$play" -e '{"ovos_installer_profile": "satellite", "ovos_installer_cleaning": false}'
+    assert_failure
+    assert_output --partial "Satellite profile requires"
+    rm -f "$play"
+}
+
 @test "gui_and_mark2_git_refresh_are_throttled" {
     local venv_defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
     local gui_tasks_file="ansible/roles/ovos_virtualenv/tasks/gui.yml"
