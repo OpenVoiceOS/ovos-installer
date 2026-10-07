@@ -23,18 +23,27 @@ home added $HOME/Library/Logs/Homebrew(/.*)?
 # macOS's own agents (Siri, Apple Intelligence, Spotlight, Mail, device management)
 # create their containers, preferences and stores in ~/Library the first time they
 # run, which on a fresh runner is during any long job. Apple's names only:
-# com.apple., group.com.apple., the UUID-named containers of its extensions, and the
-# stores only macOS keeps. LaunchAgents, where the installer writes, stays checked.
-home added $HOME/Library/(Application Scripts|Containers|Group Containers|Daemon Containers)/((group\.)?com\.apple\.[^/]+|[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})(/.*)?
+# com.apple., group.com.apple. or an Apple team prefix (243LU875E5.groups.com.apple.
+# is Podcasts), the UUID-named containers of its extensions, and the stores only
+# macOS keeps, Siri's speech service log among them. LaunchAgents, where the
+# installer writes, stays checked.
+home added $HOME/Library/(Application Scripts|Containers|Group Containers|Daemon Containers)/((group\.|[0-9A-Z]{10}\.groups?\.)?com\.apple\.[^/]+|[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})(/.*)?
 home added $HOME/Library/Application Support/(com\.apple\.[^/]+|locationaccessstored)(/.*)?
 home added $HOME/Library/HTTPStorages/com\.apple\.[^/]+(/.*)?
 home added $HOME/Library/Preferences/(ByHost/)?com\.apple\.[^/]+\.plist
-home added $HOME/Library/(DuetExpertCenter|PersonalizationPortrait|PrivateCloudCompute|Suggestions|Metadata/CoreSpotlight)(/.*)?
+home added $HOME/Library/(DuetExpertCenter|PersonalizationPortrait|PrivateCloudCompute|Suggestions|Metadata/CoreSpotlight|Logs/SiriTTSService)(/.*)?
 
-# macOS's identity services park what they are about to delete in
-# ~/Library/IdentityServices/delete and empty it on their own schedule.
-home added $HOME/Library/IdentityServices/delete(/.*)?
-home removed $HOME/Library/IdentityServices/delete(/.*)?
+# Stores macOS keeps changing on its own schedule: the identity services park what
+# they are about to delete in IdentityServices/delete and persist their own state
+# beside it, Siri's asset framework keeps the previous copy of each log next to the
+# current one, and Trial, Apple's experiment and asset delivery, replaces its asset
+# store.
+home added $HOME/Library/(IdentityServices|UnifiedAssetFramework|Trial)(/.*)?
+home removed $HOME/Library/(IdentityServices|UnifiedAssetFramework|Trial)(/.*)?
+
+# The TV app's library. macOS's media agents create it on their own: on a macOS 26
+# runner, mid-job, together with the Podcasts container above.
+home added $HOME/Movies/TV(/.*)?
 
 # macOS keeps an HTTP store per program name; it appears the first time any python
 # makes a request and belongs to the system, not to this installer.
