@@ -5,8 +5,15 @@ source tui/navigation.sh
 source "tui/locales/$LOCALE/speech.sh"
 
 # The flow only shows this screen when local_speech_available, so both choices
-# can actually be installed. Local is what the hardware was checked for.
+# can actually be installed. Local is what the hardware was checked for, so a new
+# install starts there. An existing install that has never answered predates this
+# question and runs on the public servers: an update keeps it there unless the
+# user picks local, rather than switching the device over, and downloading
+# gigabytes of models, for someone pressing Enter through the screens.
 active_engine="local"
+if [ "${EXISTING_INSTANCE:-false}" == "true" ]; then
+  active_engine="public"
+fi
 if [ -f "$INSTALLER_STATE_FILE" ]; then
   saved_engine="$(jq -r '.speech_engine // ""' "$INSTALLER_STATE_FILE" 2>>"$LOG_FILE")"
   case "$saved_engine" in

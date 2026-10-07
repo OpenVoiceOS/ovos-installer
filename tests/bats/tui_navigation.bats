@@ -766,6 +766,35 @@ function rendered_titles() {
     assert_equal "$(jq -r '.speech_engine' "$INSTALLER_STATE_FILE")" "public"
 }
 
+@test "tui: updating an install from before the speech question keeps it public" {
+    # It ran on the public servers, and pressing Enter through an update must not
+    # switch it over and download gigabytes of models.
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="virtualenv"
+    export LOCAL_SPEECH_CAPABLE="true"
+    WHIPTAIL_PREFERRED_TAGS="alpha"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    run rendered_titles
+    assert_line "Open Voice OS Installation - Speech"
+    assert_equal "$SPEECH_ENGINE" "public"
+}
+
+@test "tui: updating an install keeps the speech it chose" {
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="virtualenv"
+    export LOCAL_SPEECH_CAPABLE="true"
+    WHIPTAIL_PREFERRED_TAGS="alpha"
+    printf '{"speech_engine": "local"}\n' >"$INSTALLER_STATE_FILE"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    assert_equal "$SPEECH_ENGINE" "local"
+}
+
 @test "tui: the testing channel is never asked about speech" {
     export LOCAL_SPEECH_CAPABLE="true"
 
