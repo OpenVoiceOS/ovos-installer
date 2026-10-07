@@ -132,6 +132,23 @@ ovos_hardware_mark2_overlay_cleanup_paths: >-
     | map('regex_replace', '^(.*)$', ovos_hardware_mark2_boot_overlays_dir ~ '/\\1')
     | list
   }}
+# ovos-shell, the GUI, keeps memory it never gives back (#646), and a Raspberry Pi boots
+# with cgroup_disable=memory, so systemd cannot cap it. With the GUI on, a watchdog
+# restarts the shell once it holds more than this in RAM and swap: megabytes, or a share
+# of the RAM from 1% to 100% (30% is about 550 MB on a Mark II).
+ovos_hardware_mark2_gui_watchdog_enabled: "{{ ovos_installer_feature_gui | default(false) | bool }}"
+ovos_hardware_mark2_gui_memory_limit: "{{ ovos_installer_gui_memory_limit | default('30%') }}"
+ovos_hardware_mark2_gui_watchdog_path: /usr/local/bin/ovos-gui-watchdog
+ovos_hardware_mark2_gui_watchdog_unit_name: ovos-gui-watchdog.service
+ovos_hardware_mark2_gui_watchdog_unit_path: >-
+  {{ ovos_hardware_mark2_systemd_system_dir }}/{{ ovos_hardware_mark2_gui_watchdog_unit_name }}
+# The GUI runs in the scope the installer chose; the drop-in that makes the kernel take
+# ovos-shell first when memory runs out goes beside its unit.
+ovos_hardware_mark2_gui_system_scope: "{{ (ovos_installer_systemd_scope | default('user')) == 'system' }}"
+ovos_hardware_mark2_gui_dropin_name: ovos-gui.service.d/90-mark2-memory.conf
+ovos_hardware_mark2_gui_dropin_paths:
+  system: "{{ ovos_hardware_mark2_systemd_system_dir }}/{{ ovos_hardware_mark2_gui_dropin_name }}"
+  user: "{{ ovos_hardware_mark2_systemd_user_dir }}/{{ ovos_hardware_mark2_gui_dropin_name }}"
 ovos_hardware_mark2_uninstall_paths:
   - "{{ ovos_hardware_mark2_working_dir }}"
   - "{{ ovos_hardware_mark2_sj201_venv_path }}"
@@ -139,6 +156,10 @@ ovos_hardware_mark2_uninstall_paths:
   - "{{ ovos_hardware_mark2_sj201_legacy_user_unit_path }}"
   - "{{ ovos_hardware_mark2_wireplumber_conf_dir }}/{{ ovos_hardware_mark2_wireplumber_profile_conf_src }}"
   - "{{ ovos_hardware_mark2_modules_load_path }}"
+  - "{{ ovos_hardware_mark2_gui_watchdog_unit_path }}"
+  - "{{ ovos_hardware_mark2_gui_watchdog_path }}"
+  - "{{ ovos_hardware_mark2_gui_dropin_paths.system }}"
+  - "{{ ovos_hardware_mark2_gui_dropin_paths.user }}"
   - "{{ ovos_hardware_mark2_vocalfusion_module_path }}"
 ovos_hardware_mark2_wireplumber_profile_conf_src: 90-sj201-profile.conf
 ovos_hardware_mark2_wireplumber_profile_conf_mode: "0644"

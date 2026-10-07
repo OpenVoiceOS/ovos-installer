@@ -32,6 +32,13 @@
     - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or ovos_hardware_mark2_kernel_headers_uninstall_result is not ansible.builtin.failed
 
+- name: Stop and disable the GUI memory watchdog
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_hardware_mark2_gui_watchdog_unit_name }}"
+    enabled: false
+    state: stopped
+  failed_when: false
+
 - name: Stop and disable SJ201 systemd unit
   ansible.builtin.systemd_service:
     name: "{{ ovos_hardware_mark2_sj201_unit_name }}"

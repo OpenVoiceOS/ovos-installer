@@ -16,3 +16,6 @@
 
 - name: Include wireplumber.yml
   ansible.builtin.import_tasks: wireplumber.yml
+
+- name: Include gui-watchdog.yml
+  ansible.builtin.import_tasks: gui-watchdog.yml

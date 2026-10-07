@@ -1698,6 +1698,79 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 }
 
+@test "a_mark2_or_devkit_with_the_gui_runs_a_memory_watchdog" {
+    # ovos-shell keeps memory it never gives back (#646) and the Pi boots with
+    # cgroup_disable=memory, so a watchdog restarts it before it fills RAM and zram.
+    # Only a Mark II or a DevKit runs the GUI: it belongs to that role, not to the
+    # services every install gets.
+    run grep -rlE "ovos-gui-watchdog|OOMScoreAdjust" ansible/roles/ovos_services
+    assert_failure
+
+    local role="ansible/roles/ovos_hardware_mark2"
+    run grep -F -q "import_tasks: gui-watchdog.yml" "$role/tasks/install.yml"
+    assert_success
+    run grep -F -q 'ovos_hardware_mark2_gui_watchdog_enabled: "{{ ovos_installer_feature_gui | default(false) | bool }}"' "$role/defaults/main.yml"
+    assert_success
+    [ -x "$role/files/ovos-gui-watchdog.sh" ]
+    # If memory runs out anyway, the kernel takes the shell, not the voice services.
+    run grep -q '^          OOMScoreAdjust=500$' "$role/tasks/gui-watchdog.yml"
+    assert_success
+    # The uninstall stops it and removes all of it.
+    run grep -F -q -- "- name: Stop and disable the GUI memory watchdog" "$role/tasks/uninstall.yml"
+    assert_success
+    local entry
+    for entry in gui_watchdog_unit_path gui_watchdog_path gui_dropin_paths.system gui_dropin_paths.user; do
+        run bash -c "awk 'f && /^[a-z]/ { exit } /^ovos_hardware_mark2_uninstall_paths:/ { f = 1; next } f' '$role/defaults/main.yml' | grep -q 'ovos_hardware_mark2_${entry} }}'"
+        assert_success
+    done
+
+    # The unit as it renders: a percent sign starts a systemd specifier; it runs as
+    # the user that owns ovos-shell; and for a GUI in the user's own systemd it gets
+    # that user's bus to ask for the shell's process.
+    if ! command -v ansible-playbook >/dev/null 2>&1; then
+        skip "ansible-playbook is not available"
+    fi
+    local play out
+    play="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/watchdog.XXXXXX.yml")"
+    out="$(mktemp -d)"
+    cat >"$play" <<YAML
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - ansible.builtin.template:
+        src: $PWD/$role/templates/ovos-gui-watchdog.service.j2
+        dest: "$out/{{ scope }}.service"
+        mode: "0644"
+      vars:
+        ovos_hardware_mark2_gui_system_scope: "{{ scope == 'system' }}"
+        ovos_installer_user: ovos
+        ovos_installer_group: ovos
+        ovos_hardware_mark2_user_runtime_dir: /run/user/1000
+        ovos_hardware_mark2_gui_watchdog_path: /usr/local/bin/ovos-gui-watchdog
+        ovos_hardware_mark2_gui_memory_limit: "30%"
+      loop: [user, system]
+      loop_control:
+        loop_var: scope
+YAML
+    run ansible-playbook -i localhost, -c local "$play"
+    assert_success
+    run grep '^ExecStart=' "$out/user.service"
+    assert_output "ExecStart=/usr/local/bin/ovos-gui-watchdog 30%% ovos-gui.service --user"
+    run grep '^ExecStart=' "$out/system.service"
+    assert_output "ExecStart=/usr/local/bin/ovos-gui-watchdog 30%% ovos-gui.service --system"
+    run grep -c '^User=ovos$' "$out/user.service" "$out/system.service"
+    assert_output --partial "user.service:1"
+    assert_output --partial "system.service:1"
+    run grep -c '^Environment=XDG_RUNTIME_DIR=/run/user/1000$' "$out/user.service"
+    assert_output "1"
+    run grep -c '^Environment=XDG_RUNTIME_DIR' "$out/system.service"
+    assert_output "0"
+    # A limit the watchdog refuses stops it; restarting it would not fix the limit.
+    run grep '^RestartPreventExitStatus=2$' "$out/system.service"
+    assert_success
+    rm -rf "$play" "$out"
+}
+
 @test "gui_and_mark2_git_refresh_are_throttled" {
     local venv_defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
     local gui_tasks_file="ansible/roles/ovos_virtualenv/tasks/gui.yml"
