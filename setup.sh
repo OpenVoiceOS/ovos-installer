@@ -77,11 +77,13 @@ fi
 set -eE
 trap on_error ERR
 detect_user
+note_root_ansible_state
 reset_reboot_request_for_current_run
 delete_log
 detect_existing_instance
 get_os_information
 wsl2_requirements
+macos_requirements
 detect_cpu_instructions
 is_raspberrypi_soc
 detect_hardware_model
@@ -230,6 +232,7 @@ ansible_command=(
   -e "ovos_installer_venv=${VENV_PATH}" \
   -e "ovos_installer_venv_python=${OVOS_VENV_PYTHON}" \
   -e "ovos_installer_user_home=${RUN_AS_HOME}" \
+  -e "ovos_installer_state_created_from=${STATE_DIRECTORY_CREATED_FROM:-}" \
   -e "ovos_installer_method=${METHOD}" \
   -e "ovos_installer_profile=${PROFILE}" \
   -e "ovos_installer_sound_server=${SOUND_SERVER%% *}" \
@@ -316,15 +319,13 @@ if [ "$ansible_rc" -eq 0 ]; then
       # shellcheck source=tui/finish.sh
       source tui/finish.sh
     fi
-    rm -rf "$VENV_PATH" /root/.ansible
+    rm -rf "$VENV_PATH"
+    remove_installer_ansible_state
   else
-    rm -rf "$VENV_PATH" /root/.ansible
+    rm -rf "$VENV_PATH"
+    remove_installer_ansible_state
     if [ -n "${RUN_AS_HOME:-}" ]; then
-      venv_root="${RUN_AS_HOME}/.venvs"
-      if [ "$(dirname "$VENV_PATH")" = "$venv_root" ]; then
-        rm -rf "$venv_root"
-      fi
-      rm -rf "${RUN_AS_HOME}/.local/state/ovos"
+      remove_installer_state
     fi
     log_info ""
     log_info "➤ Open Voice OS has been successfully uninstalled."

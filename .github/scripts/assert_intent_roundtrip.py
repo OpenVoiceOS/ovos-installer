@@ -41,7 +41,15 @@ class Failure(Exception):
 
 
 class Bus:
-    """The bus protocol, in the small: send a message, wait for a reply type."""
+    """The bus protocol, in the small: send a message, wait for a reply type.
+
+    A connection the bus drops is opened again, the way every OVOS service reconnects,
+    and said out loud: on a loaded runner the containers bus has closed on this check
+    while it waited for the skills, and the next send then died with a traceback that
+    named nothing. A bus that keeps dropping its clients fails the check instead.
+    """
+
+    MAX_RECONNECTS = 3
 
     def __init__(self, url, connect_timeout):
         # Imported here rather than at module scope so that --help, and every argument
@@ -54,6 +62,8 @@ class Bus:
                           "reached from this interpreter")
         self.websocket = websocket
         self.url = url
+        self.connect_timeout = connect_timeout
+        self.reconnects = 0
         try:
             self.ws = websocket.create_connection(url, timeout=connect_timeout)
         except Exception as error:
@@ -63,9 +73,49 @@ class Bus:
                 f"other part."
             )
 
+    def _dropped(self, error):
+        """The bus closed the connection: open it again, or fail saying why."""
+        self.reconnects += 1
+        if self.reconnects > self.MAX_RECONNECTS:
+            raise Failure(
+                f"the messagebus dropped the connection {self.reconnects} times (last: "
+                f"{type(error).__name__}: {error}). A bus that keeps closing on its "
+                f"clients leaves every part of the stack deaf in turn."
+            )
+        try:
+            self.ws.close()
+        except Exception:
+            pass
+        # A bus being restarted is not listening for a moment: keep asking for up to
+        # --connect-timeout before calling it gone.
+        deadline = time.monotonic() + self.connect_timeout
+        while True:
+            try:
+                self.ws = self.websocket.create_connection(
+                    self.url, timeout=max(0.5, deadline - time.monotonic()))
+                break
+            except Exception as again:
+                if time.monotonic() >= deadline:
+                    raise Failure(
+                        f"the messagebus dropped the connection ({type(error).__name__}: "
+                        f"{error}) and was still not listening on {self.url} "
+                        f"{self.connect_timeout:.0f}s later ({type(again).__name__}: "
+                        f"{again}). It went away after the stack had started."
+                    )
+                time.sleep(0.5)
+        print(f"bus       : the connection dropped ({type(error).__name__}: {error}); "
+              f"reconnected", flush=True)
+
     def send(self, msg_type, data=None, context=None):
-        self.ws.send(json.dumps({"type": msg_type, "data": data or {},
-                                 "context": context or {"source": ["ci"]}}))
+        """Every send, the one after a reconnect too, counts against the drops allowed."""
+        payload = json.dumps({"type": msg_type, "data": data or {},
+                              "context": context or {"source": ["ci"]}})
+        while True:
+            try:
+                self.ws.send(payload)
+                return
+            except (self.websocket.WebSocketConnectionClosedException, OSError) as error:
+                self._dropped(error)
 
     def wait_for(self, reply_type, timeout, match=None):
         """Read until `reply_type` arrives, or the deadline passes. None on timeout.
@@ -83,6 +133,11 @@ class Bus:
             try:
                 raw = self.ws.recv()
             except self.websocket.WebSocketTimeoutException:
+                return None
+            except (self.websocket.WebSocketConnectionClosedException, OSError) as error:
+                # The question was asked on the connection that is gone; the caller
+                # asks again on the new one.
+                self._dropped(error)
                 return None
             except Exception:
                 return None
@@ -134,20 +189,47 @@ def wait_ready(bus, service, timeout, poll=5):
     )
 
 
-def probe(bus, utterance, lang, timeout):
-    """intent.service.intent.get - read-only, it never runs a handler."""
-    answer = bus.ask("intent.service.intent.get",
-                     reply_type="intent.service.intent.reply",
-                     data={"utterance": utterance, "lang": lang},
-                     context={"source": ["ci"], "lang": lang},
-                     timeout=timeout,
-                     match=lambda m: (m.get("data") or {}).get("utterance") == utterance)
-    if answer is None:
+# Long enough for a healthy intent service, which answers in well under a second, short
+# enough that a probe lost while it was busy is asked again inside --reply-timeout.
+PROBE_ATTEMPT_WINDOW = 10.0
+
+
+def probe(bus, utterance, lang, timeout, attempt_window=PROBE_ATTEMPT_WINDOW):
+    """intent.service.intent.get - read-only, it never runs a handler.
+
+    Asked again rather than waited on once, for the reason round_trip gives: a bus
+    message is fire-and-forget. Right after boot, with every extra skill registering
+    its intents, the containers stack has let a single probe go unanswered for 30s.
+    An answer to any of the asks counts, since each carries the same utterance.
+    """
+    if not attempt_window > 0:
         raise Failure(
-            f"the intent service did not answer a probe for {utterance!r} within "
-            f"{timeout:.0f}s, having already reported itself ready."
+            f"--probe-attempt-window must be greater than zero, not {attempt_window!r}."
         )
-    return (answer.get("data") or {}).get("intent")
+    started = time.monotonic()
+    deadline = started + timeout
+    attempts = 0
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        attempts += 1
+        answer = bus.ask("intent.service.intent.get",
+                         reply_type="intent.service.intent.reply",
+                         data={"utterance": utterance, "lang": lang},
+                         context={"source": ["ci"], "lang": lang},
+                         timeout=min(attempt_window, remaining),
+                         match=lambda m: (m.get("data") or {}).get("utterance") == utterance)
+        if answer is not None:
+            if attempts > 1:
+                print(f"probe     : answered on ask {attempts}, after "
+                      f"{time.monotonic() - started:.0f}s", flush=True)
+            return (answer.get("data") or {}).get("intent")
+    raise Failure(
+        f"the intent service did not answer a probe for {utterance!r} within "
+        f"{timeout:.0f}s, asked {attempts} time{'' if attempts == 1 else 's'}, having "
+        f"already reported itself ready."
+    )
 
 
 # Long enough that a healthy skill answers on the first ask, short enough that a
@@ -221,7 +303,14 @@ def main(argv=None):
     parser.add_argument("--ready-timeout", type=float, default=300,
                         help="core loads skills before answering; a cold container "
                              "stack on a slow runner is the case this has to cover")
-    parser.add_argument("--reply-timeout", type=float, default=30)
+    parser.add_argument("--reply-timeout", type=float, default=90,
+                        help="how long the probe may go unanswered, asked again every "
+                             "--probe-attempt-window seconds. A healthy intent service "
+                             "answers at once; this covers one still busy at boot.")
+    parser.add_argument("--probe-attempt-window", type=float,
+                        default=PROBE_ATTEMPT_WINDOW,
+                        help="how long to wait for the probe's answer before asking "
+                             "again, within the --reply-timeout budget.")
     parser.add_argument("--speak-timeout", type=float, default=60)
     parser.add_argument("--speak-attempt-window", type=float,
                         default=SPEAK_ATTEMPT_WINDOW,
@@ -255,7 +344,8 @@ def main(argv=None):
             wait_ready(bus, "skills", args.ready_timeout)
             print("skills    : the skills service reports ready")
 
-        intent = probe(bus, args.utterance, args.lang, args.reply_timeout)
+        intent = probe(bus, args.utterance, args.lang, args.reply_timeout,
+                       args.probe_attempt_window)
         if intent:
             print(f"intent    : {args.utterance!r} -> {intent.get('intent_name')} "
                   f"via {intent.get('intent_service')} "

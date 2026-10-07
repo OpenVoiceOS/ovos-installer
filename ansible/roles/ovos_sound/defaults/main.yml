@@ -19,3 +19,9 @@ ovos_sound_supported_alsa_defaults:
   - pipewire
   - pulseaudio
 ovos_sound_mark2_default_server: pipewire
+# What the install added, so the uninstall can take back exactly that: the sound
+# packages that were not there before, and the groups the user was not in.
+ovos_sound_package_marker_path: "{{ ovos_installer_package_tracking_dir }}/sound.json"
+ovos_sound_groups_marker_path: "{{ ovos_installer_package_tracking_dir }}/sound-groups.json"
+# Group membership as getent last read it (templates/sound_groups_member.j2).
+ovos_sound_getent_group: "{{ ansible_facts.getent_group | default({}) }}"

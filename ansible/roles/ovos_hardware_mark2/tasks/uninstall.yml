@@ -14,7 +14,9 @@
     name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     purge: true
-    autoremove: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; apt's own does not.
+    autoremove: false
   register: ovos_hardware_mark2_kernel_headers_uninstall_result
   ignore_errors: true
   when:
@@ -31,6 +33,13 @@
     - ansible_facts.os_family == "Debian"
     - (ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | length) == 0
       or ovos_hardware_mark2_kernel_headers_uninstall_result is not ansible.builtin.failed
+
+- name: Stop and disable the GUI memory watchdog
+  ansible.builtin.systemd_service:
+    name: "{{ ovos_hardware_mark2_gui_watchdog_unit_name }}"
+    enabled: false
+    state: stopped
+  failed_when: false
 
 - name: Stop and disable SJ201 systemd unit
   ansible.builtin.systemd_service:

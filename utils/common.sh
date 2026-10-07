@@ -752,6 +752,22 @@ function get_os_information() {
     echo -e "[$done_format]"
 }
 
+# The Python uv puts in the user's ~/.local for the OVOS virtualenv belongs to the
+# install, and the uninstall removes it. An installer virtualenv built on it loses
+# its own interpreter halfway through that uninstall. macOS is where it happens:
+# sudo keeps the user's PATH there, ~/.local/bin included. sys.base_prefix sees
+# through the links on the way.
+function python_belongs_to_the_install() {
+    local python_cmd="$1"
+    local base_prefix=""
+    [ -n "${RUN_AS_HOME:-}" ] || return 1
+    base_prefix="$("$python_cmd" -c 'import sys; print(sys.base_prefix)' 2>>"$LOG_FILE")" || return 1
+    case "${base_prefix}/" in
+    "${RUN_AS_HOME}/.local/"*) return 0 ;;
+    esac
+    return 1
+}
+
 # Validate the requested Python version before creating the virtualenv.
 function check_python_compatibility() {
     printf '%s' "➤ Validating Python version... "
@@ -765,7 +781,8 @@ function check_python_compatibility() {
         if [[ "${requested_python}" =~ ^[0-9]+\.[0-9]+$ ]]; then
             python_version="${requested_python}"
             requested_python_cmd="python${requested_python}"
-            if command -v "${requested_python_cmd}" &>>"$LOG_FILE"; then
+            if command -v "${requested_python_cmd}" &>>"$LOG_FILE" &&
+                ! python_belongs_to_the_install "${requested_python_cmd}"; then
                 python_cmd="${requested_python_cmd}"
             fi
         elif [[ "${requested_python}" =~ ^python([0-9]+\.[0-9]+)$ ]]; then
@@ -1126,7 +1143,8 @@ function create_python_venv() {
         else
             # Make sure everything is clean before starting when cache reuse
             # is disabled or a stale/broken venv is detected.
-            rm -rf "$VENV_PATH" /root/.ansible &>>"$LOG_FILE"
+            rm -rf "$VENV_PATH" &>>"$LOG_FILE"
+            remove_installer_ansible_state
         fi
     fi
 
@@ -1575,6 +1593,44 @@ function wsl2_requirements() {
         fi
         echo -e "[$done_format]"
     fi
+}
+
+# Homebrew builds its packages for Apple Silicon on macOS 15 and later. Intel Macs and
+# macOS 14 are its Tier 3: it has stopped building new packages for Intel, rarely
+# builds them for macOS 14, and does not install a formula that has none unless told
+# to build it from source, which this installer does not do. An install there stopped
+# at the first such formula, halfway through. This stops a new install before it
+# changes anything, and says why. An existing install only gets the warning, because
+# its uninstall has to keep working. OVOS_INSTALLER_ALLOW_UNSUPPORTED_MACOS=true goes
+# ahead anyway, for a Mac that already has the formulae it needs.
+function macos_requirements() {
+    [ "${DISTRO_NAME:-}" == "macos" ] || return 0
+    printf '%s' "➤ Validating macOS requirements... "
+    local major="${DISTRO_VERSION_ID%%.*}"
+    local reason=""
+    if [ "${ARCH:-}" != "arm64" ]; then
+        if [ "$(sysctl -n sysctl.proc_translated 2>>"$LOG_FILE" || true)" == "1" ]; then
+            reason="this terminal runs under Rosetta, so it uses Homebrew for Intel Macs. Open the terminal without Rosetta and run the installer again"
+        else
+            reason="Homebrew has stopped building packages for Intel Macs"
+        fi
+    elif [[ "$major" =~ ^[0-9]+$ ]] && [ "$major" -lt 15 ]; then
+        reason="Homebrew rarely builds packages for macOS ${DISTRO_VERSION_ID} any more"
+    fi
+
+    if [ -z "$reason" ]; then
+        echo -e "[$done_format]"
+        return 0
+    fi
+    if [ "${EXISTING_INSTANCE:-false}" == "true" ] ||
+        [ "${OVOS_INSTALLER_ALLOW_UNSUPPORTED_MACOS:-false}" == "true" ]; then
+        echo -e "[$done_format]"
+        echo "Open Voice OS needs macOS 15 or later on Apple Silicon, and ${reason}. Going on anyway: a package Homebrew has none for will stop it." | tee -a "$LOG_FILE"
+        return 0
+    fi
+    echo -e "[$fail_format]"
+    echo "Open Voice OS needs macOS 15 or later on Apple Silicon: ${reason}. Homebrew will not install a formula it has no package for unless told to build it from source, so the install would stop partway. To try anyway, run the installer again with OVOS_INSTALLER_ALLOW_UNSUPPORTED_MACOS=true." | tee -a "$LOG_FILE"
+    exit "${EXIT_OS_NOT_SUPPORTED}"
 }
 
 # This is a helper to strip the point from semantic versioning such as 3.9 or
@@ -2195,16 +2251,69 @@ function apt_ensure() {
     fi
 }
 
+# root's ~/.ansible is Ansible's working directory when the installer runs under a
+# sudo that gives root its own HOME, and an admin's collections and settings live
+# there too: setup.sh reads collections from it. So it goes only when this run
+# created it, noted before anything could.
+function note_root_ansible_state() {
+    if [ -e "${ROOT_ANSIBLE_DIR:-/root/.ansible}" ]; then
+        export ROOT_ANSIBLE_EXISTED="true"
+    else
+        export ROOT_ANSIBLE_EXISTED="false"
+    fi
+}
+
+function remove_installer_ansible_state() {
+    if [ "${ROOT_ANSIBLE_EXISTED:-true}" == "false" ]; then
+        rm -rf "${ROOT_ANSIBLE_DIR:-/root/.ansible}"
+    fi
+}
+
+# After an uninstall: the installer's state directory, and what it created to hold
+# its virtualenvs and that state. ~/.venvs goes only once nothing is left in it,
+# because a user's own virtualenvs live there too. The directories on the way to
+# the state directory go only when this run created them (state_directory): an
+# uninstall run on a machine with nothing installed creates them again, and the
+# playbook's footprint record, which takes care of them otherwise, is gone by then.
+function remove_installer_state() {
+    local venv_root="${RUN_AS_HOME}/.venvs"
+    if [ "$(dirname "$VENV_PATH")" = "$venv_root" ]; then
+        rmdir "$venv_root" &>>"$LOG_FILE" || true
+    fi
+
+    local state_directory="${RUN_AS_HOME}/.local/state/ovos"
+    rm -rf "$state_directory"
+    local created_from="${STATE_DIRECTORY_CREATED_FROM:-}"
+    local dir
+    dir="$(dirname "$state_directory")"
+    if [ -n "$created_from" ]; then
+        while [[ "${dir}/" == "${created_from}/"* ]]; do
+            rmdir "$dir" &>>"$LOG_FILE" || break
+            dir="$(dirname "$dir")"
+        done
+    fi
+}
+
 # This function ensures the existence and proper configuration of a
 # local state directory for the OVOS environment. It sets up a
 # specific directory structure and prepares an installer state file for use.
 function state_directory() {
     OVOS_LOCAL_STATE_DIRECTORY="$RUN_AS_HOME/.local/state/ovos"
     export INSTALLER_STATE_FILE="$OVOS_LOCAL_STATE_DIRECTORY/installer.json"
+    # The highest directory this run creates, if any. The playbook's first footprint
+    # record comes after this and would otherwise take them for the user's own.
+    export STATE_DIRECTORY_CREATED_FROM=""
     if [ ! -d "$OVOS_LOCAL_STATE_DIRECTORY" ]; then
+        # Hand the user everything mkdir -p creates, from the highest directory that
+        # was missing: on a home without ~/.local, chowning only ~/.local/state left
+        # ~/.local to root, and the user could no longer remove anything from it.
+        local created_from="$OVOS_LOCAL_STATE_DIRECTORY"
+        while [ ! -d "$(dirname "$created_from")" ]; do
+            created_from="$(dirname "$created_from")"
+        done
         mkdir -p "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
-        chown -R "$RUN_AS":"${RUN_AS_GROUP:-$RUN_AS}" "$RUN_AS_HOME/.local/state" &>>"$LOG_FILE"
-
+        chown -R "$RUN_AS":"${RUN_AS_GROUP:-$RUN_AS}" "$created_from" &>>"$LOG_FILE"
+        STATE_DIRECTORY_CREATED_FROM="$created_from"
     fi
     if [ -f "$INSTALLER_STATE_FILE" ]; then
         [ -s "$INSTALLER_STATE_FILE" ] || rm "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"

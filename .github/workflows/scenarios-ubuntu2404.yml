@@ -127,6 +127,18 @@ jobs:
             sudo chmod 0666 /dev/snd/controlC0
           fi
 
+      # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's. And a
+      # virtualenv of the user's own sits in ~/.venvs beside the installer's: the
+      # uninstall used to remove the directory whole, with it.
+      - name: Record the machine before the install
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv ~/.venvs/users-own
+          printf 'home = /usr/bin\n' >~/.venvs/users-own/pyvenv.cfg
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+
       - name: Create install scenario file
         shell: bash
         run: |
@@ -197,9 +209,16 @@ jobs:
       - name: Run uninstall scenario smoke
         run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
 
+      # Everything the install added has to be gone, and everything that was there
+      # before has to still be there - files, packages, units, containers, volumes,
+      # images, groups - and nothing of OVOS may still run or listen.
+      - name: Validate the uninstall gave the machine back
+        run: .github/scripts/machine_state.sh compare "$RUNNER_TEMP/machine-before"
+
       - name: Dump diagnostics on failure
         if: failure()
         run: |
+          .github/scripts/container_diagnostics.sh || true
           sudo journalctl -u docker --no-pager -n 200 || true
           sudo ls -la /var/log || true
           sudo ls -la /var/log/ovos* || true
@@ -326,6 +345,15 @@ jobs:
             sudo chmod 0666 /dev/snd/controlC0
           fi
 
+      # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's.
+      - name: Record the machine before the install
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+
       - name: Create install scenario file
         shell: bash
         run: |
@@ -439,28 +467,16 @@ jobs:
       - name: Run uninstall scenario exhaustive
         run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
 
-      - name: Validate the uninstall removed the speech models
-        if: matrix.speech_engine == 'local'
-        run: |
-          if [ "${{ matrix.method }}" = "containers" ]; then
-            for volume in ovos_stt_models ovos_tts_models; do
-              if docker volume inspect "$volume" >/dev/null 2>&1; then
-                echo "the uninstall left the ${volume} volume behind" >&2
-                exit 1
-              fi
-            done
-            exit 0
-          fi
-          for path in "$HOME/.local/share/ovos_stt_plugin_onnxasr" "$HOME/.cache/phoonnx"; do
-            if [ -e "$path" ]; then
-              echo "the uninstall left ${path} behind" >&2
-              exit 1
-            fi
-          done
+      # Everything the install added has to be gone, and everything that was there
+      # before has to still be there - files, packages, units, containers, volumes,
+      # images, groups - and nothing of OVOS may still run or listen.
+      - name: Validate the uninstall gave the machine back
+        run: .github/scripts/machine_state.sh compare "$RUNNER_TEMP/machine-before"
 
       - name: Dump diagnostics on failure
         if: failure()
         run: |
+          .github/scripts/container_diagnostics.sh || true
           sudo journalctl -u docker --no-pager -n 200 || true
           sudo ls -la /var/log || true
           sudo ls -la /var/log/ovos* || true
@@ -531,6 +547,15 @@ jobs:
             sudo chmod 0666 /dev/snd/controlC0
           fi
 
+      # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's.
+      - name: Record the machine before the install
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+
       - name: Create install scenario file
         run: |
           mkdir -p "$HOME/.config/ovos-installer"
@@ -596,12 +621,40 @@ jobs:
       - name: Run uninstall pass 1
         run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
 
+      - name: Validate the first uninstall gave the machine back
+        run: .github/scripts/machine_state.sh compare "$RUNNER_TEMP/machine-before"
+
+      # The first pass removed ~/.config/ovos-installer, scenario file and all. Without
+      # one, the second pass fell into the TUI, which has no terminal here, quit as
+      # "cancelled" and passed without uninstalling anything.
+      - name: Create the uninstall scenario file again
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
+          ---
+          uninstall: true
+          method: ${{ matrix.method }}
+          channel: testing
+          profile: ovos
+          features:
+            skills: false
+            extra_skills: false
+            homeassistant: false
+          raspberry_pi_tuning: false
+          share_telemetry: false
+          share_usage_telemetry: false
+          EOF
+
       - name: Run uninstall pass 2
         run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Validate the second uninstall left the machine as clean
+        run: .github/scripts/machine_state.sh compare "$RUNNER_TEMP/machine-before"
 
       - name: Dump diagnostics on failure
         if: failure()
         run: |
+          .github/scripts/container_diagnostics.sh || true
           sudo journalctl -u docker --no-pager -n 200 || true
           sudo ls -la /var/log || true
           sudo ls -la /var/log/ovos* || true
@@ -609,6 +662,110 @@ jobs:
           sudo tail -n 400 /var/log/ovos-ansible.log || true
           ls -la "$HOME/.local/state/mycroft" || true
           ls -la "$HOME/.config/ovos-installer" || true
+
+  # Every other Linux job installs the ovos profile, plus one containers satellite: a
+  # virtualenv listener, server or satellite had never been installed here, let alone
+  # uninstalled. Each one installs, the two that run core answer on the bus, and all
+  # three have to uninstall without a trace.
+  linux-virtualenv-profiles:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        profile:
+          - listener
+          - server
+          - satellite
+
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Restore installer caches
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/uv
+            .ansible/collections
+            ~/.ansible/collections
+            ~/.ovos-installer/uv-cache
+          key: ${{ runner.os }}-${{ runner.arch }}-installer-profiles-${{ hashFiles('setup.sh', 'utils/**', 'ansible/**', '.github/scripts/install_ansible_requirements.sh') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-installer-profiles-
+
+      - name: Install installer requirements
+        run: |
+          ./.github/scripts/apt_update.sh
+          sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
+
+      # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's.
+      - name: Record the machine before the install
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+
+      # The satellite gets the credentials of the scenario this repository ships. Its
+      # hive is not reachable from here, and does not need to be: this covers the
+      # installer's own satellite path, not a connection to a hive.
+      - name: Create install scenario file
+        shell: bash
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          {
+            echo "---"
+            echo "uninstall: false"
+            echo "method: virtualenv"
+            echo "channel: testing"
+            echo "profile: ${{ matrix.profile }}"
+            if [ "${{ matrix.profile }}" = "satellite" ]; then
+              sed -n '/^hivemind:$/,/^  password:/p' scenarios/scenario-satellite.yml
+            fi
+            echo "features:"
+            echo "  skills: false"
+            echo "  extra_skills: false"
+            echo "raspberry_pi_tuning: false"
+            echo "share_telemetry: false"
+            echo "share_usage_telemetry: false"
+          } > "$HOME/.config/ovos-installer/scenario.yaml"
+          cat "$HOME/.config/ovos-installer/scenario.yaml"
+
+      - name: Run the ${{ matrix.profile }} install
+        run: sudo -E env ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Validate the bus and core are talking to each other
+        if: matrix.profile != 'satellite'
+        run: .github/scripts/assert_intent_roundtrip.sh --expect-match --ready-timeout 420 --skip-skills-ready
+
+      - name: Turn the same scenario into an uninstall
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          sed -i 's/^uninstall: false$/uninstall: true/' "$HOME/.config/ovos-installer/scenario.yaml"
+          grep -q '^uninstall: true$' "$HOME/.config/ovos-installer/scenario.yaml"
+
+      - name: Run the ${{ matrix.profile }} uninstall
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      # Everything the install added has to be gone, and everything that was there
+      # before has to still be there - files, packages, units, containers, volumes,
+      # images, groups - and nothing of OVOS may still run or listen.
+      - name: Validate the uninstall gave the machine back
+        run: .github/scripts/machine_state.sh compare "$RUNNER_TEMP/machine-before"
+
+      - name: Dump diagnostics on failure
+        if: failure()
+        run: |
+          sudo tail -n 400 /var/log/ovos-installer.log || true
+          sudo tail -n 400 /var/log/ovos-ansible.log || true
+          ls -la "$HOME/.local/state/mycroft" || true
 
   linux-key-role-idempotency:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -642,6 +799,15 @@ jobs:
           ./.github/scripts/apt_update.sh
           sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
+      # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's.
+      - name: Record the machine before the install
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+
       - name: Create install scenario file
         run: |
           mkdir -p "$HOME/.config/ovos-installer"
@@ -661,6 +827,7 @@ jobs:
           EOF
 
       - name: Install baseline OVOS instance
+        id: baseline
         run: sudo -E env ANSIBLE_CALLBACKS_ENABLED="profile_tasks,timer" REUSE_CACHED_ARTIFACTS=true bash setup.sh
 
       # Replaying the roles needs an Ansible that outlives the installer. setup.sh builds
@@ -757,13 +924,15 @@ jobs:
 
       - name: Upload key-role idempotency logs
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: role-idempotency-logs
           path: artifacts
 
       - name: Create uninstall scenario file
+        if: ${{ !cancelled() && steps.baseline.outcome == 'success' }}
         run: |
+          mkdir -p "$HOME/.config/ovos-installer"
           cat > "$HOME/.config/ovos-installer/scenario.yaml" <<EOF
           ---
           uninstall: true
@@ -780,7 +949,12 @@ jobs:
           EOF
 
       - name: Run uninstall cleanup
+        if: ${{ !cancelled() && steps.baseline.outcome == 'success' }}
         run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      - name: Validate the uninstall gave the machine back
+        if: ${{ !cancelled() && steps.baseline.outcome == 'success' }}
+        run: .github/scripts/machine_state.sh compare "$RUNNER_TEMP/machine-before"
 
       - name: Dump diagnostics on failure
         if: failure()
@@ -834,6 +1008,15 @@ jobs:
             sudo chmod 0666 /dev/snd/controlC0
           fi
 
+      # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's.
+      - name: Record the machine before the install
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+
       - name: Use the satellite scenario this repository ships
         run: |
           mkdir -p "$HOME/.config/ovos-installer"
@@ -857,6 +1040,25 @@ jobs:
         # does not need to be: this covers the installer's own satellite path,
         # not a working connection to a hive.
         run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      # The uninstall example this repository ships, as a user would copy it: a
+      # satellite and no HiveMind credentials, which an uninstall has no use for.
+      - name: Use the uninstall scenario this repository ships
+        run: |
+          mkdir -p "$HOME/.config/ovos-installer"
+          sed -e 's/^share_telemetry: true$/share_telemetry: false/' \
+              -e 's/^share_usage_telemetry: true$/share_usage_telemetry: false/' \
+              scenarios/scenario-uninstall.yml > "$HOME/.config/ovos-installer/scenario.yaml"
+          grep -q '^uninstall: true$' "$HOME/.config/ovos-installer/scenario.yaml"
+
+      - name: Run the satellite uninstall
+        run: sudo -E env REUSE_CACHED_ARTIFACTS=true bash setup.sh
+
+      # Everything the install added has to be gone, and everything that was there
+      # before has to still be there - files, packages, units, containers, volumes,
+      # images, groups - and nothing of OVOS may still run or listen.
+      - name: Validate the uninstall gave the machine back
+        run: .github/scripts/machine_state.sh compare "$RUNNER_TEMP/machine-before"
 
       - name: Dump diagnostics on failure
         if: failure()

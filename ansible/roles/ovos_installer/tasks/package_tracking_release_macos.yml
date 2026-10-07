@@ -1,0 +1,36 @@
+---
+# Give the formulae the install added back to Homebrew, rather than uninstall them
+# here. One `brew uninstall` of all of them was refused whenever a formula the install
+# pulled in still needed one (ffmpeg needs flac), and then removed nothing at all.
+# Marked as no longer installed on request, they and whatever they pulled in go with
+# the uninstall's own autoremove, which leaves alone what was unneeded before. Only
+# installed formulae under Homebrew's own names are marked: a record from before
+# those names were used may hold an alias (icu4c) of a formula the machine already
+# had, and that one stays.
+- name: List the installed formulae under Homebrew's own names
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv: [brew, info, --json=v2, --installed]
+  register: ovos_installer_package_tracking_homebrew_installed
+  changed_when: false
+  failed_when: false
+  environment:
+    PATH: "{{ ovos_installer_package_tracking_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+
+- name: Mark the formulae the install added as no longer installed on request
+  vars:
+    _installed: >-
+      {{ (ovos_installer_package_tracking_homebrew_installed.stdout | from_json).formulae | map(attribute='name') | list
+         if (ovos_installer_package_tracking_homebrew_installed.rc | default(1)) == 0 else [] }}
+    _release: "{{ ovos_installer_package_tracking_tracked_packages_to_remove | default([]) | select('in', _installed) | list }}"
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.command:
+    argv: "{{ ['brew', 'tab', '--no-installed-on-request'] + _release }}"
+  register: ovos_installer_package_tracking_homebrew_released
+  changed_when: ovos_installer_package_tracking_homebrew_released.rc == 0
+  failed_when: false
+  when: _release | length > 0
+  environment:
+    PATH: "{{ ovos_installer_package_tracking_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"

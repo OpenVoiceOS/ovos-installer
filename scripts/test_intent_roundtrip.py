@@ -10,6 +10,7 @@ transport is half of what the harness does. Where websockets or websocket-client
 absent the socket tests skip, and the argument handling is still covered - so read a skip
 here as reduced coverage, not as a pass.
 """
+import importlib.util
 import os
 import subprocess
 import sys
@@ -42,7 +43,15 @@ MATCH = {"intent_name": "stop:global",
 
 DROPPED = [0]
 
+CLOSED = [0]
+PROBES = [0]
+
 async def handler(ws):
+    # Once it has dropped the first connection, this bus closes every new one the
+    # moment it opens: the send that follows a reconnect fails too.
+    if MODE == "closes_new_connections" and CLOSED[0] > 0:
+        await ws.close()
+        return
     async for raw in ws:
         m = json.loads(raw)
         kind, data = m.get("type"), m.get("data") or {}
@@ -51,10 +60,25 @@ async def handler(ws):
         if kind.endswith(".is_ready"):
             if MODE == "never_ready":
                 continue
+            # A bus that closes on its client while it waits for the skills, once, or
+            # on every connection.
+            if kind == "mycroft.skills.is_ready" and (
+                    MODE == "drops_every_connection" or
+                    (MODE in ("drops_connection_once", "restarts", "closes_new_connections")
+                     and CLOSED[0] == 0)):
+                CLOSED[0] += 1
+                if MODE == "restarts":
+                    RESTART.set()
+                await ws.close()
+                return
             await reply(kind + ".response", {"status": True})
         elif kind == "intent.service.intent.get":
             utt = data.get("utterance")
             if MODE == "deaf":
+                continue
+            # An intent service still busy at boot: the first probe goes unanswered.
+            PROBES[0] += 1
+            if MODE == "loses_first_probe" and PROBES[0] == 1:
                 continue
             if MODE == "no_match":
                 await reply("intent.service.intent.reply", {"intent": None, "utterance": utt})
@@ -102,10 +126,23 @@ async def handler(ws):
                                       "data": {"utterance": "no problem, stopping"},
                                       "context": ctx}))
 
+RESTART = None
+
 async def main():
-    async with websockets.serve(handler, "127.0.0.1", PORT):
-        print("ready", flush=True)
-        await asyncio.Future()
+    global RESTART
+    RESTART = asyncio.Event()
+    first = True
+    while True:
+        server = await websockets.serve(handler, "127.0.0.1", PORT)
+        if first:
+            print("ready", flush=True)
+            first = False
+        await RESTART.wait()
+        # A bus being restarted: nothing listens for two seconds, then it is back.
+        RESTART.clear()
+        server.close()
+        await server.wait_closed()
+        await asyncio.sleep(2)
 
 asyncio.run(main())
 """
@@ -188,6 +225,46 @@ class EachRungCanFail(unittest.TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("did not answer a probe", out)
 
+    def test_a_bus_that_drops_the_connection_once_is_reconnected_and_said_so(self):
+        with FakeBus("drops_connection_once") as bus:
+            code, out = run_harness("--expect-match", port=bus.port)
+        self.assertEqual(code, 0, out)
+        self.assertIn("the connection dropped", out)
+        self.assertIn("talking to each other", out)
+
+    def test_a_bus_that_restarts_is_waited_for_and_reconnected(self):
+        with FakeBus("restarts") as bus:
+            code, out = run_harness("--expect-match", port=bus.port)
+        self.assertEqual(code, 0, out)
+        self.assertIn("reconnected", out)
+
+    def test_a_bus_that_closes_every_new_connection_fails_cleanly(self):
+        with FakeBus("closes_new_connections") as bus:
+            code, out = run_harness(port=bus.port)
+        self.assertEqual(code, 1, out)
+        self.assertIn("dropped the connection", out)
+        self.assertNotIn("Traceback", out)
+
+    def test_a_bus_that_keeps_dropping_the_connection_fails(self):
+        with FakeBus("drops_every_connection") as bus:
+            code, out = run_harness(port=bus.port)
+        self.assertEqual(code, 1, out)
+        self.assertIn("dropped the connection", out)
+        self.assertNotIn("Traceback", out)
+
+    def test_a_probe_lost_while_the_intent_service_was_busy_is_asked_again(self):
+        with FakeBus("loses_first_probe") as bus:
+            code, out = run_harness("--expect-match", "--reply-timeout", "6",
+                                    "--probe-attempt-window", "1", port=bus.port)
+        self.assertEqual(code, 0, out)
+        self.assertIn("answered on ask 2", out)
+
+    def test_a_probe_attempt_window_that_is_not_positive_is_refused(self):
+        with FakeBus("healthy") as bus:
+            code, out = run_harness("--probe-attempt-window", "0", port=bus.port)
+        self.assertEqual(code, 1, out)
+        self.assertIn("must be greater than zero", out)
+
     def test_no_match_fails_only_when_a_match_was_required(self):
         with FakeBus("no_match") as bus:
             self.assertEqual(run_harness(port=bus.port)[0], 0, "no skills installed is not a defect")
@@ -266,6 +343,41 @@ class EachRungCanFail(unittest.TestCase):
             code, out = run_harness("--skip-skills-ready", port=bus.port)
         self.assertEqual(code, 0, out)
         self.assertNotIn("skills    :", out)
+
+
+@unittest.skipUnless(HAVE_CLIENT, "needs websocket-client (harness)")
+class ASendAfterAReconnect(unittest.TestCase):
+    """The send that follows a reconnect can fail as well, and counts as a drop.
+
+    Over a real socket a send into a connection the bus has just closed often still
+    goes through, and the drop shows on the next read, so this drives the Bus with a
+    connection that refuses every send.
+    """
+
+    def test_a_send_that_keeps_failing_ends_in_a_failure_not_a_traceback(self):
+        import websocket
+        spec = importlib.util.spec_from_file_location("roundtrip", HARNESS)
+        roundtrip = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(roundtrip)
+
+        class ClosedSocket:
+            def send(self, payload):
+                raise websocket.WebSocketConnectionClosedException("socket is already closed.")
+
+            def close(self):
+                pass
+
+        bus = roundtrip.Bus.__new__(roundtrip.Bus)
+        bus.websocket, bus.url, bus.connect_timeout = websocket, "ws://127.0.0.1:1/core", 1
+        bus.reconnects, bus.ws = 0, ClosedSocket()
+        original = websocket.create_connection
+        websocket.create_connection = lambda *args, **kwargs: ClosedSocket()
+        try:
+            with self.assertRaises(roundtrip.Failure) as caught:
+                bus.send("mycroft.skills.is_ready")
+        finally:
+            websocket.create_connection = original
+        self.assertIn("dropped the connection", str(caught.exception))
 
 
 @unittest.skipUnless(HAVE_SERVER and HAVE_CLIENT,

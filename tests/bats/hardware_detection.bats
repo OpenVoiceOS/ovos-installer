@@ -781,6 +781,121 @@ EOF
     rm -rf "$RUN_AS_HOME"
 }
 
+@test "function_state_directory_gives_the_user_every_directory_it_creates" {
+    # A home without ~/.local: chowning only ~/.local/state left ~/.local to root.
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    RUN_AS="$(id -un)"
+    RUN_AS_GROUP="$(id -gn)"
+    CHOWN_LOG="$(mktemp)"
+    function chown() { printf '%s\n' "$*" >>"$CHOWN_LOG"; }
+    export -f chown
+    export CHOWN_LOG
+
+    run state_directory
+    assert_success
+    run cat "$CHOWN_LOG"
+    assert_output "-R ${RUN_AS}:${RUN_AS_GROUP} ${RUN_AS_HOME}/.local"
+
+    # With ~/.local already there, only what is new is the user's to begin with.
+    rm -rf "$RUN_AS_HOME/.local/state"
+    : >"$CHOWN_LOG"
+    run state_directory
+    assert_success
+    run cat "$CHOWN_LOG"
+    assert_output "-R ${RUN_AS}:${RUN_AS_GROUP} ${RUN_AS_HOME}/.local/state"
+
+    unset -f chown
+    rm -rf "$RUN_AS_HOME" "$CHOWN_LOG"
+}
+
+@test "function_state_directory_reports_the_highest_directory_it_created" {
+    # The footprint record runs after this, and must know these were the install's.
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    RUN_AS="$(id -un)"
+    function chown() { :; }
+
+    state_directory
+    assert_equal "$STATE_DIRECTORY_CREATED_FROM" "$RUN_AS_HOME/.local"
+
+    # A run that finds the directory creates nothing.
+    state_directory
+    assert_equal "$STATE_DIRECTORY_CREATED_FROM" ""
+
+    unset -f chown
+    rm -rf "$RUN_AS_HOME"
+}
+
+@test "function_remove_installer_state_keeps_the_users_own_virtualenvs" {
+    # ~/.venvs was removed whole, and with it every virtualenv the user kept there.
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    VENV_PATH="$RUN_AS_HOME/.venvs/installer"
+    mkdir -p "$RUN_AS_HOME/.venvs/their-project/bin" "$RUN_AS_HOME/.local/state/ovos"
+    STATE_DIRECTORY_CREATED_FROM=""
+
+    run remove_installer_state
+    assert_success
+    [ -d "$RUN_AS_HOME/.venvs/their-project/bin" ]
+    [ ! -e "$RUN_AS_HOME/.local/state/ovos" ]
+    # The state directory's parents were there before this run: they stay.
+    [ -d "$RUN_AS_HOME/.local/state" ]
+
+    # With nothing of the user's in it, ~/.venvs is the installer's and goes.
+    rm -rf "$RUN_AS_HOME/.venvs/their-project"
+    run remove_installer_state
+    assert_success
+    [ ! -e "$RUN_AS_HOME/.venvs" ]
+
+    rm -rf "$RUN_AS_HOME"
+}
+
+@test "function_remove_installer_state_removes_the_directories_this_run_created" {
+    # An uninstall on a machine with nothing installed: state_directory creates
+    # ~/.local/state/ovos again, and nothing else would remove ~/.local.
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    RUN_AS="$(id -un)"
+    VENV_PATH="$RUN_AS_HOME/.venvs/installer"
+    function chown() { :; }
+    state_directory
+
+    run remove_installer_state
+    assert_success
+    run find "$RUN_AS_HOME" -mindepth 1
+    assert_output ""
+
+    # Only what this run created: ~/.local with something else in it stays.
+    mkdir -p "$RUN_AS_HOME/.local/bin"
+    state_directory
+    run remove_installer_state
+    assert_success
+    [ -d "$RUN_AS_HOME/.local/bin" ]
+    [ ! -e "$RUN_AS_HOME/.local/state" ]
+
+    unset -f chown
+    rm -rf "$RUN_AS_HOME"
+}
+
+@test "function_remove_installer_ansible_state_keeps_an_admins_own" {
+    # root's ~/.ansible goes only when this run created it.
+    ROOT_ANSIBLE_DIR="$(mktemp -d)/.ansible"
+    mkdir -p "$ROOT_ANSIBLE_DIR/collections"
+    note_root_ansible_state
+    remove_installer_ansible_state
+    [ -d "$ROOT_ANSIBLE_DIR/collections" ]
+
+    rm -rf "$ROOT_ANSIBLE_DIR"
+    note_root_ansible_state
+    mkdir -p "$ROOT_ANSIBLE_DIR/tmp"
+    remove_installer_ansible_state
+    [ ! -e "$ROOT_ANSIBLE_DIR" ]
+
+    # Never noted: kept, rather than guessed at.
+    unset ROOT_ANSIBLE_EXISTED
+    mkdir -p "$ROOT_ANSIBLE_DIR"
+    remove_installer_ansible_state
+    [ -d "$ROOT_ANSIBLE_DIR" ]
+    rm -rf "$(dirname "$ROOT_ANSIBLE_DIR")"
+}
+
 @test "function_state_directory_existing" {
     RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
     mkdir -p "$RUN_AS_HOME/.local/state/ovos"

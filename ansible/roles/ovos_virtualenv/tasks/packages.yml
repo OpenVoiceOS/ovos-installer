@@ -130,18 +130,48 @@
     ovos_installer_package_tracking_homebrew_path: "{{ ovos_virtualenv_homebrew_path }}"
   when: ansible_facts.system == "Darwin"
 
-- name: Handle virtualenv package requirements (ovos/hivemind) on macOS
-  become: true
-  become_user: "{{ ovos_installer_user }}"
-  community.general.homebrew:
-    name: "{{ ovos_virtualenv_macos_packages }}"
-    state: present
-    path: "{{ ovos_virtualenv_homebrew_path }}"
-    update_homebrew: false
-  register: ovos_virtualenv_package_install_result
-  environment:
-    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+# The module keeps only Homebrew's stderr, so a failure says "the brew link step did
+# not complete successfully" and nothing more: what the link collided with goes to
+# stdout. Once more then, with all of Homebrew's output. A link that failed while
+# other formulae were being installed alongside goes through the second time, and
+# one that still fails says why.
+- name: Install the virtualenv package requirements (ovos/hivemind) on macOS
   when: ansible_facts.system == "Darwin"
+  block:
+    - name: Handle virtualenv package requirements (ovos/hivemind) on macOS
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      community.general.homebrew:
+        name: "{{ ovos_virtualenv_macos_packages }}"
+        state: present
+        path: "{{ ovos_virtualenv_homebrew_path }}"
+        update_homebrew: false
+      register: ovos_virtualenv_package_install_result
+      environment:
+        PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+  rescue:
+    - name: Install the macOS packages again, with all of Homebrew's output
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        argv: "{{ ['brew', 'install', '--formula'] + ovos_virtualenv_macos_packages }}"
+      register: ovos_virtualenv_brew_again
+      changed_when: ovos_virtualenv_brew_again.rc == 0
+      failed_when: false
+      environment:
+        PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+        HOMEBREW_NO_AUTO_UPDATE: "1"
+
+    - name: Show what Homebrew said
+      ansible.builtin.debug:
+        msg: "{{ (ovos_virtualenv_brew_again.stdout_lines | default([]) + ovos_virtualenv_brew_again.stderr_lines | default([]))[-80:] }}"
+
+    - name: Stop when Homebrew still cannot install them
+      ansible.builtin.fail:
+        msg: >-
+          Homebrew could not install {{ ovos_virtualenv_macos_packages | join(', ') }}.
+          What it said is just above.
+      when: ovos_virtualenv_brew_again.rc != 0
 
 - name: Persist tracked virtualenv package ownership (macOS)
   ansible.builtin.include_role:

@@ -1,0 +1,9 @@
+{#- The sound groups the install user is a supplementary member of, as JSON. -#}
+{%- set ns = namespace(found=[]) -%}
+{%- for group in [ovos_sound_audio_group, ovos_sound_rtkit_group, ovos_sound_pipewire_group] -%}
+{%- if group in ovos_sound_getent_group
+      and ovos_installer_user in ((ovos_sound_getent_group[group][2] | default('', true)) | string).split(',') -%}
+{%- set ns.found = ns.found + [group] -%}
+{%- endif -%}
+{%- endfor -%}
+{{ ns.found | to_json }}

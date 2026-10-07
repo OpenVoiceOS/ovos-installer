@@ -36,7 +36,9 @@
     name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
     purge: true
-    autoremove: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; apt's own does not.
+    autoremove: false
   register: ovos_audio_tuning_rtkit_uninstall_debian
   ignore_errors: true
   when:
@@ -48,7 +50,9 @@
   ansible.builtin.dnf:
     name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
-    autoremove: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; dnf's own does not.
+    autoremove: false
   register: ovos_audio_tuning_rtkit_uninstall_redhat
   ignore_errors: true
   when:
@@ -60,7 +64,9 @@
   community.general.zypper:
     name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
-    clean_deps: true
+    # What these leave unneeded goes in ovos_installer's final autoremove, which
+    # keeps the packages that were unneeded before the install; zypper's does not.
+    clean_deps: false
   register: ovos_audio_tuning_rtkit_uninstall_suse
   ignore_errors: true
   when:
@@ -72,7 +78,8 @@
   community.general.pacman:
     name: "{{ ovos_installer_package_tracking_tracked_packages_to_remove }}"
     state: absent
-    extra_args: --recursive
+    # No --recursive: what these leave unneeded goes in ovos_installer's final
+    # autoremove, which keeps the packages that were unneeded before the install.
     remove_nosave: true
   register: ovos_audio_tuning_rtkit_uninstall_archlinux
   ignore_errors: true

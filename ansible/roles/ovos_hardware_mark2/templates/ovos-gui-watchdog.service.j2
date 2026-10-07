@@ -1,0 +1,22 @@
+[Unit]
+Documentation=https://github.com/OpenVoiceOS/ovos-installer/issues/646
+Description=Open Voice OS - GUI memory watchdog (Mark II, DevKit)
+
+[Service]
+# The same user as ovos-shell: it can kill the shell, and needs nothing more.
+User={{ ovos_installer_user }}
+Group={{ ovos_installer_group }}
+{% if not (ovos_hardware_mark2_gui_system_scope | bool) %}
+# The GUI runs in the user's own systemd, so that is the one to ask for its process.
+Environment=XDG_RUNTIME_DIR={{ ovos_hardware_mark2_user_runtime_dir }}
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path={{ ovos_hardware_mark2_user_runtime_dir }}/bus
+{% endif %}
+# A percent sign starts a systemd specifier, hence the doubling.
+ExecStart={{ ovos_hardware_mark2_gui_watchdog_path }} {{ ovos_hardware_mark2_gui_memory_limit | string | replace('%', '%%') }} ovos-gui.service {{ '--system' if ovos_hardware_mark2_gui_system_scope | bool else '--user' }}
+Restart=always
+RestartSec=30s
+# Exit status 2 is a limit the watchdog refuses: restarting cannot fix it.
+RestartPreventExitStatus=2
+
+[Install]
+WantedBy=multi-user.target

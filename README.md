@@ -118,8 +118,8 @@ the interactive version.
 
 Most likely yes. The installer is tested on Debian, Ubuntu and their
 derivatives (including Raspberry Pi OS and Linux Mint), Fedora and the
-Enterprise Linux family, Arch and its derivatives, openSUSE, WSL2, and macOS on
-both Intel and Apple Silicon.
+Enterprise Linux family, Arch and its derivatives, openSUSE, WSL2, and macOS 15
+or later on Apple Silicon.
 
 [The full list of tested versions](docs/supported-systems.md) has the details,
 including which combinations macOS supports.

@@ -1,0 +1,122 @@
+---
+# The first install only: which of the paths it may create were not there yet, and
+# which packages the package manager already considered unneeded. A later run sees
+# what the first one created, so an existing record is never rewritten, and an
+# install from before this record existed gets none - its uninstall then removes
+# none of these, rather than guessing.
+- name: Check for an existing footprint record
+  ansible.builtin.stat:
+    path: "{{ ovos_installer_footprint_marker_path }}"
+  register: ovos_installer_footprint_marker_stat
+  changed_when: false
+
+- name: Record the machine as the first install finds it
+  when: not (ovos_installer_footprint_marker_stat.stat.exists | default(false) | bool)
+  block:
+    - name: Check which footprint paths are already there
+      ansible.builtin.stat:
+        path: "{{ item }}"
+        get_checksum: false
+      loop: >-
+        {{ ovos_installer_footprint_paths
+           + ovos_installer_footprint_parent_dirs
+           + ovos_installer_footprint_files_if_empty
+           + (ovos_installer_footprint_shared_dirs | map(attribute='path') | list) }}
+      register: ovos_installer_footprint_stats
+
+    - name: List the packages apt already considers unneeded
+      ansible.builtin.command:
+        argv: [apt-get, --simulate, autoremove]
+      register: ovos_installer_footprint_apt_orphans
+      changed_when: false
+      when: ovos_installer_package_family in ['Debian', 'Zorin OS']
+
+    - name: List the packages dnf, zypper or pacman already considers unneeded
+      ansible.builtin.script:
+        cmd: "unneeded_packages.sh list {{ ovos_installer_package_family }}"
+      register: ovos_installer_footprint_pkg_orphans
+      changed_when: false
+      failed_when: false
+      when: ovos_installer_package_family in ['RedHat', 'Suse', 'Archlinux']
+
+    - name: List the formulae Homebrew already considers unneeded
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.command:
+        argv: [brew, autoremove, --dry-run]
+      environment:
+        PATH: "{{ ovos_installer_homebrew_path | default('/opt/homebrew/bin:/usr/local/bin') }}:/usr/bin:/bin:/usr/sbin:/sbin"
+      register: ovos_installer_footprint_brew_orphans
+      changed_when: false
+      failed_when: false
+      when: ovos_installer_package_family == 'Darwin'
+
+    # The user's, whoever created them: a directory root owns in the user's home is one
+    # the user can no longer write to, and a sudo that keeps HOME makes exactly that.
+    # An existing ~/.cache keeps its own permissions, often 0700.
+    - name: Ensure the user owns the directories the record lives under
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group | default(omit) }}"
+        mode: u+rwx
+      loop:
+        - "{{ ovos_installer_footprint_marker_path | dirname | dirname | dirname }}"
+        - "{{ ovos_installer_footprint_marker_path | dirname | dirname }}"
+
+    - name: Ensure the footprint record subdirectory exists
+      ansible.builtin.file:
+        path: "{{ ovos_installer_footprint_marker_path | dirname }}"
+        state: directory
+        owner: "{{ ovos_installer_footprint_owner }}"
+        group: "{{ omit if ovos_installer_footprint_owner != 'root' else ('wheel' if ansible_facts.system == 'Darwin' else 'root') }}"
+        mode: "0755"
+
+    - name: Write the footprint record
+      vars:
+        _configured: >-
+          {{ ovos_installer_footprint_paths + ovos_installer_footprint_parent_dirs
+             + ovos_installer_footprint_files_if_empty
+             + (ovos_installer_footprint_shared_dirs | map(attribute='path') | list) }}
+        # What setup.sh created for its state is there by now, but it is the install's.
+        # Only that directory or one above it inside the home is believed.
+        _from_setup: "{{ ovos_installer_state_created_from }}"
+        _setup_created: >-
+          {{ _configured | select('match', (_from_setup | regex_escape) ~ '(/|$)') | list
+             if (_from_setup | length > 0
+                 and _from_setup.startswith(ovos_installer_user_home ~ '/')
+                 and (ovos_installer_user_home ~ '/.local/state/ovos/').startswith(_from_setup ~ '/'))
+             else [] }}
+        _absent: >-
+          {{ (ovos_installer_footprint_stats.results
+              | rejectattr('stat.exists') | map(attribute='item') | list
+              + _setup_created) | unique | list }}
+        # No orphans at all, rather than an empty list, when the package manager
+        # could not say: the uninstall then removes nothing the install pulled in,
+        # rather than everything unneeded at the time. (none would not do: Ansible
+        # writes it out as "".)
+        _orphans_known: >-
+          {{ (ovos_installer_footprint_apt_orphans.stdout_lines is defined)
+             or ((ovos_installer_footprint_pkg_orphans.rc | default(1)) == 0)
+             or ((ovos_installer_footprint_brew_orphans.rc | default(1)) == 0) }}
+        _orphans: >-
+          {{
+            (ovos_installer_footprint_apt_orphans.stdout_lines
+             | select('match', '^Remv ') | map('split', ' ') | map(attribute=1) | list)
+            if ovos_installer_footprint_apt_orphans.stdout_lines is defined
+            else (ovos_installer_footprint_pkg_orphans.stdout_lines | map('trim') | select | list)
+            if (ovos_installer_footprint_pkg_orphans.rc | default(1)) == 0
+            else (ovos_installer_footprint_brew_orphans.stdout_lines
+                  | reject('match', '^==>') | map('trim') | select | list)
+            if (ovos_installer_footprint_brew_orphans.rc | default(1)) == 0
+            else []
+          }}
+      ansible.builtin.copy:
+        dest: "{{ ovos_installer_footprint_marker_path }}"
+        content: >-
+          {{ ({'absent': _absent} | combine({'orphans': _orphans} if (_orphans_known | bool) else {}))
+             | to_nice_json }}
+        owner: "{{ ovos_installer_footprint_owner }}"
+        group: "{{ omit if ovos_installer_footprint_owner != 'root' else ('wheel' if ansible_facts.system == 'Darwin' else 'root') }}"
+        mode: "0644"

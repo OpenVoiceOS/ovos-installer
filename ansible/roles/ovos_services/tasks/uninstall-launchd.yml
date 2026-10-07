@@ -107,8 +107,6 @@
     path: "{{ ovos_services_wrapper_path }}"
     state: absent
 
-- name: Remove directories
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  loop: "{{ ovos_services_remove_directories }}"
+# The directories, package-tracking records among them, are removed at the very end
+# by ovos_installer's uninstall: removing them here, first, meant the Homebrew
+# packages the install added were never found again, and stayed.

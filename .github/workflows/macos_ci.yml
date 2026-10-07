@@ -53,29 +53,31 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: ./.github/scripts/platform_changes.sh macos "$BASE_SHA" >>"$GITHUB_OUTPUT"
 
-      # macos-15-intel is the scarcest runner, so a pull request gets one
-      # Intel job rather than three, and it is the heaviest scenario, because
-      # architecture-specific breakage shows up in the build of the full
-      # stack. Between them the three still cover both architectures, both
-      # channels, both profiles and both feature sets. main and the nightly
-      # schedule run the whole grid.
+      # Intel Macs and macOS 14 are Homebrew's Tier 3: it has stopped building new
+      # packages for Intel and rarely builds them for macOS 14. It will not install a
+      # formula that has none unless told to build it from source, so an install
+      # there stops at the first one (mpg123, sox, mpv and libomp in October 2026).
+      # So the runners are macos-26 and macos-15. A pull request gets three jobs,
+      # the heaviest scenario on the newest macOS; between them they cover both
+      # versions, both channels, both profiles and both feature sets. main and the
+      # nightly schedule run the whole grid.
       - name: Choose the scenario matrix
         id: matrix
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             printf 'scenarios=%s\n' '[
-              {"runner":"macos-15-intel","channel":"testing","profile":"ovos","feature_set":"all"},
-              {"runner":"macos-14","channel":"testing","profile":"ovos","feature_set":"minimal"},
-              {"runner":"macos-14","channel":"alpha","profile":"server","feature_set":"minimal"}
+              {"runner":"macos-26","channel":"testing","profile":"ovos","feature_set":"all"},
+              {"runner":"macos-15","channel":"testing","profile":"ovos","feature_set":"minimal"},
+              {"runner":"macos-15","channel":"alpha","profile":"server","feature_set":"minimal"}
             ]' | tr -d '\n ' >>"$GITHUB_OUTPUT"
           else
             printf 'scenarios=%s\n' '[
-              {"runner":"macos-15-intel","channel":"testing","profile":"ovos","feature_set":"minimal"},
-              {"runner":"macos-15-intel","channel":"testing","profile":"ovos","feature_set":"all"},
-              {"runner":"macos-15-intel","channel":"alpha","profile":"server","feature_set":"minimal"},
-              {"runner":"macos-14","channel":"testing","profile":"ovos","feature_set":"minimal"},
-              {"runner":"macos-14","channel":"testing","profile":"ovos","feature_set":"all"},
-              {"runner":"macos-14","channel":"alpha","profile":"server","feature_set":"minimal"}
+              {"runner":"macos-26","channel":"testing","profile":"ovos","feature_set":"minimal"},
+              {"runner":"macos-26","channel":"testing","profile":"ovos","feature_set":"all"},
+              {"runner":"macos-26","channel":"alpha","profile":"server","feature_set":"minimal"},
+              {"runner":"macos-15","channel":"testing","profile":"ovos","feature_set":"minimal"},
+              {"runner":"macos-15","channel":"testing","profile":"ovos","feature_set":"all"},
+              {"runner":"macos-15","channel":"alpha","profile":"server","feature_set":"minimal"}
             ]' | tr -d '\n ' >>"$GITHUB_OUTPUT"
           fi
 
@@ -86,8 +88,8 @@ jobs:
       fail-fast: false
       matrix:
         runner:
-          - macos-15-intel
-          - macos-14
+          - macos-26
+          - macos-15
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 45
 
@@ -178,6 +180,16 @@ jobs:
           else
             echo "BASH_BIN=$(command -v bash)" >> "$GITHUB_ENV"
           fi
+
+      # Taken before the scenario file exists: the uninstall removes that directory
+      # too. machine_state.sh needs bash 4, so Homebrew's. A virtualenv of the user's
+      # own sits in ~/.venvs beside the installer's: the uninstall used to remove the
+      # directory whole, with it.
+      - name: Record the machine before the install
+        run: |
+          mkdir -p ~/.venvs/users-own
+          printf 'home = /usr/bin\n' >~/.venvs/users-own/pyvenv.cfg
+          "$BASH_BIN" .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
 
       - name: Create non-interactive scenario
         shell: bash
@@ -334,6 +346,11 @@ jobs:
       - name: Run uninstall smoke test
         run: sudo -E env REUSE_CACHED_ARTIFACTS=true "$BASH_BIN" setup.sh
 
+      # Everything the install added has to be gone - files, launchd jobs, Homebrew
+      # packages - and everything that was there before has to still be there.
+      - name: Validate the uninstall gave the machine back
+        run: '"$BASH_BIN" .github/scripts/machine_state.sh compare "$RUNNER_TEMP/machine-before"'
+
       - name: Dump launchd diagnostics on failure
         if: failure()
         run: |
@@ -352,4 +369,27 @@ jobs:
           # The installer tells you to read this file when it gives up, so it
           # belongs in the job output. Without it a CI failure is undebuggable.
           sudo tail -n 200 /var/log/ovos-installer.log || true
+          # A formula that would not link says only "the brew link step did not
+          # complete successfully" through Ansible. Homebrew's own view says why: what
+          # sits under its prefix that it does not manage, and which installed formula
+          # is not fully linked and what it collides with.
+          brew doctor 2>&1 | tail -n 60 || true
+          # Ansible keeps only brew's stderr, and the files a link collided with go to
+          # its stdout. An upgrade whose new version would not link goes back to the
+          # old one, which brew doctor then sees as linked: list every formula whose
+          # linked version is not its newest, or that is not linked at all, and ask
+          # Homebrew what linking each would collide with.
+          brew info --json=v2 --installed 2>/dev/null | python3 -c '
+          import json, sys
+          for f in json.load(sys.stdin)["formulae"]:
+              versions = [i["version"] for i in f["installed"]]
+              if f["keg_only"] or not versions:
+                  continue
+              if f["linked_keg"] != versions[-1]:
+                  print(f["name"], "linked:", f["linked_keg"], "installed:", " ".join(versions))
+          ' | tee "$RUNNER_TEMP/not-linked.txt" || true
+          while read -r formula _; do
+            echo "=== brew link --dry-run --overwrite $formula"
+            brew link --dry-run --overwrite "$formula" 2>&1 | head -n 30 || true
+          done <"$RUNNER_TEMP/not-linked.txt"
           sudo tail -n 200 /var/log/ovos-ansible.log || true
