@@ -42,15 +42,19 @@
       failed_when: false
       when: ansible_facts.system == 'Darwin'
 
-    # Created as the user: a directory root creates in the user's home is one the
-    # user can no longer write to.
-    - name: Ensure the footprint record directory exists
-      become: true
-      become_user: "{{ ovos_installer_user }}"
+    # The user's, whoever created them: a directory root owns in the user's home is one
+    # the user can no longer write to, and a sudo that keeps HOME makes exactly that.
+    # An existing ~/.cache keeps its own permissions, often 0700.
+    - name: Ensure the user owns the directories the record lives under
       ansible.builtin.file:
-        path: "{{ ovos_installer_footprint_marker_path | dirname | dirname }}"
+        path: "{{ item }}"
         state: directory
-        mode: "0755"
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group | default(omit) }}"
+        mode: u+rwx
+      loop:
+        - "{{ ovos_installer_footprint_marker_path | dirname | dirname | dirname }}"
+        - "{{ ovos_installer_footprint_marker_path | dirname | dirname }}"
 
     - name: Ensure the footprint record subdirectory exists
       ansible.builtin.file:
@@ -62,9 +66,22 @@
 
     - name: Write the footprint record
       vars:
+        _configured: >-
+          {{ ovos_installer_footprint_paths + ovos_installer_footprint_parent_dirs
+             + ovos_installer_footprint_files_if_empty }}
+        # What setup.sh created for its state is there by now, but it is the install's.
+        # Only that directory or one above it inside the home is believed.
+        _from_setup: "{{ ovos_installer_state_created_from }}"
+        _setup_created: >-
+          {{ _configured | select('match', (_from_setup | regex_escape) ~ '(/|$)') | list
+             if (_from_setup | length > 0
+                 and _from_setup.startswith(ovos_installer_user_home ~ '/')
+                 and (ovos_installer_user_home ~ '/.local/state/ovos/').startswith(_from_setup ~ '/'))
+             else [] }}
         _absent: >-
-          {{ ovos_installer_footprint_stats.results
-             | rejectattr('stat.exists') | map(attribute='item') | list }}
+          {{ (ovos_installer_footprint_stats.results
+              | rejectattr('stat.exists') | map(attribute='item') | list
+              + _setup_created) | unique | list }}
         _orphans: >-
           {{
             (ovos_installer_footprint_apt_orphans.stdout_lines

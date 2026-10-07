@@ -5,10 +5,6 @@
 # a leftover, or not collateral damage - an entry without a reason is a bug hidden
 # from the check that exists to find it.
 
-# The runner's own .NET and PowerShell tooling records its state here between job
-# steps. Nothing of the installer's.
-home added $HOME/\.cache/Microsoft(/.*)?
-
 # The runner unpacks its diagnostics here and removes them again, on its own schedule.
 home added $HOME/extracted(/.*)?
 home removed $HOME/extracted(/.*)?

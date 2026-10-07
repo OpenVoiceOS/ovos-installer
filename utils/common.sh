@@ -2201,10 +2201,20 @@ function apt_ensure() {
 function state_directory() {
     OVOS_LOCAL_STATE_DIRECTORY="$RUN_AS_HOME/.local/state/ovos"
     export INSTALLER_STATE_FILE="$OVOS_LOCAL_STATE_DIRECTORY/installer.json"
+    # The highest directory this run creates, if any. The playbook's first footprint
+    # record comes after this and would otherwise take them for the user's own.
+    export STATE_DIRECTORY_CREATED_FROM=""
     if [ ! -d "$OVOS_LOCAL_STATE_DIRECTORY" ]; then
+        # Hand the user everything mkdir -p creates, from the highest directory that
+        # was missing: on a home without ~/.local, chowning only ~/.local/state left
+        # ~/.local to root, and the user could no longer remove anything from it.
+        local created_from="$OVOS_LOCAL_STATE_DIRECTORY"
+        while [ ! -d "$(dirname "$created_from")" ]; do
+            created_from="$(dirname "$created_from")"
+        done
         mkdir -p "$OVOS_LOCAL_STATE_DIRECTORY" &>>"$LOG_FILE"
-        chown -R "$RUN_AS":"${RUN_AS_GROUP:-$RUN_AS}" "$RUN_AS_HOME/.local/state" &>>"$LOG_FILE"
-
+        chown -R "$RUN_AS":"${RUN_AS_GROUP:-$RUN_AS}" "$created_from" &>>"$LOG_FILE"
+        STATE_DIRECTORY_CREATED_FROM="$created_from"
     fi
     if [ -f "$INSTALLER_STATE_FILE" ]; then
         [ -s "$INSTALLER_STATE_FILE" ] || rm "$INSTALLER_STATE_FILE" &>>"$LOG_FILE"

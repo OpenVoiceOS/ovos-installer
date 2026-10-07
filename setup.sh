@@ -225,6 +225,7 @@ ansible_command=(
   -e "ovos_installer_venv=${VENV_PATH}" \
   -e "ovos_installer_venv_python=${OVOS_VENV_PYTHON}" \
   -e "ovos_installer_user_home=${RUN_AS_HOME}" \
+  -e "ovos_installer_state_created_from=${STATE_DIRECTORY_CREATED_FROM:-}" \
   -e "ovos_installer_method=${METHOD}" \
   -e "ovos_installer_profile=${PROFILE}" \
   -e "ovos_installer_sound_server=${SOUND_SERVER%% *}" \

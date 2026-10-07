@@ -781,6 +781,50 @@ EOF
     rm -rf "$RUN_AS_HOME"
 }
 
+@test "function_state_directory_gives_the_user_every_directory_it_creates" {
+    # A home without ~/.local: chowning only ~/.local/state left ~/.local to root.
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    RUN_AS="$(id -un)"
+    RUN_AS_GROUP="$(id -gn)"
+    CHOWN_LOG="$(mktemp)"
+    function chown() { printf '%s\n' "$*" >>"$CHOWN_LOG"; }
+    export -f chown
+    export CHOWN_LOG
+
+    run state_directory
+    assert_success
+    run cat "$CHOWN_LOG"
+    assert_output "-R ${RUN_AS}:${RUN_AS_GROUP} ${RUN_AS_HOME}/.local"
+
+    # With ~/.local already there, only what is new is the user's to begin with.
+    rm -rf "$RUN_AS_HOME/.local/state"
+    : >"$CHOWN_LOG"
+    run state_directory
+    assert_success
+    run cat "$CHOWN_LOG"
+    assert_output "-R ${RUN_AS}:${RUN_AS_GROUP} ${RUN_AS_HOME}/.local/state"
+
+    unset -f chown
+    rm -rf "$RUN_AS_HOME" "$CHOWN_LOG"
+}
+
+@test "function_state_directory_reports_the_highest_directory_it_created" {
+    # The footprint record runs after this, and must know these were the install's.
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    RUN_AS="$(id -un)"
+    function chown() { :; }
+
+    state_directory
+    assert_equal "$STATE_DIRECTORY_CREATED_FROM" "$RUN_AS_HOME/.local"
+
+    # A run that finds the directory creates nothing.
+    state_directory
+    assert_equal "$STATE_DIRECTORY_CREATED_FROM" ""
+
+    unset -f chown
+    rm -rf "$RUN_AS_HOME"
+}
+
 @test "function_state_directory_existing" {
     RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
     mkdir -p "$RUN_AS_HOME/.local/state/ovos"

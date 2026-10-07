@@ -49,27 +49,40 @@ function teardown() {
     [ -n "${T:-}" ] && rm -rf "$T"
 }
 
+# play <record|restore> [more ansible-playbook arguments]
 function play() {
-    run ansible-playbook -i localhost, -c local "$T/$1.yml" -e "{
+    local book="$1"
+    shift
+    run ansible-playbook -i localhost, -c local "$T/${book}.yml" -e "{
         \"ansible_become\": false,
         \"ovos_installer_user\": \"$ME\",
         \"ovos_installer_user_home\": \"$H\",
         \"ovos_installer_venv_python\": \"3.11\",
         \"ovos_installer_footprint_owner\": \"$ME\"
-    }"
+    }" "$@"
     assert_success
 }
 
-# What an install leaves in a home: its uv and Python, an OVOS model, the sound
-# stack's state, a user unit directory.
+# What an install leaves in a home: its uv and Python, an OVOS model, onnxruntime's
+# device id and database, the sound stack's state, a user unit directory. uv's
+# Python is a link into uv's own tree.
 function install_side_effects() {
-    mkdir -p "$H/.local/bin" "$H/.local/share/uv/python/cpython-3.11" "$H/.local/state/wireplumber" \
+    mkdir -p "$H/.local/bin" "$H/.local/share/uv/python/cpython-3.11/bin" "$H/.local/state/wireplumber" \
         "$H/.config/pulse" "$H/.config/systemd/user" \
-        "$H/.cache/huggingface/hub/models--OpenVoiceOS--ovos-m2v-intents-multilingual/snapshots"
+        "$H/.cache/huggingface/hub/models--OpenVoiceOS--ovos-m2v-intents-multilingual/snapshots" \
+        "$H/.cache/Microsoft/DeveloperTools/.onnxruntime"
     local file
-    for file in .local/bin/uv .local/bin/python3.11 .config/pulse/cookie .local/state/wireplumber/default-nodes; do
+    for file in .local/bin/uv .local/share/uv/python/cpython-3.11/bin/python3.11 .config/pulse/cookie \
+        .local/state/wireplumber/default-nodes .cache/Microsoft/DeveloperTools/.onnxruntime/onnxruntime.db; do
         [ -e "$H/$file" ] || : >"$H/$file"
     done
+    [ -e "$H/.local/bin/python3.11" ] ||
+        ln -s "$H/.local/share/uv/python/cpython-3.11/bin/python3.11" "$H/.local/bin/python3.11"
+}
+
+# Gone, and not even a dangling link left in its place.
+function gone() {
+    [ ! -e "$1" ] && [ ! -L "$1" ]
 }
 
 @test "footprint: a home the install found empty is given back empty" {
@@ -84,26 +97,40 @@ function install_side_effects() {
 }
 
 @test "footprint: what the user had before the install stays, the install's own goes" {
-    mkdir -p "$H/.local/bin" "$H/.config" "$H/.cache/huggingface/hub/models--someone--their-model"
+    mkdir -p "$H/.local/bin" "$H/.config" "$H/.cache/huggingface/hub/models--someone--their-model" \
+        "$H/.cache/Microsoft/DeveloperTools"
     echo "their uv" >"$H/.local/bin/uv"
+    echo "their device" >"$H/.cache/Microsoft/DeveloperTools/deviceid"
     echo 'export EDITOR=vim' >"$H/.zshrc"
     play record
     install_side_effects
 
     play restore
-    # Theirs.
+    # Theirs: their own tool's device id stays, and the directories it sits in.
     run cat "$H/.local/bin/uv"
     assert_output "their uv"
+    [ -f "$H/.cache/Microsoft/DeveloperTools/deviceid" ]
+    gone "$H/.cache/Microsoft/DeveloperTools/.onnxruntime"
     run cat "$H/.zshrc"
     assert_output "export EDITOR=vim"
     [ -d "$H/.cache/huggingface/hub/models--someone--their-model" ]
     # The install's: gone, even inside a cache that was already there.
-    [ ! -e "$H/.cache/huggingface/hub/models--OpenVoiceOS--ovos-m2v-intents-multilingual" ]
-    [ ! -e "$H/.local/share/uv" ]
-    [ ! -e "$H/.local/bin/python3.11" ]
-    [ ! -e "$H/.local/state" ]
-    [ ! -e "$H/.config/systemd" ]
+    gone "$H/.cache/huggingface/hub/models--OpenVoiceOS--ovos-m2v-intents-multilingual"
+    gone "$H/.local/share/uv"
+    gone "$H/.local/bin/python3.11"
+    gone "$H/.local/state"
+    gone "$H/.config/systemd"
     [ -d "$H/.config" ]
+}
+
+@test "footprint: recording leaves the permissions of an existing cache alone" {
+    mkdir -p "$H/.cache"
+    chmod 0700 "$H/.cache"
+    play record
+    # find rather than stat: stat's flags differ between Linux and macOS.
+    run find "$H/.cache" -maxdepth 0 -perm 0700
+    assert_output "$H/.cache"
+    [ -f "$H/.cache/ovos-installer/package-tracking/footprint.json" ]
 }
 
 @test "footprint: a file the install created keeps whatever was added to it since" {
@@ -158,4 +185,53 @@ YAML
     }'
     assert_success
     assert_output --partial 'GROUPS=["audio"]'
+}
+
+@test "footprint: nothing is removed or read through a symbolic link out of the home" {
+    play record
+    # ~/.local/share is a link to somewhere else entirely: its uv must not be reached.
+    mkdir -p "$T/elsewhere/uv" "$H/.local"
+    echo keep >"$T/elsewhere/uv/file"
+    ln -s "$T/elsewhere" "$H/.local/share"
+    # A ~/.zshrc that is a link is the user's, whatever it points to holds.
+    : >"$T/elsewhere/zshrc"
+    ln -s "$T/elsewhere/zshrc" "$H/.zshrc"
+
+    play restore
+    run cat "$T/elsewhere/uv/file"
+    assert_output "keep"
+    [ -L "$H/.local/share" ]
+    [ -L "$H/.zshrc" ]
+    [ -f "$T/elsewhere/zshrc" ]
+}
+
+@test "footprint: the directories setup.sh made for its state are the install's" {
+    # setup.sh creates ~/.local/state/ovos before the playbook records anything.
+    mkdir -p "$H/.local/state/ovos"
+    play record -e "ovos_installer_state_created_from=$H/.local"
+    install_side_effects
+    # The uninstall's own directory removal takes the state directory.
+    rm -rf "$H/.local/state/ovos"
+
+    play restore
+    run find "$H" -mindepth 1
+    assert_output ""
+}
+
+@test "footprint: only setup.sh's state directory or one above it in the home is believed" {
+    # The home would make everything configured count as the install's, and a
+    # directory beside the state directory everything in it.
+    local claimed
+    for claimed in "$H" "$H/.config"; do
+        rm -rf "$H"
+        mkdir -p "$H/.local/state/ovos" "$H/.config/pulse"
+        echo theirs >"$H/.config/pulse/client.conf"
+        play record -e "ovos_installer_state_created_from=$claimed"
+        rm -rf "$H/.local/state/ovos"
+
+        play restore
+        run cat "$H/.config/pulse/client.conf"
+        assert_output "theirs"
+        [ -d "$H/.local/state" ]
+    done
 }
