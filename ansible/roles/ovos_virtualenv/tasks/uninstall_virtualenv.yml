@@ -1,0 +1,24 @@
+---
+# The OVOS virtualenv goes, unless this uninstall runs from it. Never the directory
+# that holds it: a user's own virtualenvs live in ~/.venvs too, and setup.sh removes
+# that directory once nothing is left in it, after its own virtualenv. The installer
+# runs from ~/.venvs/ovos-installer, beside this one, not from it.
+- name: Check whether this uninstall runs from the OVOS virtualenv
+  ansible.builtin.set_fact:
+    ovos_virtualenv_running_from_it: >-
+      {{ ovos_virtualenv_uninstall_python is search('^' ~ ((ovos_virtualenv_path ~ '/') | regex_escape)) }}
+
+- name: Remove the OVOS virtualenv
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_path }}"
+    state: absent
+  when: not (ovos_virtualenv_running_from_it | bool) or (ovos_virtualenv_force_remove | bool)
+
+- name: Say why the OVOS virtualenv stays
+  ansible.builtin.debug:
+    msg: >-
+      Leaving {{ ovos_virtualenv_path }} in place: this uninstall runs from it. Set
+      ovos_virtualenv_force_remove=true to remove it anyway.
+  when:
+    - ovos_virtualenv_running_from_it | bool
+    - not (ovos_virtualenv_force_remove | bool)

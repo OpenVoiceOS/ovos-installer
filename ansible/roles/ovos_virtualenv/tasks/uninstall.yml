@@ -250,34 +250,19 @@
     state: absent
   when: ovos_virtualenv_shell_init.stat.exists | default(false) | bool
 
-- name: Remove ovos Python virtualenv and requirements.txt files
+- name: Remove the OVOS virtualenv
+  ansible.builtin.import_tasks: uninstall_virtualenv.yml
+
+- name: Remove requirements.txt files and the virtualenv's helpers
   vars:
     _requirements_paths: "{{ ovos_virtualenv_requirements_files | map(attribute='dest') | list }}"
-    _venv_executable: >-
-      {{ ansible_playbook_python
-         | default(ansible_python_interpreter | default(ansible_facts.get('python', {}).get('executable', ''))) }}
-    _running_from_ovos_venv: >-
-      {{ _venv_executable is search('^' ~ (ovos_virtualenv_root_dir | regex_escape)) }}
-    _remove_venv_paths: >-
-      {{ [] if (_running_from_ovos_venv and not (ovos_virtualenv_force_remove | bool))
-         else [ovos_virtualenv_path, ovos_virtualenv_root_dir] }}
     _uninstall_paths: >-
-      {{ _remove_venv_paths
-         + _requirements_paths
-         + ovos_virtualenv_uninstall_extra_paths
-         + [ovos_virtualenv_messagebus_path, ovos_virtualenv_rust_messagebus_binary_path,
-            ovos_virtualenv_swig_shim_path]
+      {{ (_requirements_paths
+          + ovos_virtualenv_uninstall_extra_paths
+          + [ovos_virtualenv_messagebus_path, ovos_virtualenv_rust_messagebus_binary_path,
+             ovos_virtualenv_swig_shim_path])
          | unique }}
   ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop: "{{ _uninstall_paths }}"
-
-- name: Warn when skipping venv removal during uninstall
-  ansible.builtin.debug:
-    msg: >-
-      Skipping removal of {{ ovos_virtualenv_root_dir }} because Ansible is
-      running from that venv. Set ovos_virtualenv_force_remove=true to override.
-  when:
-    - ansible_facts.get('python', {}).get('executable', '') is search('^' ~ (ovos_virtualenv_root_dir | regex_escape))
-    - not (ovos_virtualenv_force_remove | bool)
