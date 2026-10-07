@@ -1173,6 +1173,16 @@ print('constraint=' + cfg['global']['constraint'])
 
     run bash -c "awk '/Ensure OVOS virtualenv ownership is aligned before package installs/{owner_line=NR} /Ensure runtime bootstrap Python libraries are installed/{runtime_bootstrap_line=NR} END{exit !(owner_line>0 && runtime_bootstrap_line>0 && owner_line<runtime_bootstrap_line)}' \"$file\""
     assert_success
+
+    # Not only for a new virtualenv or on request: root's bytecode, left by the PHAL
+    # admin service, stopped a Mark II install when uv could not replace numpy.
+    run bash -c "grep -A12 -F -- \"- name: Ensure OVOS virtualenv ownership is aligned before package installs\" \"$file\" | grep -F -q -- \"ovos_virtualenv_not_users.stdout | default('') | length > 0\""
+    assert_success
+    run bash -c "grep -A4 -F -- \"- name: Look for anything in the OVOS virtualenv that is not the user's\" \"$file\" | grep -F -q -- '\"!\", \"-user\", \"{{ ovos_installer_user }}\"'"
+    assert_success
+    # And the service stops leaving it.
+    run grep -q '^export PYTHONDONTWRITEBYTECODE=1$' ansible/roles/ovos_services/templates/virtualenv/wrapper-ovos-phal-admin.sh.j2
+    assert_success
 }
 
 @test "ovos_config_defaults_guard_ansible_facts_system_references" {
