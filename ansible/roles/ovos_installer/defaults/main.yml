@@ -33,12 +33,19 @@ ovos_installer_footprint_paths:
 # their own PulseAudio client.conf. Only what the install put there goes, and the
 # directory itself only once nothing is left in it but the tool's own bookkeeping.
 # Patterns match paths inside the directory; a directory that matches goes whole.
+# A store holds content for whatever links to it: huggingface_hub 2 keeps the files of
+# every model in hub/blobs, and a model's own blobs are links into it. A file there
+# is the install's when only the install's models link to it, the user's as soon as
+# one of theirs does. The install's parts of a directory that was there before go
+# too, when they are names only OVOS uses.
 ovos_installer_footprint_shared_dirs:
   - path: "{{ ovos_installer_user_home }}/.cache/huggingface"
     owned: >-
       {{ ovos_installer_footprint_hf_models | map('regex_replace', '^', 'hub/') | list
          + ovos_installer_footprint_hf_models | map('regex_replace', '^', 'hub/.locks/') | list }}
     bookkeeping: [".*", "xet", "hub/.locks", "hub/CACHEDIR.TAG", "hub/version.txt"]
+    store: hub/blobs
+    owned_even_if_there_before: true
   - path: "{{ ovos_installer_user_home }}/.local/share/uv"
     owned: ["python/cpython-{{ ovos_installer_venv_python }}[-.]*"]
     bookkeeping: [".lock", ".gitignore", "python/.lock", "python/.gitignore", "python/.temp", "python/.cache"]
@@ -63,7 +70,8 @@ ovos_installer_footprint_parent_dirs:
 ovos_installer_footprint_files_if_empty:
   - "{{ ovos_installer_user_home }}/.zshrc"
 # The models OVOS downloads into a Hugging Face cache that may well be the user's own:
-# these go even when the cache itself was there before.
+# these go even when the cache itself was there before, with what only they link to in
+# the cache's store.
 ovos_installer_footprint_hf_models:
   - "models--OpenVoiceOS--*"
   - "models--Jarbas--*"

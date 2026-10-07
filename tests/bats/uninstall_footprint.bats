@@ -63,10 +63,36 @@ function play() {
     assert_success
 }
 
+# huggingface_hub 2 keeps the files of every model in one store for the whole cache,
+# hub/blobs/<first two of the hash>/<hash>, with the list of links to each file and
+# its lock beside it. A model's own blobs are links into the store and its snapshot
+# links to those (huggingface_hub/utils/_shared_blobs.py).
+# hf_model_file <model directory> <hash> <file name>
+function hf_model_file() {
+    local hub="$H/.cache/huggingface/hub" etag="etag-${2:0:12}"
+    local store="$H/.cache/huggingface/hub/blobs/${2:0:2}"
+    mkdir -p "$store" "$hub/$1/blobs" "$hub/$1/snapshots/rev1" "$hub/$1/refs"
+    echo 1 >"$hub/blobs/.huggingface-shared-blobs"
+    if [ ! -e "$store/$2" ]; then
+        echo "content of $2" >"$store/$2"
+        chmod 0444 "$store/$2"
+    fi
+    echo "$1/blobs/$etag" >>"$store/$2.refs"
+    : >"$store/$2.lock"
+    ln -sfn "../../blobs/${2:0:2}/$2" "$hub/$1/blobs/$etag"
+    ln -sfn "../../blobs/$etag" "$hub/$1/snapshots/rev1/$3"
+    echo rev1 >"$hub/$1/refs/main"
+}
+# Each in a store directory of its own: one file only OVOS's model has, one that
+# OVOS's model and the user's both have, one only the user's has.
+OVOS_HASH="0a$(printf '%062d' 1)"
+SHARED_HASH="2c$(printf '%062d' 2)"
+USER_HASH="1b$(printf '%062d' 3)"
+
 # What an install leaves in a home: its uv and the Python uv manages, laid out as uv
-# lays it out, an OVOS model with its lock and the cache's own bookkeeping,
-# onnxruntime's device id and database, the sound stack's state, a user unit
-# directory. uv's Python is a link into uv's own tree.
+# lays it out, an OVOS model with its lock, its file in the cache's store and the
+# cache's own bookkeeping, onnxruntime's device id and database, the sound stack's
+# state, a user unit directory. uv's Python is a link into uv's own tree.
 UV_PYTHON=".local/share/uv/python/cpython-3.11.13-linux-x86_64-gnu"
 OVOS_MODEL=".cache/huggingface/hub/models--OpenVoiceOS--ovos-m2v-intents-multilingual"
 function install_side_effects() {
@@ -84,6 +110,7 @@ function install_side_effects() {
     [ -e "$H/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu" ] ||
         ln -s "$H/$UV_PYTHON" "$H/.local/share/uv/python/cpython-3.11-linux-x86_64-gnu"
     [ -e "$H/.local/bin/python3.11" ] || ln -s "$H/$UV_PYTHON/bin/python3.11" "$H/.local/bin/python3.11"
+    hf_model_file "${OVOS_MODEL##*/}" "$OVOS_HASH" model.safetensors
 }
 
 # Gone, and not even a dangling link left in its place.
@@ -103,8 +130,8 @@ function gone() {
 }
 
 @test "footprint: what the user had before the install stays, the install's own goes" {
-    mkdir -p "$H/.local/bin" "$H/.config" "$H/.cache/huggingface/hub/models--someone--their-model" \
-        "$H/.cache/Microsoft/DeveloperTools"
+    mkdir -p "$H/.local/bin" "$H/.config" "$H/.cache/Microsoft/DeveloperTools"
+    hf_model_file models--someone--their-model "$USER_HASH" their.safetensors
     echo "their uv" >"$H/.local/bin/uv"
     echo "their device" >"$H/.cache/Microsoft/DeveloperTools/deviceid"
     echo 'export EDITOR=vim' >"$H/.zshrc"
@@ -119,9 +146,12 @@ function gone() {
     gone "$H/.cache/Microsoft/DeveloperTools/.onnxruntime"
     run cat "$H/.zshrc"
     assert_output "export EDITOR=vim"
-    [ -d "$H/.cache/huggingface/hub/models--someone--their-model" ]
-    # The install's: gone, even inside a cache that was already there.
+    run cat "$H/.cache/huggingface/hub/models--someone--their-model/snapshots/rev1/their.safetensors"
+    assert_output "content of $USER_HASH"
+    # The install's: gone, even inside a cache that was already there, and its file in
+    # the cache's store with it.
     gone "$H/$OVOS_MODEL"
+    gone "$H/.cache/huggingface/hub/blobs/0a"
     gone "$H/.local/share/uv"
     gone "$H/.local/bin/python3.11"
     gone "$H/.local/state"
@@ -167,7 +197,9 @@ function gone() {
     # No record: nothing of the footprint is guessed at, except OVOS's own models.
     [ -e "$H/.local/bin/uv" ]
     [ -e "$H/.local/share/uv" ]
-    [ ! -e "$H/.cache/huggingface/hub/models--OpenVoiceOS--ovos-m2v-intents-multilingual" ]
+    gone "$H/$OVOS_MODEL"
+    gone "$H/.cache/huggingface/hub/blobs/0a"
+    [ -f "$H/.cache/huggingface/hub/CACHEDIR.TAG" ]
 }
 
 @test "sound groups: the record holds the sound groups the user is a member of, and only those" {
@@ -343,6 +375,25 @@ YAML
     [ -d "$H/.cache/huggingface/hub/models--someone--their-model/snapshots" ]
     run cat "$H/.cache/huggingface/token"
     assert_output "hf_their_token"
+}
+
+@test "footprint: a file in the cache's store stays while one of the user's models links to it" {
+    play record
+    install_side_effects
+    hf_model_file "${OVOS_MODEL##*/}" "$SHARED_HASH" tokenizer.json
+    hf_model_file models--someone--their-model "$SHARED_HASH" tokenizer.json
+    hf_model_file models--someone--their-model "$USER_HASH" their.safetensors
+
+    play restore
+    gone "$H/$OVOS_MODEL"
+    gone "$H/.cache/huggingface/hub/blobs/0a"
+    local theirs="$H/.cache/huggingface/hub/models--someone--their-model/snapshots/rev1"
+    run cat "$theirs/tokenizer.json"
+    assert_output "content of $SHARED_HASH"
+    run cat "$theirs/their.safetensors"
+    assert_output "content of $USER_HASH"
+    [ -f "$H/.cache/huggingface/hub/blobs/2c/$SHARED_HASH.lock" ]
+    [ -f "$H/.cache/huggingface/hub/blobs/.huggingface-shared-blobs" ]
 }
 
 @test "footprint: uv tools and Pythons the user added stay, the install's Python goes" {

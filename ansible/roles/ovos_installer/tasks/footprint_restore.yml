@@ -7,20 +7,13 @@
 # root, which it has to: a sudo that keeps HOME leaves root-owned files there that the
 # user cannot remove. Whatever still fails is left for the comparison to report, not
 # a reason to stop the uninstall.
-- name: Find the models OVOS downloaded into a Hugging Face cache, and their locks
-  ansible.builtin.find:
-    paths:
-      - "{{ ovos_installer_user_home }}/.cache/huggingface/hub"
-      - "{{ ovos_installer_user_home }}/.cache/huggingface/hub/.locks"
-    patterns: "{{ ovos_installer_footprint_hf_models }}"
-    file_type: directory
-  register: ovos_installer_footprint_hf_found
-
 # A file from the second list counts only when it is a file of its own, not a link,
 # and holds nothing but whitespace once the uninstall has taken its own lines out.
 # A shared directory the install created goes whole only when nothing is left in it
 # but what the install put there and the tool's own bookkeeping; otherwise only the
-# install's part of it goes.
+# install's part of it goes. From one that was there before, only parts named the way
+# only OVOS names them: its models in a Hugging Face cache, and what only they link
+# to in the cache's store.
 # Nothing this uninstall runs on goes either, the interpreter, the links on the way
 # to it or a directory holding one: the rest of the uninstall would stop. Those are
 # printed apart, to say why they stay.
@@ -29,10 +22,8 @@
     _recorded: "{{ ovos_installer_footprint.absent | default([]) }}"
     _paths: >-
       {{ (ovos_installer_footprint_paths + ovos_installer_footprint_parent_dirs)
-         | select('in', _recorded) | list
-         + (ovos_installer_footprint_hf_found.files | default([]) | map(attribute='path') | list) }}
+         | select('in', _recorded) | list }}
     _files_if_empty: "{{ ovos_installer_footprint_files_if_empty | select('in', _recorded) | list }}"
-    _shared: "{{ ovos_installer_footprint_shared_dirs | selectattr('path', 'in', _recorded) | list }}"
     _script: |
       import fnmatch, json, os, sys
       home, args = sys.argv[1], sys.argv[2:]
@@ -76,34 +67,69 @@
       def matches(rel, patterns):
           return any(fnmatch.fnmatch(rel, p) or fnmatch.fnmatch(rel, p + "/*") for p in patterns)
 
-      for spec in json.loads(os.environ.get("OVOS_FOOTPRINT_SHARED") or "[]"):
+      recorded = json.loads(os.environ["OVOS_FOOTPRINT_RECORDED"])
+      for spec in json.loads(os.environ["OVOS_FOOTPRINT_SHARED"]):
           base, owned, bookkeeping = spec["path"], spec["owned"], spec["bookkeeping"]
+          created = base in recorded
+          if not created and not spec.get("owned_even_if_there_before"):
+              continue
           if not reachable(base) or os.path.islink(base) or not os.path.isdir(base):
               continue
-          theirs = False
+          entries = []
           for root, dirs, files in os.walk(base):
-              for name in files + [d for d in dirs if os.path.islink(os.path.join(root, d))]:
-                  rel = os.path.relpath(os.path.join(root, name), base)
-                  if not matches(rel, owned) and not matches(rel, bookkeeping):
-                      theirs = True
-          if not theirs:
+              entries += [os.path.join(root, name) for name in files]
+              entries += [os.path.join(root, name) for name in dirs if os.path.islink(os.path.join(root, name))]
+
+          # Who links to each file in the store, the install's own parts or anything else.
+          store = os.path.join(base, spec["store"]) if spec.get("store") else None
+          linked = {}
+          for path in entries if store else []:
+              target = os.path.realpath(path)
+              if os.path.islink(path) and target.startswith(os.path.realpath(store) + os.sep):
+                  content = os.path.join(store, os.path.relpath(target, os.path.realpath(store)))
+                  linked.setdefault(content, set()).add(matches(os.path.relpath(path, base), owned))
+
+          def owner(path):
+              rel = os.path.relpath(path, base)
+              if matches(rel, owned):
+                  return "install"
+              if store and path.startswith(store + os.sep):
+                  # A file's companions in the store, its list of links and its lock,
+                  # go with it. What nothing links to is the store's bookkeeping.
+                  name = os.path.basename(path)
+                  links = linked.get(os.path.join(os.path.dirname(path), name.split(".")[0] or name), set())
+                  return "user" if False in links else "install" if links else None
+              return None if matches(rel, bookkeeping) else "user"
+
+          owners = {path: owner(path) for path in entries}
+          if created and "user" not in owners.values():
               keep_or_print(base)
               continue
+          # The store's own directories go once the install's files are all they hold.
+          held = {}
+          for path in entries:
+              parent = os.path.dirname(path)
+              while store and parent.startswith(store + os.sep):
+                  held.setdefault(parent, set()).add(owners[path])
+                  parent = os.path.dirname(parent)
           for root, dirs, files in os.walk(base):
               for name in sorted(dirs + files):
                   path = os.path.join(root, name)
-                  if any(fnmatch.fnmatch(os.path.relpath(path, base), p) for p in owned):
-                      if reachable(path):
-                          keep_or_print(path)
-                      if name in dirs:
-                          dirs.remove(name)
+                  if name in dirs and not os.path.islink(path):
+                      if not matches(os.path.relpath(path, base), owned) and held.get(path) != {"install"}:
+                          continue
+                      dirs.remove(name)
+                  elif owners.get(path) != "install":
+                      continue
+                  if reachable(path):
+                      keep_or_print(path)
   ansible.builtin.command:
     argv: "{{ [ansible_playbook_python, '-c', _script, ovos_installer_user_home] + _paths + ['--if-empty'] + _files_if_empty }}"
   environment:
-    OVOS_FOOTPRINT_SHARED: "{{ _shared | to_json }}"
+    OVOS_FOOTPRINT_SHARED: "{{ ovos_installer_footprint_shared_dirs | to_json }}"
+    OVOS_FOOTPRINT_RECORDED: "{{ _recorded | to_json }}"
   register: ovos_installer_footprint_safe
   changed_when: false
-  when: (_paths + _files_if_empty + _shared) | length > 0
 
 - name: Say what stays because this uninstall runs on it
   ansible.builtin.debug:
