@@ -99,7 +99,11 @@ if [ -f "$SCENARIO_PATH" ]; then
                     scenario_reject "uninstall" "${options[$option]}" "true, false"
                     break
                 fi
-                export UNINSTALL
+                # setup.sh uninstalls on CONFIRM_UNINSTALL, which the TUI question
+                # and --uninstall set as well. UNINSTALL alone reaches nothing, and a
+                # scenario asking to uninstall ran an ordinary install instead.
+                CONFIRM_UNINSTALL="$UNINSTALL"
+                export UNINSTALL CONFIRM_UNINSTALL
                 ;;
             method)
                 if [[ "${options[$option]}" == "containers" ]]; then
