@@ -67,6 +67,18 @@ function record() {
     assert_output "the installer's uv"
 }
 
+@test "user uv: a record that is there but cannot be read leaves the uv as it is" {
+    mkdir -p "$H/.local/bin"
+    echo "their uv" >"$H/.local/bin/uv"
+    # Unreadable for root too: a directory where the record's file should be.
+    mkdir "$H/.cache/ovos-installer/package-tracking/footprint.json"
+
+    play
+    assert_output --partial "could not be read"
+    run cat "$H/.local/bin/uv"
+    assert_output "their uv"
+}
+
 @test "user uv: an install from before the record keeps getting the installer's" {
     mkdir -p "$H/.local/bin"
     echo "an older copy" >"$H/.local/bin/uv"
