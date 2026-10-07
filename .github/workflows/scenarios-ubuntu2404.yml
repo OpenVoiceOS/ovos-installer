@@ -200,6 +200,7 @@ jobs:
       - name: Dump diagnostics on failure
         if: failure()
         run: |
+          .github/scripts/container_diagnostics.sh || true
           sudo journalctl -u docker --no-pager -n 200 || true
           sudo ls -la /var/log || true
           sudo ls -la /var/log/ovos* || true
@@ -406,6 +407,7 @@ jobs:
       - name: Dump diagnostics on failure
         if: failure()
         run: |
+          .github/scripts/container_diagnostics.sh || true
           sudo journalctl -u docker --no-pager -n 200 || true
           sudo ls -la /var/log || true
           sudo ls -la /var/log/ovos* || true
@@ -547,6 +549,7 @@ jobs:
       - name: Dump diagnostics on failure
         if: failure()
         run: |
+          .github/scripts/container_diagnostics.sh || true
           sudo journalctl -u docker --no-pager -n 200 || true
           sudo ls -la /var/log || true
           sudo ls -la /var/log/ovos* || true
