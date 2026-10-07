@@ -80,6 +80,7 @@ delete_log
 detect_existing_instance
 get_os_information
 wsl2_requirements
+macos_requirements
 detect_cpu_instructions
 is_raspberrypi_soc
 detect_hardware_model

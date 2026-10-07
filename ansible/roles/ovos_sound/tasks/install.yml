@@ -185,6 +185,9 @@
     - ovos_sound_pulseaudio_install is defined
     - "'skipped' not in ovos_sound_pulseaudio_install.keys()"
 
+# The units ovos_services writes name the sound server these find, so they run
+# with that role too: a run of ovos_services alone, the CI's idempotency replay
+# among them, would otherwise template its units without one.
 - name: Check for pipewire-pulse
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -192,6 +195,8 @@
   register: ovos_sound_pipewire_pulse_pgrep
   changed_when: false
   failed_when: false
+  tags:
+    - ovos_services
 
 - name: Check for pulseaudio
   become: true
@@ -200,6 +205,8 @@
   register: ovos_sound_pulseaudio_pgrep
   changed_when: false
   failed_when: false
+  tags:
+    - ovos_services
 
 - name: Check for pipewire
   become: true
@@ -208,6 +215,8 @@
   register: ovos_sound_pipewire_pgrep
   changed_when: false
   failed_when: false
+  tags:
+    - ovos_services
 
 - name: Re-detect sound server
   ansible.builtin.set_fact:
@@ -219,6 +228,8 @@
         (ovos_sound_wsl_default_server if ((ansible_facts.kernel | default('') | lower) is search('microsoft')) else ovos_sound_detect_default_server)
       ) } }}
   changed_when: false
+  tags:
+    - ovos_services
 
 - name: Resolve ALSA default backend for .asoundrc
   vars:

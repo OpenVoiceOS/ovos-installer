@@ -1595,6 +1595,44 @@ function wsl2_requirements() {
     fi
 }
 
+# Homebrew builds its packages for Apple Silicon on macOS 15 and later. Intel Macs and
+# macOS 14 are its Tier 3: it has stopped building new packages for Intel, rarely
+# builds them for macOS 14, and does not install a formula that has none unless told
+# to build it from source, which this installer does not do. An install there stopped
+# at the first such formula, halfway through. This stops a new install before it
+# changes anything, and says why. An existing install only gets the warning, because
+# its uninstall has to keep working. OVOS_INSTALLER_ALLOW_UNSUPPORTED_MACOS=true goes
+# ahead anyway, for a Mac that already has the formulae it needs.
+function macos_requirements() {
+    [ "${DISTRO_NAME:-}" == "macos" ] || return 0
+    printf '%s' "➤ Validating macOS requirements... "
+    local major="${DISTRO_VERSION_ID%%.*}"
+    local reason=""
+    if [ "${ARCH:-}" != "arm64" ]; then
+        if [ "$(sysctl -n sysctl.proc_translated 2>>"$LOG_FILE" || true)" == "1" ]; then
+            reason="this terminal runs under Rosetta, so it uses Homebrew for Intel Macs. Open the terminal without Rosetta and run the installer again"
+        else
+            reason="Homebrew has stopped building packages for Intel Macs"
+        fi
+    elif [[ "$major" =~ ^[0-9]+$ ]] && [ "$major" -lt 15 ]; then
+        reason="Homebrew rarely builds packages for macOS ${DISTRO_VERSION_ID} any more"
+    fi
+
+    if [ -z "$reason" ]; then
+        echo -e "[$done_format]"
+        return 0
+    fi
+    if [ "${EXISTING_INSTANCE:-false}" == "true" ] ||
+        [ "${OVOS_INSTALLER_ALLOW_UNSUPPORTED_MACOS:-false}" == "true" ]; then
+        echo -e "[$done_format]"
+        echo "Open Voice OS needs macOS 15 or later on Apple Silicon, and ${reason}. Going on anyway: a package Homebrew has none for will stop it." | tee -a "$LOG_FILE"
+        return 0
+    fi
+    echo -e "[$fail_format]"
+    echo "Open Voice OS needs macOS 15 or later on Apple Silicon: ${reason}. Homebrew will not install a formula it has no package for unless told to build it from source, so the install would stop partway. To try anyway, run the installer again with OVOS_INSTALLER_ALLOW_UNSUPPORTED_MACOS=true." | tee -a "$LOG_FILE"
+    exit "${EXIT_OS_NOT_SUPPORTED}"
+}
+
 # This is a helper to strip the point from semantic versioning such as 3.9 or
 # 6.5.3. Mostly useful when comparing Python or kernel version.
 function ver() {
