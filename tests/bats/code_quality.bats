@@ -1330,7 +1330,12 @@ print('constraint=' + cfg['global']['constraint'])
     run bash -c "grep -A6 -F -- \"- name: Include ovos_services role\" \"$file\" | grep -F -q -- \"not (ovos_installer_is_cleaning | bool)\""
     assert_success
 
-    run bash -c "grep -A4 -F -- \"- name: Include uninstall tasks\" \"$file\" | grep -F -q -- \"ansible.builtin.include_tasks: uninstall.yml\""
+    run bash -c "grep -A3 -F -- \"- name: Include uninstall tasks\" \"$file\" | grep -F -q -- \"file: uninstall.yml\""
+    assert_success
+
+    # Every uninstall runs with --tags uninstall, which a dynamic include does not hand
+    # down: without apply, nothing in uninstall.yml ran, from March 2026 on.
+    run bash -c "grep -A6 -F -- \"- name: Include uninstall tasks\" \"$file\" | grep -A2 -F -- \"apply:\" | grep -F -q -- \"- uninstall\""
     assert_success
 
     run bash -c "grep -A4 -F -- \"- name: Include uninstall tasks\" \"$file\" | grep -F -q -- \"ansible.builtin.import_tasks: uninstall.yml\""
@@ -1348,6 +1353,10 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 
     run bash -c "grep -A5 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"handlers_from: noop\""
+    assert_success
+
+    # The same tag has to reach the role's own tasks, or the directories stay.
+    run bash -c "grep -A10 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -A2 -F -- \"apply:\" | grep -F -q -- \"- uninstall\""
     assert_success
 
     run bash -c "grep -A5 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"ansible.builtin.import_role:\""

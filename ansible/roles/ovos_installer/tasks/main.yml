@@ -123,8 +123,15 @@
   tags:
     - ovos_telemetry
 
+# Every uninstall runs with --tags uninstall, and a dynamic include does not hand
+# its tags to the tasks it includes: without apply, none of uninstall.yml ran -
+# not the directory removal, not the package autoremove.
 - name: Include uninstall tasks
-  ansible.builtin.include_tasks: uninstall.yml
+  ansible.builtin.include_tasks:
+    file: uninstall.yml
+    apply:
+      tags:
+        - uninstall
   when: ovos_installer_is_cleaning | bool
   tags:
     - uninstall

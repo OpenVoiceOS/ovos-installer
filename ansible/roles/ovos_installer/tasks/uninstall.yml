@@ -4,6 +4,11 @@
     name: ovos_services
     tasks_from: remove-directories.yml
     handlers_from: noop
+    # The role's tasks only run under --tags uninstall with the tag applied to them,
+    # for the same reason as the include of this file.
+    apply:
+      tags:
+        - uninstall
   when:
     - ansible_facts.system == 'Linux'
 
