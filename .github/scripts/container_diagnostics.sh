@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # After a failed job: what each container went through, what the messagebus and core
-# said last, and whether the kernel killed anything for memory. The round trip once lost
-# its bus connection on a containers job and nothing in the dump said why.
+# said last, why any container that restarted or exited did, and whether the kernel
+# killed anything for memory. The round trip once lost its bus connection on a
+# containers job and nothing in the dump said why; six alpha skill containers once
+# restarted every few seconds and the dump said only that they had.
 set -uo pipefail
 
 command -v docker >/dev/null 2>&1 || exit 0
@@ -30,6 +32,17 @@ if [ -n "$ids" ]; then
             docker_cli logs --tail 150 "$name" 2>&1
         fi
     done
+
+    # shellcheck disable=SC2086 # one argument per container id
+    docker_cli inspect --format '{{.Name}} {{.RestartCount}} {{.State.ExitCode}}' $ids |
+        while read -r name restarts code; do
+            name="${name#/}"
+            case "$name" in ovos_messagebus | ovos_core) continue ;; esac
+            if [ "$restarts" != 0 ] || [ "$code" != 0 ]; then
+                echo "== the last of ${name}, restarted ${restarts} times, last exit ${code}"
+                docker_cli logs --tail 60 "$name" 2>&1
+            fi
+        done
 fi
 
 echo "== the kernel on memory"
