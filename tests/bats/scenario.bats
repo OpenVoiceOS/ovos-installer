@@ -29,7 +29,7 @@ teardown() {
     rm -f "$LOG_FILE" "$YQ_BINARY_PATH" "$SCENARIO_PATH"
 
     # Reset global variables that may have been modified
-    unset SCENARIO_NOT_SUPPORTED UNINSTALL METHOD CHANNEL PROFILE TUNING
+    unset SCENARIO_NOT_SUPPORTED UNINSTALL CONFIRM_UNINSTALL METHOD CHANNEL PROFILE TUNING
     unset SHARE_TELEMETRY SHARE_USAGE_TELEMETRY
     unset FEATURE_SKILLS FEATURE_GUI FEATURE_EXTRA_SKILLS
     unset HIVEMIND_HOST HIVEMIND_PORT SATELLITE_KEY SATELLITE_PASSWORD
@@ -419,5 +419,43 @@ EOF
 
     assert_equal "$SCENARIO_NOT_SUPPORTED" "true"
     assert_equal "$SCENARIO_ERROR" "channel: development (expected: testing, alpha)"
+    rm -f "$SCENARIO_PATH"
+}
+
+# `uninstall: true` is documented to uninstall. From 2024 the parser only set
+# UNINSTALL, which nothing reads, so the scenario ran an ordinary install instead,
+# and every CI "uninstall" step passed without removing anything.
+@test "scenario_uninstall_reaches_the_variable_setup_acts_on" {
+    # load() ran constants.sh inside setup(), where declare made the
+    # allow-lists local; re-declare them here so in_array can see them
+    source "$BATS_TEST_DIRNAME"/../../utils/constants.sh
+    export SCENARIO_PATH="/tmp/test-scenario-uninstall.yaml"
+    echo "placeholder" >"$SCENARIO_PATH"
+
+    local value
+    for value in true false; do
+        cat <<EOF >"$YQ_BINARY_PATH"
+#!/usr/bin/env bash
+case "\$*" in
+*".features | to_entries"*) echo "skills=false" ;;
+*".hivemind | to_entries"*|*".llm | to_entries"*) ;;
+*) echo "uninstall=${value}"; echo "method=virtualenv"; echo "channel=testing"
+   echo "profile=ovos"; echo "features="; echo "raspberry_pi_tuning=false"
+   echo "share_telemetry=false"; echo "share_usage_telemetry=false" ;;
+esac
+EOF
+        chmod +x "$YQ_BINARY_PATH"
+
+        unset UNINSTALL CONFIRM_UNINSTALL
+        export SCENARIO_NOT_SUPPORTED="false"
+        source "$BATS_TEST_DIRNAME"/../../utils/scenario.sh
+
+        assert_equal "$SCENARIO_NOT_SUPPORTED" "false"
+        assert_equal "$CONFIRM_UNINSTALL" "$value"
+    done
+
+    # And CONFIRM_UNINSTALL is what turns the playbook into an uninstall.
+    run grep -q 'if \[ "$CONFIRM_UNINSTALL" == "true" \] || \[ "$CONFIRM_UNINSTALL_CLI" == "true" \]; then' "$BATS_TEST_DIRNAME"/../../setup.sh
+    assert_success
     rm -f "$SCENARIO_PATH"
 }
