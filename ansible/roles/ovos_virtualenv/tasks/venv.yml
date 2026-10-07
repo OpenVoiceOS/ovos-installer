@@ -516,9 +516,11 @@
       - autoconfigure
       - --lang
       - "{{ ovos_installer_locale }}"
-      # Never neither: without a mode autoconfigure picks its hybrid one, which is
-      # not one of the two choices the installer offers.
-      - "{{ '--offline' if (ovos_installer_speech_engine | default('public')) == 'local' else '--online' }}"
+      # Always --online: local speech replaces each half it proves works here
+      # afterwards, and a half that does not stays public instead of on an offline
+      # recommendation that just failed. Never neither: without a mode autoconfigure
+      # picks its hybrid one, which is not one of the two choices the installer offers.
+      - --online
       - "{{ ovos_installer_ovos_config_tts_gender }}"
   environment:
     PATH: "{{ ovos_virtualenv_path }}/bin"

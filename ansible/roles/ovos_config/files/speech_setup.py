@@ -12,7 +12,13 @@ model that needs 5 GB of memory. Loading is also what downloads the model, so a
 kept choice is ready for the first utterance.
 
 Prints {"stt": section or null, "tts": section or null, "notes": [...]}. null
-means nothing worked here, and that half stays on the public servers.
+means nothing worked here, and that half stays on the public servers. A kept STT
+section also carries the public servers ovos-config recommends for the locale,
+for the fallback the installer adds to it.
+
+The installer parses what this prints as JSON, and ovos_utils logs to stdout, so
+stdout is pointed at stderr for the whole run and the result alone goes to the
+real one.
 """
 import json
 import os
@@ -21,12 +27,13 @@ import shutil
 import subprocess
 import sys
 
-import ovos_config
-from ovos_config.config import LocalConf
+# Each candidate gets this long to download its model, load it and run once. That
+# is far more than any of them needs - it is there so that a download that stalls
+# without failing cannot hold the whole installation forever.
+CANDIDATE_TIMEOUT = int(os.environ.get("OVOS_SPEECH_CANDIDATE_TIMEOUT", "1800"))
 
 kinds, lang, gender = sys.argv[1].split(","), sys.argv[2], sys.argv[3]
 budget_mb = int(sys.argv[4]) if len(sys.argv) > 4 else 3072
-recommends = os.path.join(os.path.dirname(ovos_config.__file__), "recommends")
 notes = []
 
 # Each candidate is tried in a process of its own: a rejected 5 GB model then
@@ -60,7 +67,9 @@ print(json.dumps({"peak_mb": peak // (1048576 if sys.platform == "darwin" else 1
 
 
 def find(folder):
-    path = os.path.join(recommends, folder)
+    import ovos_config
+
+    path = os.path.join(os.path.dirname(ovos_config.__file__), "recommends", folder)
     if not os.path.isdir(path):
         return None
     try:
@@ -79,6 +88,8 @@ def find(folder):
 
 
 def recommended(folder, key):
+    from ovos_config.config import LocalConf
+
     path = find(folder)
     return LocalConf(path).get(key) if path else None
 
@@ -162,8 +173,13 @@ def first_working(kind, candidates):
         if model in tried:
             continue
         tried.add(model)
-        run = subprocess.run([sys.executable, "-c", TRY, kind, lang, json.dumps(section)],
-                             capture_output=True, text=True)
+        try:
+            run = subprocess.run([sys.executable, "-c", TRY, kind, lang, json.dumps(section)],
+                                 capture_output=True, text=True, timeout=CANDIDATE_TIMEOUT)
+        except subprocess.TimeoutExpired:
+            notes.append(f"{kind.upper()} {model} ({origin}) was given up on after "
+                         f"{CANDIDATE_TIMEOUT} seconds")
+            continue
         lines = [line for line in run.stdout.splitlines() if line.startswith("{")]
         if run.returncode != 0 or not lines:
             reason = (run.stderr.strip().splitlines() or ["it did not start"])[-1]
@@ -180,10 +196,42 @@ def first_working(kind, candidates):
     return None
 
 
+def with_public_fallback(stt):
+    """Keep the locale's public STT servers in the section, for its fallback.
+
+    The section replaces the whole of mycroft.conf's stt, and with it the servers
+    `ovos-config autoconfigure --online` picked for the language - Spanish gets one
+    with a Spanish model. Without them the fallback would use the plugin's default
+    servers instead.
+    """
+    online = recommended("online_stt", "stt") or {}
+    module = online.get("module")
+    if stt is None or not module or not online.get(module):
+        return stt
+    return dict(stt, **{module: online[module]})
+
+
+def set_up(kind, candidates):
+    """first_working(), except that a fault in this script costs the half, not the run."""
+    try:
+        return first_working(kind, candidates())
+    except Exception as error:
+        notes.append(f"{kind.upper()} could not be set up: {type(error).__name__}: {error}")
+        return None
+
+
+result_stream = os.fdopen(os.dup(1), "w")
+os.dup2(2, 1)
+
 result = {"stt": None, "tts": None}
 if "stt" in kinds:
-    result["stt"] = first_working("stt", stt_candidates())
+    result["stt"] = set_up("stt", stt_candidates)
+    try:
+        result["stt"] = with_public_fallback(result["stt"])
+    except Exception as error:
+        notes.append(f"STT fallback keeps the default public servers: {error}")
 if "tts" in kinds:
-    result["tts"] = first_working("tts", tts_candidates())
+    result["tts"] = set_up("tts", tts_candidates)
 result["notes"] = notes
-print(json.dumps(result))
+result_stream.write(json.dumps(result) + "\n")
+result_stream.flush()

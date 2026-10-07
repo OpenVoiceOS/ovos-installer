@@ -2699,14 +2699,18 @@ YAML
     run grep -F -q "{{ ovos_installer_ovos_config_tts_gender }}" "$container_tasks"
     assert_success
 
-    # Always a mode: with neither flag autoconfigure goes hybrid (the voice on the
-    # device, recognition on the public servers), which is not one of the two
-    # speech choices the installer offers.
-    run grep -F -q "{{ '--offline' if ovos_containers_speech_engine == 'local' else '--online' }}" "$container_tasks"
+    # Always --online. Never neither: autoconfigure then goes hybrid (the voice on the
+    # device, recognition on the public servers), which is not one of the two speech
+    # choices the installer offers. And never --offline, not even for local speech:
+    # local speech replaces each half it proves works afterwards, and --offline would
+    # leave a half that fails on the offline recommendation that just failed - a
+    # Spanish voice phoonnx cannot speak, and a mute device.
+    run grep -F -q "ovos-config autoconfigure --lang {{ ovos_installer_locale }} --online" "$container_tasks"
     assert_success
-
-    run grep -F -q "{{ '--offline' if (ovos_installer_speech_engine | default('public')) == 'local' else '--online' }}" "$virtualenv_tasks"
+    run bash -c "awk '/Merge ovos-config language recommendations into mycroft.conf/,/changed_when/' '$virtualenv_tasks' | grep -q -- '- --online$'"
     assert_success
+    run bash -c "grep -h -v '^[[:space:]]*#' '$container_tasks' '$virtualenv_tasks' | grep -q -- '--offline'"
+    assert_failure
 
     run grep -F -q "ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool" "$container_tasks"
     assert_success
@@ -5158,6 +5162,13 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     run grep -q "ovos_config_speech_current" ansible/roles/ovos_config/templates/mycroft.conf.j2
     assert_success
 
+    # Running services only reload a mycroft.conf rewritten in place, and the speech
+    # write replaces it, so a run that changes it restarts the systemd units too.
+    run bash -c "grep -A8 'ovos_installer_systemd_state:' ansible/roles/ovos_services/tasks/systemd.yml | grep -q 'ovos_config_speech_configuration.changed'"
+    assert_success
+    run grep -q "register: ovos_config_speech_configuration" "$speech_tasks"
+    assert_success
+
     # Telemetry reports where speech ended up, and uninstall removes the models.
     local telemetry="ansible/roles/ovos_telemetry/tasks/main.yml"
     run grep -q 'stt_engine: "{{ ovos_telemetry_stt_engine }}"' "$telemetry"
@@ -5220,6 +5231,14 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     run grep -q "^ovos_containers_container_ovos_listener: ovos_listener$" ansible/roles/ovos_containers/defaults/main.yml
     assert_success
     run grep -q "^ovos_containers_container_ovos_audio: ovos_audio$" ansible/roles/ovos_containers/defaults/main.yml
+    assert_success
+
+    # The listener and audio service are up before local speech replaces
+    # mycroft.conf, and they do not see a replaced file: they are restarted when it
+    # changed, or they would stay on the public servers until the next boot.
+    run bash -c "awk '/- name: Restart the listener and audio services on their local speech/,/- name: Compute optional skills flags/' '$composer' | grep -q 'state: restarted'"
+    assert_success
+    run bash -c "awk '/- name: Restart the listener and audio services on their local speech/,/- name: Compute optional skills flags/' '$composer' | grep -q 'ovos_config_speech_configuration is changed'"
     assert_success
 
     # The raised limits only go into .env when local speech was asked for.

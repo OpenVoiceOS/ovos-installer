@@ -8,9 +8,18 @@
 # per-language defaults for units, wake words and intents, which this installer
 # sets itself.
 #
+# A half that does not work here stays on the public servers: whatever the caller
+# had there before this ran - the public defaults, or the per-language public
+# servers `ovos-config autoconfigure --online` wrote - is left alone, and a local
+# section an earlier run wrote is removed rather than kept failing. A setup that
+# cannot run at all ends the same way, with the reason printed, rather than ending
+# the installation over an optional feature.
+#
 # The caller says where OVOS runs: ovos_config_speech_python, the virtualenv's
 # Python, or ovos_config_speech_containers, the names of the listener and audio
-# containers.
+# containers. The write is registered as ovos_config_speech_configuration: the
+# services only notice a mycroft.conf that is rewritten in place, and this one is
+# replaced, so the caller restarts them when it changed.
 - name: Pick, download and check the local speech plugins
   become: true
   become_user: "{{ ovos_installer_user }}"
@@ -25,6 +34,7 @@
       - "{{ ovos_config_speech_stt_memory_budget_mb }}"
   register: ovos_config_speech_setup
   changed_when: false
+  failed_when: false
   when: ovos_config_speech_containers is not defined
 
 # Each half is set up where it will run - the recognizer in the listener, the
@@ -50,6 +60,7 @@
     label: "{{ item.kind }}"
   register: ovos_config_speech_setup_containers
   changed_when: false
+  failed_when: false
   # The listener and audio containers only exist in the desktop profiles.
   when:
     - ovos_config_speech_containers is defined
@@ -59,12 +70,27 @@
 # server for that utterance instead of leaving the user unanswered.
 - name: Keep what works on this machine
   vars:
-    _results: >-
+    _runs: >-
       {{
-        (ovos_config_speech_setup_containers.results | map(attribute='stdout') | map('from_json') | list)
+        ovos_config_speech_setup_containers.results
         if ovos_config_speech_containers is defined
-        else [ovos_config_speech_setup.stdout | from_json]
+        else [ovos_config_speech_setup]
       }}
+    # The result is the last line the script prints. A run that failed, or printed
+    # no result, keeps nothing and says why.
+    _results: >-
+      {%- set results = [] -%}
+      {%- for run in _runs -%}
+      {%-   set last = ((run.stdout | default('', true) | trim).split('\n') | last) -%}
+      {%-   if (run.rc | default(1)) == 0 and last.startswith('{') -%}
+      {%-     set _ = results.append(last | from_json) -%}
+      {%-   else -%}
+      {%-     set reason = (run.stderr | default(run.msg | default(''), true) | trim).split('\n') | last -%}
+      {%-     set _ = results.append({'stt': none, 'tts': none, 'notes': [
+                'The local speech setup did not finish: ' ~ (reason | default('no output', true))[:300]]}) -%}
+      {%-   endif -%}
+      {%- endfor -%}
+      {{ results }}
     _stt: "{{ _results | map(attribute='stt') | select | list | first | default(none) }}"
     _tts: "{{ _results | map(attribute='tts') | select | list | first | default(none) }}"
   ansible.builtin.set_fact:
@@ -88,13 +114,14 @@
       machine, so {{ item | upper }} stays on the public servers.
   loop: "{{ ['stt', 'tts'] | difference(ovos_config_speech_wanted.keys() | list) }}"
 
+# Read even when nothing works here: a local section an earlier run wrote may
+# have to go.
 - name: Read mycroft.conf for the speech configuration
   ansible.builtin.slurp:
     src: "{{ ovos_config_mycroft_conf_path }}"
   register: ovos_config_speech_conf
   failed_when: false
   changed_when: false
-  when: ovos_config_speech_wanted | length > 0
 
 # Same reasoning as homescreen.yml: a hand-edited mycroft.conf that is not
 # plain JSON is not a reason to end the install.
@@ -119,19 +146,42 @@
           was not configured and the public servers stay in use. To switch, add
           these sections to it by hand: {{ ovos_config_speech_wanted | to_json }}
 
+# A half with nothing that works here keeps a public server section, and loses
+# any other: in the virtualenv that leaves OVOS's own defaults, the public
+# servers, and in containers autoconfigure --online has just written the public
+# section for the locale, which stays.
 - name: Write the local speech configuration
   vars:
     _conf: "{{ ovos_config_speech_conf_current | default({}, true) }}"
+    _public_modules:
+      - ovos-stt-plugin-server
+      - ovos-tts-plugin-server
+    _stale: >-
+      {{
+        ['stt', 'tts']
+        | reject('in', ovos_config_speech_wanted)
+        | select('in', _conf)
+        | reject('in', _conf | dict2items
+                     | selectattr('value', 'mapping')
+                     | selectattr('value.module', 'defined')
+                     | selectattr('value.module', 'in', _public_modules)
+                     | map(attribute='key') | list)
+        | list
+      }}
+    _final: >-
+      {{ _conf | dict2items | rejectattr('key', 'in', _stale) | items2dict
+         | combine(ovos_config_speech_wanted) }}
   ansible.builtin.copy:
-    content: "{{ _conf | combine(ovos_config_speech_wanted) | to_nice_json }}\n"
+    content: "{{ _final | to_nice_json }}\n"
     dest: "{{ ovos_config_mycroft_conf_path }}"
     owner: "{{ ovos_config_mycroft_conf_owner }}"
     group: "{{ ovos_config_mycroft_conf_group }}"
     mode: "{{ ovos_config_mycroft_conf_mode }}"
+  register: ovos_config_speech_configuration
   when:
     - ovos_config_speech_conf_readable | default(false) | bool
     - _conf is mapping
-    - (_conf | combine(ovos_config_speech_wanted)) != _conf
+    - _final != _conf
 
 - name: Record where speech runs
   vars:

@@ -1,8 +1,9 @@
 #!/usr/bin/env bats
 #
 # Local speech is offered on a Raspberry Pi 5 with 8 GB or a machine at least as
-# capable, on alpha virtualenv installs only. Everything else stays on the
-# public servers, whatever was asked for.
+# capable, on alpha installs only: the virtualenv, or containers with the ovos or
+# listener profile. Everything else stays on the public servers, whatever was
+# asked for.
 
 function setup() {
     load "$HOME/shell-testing/test_helper/bats-support/load"
@@ -291,4 +292,136 @@ function run_scenario_with_speech_engine() {
     CHANNEL="testing"
     run local_speech_available
     assert_failure
+}
+
+# The tasks that write local speech into mycroft.conf, run for real against a stand-in
+# for the virtualenv's python: it prints a log line, the way ovos_utils does on stdout,
+# then the result speech_setup.py would have printed.
+function speech_tasks_setup() {
+    if ! command -v ansible-playbook >/dev/null 2>&1; then
+        skip "ansible-playbook is not available"
+    fi
+
+    SPEECH_DIR="$(mktemp -d "${BATS_TEST_TMPDIR:-/tmp}/speech.XXXXXX")"
+    SPEECH_CONF="$SPEECH_DIR/mycroft.conf"
+    SPEECH_RESULT="$SPEECH_DIR/result"
+    SPEECH_RC="$SPEECH_DIR/rc"
+    printf '0\n' >"$SPEECH_RC"
+
+    cat >"$SPEECH_DIR/python" <<STUB
+#!/bin/sh
+echo "2026-10-07 12:00:00.000 - OVOS - ovos_config.config:load:1 - INFO - loading"
+cat "$SPEECH_RESULT"
+rc="\$(cat "$SPEECH_RC")"
+[ "\$rc" = 0 ] || echo "ModuleNotFoundError: No module named 'ovos_config'" >&2
+exit "\$rc"
+STUB
+    chmod +x "$SPEECH_DIR/python"
+
+    cat >"$SPEECH_DIR/play.yml" <<'YAML'
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Run the local speech tasks
+      ansible.builtin.include_role:
+        name: ovos_config
+        tasks_from: speech.yml
+    - name: Say what the run decided
+      ansible.builtin.debug:
+        msg: >-
+          ENGINES={{ ovos_config_speech_stt_engine }},{{ ovos_config_speech_tts_engine }}
+          CHANGED={{ ovos_config_speech_configuration.changed | default(false) }}
+YAML
+}
+
+function run_speech_tasks() {
+    printf '%s\n' "$1" >"$SPEECH_RESULT"
+    run ansible-playbook -i localhost, -c local "$SPEECH_DIR/play.yml" -e "{
+        \"ansible_become\": false,
+        \"ovos_config_speech_python\": \"$SPEECH_DIR/python\",
+        \"ovos_config_mycroft_conf_path\": \"$SPEECH_CONF\",
+        \"ovos_config_mycroft_conf_owner\": \"$(id -un)\",
+        \"ovos_config_mycroft_conf_group\": \"$(id -gn)\",
+        \"ovos_config_mycroft_conf_mode\": \"0644\",
+        \"ovos_installer_user\": \"$(id -un)\",
+        \"ovos_installer_locale\": \"es-es\",
+        \"ovos_installer_ovos_config_tts_gender\": \"--male\"
+    }"
+}
+
+LOCAL_STT='{"module": "ovos-stt-plugin-onnx-asr", "fallback_module": "", "ovos-stt-plugin-onnx-asr": {"model": "parakeet-es", "quantization": "int8"}, "ovos-stt-plugin-server": {"urls": ["https://zuazo-es.tigregotico.pt/stt"]}}'
+LOCAL_TTS='{"module": "ovos-tts-plugin-phoonnx", "ovos-tts-plugin-phoonnx": {"voice": "OpenVoiceOS/pipertts_es-ES_miro"}}'
+PUBLIC_TTS='{"module": "ovos-tts-plugin-server", "ovos-tts-plugin-server": {"voice": "sharvard-medium#M"}}'
+
+@test "speech: what works here is written, with the public STT server as its fallback" {
+    speech_tasks_setup
+    printf '{"lang": "es-es", "websocket": {"port": 8181}}\n' >"$SPEECH_CONF"
+
+    run_speech_tasks "{\"stt\": $LOCAL_STT, \"tts\": $LOCAL_TTS, \"notes\": []}"
+    assert_success
+    assert_output --partial "ENGINES=local,local CHANGED=True"
+
+    run jq -c '[.stt.module, .stt.fallback_module, .stt["ovos-stt-plugin-server"].urls[0], .tts["ovos-tts-plugin-phoonnx"].voice, .websocket.port]' "$SPEECH_CONF"
+    assert_output '["ovos-stt-plugin-onnx-asr","ovos-stt-plugin-server","https://zuazo-es.tigregotico.pt/stt","OpenVoiceOS/pipertts_es-ES_miro",8181]'
+
+    # A second run with the same result leaves the file alone, so it restarts nothing.
+    run_speech_tasks "{\"stt\": $LOCAL_STT, \"tts\": $LOCAL_TTS, \"notes\": []}"
+    assert_success
+    assert_output --partial "ENGINES=local,local CHANGED=False"
+}
+
+@test "speech: a half that no longer works here does not keep the local section an earlier run wrote" {
+    speech_tasks_setup
+    # The virtualenv: the template carried both of the last run's sections through.
+    printf '{"lang": "es-es", "stt": %s, "tts": %s}\n' "$LOCAL_STT" "$LOCAL_TTS" >"$SPEECH_CONF"
+
+    run_speech_tasks "{\"stt\": $LOCAL_STT, \"tts\": null, \"notes\": [\"TTS OpenVoiceOS/pipertts_es-ES_miro does not work here\"]}"
+    assert_success
+    assert_output --partial "ENGINES=local,public CHANGED=True"
+    assert_output --partial "No on-device TTS works for es-es"
+
+    # No tts section: OVOS falls back to its own default, the public server.
+    run jq -c '[.stt.module, has("tts")]' "$SPEECH_CONF"
+    assert_output '["ovos-stt-plugin-onnx-asr",false]'
+}
+
+@test "speech: a half that does not work here keeps the public section autoconfigure wrote" {
+    speech_tasks_setup
+    # Containers: autoconfigure --online has just written the public voice for the locale.
+    printf '{"lang": "es-es", "tts": %s}\n' "$PUBLIC_TTS" >"$SPEECH_CONF"
+
+    run_speech_tasks "{\"stt\": $LOCAL_STT, \"tts\": null, \"notes\": []}"
+    assert_success
+    assert_output --partial "ENGINES=local,public CHANGED=True"
+
+    run jq -c '[.stt.module, .tts.module, .tts["ovos-tts-plugin-server"].voice]' "$SPEECH_CONF"
+    assert_output '["ovos-stt-plugin-onnx-asr","ovos-tts-plugin-server","sharvard-medium#M"]'
+}
+
+@test "speech: a setup that cannot run leaves speech public instead of ending the install" {
+    speech_tasks_setup
+    printf '{"lang": "es-es", "stt": %s, "tts": %s}\n' "$LOCAL_STT" "$PUBLIC_TTS" >"$SPEECH_CONF"
+    printf '1\n' >"$SPEECH_RC"
+
+    run_speech_tasks ""
+    assert_success
+    assert_output --partial "The local speech setup did not finish: ModuleNotFoundError"
+    assert_output --partial "ENGINES=public,public CHANGED=True"
+
+    run jq -c '[has("stt"), .tts.module]' "$SPEECH_CONF"
+    assert_output '[false,"ovos-tts-plugin-server"]'
+}
+
+@test "speech: a mycroft.conf that is not plain JSON is left as it is" {
+    speech_tasks_setup
+    printf '// hand-edited\n{"lang": "es-es"}\n' >"$SPEECH_CONF"
+    cp "$SPEECH_CONF" "$SPEECH_DIR/before"
+
+    run_speech_tasks "{\"stt\": $LOCAL_STT, \"tts\": $LOCAL_TTS, \"notes\": []}"
+    assert_success
+    assert_output --partial "is not plain JSON"
+    assert_output --partial "ENGINES=public,public"
+
+    run cmp "$SPEECH_DIR/before" "$SPEECH_CONF"
+    assert_success
 }

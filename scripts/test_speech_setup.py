@@ -22,8 +22,15 @@ STT = "ovos-stt-plugin-onnx-asr"
 TTS = "ovos-tts-plugin-phoonnx"
 
 STUBS = {
+    # ovos_utils logs to stdout; STUB_NOISY makes the stand-in do the same, at the
+    # Python and at the file descriptor level, the way an import really can.
     "ovos_config/config.py": """
-        import json
+        import json, os, sys
+
+        if os.environ.get("STUB_NOISY"):
+            print("2026-10-07 - OVOS - ovos_config:load:1 - INFO - loading configuration")
+            sys.stdout.flush()
+            os.write(1, b"raw write from an extension\\n")
 
 
         class LocalConf(dict):
@@ -38,13 +45,19 @@ STUBS = {
                 self.frames = frames
     """,
     # A model whose name starts with "broken" fails to load, one starting with "huge"
-    # holds 200 MB once loaded; anything else loads and hears nothing.
+    # holds 200 MB once loaded, one starting with "stalled" never finishes loading;
+    # anything else loads and hears nothing.
     "ovos_plugin_manager/stt.py": """
+        import time
+
+
         class Recognizer:
             def __init__(self, config):
                 model = config.get("model", "")
                 if model.startswith("broken"):
                     raise RuntimeError("cannot load " + model)
+                if model.startswith("stalled"):
+                    time.sleep(60)
                 self.weights = b"x" * (200 * 1024 * 1024) if model.startswith("huge") else b""
 
             def execute(self, audio, language=None):
@@ -172,11 +185,13 @@ class SpeechSetupTest(unittest.TestCase):
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(json.dumps(content))
 
-    def setup(self, lang, kinds="stt,tts", gender="male", budget=100, registry=None, voices=None, hub=None):
+    def setup(self, lang, kinds="stt,tts", gender="male", budget=100, registry=None, voices=None, hub=None,
+              **env_extra):
         env = dict(self.env, STUB_STT_REGISTRY=json.dumps(registry or {}),
-                   STUB_VOICES=json.dumps(voices or {}), STUB_HUB=json.dumps(hub or {}))
+                   STUB_VOICES=json.dumps(voices or {}), STUB_HUB=json.dumps(hub or {}), **env_extra)
         out = subprocess.run([sys.executable, str(SETUP), kinds, lang, gender, str(budget)],
                              capture_output=True, text=True, env=env, check=True).stdout
+        # The installer parses the whole of stdout, so nothing else may be on it.
         return json.loads(out)
 
     def test_working_recommendations_are_kept_as_they_are(self):
@@ -239,6 +254,49 @@ class SpeechSetupTest(unittest.TestCase):
         self.recommends({"offline_stt/pt-pt.conf": stt(model)})
         result = self.setup("pt-pt", kinds="stt", hub={model: ["encoder_model.onnx_data"]})
         self.assertNotIn("quantization", result["stt"][STT])
+
+    def test_only_the_result_reaches_stdout(self):
+        # ovos_utils logs to stdout, and an import that logs or writes would put a line
+        # in front of the JSON the installer parses - the whole install would stop on it.
+        self.recommends({"offline_stt/en-us.conf": stt("parakeet"), "offline_male/en-us.conf": tts("miro")})
+        result = self.setup("en-us", STUB_NOISY="1")
+        self.assertIsNotNone(result["stt"])
+        self.assertIsNotNone(result["tts"])
+
+    def test_the_fallback_keeps_the_public_servers_ovos_config_picks_for_the_locale(self):
+        # The local section replaces the whole stt section, and with it the servers
+        # autoconfigure --online chose for the language; the fallback needs them back.
+        servers = {"urls": ["https://zuazo-es.tigregotico.pt/stt", "https://stt.smartgic.io/fasterwhisper/stt"]}
+        self.recommends({"offline_stt/es-es.conf": stt("parakeet-es"),
+                         "online_stt/es-es.conf": {"stt": {"module": "ovos-stt-plugin-server",
+                                                           "ovos-stt-plugin-server": servers}}})
+        result = self.setup("es-es", kinds="stt")
+        self.assertEqual(result["stt"][STT]["model"], "parakeet-es")
+        self.assertEqual(result["stt"]["ovos-stt-plugin-server"], servers)
+
+    def test_without_public_servers_for_the_locale_the_fallback_keeps_its_defaults(self):
+        self.recommends({"offline_stt/kab-dz.conf": stt("kab-conformer")})
+        result = self.setup("kab-dz", kinds="stt")
+        self.assertNotIn("ovos-stt-plugin-server", result["stt"])
+
+    def test_a_fault_while_choosing_costs_that_half_and_not_the_run(self):
+        # A recommendation that is not even JSON: the script must still answer, with the
+        # other half set up and the reason in the notes, rather than exit without a result.
+        self.recommends({"offline_male/en-us.conf": tts("miro")})
+        broken = self.root / "stubs" / "ovos_config" / "recommends" / "offline_stt" / "en-us.conf"
+        broken.parent.mkdir(parents=True, exist_ok=True)
+        broken.write_text("{ not json")
+        result = self.setup("en-us")
+        self.assertIsNone(result["stt"])
+        self.assertEqual(result["tts"][TTS]["voice"], "miro")
+        self.assertTrue(any(note.startswith("STT could not be set up") for note in result["notes"]))
+
+    def test_a_candidate_that_never_finishes_is_given_up_on(self):
+        self.recommends({"offline_stt/en-us.conf": stt("stalled/parakeet")})
+        result = self.setup("en-us", kinds="stt", registry={"en": "OpenVoiceOS/parakeet-en"},
+                            OVOS_SPEECH_CANDIDATE_TIMEOUT="3")
+        self.assertEqual(result["stt"][STT]["model"], "OpenVoiceOS/parakeet-en")
+        self.assertTrue(any("stalled/parakeet" in note and "given up on" in note for note in result["notes"]))
 
     def test_only_the_halves_asked_for_are_set_up(self):
         self.recommends({"offline_stt/en-us.conf": stt("parakeet"), "offline_male/en-us.conf": tts("miro")})

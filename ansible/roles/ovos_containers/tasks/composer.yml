@@ -131,17 +131,20 @@
     - (ovos_installer_speech_engine | default('public')) == 'local'
     - ovos_containers_speech_engine == 'public'
 
-# --offline or --online, never neither: without one autoconfigure picks its hybrid
-# mode (voice on the device, recognition on the public servers), which is neither
-# of the two choices the installer offers.
+# Always --online, for local speech too. The public servers are the baseline for
+# both halves, and local speech (below) replaces each half it proves works here.
+# --offline would leave a half that fails that proof on the offline
+# recommendation that just failed it - a Spanish voice the installed phoonnx
+# cannot speak, which leaves the device mute. And never neither: without a mode
+# autoconfigure picks its hybrid one (voice on the device, recognition on the
+# public servers), which is not one of the two choices the installer offers.
 - name: Merge ovos-config language recommendations into mounted config
   become: true
   become_user: "{{ ovos_installer_user }}"
   community.docker.docker_container_exec:
     container: "{{ ovos_containers_container_ovos_cli }}"
     command: >-
-      ovos-config autoconfigure --lang {{ ovos_installer_locale }}
-      {{ '--offline' if ovos_containers_speech_engine == 'local' else '--online' }}
+      ovos-config autoconfigure --lang {{ ovos_installer_locale }} --online
       {{ ovos_installer_ovos_config_tts_gender }}
   when:
     - not ansible_check_mode
@@ -165,6 +168,30 @@
     - not ansible_check_mode
     - ovos_containers_speech_engine == 'local'
     - ovos_containers_is_desktop_profile | bool
+
+# The listener and the audio service are already running on what autoconfigure
+# wrote, and they only reload a mycroft.conf rewritten in place. Local speech
+# replaces the file, which their watcher never sees, so without a restart they
+# would stay on the public servers until the next boot.
+- name: Restart the listener and audio services on their local speech
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  community.docker.docker_compose_v2:
+    project_src: "{{ ovos_containers_composition_directory }}"
+    project_name: "{{ ovos_containers_compose_project_name }}"
+    files: "{{ ovos_containers_composition_files }}"
+    services:
+      - "{{ ovos_containers_container_ovos_listener }}"
+      - "{{ ovos_containers_container_ovos_audio }}"
+    state: restarted
+  environment:
+    DOCKER_TIMEOUT: "{{ ovos_containers_docker_timeout }}"
+  when:
+    - not ansible_check_mode
+    - ovos_containers_speech_engine == 'local'
+    - ovos_containers_is_desktop_profile | bool
+    - ovos_config_speech_configuration is defined
+    - ovos_config_speech_configuration is changed
 
 - name: Compute optional skills flags
   vars:
