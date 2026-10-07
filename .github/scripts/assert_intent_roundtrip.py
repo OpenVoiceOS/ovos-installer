@@ -86,25 +86,36 @@ class Bus:
             self.ws.close()
         except Exception:
             pass
-        try:
-            self.ws = self.websocket.create_connection(self.url, timeout=self.connect_timeout)
-        except Exception as again:
-            raise Failure(
-                f"the messagebus dropped the connection ({type(error).__name__}: {error}) "
-                f"and is no longer listening on {self.url} ({type(again).__name__}: "
-                f"{again}). It went away after the stack had started."
-            )
+        # A bus being restarted is not listening for a moment: keep asking for up to
+        # --connect-timeout before calling it gone.
+        deadline = time.monotonic() + self.connect_timeout
+        while True:
+            try:
+                self.ws = self.websocket.create_connection(
+                    self.url, timeout=max(0.5, deadline - time.monotonic()))
+                break
+            except Exception as again:
+                if time.monotonic() >= deadline:
+                    raise Failure(
+                        f"the messagebus dropped the connection ({type(error).__name__}: "
+                        f"{error}) and was still not listening on {self.url} "
+                        f"{self.connect_timeout:.0f}s later ({type(again).__name__}: "
+                        f"{again}). It went away after the stack had started."
+                    )
+                time.sleep(0.5)
         print(f"bus       : the connection dropped ({type(error).__name__}: {error}); "
               f"reconnected", flush=True)
 
     def send(self, msg_type, data=None, context=None):
+        """Every send, the one after a reconnect too, counts against the drops allowed."""
         payload = json.dumps({"type": msg_type, "data": data or {},
                               "context": context or {"source": ["ci"]}})
-        try:
-            self.ws.send(payload)
-        except (self.websocket.WebSocketConnectionClosedException, OSError) as error:
-            self._dropped(error)
-            self.ws.send(payload)
+        while True:
+            try:
+                self.ws.send(payload)
+                return
+            except (self.websocket.WebSocketConnectionClosedException, OSError) as error:
+                self._dropped(error)
 
     def wait_for(self, reply_type, timeout, match=None):
         """Read until `reply_type` arrives, or the deadline passes. None on timeout."""
