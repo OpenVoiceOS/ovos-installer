@@ -161,6 +161,15 @@ ovos_containers_uninstall_name_prefixes:
 # use an "ovos_" name prefix.
 ovos_containers_uninstall_name_excludes: >-
   {{ ovos_installer_uninstall_name_excludes | default(['ovos_stt', 'ovos_tts']) }}
+# Volumes ovos-docker's own compose files declare whose names happen to match an
+# exclude pattern: the on-device speech models (gigabytes) and the TTS cache. They
+# belong to the stack, so the sweep removes them like its other volumes. Without
+# this, they only went while the composition directory existed - an uninstall
+# after a reboot left them behind.
+ovos_containers_uninstall_volume_exceptions:
+  - ovos_stt_models
+  - ovos_tts_models
+  - ovos_tts_cache
 # Remove the images backing the removed containers. Follows the docker-compose
 # "remove_images" setting so both removal paths behave the same way.
 ovos_containers_uninstall_remove_images: >-

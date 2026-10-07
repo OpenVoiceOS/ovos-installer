@@ -425,3 +425,53 @@ PUBLIC_TTS='{"module": "ovos-tts-plugin-server", "ovos-tts-plugin-server": {"voi
     run cmp "$SPEECH_DIR/before" "$SPEECH_CONF"
     assert_success
 }
+
+@test "speech: a containers uninstall removes the model volumes, and still spares STT and TTS servers" {
+    if ! command -v ansible-playbook >/dev/null 2>&1; then
+        skip "ansible-playbook is not available"
+    fi
+    if ! ansible-doc -t module community.docker.docker_volume >/dev/null 2>&1; then
+        skip "the community.docker collection is not installed"
+    fi
+
+    # The real uninstall tasks, with Docker out of reach: the sweep's selection runs
+    # against what docker_host_info would have listed, and nothing is removed.
+    local play
+    play="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/sweep.XXXXXX.yml")"
+    cat >"$play" <<'YAML'
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Run the containers uninstall
+      ansible.builtin.include_role:
+        name: ovos_containers
+        tasks_from: uninstall.yml
+    - name: Say what the sweep picked
+      ansible.builtin.debug:
+        msg: "VOLUMES={{ ovos_containers_uninstall_target_volumes | sort | join(',') }}"
+YAML
+
+    # The model volumes start "ovos_stt" and "ovos_tts", the prefixes that protect
+    # STT and TTS servers people run themselves. Removed only while the composition
+    # directory still existed, they outlived any uninstall after a reboot.
+    run ansible-playbook -i localhost, -c local "$play" -e '{
+        "ansible_become": false,
+        "ovos_containers_docker_socket_path": "/nonexistent/docker.sock",
+        "ovos_containers_cmdline_path": "/nonexistent/cmdline.txt",
+        "ovos_installer_docker_compose_remove_volumes": false,
+        "ovos_containers_remove_directories": [],
+        "ovos_containers_repo_directories": [],
+        "ovos_containers_host_info": {"containers": [], "networks": [], "volumes": [
+            {"Name": "ovos_stt_models", "Labels": {"com.docker.compose.project": "ovos"}},
+            {"Name": "ovos_tts_models", "Labels": {"com.docker.compose.project": "ovos"}},
+            {"Name": "ovos_tts_cache", "Labels": {"com.docker.compose.project": "ovos"}},
+            {"Name": "ovos_models", "Labels": {"com.docker.compose.project": "ovos"}},
+            {"Name": "ovos_tts_server_data", "Labels": {"com.docker.compose.project": "ovos"}},
+            {"Name": "ovos_stt_whisper", "Labels": {"com.docker.compose.project": "ovos"}},
+            {"Name": "somebody_else", "Labels": {"com.docker.compose.project": "other"}}
+        ]}
+    }'
+    rm -f "$play"
+    assert_success
+    assert_output --partial "VOLUMES=ovos_models,ovos_stt_models,ovos_tts_cache,ovos_tts_models"
+}

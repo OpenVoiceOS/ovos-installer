@@ -154,10 +154,11 @@
     _ovos_containers_uninstall_volumes_raw: >-
       {% set projects = ovos_containers_uninstall_project_names | default([]) %}
       {% set exclude_re = _ovos_containers_uninstall_exclude_re | trim %}
+      {% set exceptions = ovos_containers_uninstall_volume_exceptions | default([]) %}
       {% set ns = namespace(names=[]) %}
       {% for v in (ovos_containers_host_info.volumes | default([])) %}
       {% set labels = v.Labels | default({}) or {} %}
-      {% set excluded = exclude_re | length > 0 and v.Name is match(exclude_re) %}
+      {% set excluded = exclude_re | length > 0 and v.Name is match(exclude_re) and v.Name not in exceptions %}
       {% if labels.get(ovos_containers_uninstall_compose_project_label, '') in projects and not excluded %}
       {% set _ = ns.names.append(v.Name) %}
       {% endif %}
