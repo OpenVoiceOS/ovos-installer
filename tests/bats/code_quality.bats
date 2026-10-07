@@ -1783,6 +1783,18 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 }
 
+@test "a_failed_homebrew_install_on_macos_is_tried_again_and_says_why" {
+    # The homebrew module keeps only brew's stderr: "the brew link step did not
+    # complete successfully", with what it collided with lost on stdout.
+    local file="ansible/roles/ovos_virtualenv/tasks/packages.yml"
+    run bash -c "awk '/- name: Install the virtualenv package requirements \\(ovos\\/hivemind\\) on macOS/,/- name: Persist tracked virtualenv package ownership \\(macOS\\)/' '$file'"
+    assert_success
+    assert_output --partial "rescue:"
+    assert_output --partial "argv: \"{{ ['brew', 'install', '--formula'] + ovos_virtualenv_macos_packages }}\""
+    assert_output --partial "- name: Show what Homebrew said"
+    assert_output --partial "when: ovos_virtualenv_brew_again.rc != 0"
+}
+
 @test "a_satellite_uninstall_needs_no_hivemind_credentials" {
     # scenarios/scenario-uninstall.yml uninstalls a satellite and names no hive, and
     # the satellite assertion runs on every play: it stopped that uninstall before
