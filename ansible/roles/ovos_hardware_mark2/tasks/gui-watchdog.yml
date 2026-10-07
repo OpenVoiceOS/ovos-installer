@@ -1,0 +1,80 @@
+---
+# Only a Mark II or a DevKit runs the GUI, and only with the GUI on does ovos-shell
+# need watching (#646). With it off - a re-run that turned it off included - nothing of
+# this stays behind.
+- name: Install the GUI memory watchdog
+  when: ovos_hardware_mark2_gui_watchdog_enabled | bool
+  block:
+    - name: Copy the GUI memory watchdog
+      ansible.builtin.copy:
+        src: ovos-gui-watchdog.sh
+        dest: "{{ ovos_hardware_mark2_gui_watchdog_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Copy the GUI memory watchdog unit
+      ansible.builtin.template:
+        src: ovos-gui-watchdog.service.j2
+        dest: "{{ ovos_hardware_mark2_gui_watchdog_unit_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+      notify: Reload Systemd
+
+    # If memory runs out anyway, the kernel takes the shell rather than the voice
+    # services. A drop-in, beside the GUI's unit in the scope it runs in.
+    - name: Ensure the GUI unit's drop-in directory exists
+      become: "{{ not (ovos_hardware_mark2_gui_system_scope | bool) }}"
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.file:
+        path: "{{ ovos_hardware_mark2_gui_dropin_paths[_scope] | dirname }}"
+        state: directory
+        mode: "0755"
+      vars:
+        _scope: "{{ 'system' if ovos_hardware_mark2_gui_system_scope | bool else 'user' }}"
+
+    - name: Make the kernel take ovos-shell first when memory runs out
+      become: "{{ not (ovos_hardware_mark2_gui_system_scope | bool) }}"
+      become_user: "{{ ovos_installer_user }}"
+      ansible.builtin.copy:
+        dest: "{{ ovos_hardware_mark2_gui_dropin_paths[_scope] }}"
+        content: |
+          # ovos-shell never gives memory back (ovos-installer#646).
+          [Service]
+          OOMScoreAdjust=500
+        mode: "0644"
+      vars:
+        _scope: "{{ 'system' if ovos_hardware_mark2_gui_system_scope | bool else 'user' }}"
+      notify: "{{ 'Reload Systemd' if ovos_hardware_mark2_gui_system_scope | bool else 'Reload Systemd User' }}"
+
+    - name: Flush handlers GUI memory watchdog
+      ansible.builtin.meta: flush_handlers
+
+    - name: Enable and start the GUI memory watchdog
+      ansible.builtin.systemd_service:
+        name: "{{ ovos_hardware_mark2_gui_watchdog_unit_name }}"
+        enabled: true
+        state: started
+        daemon_reload: true
+
+- name: Remove the GUI memory watchdog
+  when: not (ovos_hardware_mark2_gui_watchdog_enabled | bool)
+  block:
+    - name: Stop and disable the GUI memory watchdog
+      ansible.builtin.systemd_service:
+        name: "{{ ovos_hardware_mark2_gui_watchdog_unit_name }}"
+        enabled: false
+        state: stopped
+      failed_when: false
+
+    - name: Remove the GUI memory watchdog files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - "{{ ovos_hardware_mark2_gui_watchdog_unit_path }}"
+        - "{{ ovos_hardware_mark2_gui_watchdog_path }}"
+        - "{{ ovos_hardware_mark2_gui_dropin_paths.system }}"
+        - "{{ ovos_hardware_mark2_gui_dropin_paths.user }}"
+      notify: Reload Systemd
