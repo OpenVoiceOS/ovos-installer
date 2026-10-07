@@ -19,6 +19,10 @@ ovos_services_enable_satellite: "{{ ovos_installer_profile == 'satellite' }}"
 ovos_services_hivemind_client_ids: >-
   {{ ovos_services_hivemind_clients.stdout_lines | default([])
      | select('match', '^[0-9]+,') | map('split', ',') | map('first') | list }}
+# ovos-shell is restarted once it holds more than this in RAM and swap: megabytes, or a
+# share of the RAM such as "30%" (about 550 MB on a Mark II). See
+# files/ovos-gui-watchdog.sh and ovos-installer#646.
+ovos_services_gui_memory_limit: "{{ ovos_installer_gui_memory_limit | default('30%') }}"
 ovos_services_wrapper_template: virtualenv/wrapper-ovos-phal-admin.sh.j2
 ovos_services_wrapper_path: /usr/local/bin/wrapper-ovos-phal-admin.sh
 ovos_services_wrapper_mode: "0755"
@@ -111,6 +115,7 @@ ovos_services_managed_units:
   - ovos-audio.service
   - ovos-gui-websocket.service
   - ovos-gui.service
+  - ovos-gui-watchdog.service
   - ovos-ggwave-listener.service
   - hivemind-listener.service
   - hivemind-satellite.service
@@ -141,6 +146,9 @@ ovos_services_unit_definitions:
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
     state: "{{ ovos_services_enable_gui | bool }}"
   - unit: ovos-gui.service
+    scope: "{{ ovos_installer_systemd_scope | default('user') }}"
+    state: "{{ ovos_services_enable_gui | bool }}"
+  - unit: ovos-gui-watchdog.service
     scope: "{{ ovos_installer_systemd_scope | default('user') }}"
     state: "{{ ovos_services_enable_gui | bool }}"
   - unit: ovos-ggwave-listener.service

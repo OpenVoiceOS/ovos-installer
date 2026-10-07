@@ -1698,6 +1698,66 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 }
 
+@test "gui_installs_run_a_memory_watchdog_beside_ovos_shell" {
+    # ovos-shell keeps memory it never gives back (#646) and the Pi boots with
+    # cgroup_disable=memory, so a watchdog restarts it before it fills RAM and zram.
+    local defaults="ansible/roles/ovos_services/defaults/main.yml"
+    local tasks="ansible/roles/ovos_services/tasks/systemd.yml"
+
+    # Installed with the GUI and only with it, and removed by the uninstall.
+    run bash -c "grep -A2 -- '- unit: ovos-gui-watchdog.service' '$defaults' | grep -q 'ovos_services_enable_gui | bool'"
+    assert_success
+    run bash -c "awk '/^ovos_services_managed_units:/,/^ovos_services_admin_unit:/' '$defaults' | grep -q -- '- ovos-gui-watchdog.service'"
+    assert_success
+    # The script lives in the virtualenv, which the uninstall removes.
+    run bash -c "grep -A3 -- '- name: Install the GUI memory watchdog' '$tasks' | grep -q 'ovos_services_venv_path }}/bin/ovos-gui-watchdog'"
+    assert_success
+    [ -x ansible/roles/ovos_services/files/ovos-gui-watchdog.sh ]
+
+    # If memory runs out anyway, the kernel takes the shell, not the voice services.
+    run grep -q '^OOMScoreAdjust=500$' ansible/roles/ovos_services/templates/virtualenv/ovos-gui.service.j2
+    assert_success
+
+    # The unit as it renders: a percent sign starts a systemd specifier, and in the
+    # system scope the watchdog runs as the user that owns ovos-shell.
+    if ! command -v ansible-playbook >/dev/null 2>&1; then
+        skip "ansible-playbook is not available"
+    fi
+    local play out
+    play="$(mktemp "${BATS_TEST_TMPDIR:-/tmp}/watchdog.XXXXXX.yml")"
+    out="$(mktemp -d)"
+    cat >"$play" <<YAML
+- hosts: localhost
+  gather_facts: false
+  tasks:
+    - ansible.builtin.template:
+        src: $PWD/ansible/roles/ovos_services/templates/virtualenv/ovos-gui-watchdog.service.j2
+        dest: "$out/{{ scope }}.service"
+        mode: "0644"
+      vars:
+        ovos_installer_systemd_scope: "{{ scope }}"
+        ovos_installer_user: ovos
+        ovos_installer_group: ovos
+        ovos_installer_user_home: /home/ovos
+        ovos_services_venv_path: /home/ovos/.venvs/ovos
+        ovos_services_gui_memory_limit: "30%"
+      loop: [user, system]
+      loop_control:
+        loop_var: scope
+YAML
+    run ansible-playbook -i localhost, -c local "$play"
+    assert_success
+    run grep '^ExecStart=' "$out/user.service"
+    assert_output "ExecStart=/home/ovos/.venvs/ovos/bin/ovos-gui-watchdog 30%% ovos-gui.service --user"
+    run grep -c '^User=' "$out/user.service"
+    assert_output "0"
+    run grep '^ExecStart=' "$out/system.service"
+    assert_output "ExecStart=/home/ovos/.venvs/ovos/bin/ovos-gui-watchdog 30%% ovos-gui.service --system"
+    run grep '^User=' "$out/system.service"
+    assert_output "User=ovos"
+    rm -rf "$play" "$out"
+}
+
 @test "gui_and_mark2_git_refresh_are_throttled" {
     local venv_defaults_file="ansible/roles/ovos_virtualenv/defaults/main.yml"
     local gui_tasks_file="ansible/roles/ovos_virtualenv/tasks/gui.yml"

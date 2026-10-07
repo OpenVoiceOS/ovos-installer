@@ -37,6 +37,36 @@ sudo systemctl restart ovos.service
 `ovos-audio`, `ovos-core`, `ovos-gui` — can be controlled the same way when you
 need to poke at one of them.
 
+### The screen restarts itself now and then (Mark II, DevKit)
+
+`ovos-shell`, the program that draws the screen, keeps memory it never gives
+back. Weather pages are the worst: each one can cost it tens of megabytes. Its
+code is no longer maintained, so this won't be fixed there
+([#646](https://github.com/OpenVoiceOS/ovos-installer/issues/646)).
+
+To keep it from filling the memory and slowing the voice down,
+`ovos-gui-watchdog.service` restarts the screen once `ovos-shell` holds more
+than 30% of the RAM (about 550 MB on a Mark II). The screen goes blank for a few
+seconds and comes back on the homescreen. Each restart is logged:
+
+```shell
+journalctl --user -u ovos-gui-watchdog.service   # system scope: sudo journalctl -u ...
+```
+
+To change the limit, run `systemctl --user edit ovos-gui-watchdog.service`
+(`sudo systemctl edit ...` in system scope) and replace the command. The empty
+`ExecStart=` line clears the old one first:
+
+```ini
+[Service]
+ExecStart=
+ExecStart=/home/<you>/.venvs/ovos/bin/ovos-gui-watchdog 700 ovos-gui.service --user
+```
+
+The first argument is megabytes, or a share of the RAM written with a doubled
+percent sign (`40%%`), because systemd reads `%` as the start of a placeholder.
+In system scope, the last argument is `--system`.
+
 ## macOS
 
 macOS uses `launchd`. The installer deploys an `ovos` wrapper command and

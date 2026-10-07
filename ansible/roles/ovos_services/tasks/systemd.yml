@@ -54,6 +54,17 @@
           loop: "{{ ovos_services_managed_units }}"
           notify: Reload Systemd
 
+    # In the virtualenv, which the uninstall removes: it runs as the OVOS user in
+    # either scope, so it needs no place of root's.
+    - name: Install the GUI memory watchdog
+      ansible.builtin.copy:
+        src: ovos-gui-watchdog.sh
+        dest: "{{ ovos_services_venv_path }}/bin/ovos-gui-watchdog"
+        owner: "{{ ovos_installer_user }}"
+        group: "{{ ovos_installer_group }}"
+        mode: "0755"
+      when: ovos_services_enable_gui | bool
+
     - name: Copy OVOS systemd unit files
       vars:
         ovos_installer_systemd_path_user: "{{ ovos_services_systemd_user_path }}"
