@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # After a failed job: what each container went through, what the messagebus and core
-# said last, why any container that restarted or exited did, and whether the kernel
+# said last, why any container that restarted or stopped did, and whether the kernel
 # killed anything for memory. The round trip once lost its bus connection on a
 # containers job and nothing in the dump said why; six alpha skill containers once
 # restarted every few seconds and the dump said only that they had.
@@ -33,13 +33,14 @@ if [ -n "$ids" ]; then
         fi
     done
 
+    # A container can stop with exit code 0 and never restart, and it is still not running.
     # shellcheck disable=SC2086 # one argument per container id
-    docker_cli inspect --format '{{.Name}} {{.RestartCount}} {{.State.ExitCode}}' $ids |
-        while read -r name restarts code; do
+    docker_cli inspect --format '{{.Name}} {{.RestartCount}} {{.State.ExitCode}} {{.State.Status}}' $ids |
+        while read -r name restarts code state; do
             name="${name#/}"
             case "$name" in ovos_messagebus | ovos_core) continue ;; esac
-            if [ "$restarts" != 0 ] || [ "$code" != 0 ]; then
-                echo "== the last of ${name}, restarted ${restarts} times, last exit ${code}"
+            if [ "$restarts" != 0 ] || [ "$code" != 0 ] || [ "$state" = exited ] || [ "$state" = dead ]; then
+                echo "== the last of ${name}, ${state}, restarted ${restarts} times, last exit ${code}"
                 docker_cli logs --tail 60 "$name" 2>&1
             fi
         done
