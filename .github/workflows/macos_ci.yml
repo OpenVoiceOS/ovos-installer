@@ -53,13 +53,14 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: ./.github/scripts/platform_changes.sh macos "$BASE_SHA" >>"$GITHUB_OUTPUT"
 
-      # Homebrew builds its packages for Apple Silicon on macOS 15 and later only.
-      # Intel Macs and macOS 14 are its Tier 3: nothing is built for them any more,
-      # and an install there stops at the first formula without a package (mpg123,
-      # sox, mpv and libomp in October 2026). So the runners are macos-26 and
-      # macos-15. A pull request gets three jobs, the heaviest scenario on the newest
-      # macOS; between them they cover both versions, both channels, both profiles
-      # and both feature sets. main and the nightly schedule run the whole grid.
+      # Intel Macs and macOS 14 are Homebrew's Tier 3: it has stopped building new
+      # packages for Intel and rarely builds them for macOS 14. It will not install a
+      # formula that has none unless told to build it from source, so an install
+      # there stops at the first one (mpg123, sox, mpv and libomp in October 2026).
+      # So the runners are macos-26 and macos-15. A pull request gets three jobs,
+      # the heaviest scenario on the newest macOS; between them they cover both
+      # versions, both channels, both profiles and both feature sets. main and the
+      # nightly schedule run the whole grid.
       - name: Choose the scenario matrix
         id: matrix
         run: |

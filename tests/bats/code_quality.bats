@@ -4452,9 +4452,10 @@ function anchors_of() {
 }
 
 @test "macos_ci_runs_where_homebrew_still_builds_packages" {
-    # Homebrew builds nothing for Intel Macs or macOS 14 any more (its Tier 3), and
-    # an install there stops at the first formula without a package. The macOS
-    # jobs run on the two newest Apple Silicon runners instead.
+    # Homebrew has stopped building packages for Intel Macs and rarely builds them
+    # for macOS 14 (its Tier 3), and it will not install a formula without one
+    # unless told to build it from source. The macOS jobs run on the two newest
+    # Apple Silicon runners instead.
     run grep -F -q "macos-scenario-matrix:" .github/workflows/macos_ci.yml
     assert_success
 
