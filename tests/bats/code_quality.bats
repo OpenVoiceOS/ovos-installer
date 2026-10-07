@@ -1775,6 +1775,20 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 }
 
+@test "setup_creates_files_others_can_read_whatever_umask_it_was_started_under" {
+    # A launcher ran setup.sh under umask 077: the installer virtualenv came out
+    # root's alone, and the first task run as the user failed with "Permission
+    # denied" on its Python. setup.sh sets root's usual umask before it creates
+    # anything, so whoever starts it cannot change that.
+    run awk '
+        /^umask 022$/ && !set { set = NR }
+        /^(detect_user|note_root_ansible_state|delete_log|create_python_venv|state_directory)$/ && !first { first = NR }
+        END { if (!set) { print "no umask 022"; exit 1 }
+              if (first && set > first) { print "umask 022 comes after line " first; exit 1 } }
+    ' setup.sh
+    assert_success
+}
+
 @test "setup_never_removes_roots_ansible_directory_it_did_not_create" {
     # An admin's collections live in /root/.ansible too; setup.sh reads them.
     run bash -c "grep -nE 'rm -rf .*/root/\\.ansible' setup.sh utils/common.sh | grep -v 'ROOT_ANSIBLE_DIR'"
