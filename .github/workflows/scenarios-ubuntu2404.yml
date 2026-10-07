@@ -128,8 +128,16 @@ jobs:
           fi
 
       # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's. And a
+      # virtualenv of the user's own sits in ~/.venvs beside the installer's: the
+      # uninstall used to remove the directory whole, with it.
       - name: Record the machine before the install
-        run: .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv ~/.venvs/users-own
+          printf 'home = /usr/bin\n' >~/.venvs/users-own/pyvenv.cfg
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
 
       - name: Create install scenario file
         shell: bash
@@ -311,8 +319,13 @@ jobs:
           fi
 
       # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's.
       - name: Record the machine before the install
-        run: .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
 
       - name: Create install scenario file
         shell: bash
@@ -497,8 +510,13 @@ jobs:
           fi
 
       # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's.
       - name: Record the machine before the install
-        run: .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
 
       - name: Create install scenario file
         run: |
@@ -648,8 +666,13 @@ jobs:
           sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's.
       - name: Record the machine before the install
-        run: .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
 
       # The satellite gets the credentials of the scenario this repository ships. Its
       # hive is not reachable from here, and does not need to be: this covers the
@@ -738,8 +761,13 @@ jobs:
           sudo apt-get --no-install-recommends install -y bash jq expect whiptail git curl
 
       # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's.
       - name: Record the machine before the install
-        run: .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
 
       - name: Create install scenario file
         run: |
@@ -942,8 +970,13 @@ jobs:
           fi
 
       # Taken before the scenario file exists: the uninstall removes that directory too.
+      # The CI's own pip and uv caches are there first, cache hit or miss: setup.sh
+      # fills them as root under REUSE_CACHED_ARTIFACTS, so on a miss ~/.cache would
+      # otherwise appear during the install and look like the installer's.
       - name: Record the machine before the install
-        run: .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
+        run: |
+          mkdir -p ~/.cache/pip ~/.cache/uv
+          .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
 
       - name: Use the satellite scenario this repository ships
         run: |

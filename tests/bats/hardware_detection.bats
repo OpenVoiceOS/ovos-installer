@@ -825,6 +825,55 @@ EOF
     rm -rf "$RUN_AS_HOME"
 }
 
+@test "function_remove_installer_state_keeps_the_users_own_virtualenvs" {
+    # ~/.venvs was removed whole, and with it every virtualenv the user kept there.
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    VENV_PATH="$RUN_AS_HOME/.venvs/installer"
+    mkdir -p "$RUN_AS_HOME/.venvs/their-project/bin" "$RUN_AS_HOME/.local/state/ovos"
+    STATE_DIRECTORY_CREATED_FROM=""
+
+    run remove_installer_state
+    assert_success
+    [ -d "$RUN_AS_HOME/.venvs/their-project/bin" ]
+    [ ! -e "$RUN_AS_HOME/.local/state/ovos" ]
+    # The state directory's parents were there before this run: they stay.
+    [ -d "$RUN_AS_HOME/.local/state" ]
+
+    # With nothing of the user's in it, ~/.venvs is the installer's and goes.
+    rm -rf "$RUN_AS_HOME/.venvs/their-project"
+    run remove_installer_state
+    assert_success
+    [ ! -e "$RUN_AS_HOME/.venvs" ]
+
+    rm -rf "$RUN_AS_HOME"
+}
+
+@test "function_remove_installer_state_removes_the_directories_this_run_created" {
+    # An uninstall on a machine with nothing installed: state_directory creates
+    # ~/.local/state/ovos again, and nothing else would remove ~/.local.
+    RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
+    RUN_AS="$(id -un)"
+    VENV_PATH="$RUN_AS_HOME/.venvs/installer"
+    function chown() { :; }
+    state_directory
+
+    run remove_installer_state
+    assert_success
+    run find "$RUN_AS_HOME" -mindepth 1
+    assert_output ""
+
+    # Only what this run created: ~/.local with something else in it stays.
+    mkdir -p "$RUN_AS_HOME/.local/bin"
+    state_directory
+    run remove_installer_state
+    assert_success
+    [ -d "$RUN_AS_HOME/.local/bin" ]
+    [ ! -e "$RUN_AS_HOME/.local/state" ]
+
+    unset -f chown
+    rm -rf "$RUN_AS_HOME"
+}
+
 @test "function_state_directory_existing" {
     RUN_AS_HOME="$(mktemp -d /tmp/ovos-installer-bats.XXXXXX)"
     mkdir -p "$RUN_AS_HOME/.local/state/ovos"

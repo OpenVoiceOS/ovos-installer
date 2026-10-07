@@ -2195,6 +2195,31 @@ function apt_ensure() {
     fi
 }
 
+# After an uninstall: the installer's state directory, and what it created to hold
+# its virtualenvs and that state. ~/.venvs goes only once nothing is left in it,
+# because a user's own virtualenvs live there too. The directories on the way to
+# the state directory go only when this run created them (state_directory): an
+# uninstall run on a machine with nothing installed creates them again, and the
+# playbook's footprint record, which takes care of them otherwise, is gone by then.
+function remove_installer_state() {
+    local venv_root="${RUN_AS_HOME}/.venvs"
+    if [ "$(dirname "$VENV_PATH")" = "$venv_root" ]; then
+        rmdir "$venv_root" &>>"$LOG_FILE" || true
+    fi
+
+    local state_directory="${RUN_AS_HOME}/.local/state/ovos"
+    rm -rf "$state_directory"
+    local created_from="${STATE_DIRECTORY_CREATED_FROM:-}"
+    local dir
+    dir="$(dirname "$state_directory")"
+    if [ -n "$created_from" ]; then
+        while [[ "${dir}/" == "${created_from}/"* ]]; do
+            rmdir "$dir" &>>"$LOG_FILE" || break
+            dir="$(dirname "$dir")"
+        done
+    fi
+}
+
 # This function ensures the existence and proper configuration of a
 # local state directory for the OVOS environment. It sets up a
 # specific directory structure and prepares an installer state file for use.

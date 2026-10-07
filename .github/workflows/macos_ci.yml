@@ -180,9 +180,14 @@ jobs:
           fi
 
       # Taken before the scenario file exists: the uninstall removes that directory
-      # too. machine_state.sh needs bash 4, so Homebrew's.
+      # too. machine_state.sh needs bash 4, so Homebrew's. A virtualenv of the user's
+      # own sits in ~/.venvs beside the installer's: the uninstall used to remove the
+      # directory whole, with it.
       - name: Record the machine before the install
-        run: '"$BASH_BIN" .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"'
+        run: |
+          mkdir -p ~/.venvs/users-own
+          printf 'home = /usr/bin\n' >~/.venvs/users-own/pyvenv.cfg
+          "$BASH_BIN" .github/scripts/machine_state.sh snapshot "$RUNNER_TEMP/machine-before"
 
       - name: Create non-interactive scenario
         shell: bash

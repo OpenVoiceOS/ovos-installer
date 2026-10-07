@@ -1741,6 +1741,19 @@ print('constraint=' + cfg['global']['constraint'])
     assert_success
 }
 
+@test "the_ci_proves_an_uninstall_keeps_the_users_own_virtualenvs" {
+    # setup.sh removed ~/.venvs whole after every uninstall, and with it every
+    # virtualenv the user kept beside the installer's. The runners have none, so the
+    # comparison could not see it until the CI planted one before the install.
+    run grep -nE 'rm -rf "?[$][{]?(venv_root|RUN_AS_HOME[}]?/[.]venvs)[}"]*$' setup.sh utils/common.sh
+    assert_failure
+    local workflow
+    for workflow in .github/workflows/scenarios-ubuntu2404.yml .github/workflows/macos_ci.yml; do
+        run grep -c 'mkdir -p .*~/[.]venvs/users-own' "$workflow"
+        assert_output "1"
+    done
+}
+
 @test "a_satellite_uninstall_needs_no_hivemind_credentials" {
     # scenarios/scenario-uninstall.yml uninstalls a satellite and names no hive, and
     # the satellite assertion runs on every play: it stopped that uninstall before
@@ -3591,9 +3604,10 @@ function anchors_of() {
 }
 
 @test "setup_successful_uninstall_clears_tui_state_directory" {
-    local file="setup.sh"
-
-    run grep -F -q 'rm -rf "${RUN_AS_HOME}/.local/state/ovos"' "$file"
+    # remove_installer_state does it; hardware_detection.bats runs it for real.
+    run grep -E -q '^      remove_installer_state$' setup.sh
+    assert_success
+    run grep -F -q 'local state_directory="${RUN_AS_HOME}/.local/state/ovos"' utils/common.sh
     assert_success
 }
 
