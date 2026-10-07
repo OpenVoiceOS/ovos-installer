@@ -76,10 +76,8 @@ ovos_installer_xhost_package_fedora: xhost
 ovos_installer_xhost_package_default: xorg-x11-server-utils
 ovos_installer_x11_xserver_utils_package: x11-xserver-utils
 ovos_installer_ovos_docker_repo_url: https://github.com/OpenVoiceOS/ovos-docker.git
-# Pinned so containers-mode installs are reproducible; bump on new releases. A commit
-# until the release after v2.1.0 exists: OpenVoiceOS/ovos-docker#200 and #201 give the
-# listener and audio services the model volumes and memory limits local speech needs.
-ovos_installer_ovos_docker_repo_branch: 4337c798a3d425a6fbe3db5785c828a67b8dbb2f
+# Pinned to an ovos-docker release so containers-mode installs are reproducible; bump on new releases.
+ovos_installer_ovos_docker_repo_branch: v2.2.0
 ovos_installer_hivemind_docker_repo_url: https://github.com/JarbasHiveMind/hivemind-docker.git
 # v2.0.0 predates hivemind-docker#45, without which a satellite has no mount for
 # ~/.config/hivemind: an identity written by "hivemind-client set-identity" in the
