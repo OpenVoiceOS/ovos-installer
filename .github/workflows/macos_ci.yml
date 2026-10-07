@@ -371,10 +371,13 @@ jobs:
           sudo tail -n 200 /var/log/ovos-installer.log || true
           # A formula that would not link says only "the brew link step did not
           # complete successfully" through Ansible. Homebrew's own view says why: what
-          # it left unlinked, what sits under its prefix that it does not manage, and
-          # what python@3.14, the one that would not link, collides with.
+          # sits under its prefix that it does not manage, and which installed formula
+          # is not fully linked and what it collides with.
           brew doctor 2>&1 | tail -n 60 || true
-          brew link --dry-run --overwrite python@3.14 2>&1 | tail -n 40 || true
+          # shellcheck disable=SC2046 # one argument per installed formula
+          brew link --dry-run $(brew list --formula -1) 2>&1 |
+            grep -v -E 'Already linked|To relink|brew unlink|keg-only|Refusing to link|^$' |
+            head -n 80 || true
           brew_bin="$(brew --prefix)/bin"
-          ls -la "$brew_bin"/python* "$brew_bin"/pip* "$brew_bin"/idle* "$brew_bin"/pydoc* 2>/dev/null || true
+          ls -la "$brew_bin"/gfortran* "$brew_bin"/gcc* "$brew_bin"/g++* "$brew_bin"/python3* 2>/dev/null || true
           sudo tail -n 200 /var/log/ovos-ansible.log || true
