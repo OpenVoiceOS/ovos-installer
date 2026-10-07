@@ -5207,6 +5207,13 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     # ovos_listener, and the uninstall takes the model volumes away.
     run grep -qF '.github/scripts/assert_local_speech.sh --containers' "$workflow"
     assert_success
+
+    # The running services are asked too, not only the file: a mycroft.conf that
+    # names the local plugins passes every check on the file while services that
+    # never reloaded it stay on the public servers.
+    [ -x .github/scripts/assert_local_speech_bus.py ]
+    run grep -qF 'assert_local_speech_bus.py' .github/scripts/assert_local_speech.sh
+    assert_success
     run grep -qF 'the uninstall left the ${volume} volume behind' "$workflow"
     assert_success
 }
