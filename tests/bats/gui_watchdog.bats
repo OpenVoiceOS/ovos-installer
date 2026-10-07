@@ -1,14 +1,14 @@
 #!/usr/bin/env bats
 #
-# ovos-gui-watchdog: ovos-shell keeps memory it never gives back (#646), so the GUI
-# installs run this beside it to kill the shell once it holds too much, and let the
-# GUI unit's Restart=on-failure start a fresh one.
+# ovos-gui-watchdog: ovos-shell keeps memory it never gives back (#646), so a Mark II
+# or DevKit with the GUI on runs this beside it, to kill the shell once it holds too
+# much and let the GUI unit's Restart=on-failure start a fresh one.
 
 function setup() {
     load "$HOME/shell-testing/test_helper/bats-support/load"
     load "$HOME/shell-testing/test_helper/bats-assert/load"
 
-    WATCHDOG="$BATS_TEST_DIRNAME/../../ansible/roles/ovos_services/files/ovos-gui-watchdog.sh"
+    WATCHDOG="$BATS_TEST_DIRNAME/../../ansible/roles/ovos_hardware_mark2/files/ovos-gui-watchdog.sh"
     FAKE="$(mktemp -d)"
     mkdir -p "$FAKE/bin" "$FAKE/proc"
     printf 'MemTotal:        1890304 kB\n' >"$FAKE/proc/meminfo"
