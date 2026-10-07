@@ -16,6 +16,8 @@ Environment=HOME={{ ovos_installer_user_home }}
 ExecStart={{ ovos_services_venv_path }}/bin/ovos-gui-watchdog {{ ovos_services_gui_memory_limit | string | replace('%', '%%') }} ovos-gui.service {{ '--system' if _ovos_system_scope else '--user' }}
 Restart=always
 RestartSec=30s
+# Exit status 2 is a limit the watchdog refuses: restarting cannot fix it.
+RestartPreventExitStatus=2
 
 [Install]
 WantedBy=ovos.service

@@ -63,9 +63,11 @@ ExecStart=
 ExecStart=/home/<you>/.venvs/ovos/bin/ovos-gui-watchdog 700 ovos-gui.service --user
 ```
 
-The first argument is megabytes, or a share of the RAM written with a doubled
-percent sign (`40%%`), because systemd reads `%` as the start of a placeholder.
-In system scope, the last argument is `--system`.
+The first argument is a whole number of megabytes, or a share of the RAM from
+1% to 100% written with a doubled percent sign (`40%%`), because systemd reads
+`%` as the start of a placeholder. In system scope, the last argument is
+`--system`. The watchdog refuses any other limit and stops, rather than
+restarting the screen in a loop: `systemctl status` then says why.
 
 ## macOS
 

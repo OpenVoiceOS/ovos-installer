@@ -103,3 +103,34 @@ function shell_alive() {
     assert_output ""
     shell_alive
 }
+
+@test "gui watchdog: a limit it cannot use stops it instead of killing the shell" {
+    # Read as zero, these would kill the shell every minute; "30 MB" would make
+    # the arithmetic fail and the watchdog never act.
+    shell_uses 900000 0
+    local limit
+    for limit in 0 '0%' 'abc%' '30 MB' '101%' '50%%' '-5' '' '1234567890'; do
+        run_watchdog "$limit" ovos-gui.service --user
+        assert_equal "$status" 2
+        assert_output --partial "is not a usable limit"
+        shell_alive
+    done
+}
+
+@test "gui watchdog: a share of the RAM goes from 1% to 100%, and megabytes from 1" {
+    shell_uses 1000 0
+    local limit
+    for limit in '1%' '100%' 1 '007'; do
+        run_watchdog "$limit" ovos-gui.service --user
+        assert_success
+        shell_alive
+    done
+}
+
+@test "gui watchdog: without a readable MemTotal a share cannot be worked out" {
+    rm "$FAKE/proc/meminfo"
+    shell_uses 900000 0
+    run_watchdog '30%' ovos-gui.service --user
+    assert_equal "$status" 2
+    shell_alive
+}

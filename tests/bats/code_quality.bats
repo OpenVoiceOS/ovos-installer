@@ -1755,6 +1755,9 @@ YAML
     assert_output "ExecStart=/home/ovos/.venvs/ovos/bin/ovos-gui-watchdog 30%% ovos-gui.service --system"
     run grep '^User=' "$out/system.service"
     assert_output "User=ovos"
+    # A limit the watchdog refuses stops it; restarting it would not fix the limit.
+    run grep '^RestartPreventExitStatus=2$' "$out/user.service"
+    assert_success
     rm -rf "$play" "$out"
 }
 
