@@ -115,6 +115,21 @@
     follow: false
   when: not (ovos_virtualenv_is_cleaning | bool)
 
+# The PHAL admin service runs as root on this virtualenv, and Python wrote its
+# bytecode there as root. uv installs as the user, so it could not replace a package
+# that had some: "failed to remove directory .../numpy/__pycache__: Permission
+# denied" on a Mark II. Anything in the virtualenv that is not the user's brings the
+# ownership below back into line; finding one is cheap, walking them all is not.
+- name: Look for anything in the OVOS virtualenv that is not the user's
+  ansible.builtin.command:
+    argv: [find, "{{ ovos_virtualenv_path }}", "!", "-user", "{{ ovos_installer_user }}", "-print", "-quit"]
+  register: ovos_virtualenv_not_users
+  changed_when: false
+  failed_when: false
+  # It only reads, so a dry run sees the same answer.
+  check_mode: false
+  when: not (ovos_virtualenv_is_cleaning | bool)
+
 - name: Ensure OVOS virtualenv ownership is aligned before package installs
   ansible.builtin.file:
     path: "{{ ovos_virtualenv_path }}"
@@ -124,7 +139,9 @@
     recurse: true
   when:
     - not (ovos_virtualenv_is_cleaning | bool)
-    - ovos_virtualenv_repair_ownership | bool or (ovos_virtualenv_venv_create is changed)
+    - >-
+      ovos_virtualenv_repair_ownership | bool or (ovos_virtualenv_venv_create is changed)
+      or (ovos_virtualenv_not_users.stdout | default('') | length > 0)
 
 - name: Ensure pip is available in OVOS venv
   become: true

@@ -37,5 +37,10 @@ while ! [ -d "$combo_locks_path" ]; do
     fi
 done
 
+# Root, on the user's virtualenv: bytecode written now would be root's, inside the
+# user's packages, and the next install, which runs as the user, could not replace
+# a package that has some.
+export PYTHONDONTWRITEBYTECODE=1
+
 # Starts ovos_PHAL_admin Python binary
 {{ ovos_services_venv_path }}/bin/ovos_PHAL_admin

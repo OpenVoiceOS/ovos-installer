@@ -1173,6 +1173,16 @@ print('constraint=' + cfg['global']['constraint'])
 
     run bash -c "awk '/Ensure OVOS virtualenv ownership is aligned before package installs/{owner_line=NR} /Ensure runtime bootstrap Python libraries are installed/{runtime_bootstrap_line=NR} END{exit !(owner_line>0 && runtime_bootstrap_line>0 && owner_line<runtime_bootstrap_line)}' \"$file\""
     assert_success
+
+    # Not only for a new virtualenv or on request: root's bytecode, left by the PHAL
+    # admin service, stopped a Mark II install when uv could not replace numpy.
+    run bash -c "grep -A12 -F -- \"- name: Ensure OVOS virtualenv ownership is aligned before package installs\" \"$file\" | grep -F -q -- \"ovos_virtualenv_not_users.stdout | default('') | length > 0\""
+    assert_success
+    run bash -c "grep -A4 -F -- \"- name: Look for anything in the OVOS virtualenv that is not the user's\" \"$file\" | grep -F -q -- '\"!\", \"-user\", \"{{ ovos_installer_user }}\"'"
+    assert_success
+    # And the service stops leaving it.
+    run grep -q '^export PYTHONDONTWRITEBYTECODE=1$' ansible/roles/ovos_services/templates/virtualenv/wrapper-ovos-phal-admin.sh.j2
+    assert_success
 }
 
 @test "ovos_config_defaults_guard_ansible_facts_system_references" {
@@ -1772,6 +1782,20 @@ print('constraint=' + cfg['global']['constraint'])
         /HOMEBREW_NO_AUTOREMOVE/ { guarded = 1 }
         END { check(); exit bad }
     ' ansible/roles/*/tasks/*.yml
+    assert_success
+}
+
+@test "setup_creates_files_others_can_read_whatever_umask_it_was_started_under" {
+    # A launcher ran setup.sh under umask 077: the installer virtualenv came out
+    # root's alone, and the first task run as the user failed with "Permission
+    # denied" on its Python. setup.sh sets root's usual umask before it creates
+    # anything, so whoever starts it cannot change that.
+    run awk '
+        /^umask 022$/ && !set { set = NR }
+        /^(detect_user|note_root_ansible_state|delete_log|create_python_venv|state_directory)$/ && !first { first = NR }
+        END { if (!set) { print "no umask 022"; exit 1 }
+              if (first && set > first) { print "umask 022 comes after line " first; exit 1 } }
+    ' setup.sh
     assert_success
 }
 
