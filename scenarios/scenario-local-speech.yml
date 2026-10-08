@@ -1,0 +1,12 @@
+---
+uninstall: false
+method: virtualenv
+channel: alpha
+profile: ovos
+features:
+  skills: true
+  extra_skills: false
+raspberry_pi_tuning: true
+share_telemetry: true
+share_usage_telemetry: true
+speech_engine: local

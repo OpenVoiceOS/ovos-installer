@@ -82,8 +82,16 @@
 
     - name: Enable and start OVOS and/or HiveMind systemd units
       vars:
+        # Local speech rewrites mycroft.conf after the template, and by replacing it,
+        # which running services do not notice: a run that switches to it, or changes
+        # what it picked, restarts them too.
         ovos_installer_systemd_state: >-
-          {{ 'restarted' if (ovos_config_configuration.changed | default(false)) | bool else 'started' }}
+          {{
+            'restarted'
+            if (ovos_config_configuration.changed | default(false)) | bool
+               or (ovos_config_speech_configuration.changed | default(false)) | bool
+            else 'started'
+          }}
         ovos_installer_ovos_scope: "{{ ovos_installer_systemd_scope | default('user') }}"
         ovos_installer_ovos_unit_user: "{{ 'root' if ovos_installer_ovos_scope == 'system' else ovos_installer_user }}"
         ovos_services_unit_user: "{{ 'root' if item.scope == 'system' else ovos_installer_ovos_unit_user }}"

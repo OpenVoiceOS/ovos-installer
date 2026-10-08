@@ -161,6 +161,15 @@ ovos_containers_uninstall_name_prefixes:
 # use an "ovos_" name prefix.
 ovos_containers_uninstall_name_excludes: >-
   {{ ovos_installer_uninstall_name_excludes | default(['ovos_stt', 'ovos_tts']) }}
+# Volumes ovos-docker's own compose files declare whose names happen to match an
+# exclude pattern: the on-device speech models (gigabytes) and the TTS cache. They
+# belong to the stack, so the sweep removes them like its other volumes. Without
+# this, they only went while the composition directory existed - an uninstall
+# after a reboot left them behind.
+ovos_containers_uninstall_volume_exceptions:
+  - ovos_stt_models
+  - ovos_tts_models
+  - ovos_tts_cache
 # Remove the images backing the removed containers. Follows the docker-compose
 # "remove_images" setting so both removal paths behave the same way.
 ovos_containers_uninstall_remove_images: >-
@@ -181,6 +190,13 @@ ovos_containers_hivemind_client_ids: >-
   {{ ovos_containers_hivemind_clients.stdout_lines | default([])
      | select('match', '^[0-9]+,') | map('split', ',') | map('first') | list }}
 ovos_containers_container_ovos_cli: ovos_cli
+ovos_containers_container_ovos_listener: ovos_listener
+ovos_containers_container_ovos_audio: ovos_audio
+# Local speech (ovos_installer_speech_engine: local) raises the limits ovos-docker
+# gives the listener and the audio service: onnx-asr's recognition model alone
+# peaks around 1.2 GB, and some languages get larger models than that.
+ovos_containers_speech_listener_memory_limit: "{{ ovos_installer_speech_listener_memory_limit | default('4G') }}"
+ovos_containers_speech_audio_memory_limit: "{{ ovos_installer_speech_audio_memory_limit | default('1G') }}"
 # Service and container names from ovos-docker's docker-compose.skills-extra.yml.
 # Keep them overridable in case upstream changes.
 ovos_containers_service_skill_homeassistant: ovos_skill_homeassistant

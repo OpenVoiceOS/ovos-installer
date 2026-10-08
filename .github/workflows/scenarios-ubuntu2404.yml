@@ -245,6 +245,32 @@ jobs:
         feature_set:
           - minimal
           - all
+        speech_engine:
+          - public
+        # Local speech is alpha only. Both runners have the 16 GB and the AVX2/NEON the
+        # installer's hardware check asks for, so a run that falls back to public here
+        # is a regression, not a runner limit.
+        include:
+          - runner: ubuntu-24.04
+            method: virtualenv
+            channel: alpha
+            feature_set: all
+            speech_engine: local
+          - runner: ubuntu-24.04-arm
+            method: virtualenv
+            channel: alpha
+            feature_set: all
+            speech_engine: local
+          - runner: ubuntu-24.04
+            method: containers
+            channel: alpha
+            feature_set: all
+            speech_engine: local
+          - runner: ubuntu-24.04-arm
+            method: containers
+            channel: alpha
+            feature_set: all
+            speech_engine: local
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 120
@@ -345,6 +371,7 @@ jobs:
           raspberry_pi_tuning: false
           share_telemetry: false
           share_usage_telemetry: false
+          speech_engine: ${{ matrix.speech_engine }}
           EOF
 
       - name: Run installer scenario exhaustive
@@ -409,6 +436,15 @@ jobs:
           .github/scripts/assert_intent_roundtrip.sh \
             --utterance "what time is it" --expect-speak \
             --ready-timeout 420 --reply-timeout 120 --speak-timeout 120
+
+      - name: Validate speech runs on the device
+        if: matrix.speech_engine == 'local'
+        run: |
+          if [ "${{ matrix.method }}" = "containers" ]; then
+            .github/scripts/assert_local_speech.sh --containers
+          else
+            .github/scripts/assert_local_speech.sh "$HOME/.venvs/ovos/bin/python"
+          fi
 
       - name: Create uninstall scenario file
         shell: bash

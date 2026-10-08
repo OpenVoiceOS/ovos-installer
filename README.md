@@ -1,3 +1,5 @@
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Clarify that on-device speech includes a public-server fallback.
+
 # Open Voice OS Installer
 
 **Your own voice assistant, on your own hardware.** Open source,
@@ -24,6 +26,11 @@ speech, skills, services, the lot.
 - **Give it a brain.** An optional LLM fallback answers what the skills do not,
   pointed at whichever OpenAI-compatible endpoint you like — including one you
   host yourself.
+- **Run speech on your device.** On a Raspberry Pi 5 with 8 GB, or anything at
+  least as capable, recognition and the assistant's voice can run locally on
+  the alpha channel. Failed or empty recognition sends the recording to public
+  servers. If a local model cannot run, that part uses public speech instead.
+  This is not a fully offline mode. See [speech settings](docs/automation.md#scenario-settings).
 - **Put it in every room.** HiveMind satellites share a single assistant across
   several devices, so the Pi in the hallway and the one in the kitchen are the
   same assistant.

@@ -2,6 +2,11 @@
 ovos_telemetry_feature_gui: "{{ ovos_installer_feature_gui | default(false) }}"
 ovos_telemetry_feature_homeassistant: "{{ ovos_installer_feature_homeassistant | default(false) }}"
 ovos_telemetry_feature_llm: "{{ ovos_installer_feature_llm | default(false) }}"
+# Where speech ended up, not what was asked for: a locale the installed
+# ovos-config recommends no on-device model for stays public when local was
+# picked. ovos_config/tasks/speech.yml sets these; every other run is public.
+ovos_telemetry_stt_engine: "{{ ovos_config_speech_stt_engine | default('public') }}"
+ovos_telemetry_tts_engine: "{{ ovos_config_speech_tts_engine | default('public') }}"
 
 ovos_telemetry_geoip_url: http://ip-api.com/json
 ovos_telemetry_url: "https://telemetry.smartgic.io/ovos-installer/metrics/"

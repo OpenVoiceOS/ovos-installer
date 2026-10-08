@@ -54,14 +54,25 @@
     "content_key": "Ttxil, sekcem-d tsarut n umesseflid n HiveMind yeqqnen ɣer ugensa-nni:",
     "content_password": "Ttxil, sekcem-d awal n uɛeddi n umesseflid HiveMind yeqqnen ɣer ugensa-nni:"
   },
+  "speech.sh": {
+    "title": "Asbeddi n Open Voice OS - Taɣect",
+    "content": "Open Voice OS yettbeddil taɣect ɣer uḍris (aɛqal) yerna yeqqar-d tiririyin s taɣect (asuddes).\n\n  - local: tamacint-a s yiqeddacen izayazen d tallalt. Ad d-yessader timudmin n taɣect (seg yimiḍ n MB alamma d kra n GB). Ma yecceḍ uɛqal adigan neɣ ur d-yerri ara aḍris, asekles-nni ad yettwazen ɣer yiqeddacen izayazen. Ma ur yezmir ara ad yesbedd aɛqal neɣ asuddes adigan, aḥric-nni ad yesseqdec iqeddacen izayazen; amesbeddi ad d-yefk talɣut ɣef waya.\n  - public: iqeddacen n temɣiwant senfaren iseklasen-ik d tririyin n taɣect s Internet. Iqeddacen-a n tallalt ttwasefraken s lebɣi, mačči d ameẓlu n tfalit: zemren ad ẓẓayen neɣ ad ḥbesen melmi tebɣu tili.\n\nTtxil-k fren anida ara tettwasenfar taɣect:",
+    "local_description": "Tamacint-a s yiqeddacen izayazen d tallalt",
+    "public_description": "Iqeddacen izayazen (ẓriɣ zemren ad ḥbesen)"
+  },
   "summary.sh": {
     "title": "Asbeddi n Open Voice OS - Agzul",
-    "content": "Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS\n\n    - Tarrayt:   ${METHOD:-}\n    - Lqem:  ${CHANNEL:-}\n    - Amaɣnu:  ${PROFILE:-}\n    - Tussniwin:  ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Tussniwin timernanin:  ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:  ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:  ${LLM_SUMMARY_STATE:-}\n    - Tamellit:   ${TUNING_SUMMARY_STATE:-}\n\nIfranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.\n\nYettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren ${BACK_BUTTON:-} akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.",
+    "content": "Qrib ad tekfuḍ, ha-t-an ugzul n textiṛiyin i tgiḍ akken ad tesbeddeḍ anagraw n Open Voice OS\n\n    - Tarrayt:   ${METHOD:-}\n    - Lqem:  ${CHANNEL:-}\n    - Amaɣnu:  ${PROFILE:-}\n    - Tussniwin:  ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Tussniwin timernanin:  ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:  ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:  ${LLM_SUMMARY_STATE:-}\n    - Taɣect: ${SPEECH_SUMMARY_STATE:-}\n    - Tamellit:   ${TUNING_SUMMARY_STATE:-}\n\nIfranen i d-yettwaxedmen deg ukala n usbeddi n Open Voice OS ttwafernen s ttawil akked ufeṣṣel i wakken ad yeddu unagraw-nneɣ akken i teḥwaǧeḍ.\n\nYettban-ak-d iṣeḥḥa ugzul-a? Ma ulac, fren ${BACK_BUTTON:-} akken ad tuɣaleḍ ɣer deffir ad tbeddleḍ.",
     "state_enabled": "d urmid",
     "state_disabled": "d arurmid",
     "state_unsupported_profile": "yettawfran (ur yettwasefrek ara deg umaɣnu-a)",
     "state_missing_url": "yettwafran (txuṣṣ URL; as yettwazgal)",
-    "state_missing_configuration": "yettwafran (txuṣṣ tawila; as yettwazgal)"
+    "state_missing_configuration": "yettwafran (txuṣṣ tawila; as yettwazgal)",
+    "speech_local": "ɣef tmacint-a s yiqeddacen izayazen d tallalt",
+    "speech_public": "iqeddacen izayazen",
+    "speech_public_hardware": "iqeddacen izayazen (adigan: Pi 5 s 8 GB neɣ ugar)",
+    "speech_public_setup": "iqeddacen izayazen (adigan ulac-it dagi)",
+    "speech_unused": "ur yettwaseqdac ara deg umaɣnu-a"
   },
   "telemetry.sh": {
     "title": "Asbeddi n Open Voice OS - Aktili",

@@ -2967,7 +2967,17 @@ YAML
     run grep -F -q "{{ ovos_installer_ovos_config_tts_gender }}" "$container_tasks"
     assert_success
 
-    run bash -c "awk '/ovos-config autoconfigure --lang/ { in_command=1 } in_command { print } in_command && /ovos_installer_ovos_config_tts_gender/ { exit }' \"$container_tasks\" | grep -F -q -- '--online'"
+    # Always --online. Never neither: autoconfigure then goes hybrid (the voice on the
+    # device, recognition on the public servers), which is not one of the two speech
+    # choices the installer offers. And never --offline, not even for local speech:
+    # local speech replaces each half it proves works afterwards, and --offline would
+    # leave a half that fails on the offline recommendation that just failed - a
+    # Spanish voice phoonnx cannot speak, and a mute device.
+    run grep -F -q "ovos-config autoconfigure --lang {{ ovos_installer_locale }} --online" "$container_tasks"
+    assert_success
+    run bash -c "awk '/Merge ovos-config language recommendations into mycroft.conf/,/changed_when/' '$virtualenv_tasks' | grep -q -- '- --online$'"
+    assert_success
+    run bash -c "grep -h -v '^[[:space:]]*#' '$container_tasks' '$virtualenv_tasks' | grep -q -- '--offline'"
     assert_failure
 
     run grep -F -q "ovos_installer_ovos_config_autoconfigure_enabled | default(false) | bool" "$container_tasks"
@@ -3019,7 +3029,7 @@ YAML
     run grep -q "SCENARIO_ALLOWED_FEATURES=(skills extra_skills gui homeassistant llm)" utils/constants.sh
     assert_success
 
-    run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)" utils/constants.sh
+    run grep -q "SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm speech_engine)" utils/constants.sh
     assert_success
 
     run grep -q "SCENARIO_ALLOWED_LLM_OPTIONS=(api_url key model persona max_tokens temperature top_p)" utils/constants.sh
@@ -3603,7 +3613,7 @@ function anchors_of() {
     run grep -q 'export HARDWARE_CONFIRMATION="\${HARDWARE_CONFIRMATION:-}"' utils/argparse.sh
     assert_success
 
-    run grep -q 'declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm)' utils/constants.sh
+    run grep -q 'declare -ra SCENARIO_ALLOWED_OPTIONS=(features channel hardware share_telemetry share_usage_telemetry profile method uninstall raspberry_pi_tuning hivemind llm speech_engine)' utils/constants.sh
     assert_success
 
     run grep -q 'hardware)' utils/scenario.sh
@@ -5427,5 +5437,133 @@ for template in ('core-requirements.txt.j2', 'satellite-requirements.txt.j2'):
     # "ValueError: Model not found" and the install has no wake word. Naming the model
     # precise-onnx would download anyway keeps that out, on every channel.
     run bash -c "grep -A14 -F '\"module\": \"ovos-ww-plugin-precise-onnx\",' '$conf_file' | grep -q '\"model\": \"https://'"
+    assert_success
+}
+
+@test "local_speech_is_wired_from_requirements_to_telemetry" {
+    # The plugins are only installed when local speech was chosen, and onnx-asr
+    # needs its hub extra: without huggingface_hub it cannot fetch a model at all.
+    local requirements
+    for requirements in core-requirements satellite-requirements; do
+        local file="ansible/roles/ovos_virtualenv/templates/virtualenv/${requirements}.txt.j2"
+        run bash -c "awk \"/ovos_installer_speech_engine/,/endif/\" '$file'"
+        assert_output --partial "ovos-stt-plugin-onnx-asr"
+        assert_output --partial "onnx-asr[cpu,hub]"
+        assert_output --partial "phoonnx"
+    done
+
+    # The models come from the ovos-config installed in the virtualenv, so the
+    # speech configuration runs after the install and only for local speech.
+    local venv_tasks="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    run grep -q "tasks_from: speech.yml" "$venv_tasks"
+    assert_success
+    run bash -c "awk '/Configure local speech/,0' '$venv_tasks' | grep -q \"ovos_installer_speech_engine | default('public')) == 'local'\""
+    assert_success
+
+    # Only what speech_setup.py proved works here is written - it also downloads the
+    # models, within a memory budget - and the public STT server stays as the fallback.
+    local speech_tasks="ansible/roles/ovos_config/tasks/speech.yml"
+    run grep -q "speech_setup.py" "$speech_tasks"
+    assert_success
+    run grep -q "ovos_config_speech_stt_memory_budget_mb" "$speech_tasks"
+    assert_success
+    run grep -q "'fallback_module': ovos_config_speech_stt_fallback" "$speech_tasks"
+    assert_success
+    run grep -q "^ovos_config_speech_stt_fallback: ovos-stt-plugin-server$" ansible/roles/ovos_config/defaults/main.yml
+    assert_success
+
+    # A re-run keeps the sections the last run wrote instead of dropping them.
+    run grep -q "ovos_config_speech_current" ansible/roles/ovos_config/templates/mycroft.conf.j2
+    assert_success
+
+    # Running services only reload a mycroft.conf rewritten in place, and the speech
+    # write replaces it, so a run that changes it restarts the systemd units too.
+    run bash -c "grep -A8 'ovos_installer_systemd_state:' ansible/roles/ovos_services/tasks/systemd.yml | grep -q 'ovos_config_speech_configuration.changed'"
+    assert_success
+    run grep -q "register: ovos_config_speech_configuration" "$speech_tasks"
+    assert_success
+
+    # Telemetry reports where speech ended up, and uninstall removes the models.
+    local telemetry="ansible/roles/ovos_telemetry/tasks/main.yml"
+    run grep -q 'stt_engine: "{{ ovos_telemetry_stt_engine }}"' "$telemetry"
+    assert_success
+    run grep -q 'tts_engine: "{{ ovos_telemetry_tts_engine }}"' "$telemetry"
+    assert_success
+    run grep -q "local_speech_capable:" "$telemetry"
+    assert_success
+    run grep -q "/.local/share/ovos_stt_plugin_onnxasr" ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+}
+
+@test "local_speech_is_exercised_by_scenarios" {
+    # The example scenario asks for local speech where it is available.
+    local scenario="scenarios/scenario-local-speech.yml"
+    run grep -qE '^speech_engine: local$' "$scenario"
+    assert_success
+    run grep -qE '^channel: alpha$' "$scenario"
+    assert_success
+    run grep -qE '^method: virtualenv$' "$scenario"
+    assert_success
+
+    # The nightly matrix installs it through a scenario file, then checks that the
+    # device speaks and hears without the public servers. That the uninstall takes
+    # the models away, their directories or their volumes, is proven by the machine
+    # comparison after every uninstall
+    # (every_ci_job_that_uninstalls_proves_the_machine_was_given_back).
+    local workflow=".github/workflows/scenarios-ubuntu2404.yml"
+    run grep -qF 'speech_engine: ${{ matrix.speech_engine }}' "$workflow"
+    assert_success
+    run grep -qF '.github/scripts/assert_local_speech.sh' "$workflow"
+    assert_success
+    [ -x .github/scripts/assert_local_speech.sh ]
+
+    # Containers too: the voice speaks in ovos_audio and the listener hears it in
+    # ovos_listener.
+    run grep -qF '.github/scripts/assert_local_speech.sh --containers' "$workflow"
+    assert_success
+
+    # The running services are asked too, not only the file: a mycroft.conf that
+    # names the local plugins passes every check on the file while services that
+    # never reloaded it stay on the public servers.
+    [ -x .github/scripts/assert_local_speech_bus.py ]
+    run grep -qF 'assert_local_speech_bus.py' .github/scripts/assert_local_speech.sh
+    assert_success
+}
+
+@test "local_speech_reaches_containers_only_when_ovos_docker_can_run_it" {
+    local composer="ansible/roles/ovos_containers/tasks/composer.yml"
+
+    # The compose of the pinned release must give the listener room for the model and a
+    # volume to keep it in, and the pulled images must carry both plugins; short of
+    # either, containers stay public instead of OOM-killing or crash-looping the listener.
+    run grep -F -q "'LISTENER_MEMORY_LIMIT' in _compose and 'ovos_stt_models' in _compose" "$composer"
+    assert_success
+    run grep -F -q "'ovos-stt-plugin-onnx-asr' in find_stt_plugins()" "$composer"
+    assert_success
+    run grep -F -q "'ovos-tts-plugin-phoonnx' in find_tts_plugins()" "$composer"
+    assert_success
+
+    # Local speech is configured through the same tasks as the virtualenv, run in the
+    # cli, listener and audio containers.
+    run bash -c "awk '/- name: Configure local speech/,/- name: Compute optional skills flags/' '$composer' | grep -q 'ovos_config_speech_containers:'"
+    assert_success
+    run grep -q "^ovos_containers_container_ovos_listener: ovos_listener$" ansible/roles/ovos_containers/defaults/main.yml
+    assert_success
+    run grep -q "^ovos_containers_container_ovos_audio: ovos_audio$" ansible/roles/ovos_containers/defaults/main.yml
+    assert_success
+
+    # The listener and audio service are up before local speech replaces
+    # mycroft.conf, and they do not see a replaced file: they are restarted when it
+    # changed, or they would stay on the public servers until the next boot.
+    run bash -c "awk '/- name: Restart the listener and audio services on their local speech/,/- name: Compute optional skills flags/' '$composer' | grep -q 'state: restarted'"
+    assert_success
+    run bash -c "awk '/- name: Restart the listener and audio services on their local speech/,/- name: Compute optional skills flags/' '$composer' | grep -q 'ovos_config_speech_configuration is changed'"
+    assert_success
+
+    # The raised limits only go into .env when local speech was asked for.
+    local env_template="ansible/roles/ovos_containers/templates/docker/env.j2"
+    run bash -c "grep -B1 '^LISTENER_MEMORY_LIMIT=' '$env_template' | grep -q \"ovos_installer_speech_engine | default('public')) == 'local'\""
+    assert_success
+    run bash -c "grep -B1 '^AUDIO_MEMORY_LIMIT=' '$env_template' | grep -q \"ovos_installer_speech_engine | default('public')) == 'local'\""
     assert_success
 }

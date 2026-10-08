@@ -1,3 +1,5 @@
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document public fallbacks for local speech scenarios.
+
 # Automation
 
 Installing without answering questions, for scripted installs or several
@@ -27,7 +29,9 @@ EOF
 ```
 
 Then run the installer as usual. More examples live in
-[scenarios/](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scenarios).
+[scenarios/](https://github.com/OpenVoiceOS/ovos-installer/tree/main/scenarios),
+including one that runs speech recognition and the voice on a Raspberry Pi 5
+([scenario-local-speech.yml](https://github.com/OpenVoiceOS/ovos-installer/blob/main/scenarios/scenario-local-speech.yml)).
 
 ## Scenario settings
 
@@ -44,9 +48,17 @@ Then run the installer as usual. More examples live in
 | `llm.key` | API key for that endpoint, required with `features.llm` |
 | `llm.model` | Model name to use, required with `features.llm` |
 | `llm.persona` | System prompt for `ovos-persona`, required with `features.llm` |
+| `speech_engine` | `public` (the default) uses community servers, which can go offline at any time. `local` runs speech on the device **with public fallback**: failed or empty recognition sends the recording to public servers, and recognition or voice synthesis uses public servers entirely if its local model cannot run. The installer reports any setup fallback. Local needs the `alpha` channel, a profile with audio (with `containers`, `ovos` or `listener`) and a Raspberry Pi 5 with 8 GB or an equivalent machine; anywhere else the installer uses `public`. This is not a fully offline mode. |
 | `raspberry_pi_tuning` | Maximum-performance tuning for a Pi, including an overclocking prompt |
 | `share_telemetry` | Share anonymous usage statistics — see [Telemetry](telemetry.md) |
 | `share_usage_telemetry` | Share detailed usage data — see [Telemetry](telemetry.md) |
+
+Speech candidates are checked by `first_working()` in
+[speech_setup.py](../ansible/roles/ovos_config/files/speech_setup.py).
+Its `with_public_fallback()` preserves the locale's public server settings;
+[speech.yml](../ansible/roles/ovos_config/tasks/speech.yml) applies the working
+models and reports which parts remain public. Regression coverage lives in
+[`SpeechSetupTest`](../scripts/test_speech_setup.py).
 
 ## Environment variables
 

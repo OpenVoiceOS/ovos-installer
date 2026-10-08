@@ -81,6 +81,10 @@ while [ "$tui_step_index" -lt "${#TUI_FLOW[@]}" ]; do
         # shellcheck source=tui/satellite/main.sh
         source tui/satellite/main.sh
         ;;
+    speech)
+        # shellcheck source=tui/speech.sh
+        source tui/speech.sh
+        ;;
     tuning)
         # shellcheck source=tui/tuning.sh
         source tui/tuning.sh

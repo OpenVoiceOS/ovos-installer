@@ -83,6 +83,16 @@ ovos_config_homescreen_probe: >-
   from importlib.metadata import entry_points;
   print(next((e.name for g in ('opm.skill', 'ovos.plugin.skill')
   for e in entry_points(group=g) if 'homescreen' in e.name), ''))
+# Local speech (ovos_installer_speech_engine: local) - see tasks/speech.yml.
+# The public STT server stays configured as the fallback for an utterance the
+# local plugin fails on or hears nothing in.
+ovos_config_speech_stt_fallback: ovos-stt-plugin-server
+# A recognizer that needs more than this is skipped for the next candidate: the
+# machines local speech targets have 8 GB, which the rest of OVOS shares.
+ovos_config_speech_stt_memory_budget_mb: "{{ ovos_installer_speech_stt_memory_budget_mb | default(3072) }}"
+# The stt and tts sections the last run wrote, carried through the template so a
+# re-run does not drop them only for speech.yml to put them back.
+ovos_config_speech_current: {}
 ovos_config_mycroft_conf_owner: >-
   {{
     ovos_installer_user

@@ -46,6 +46,14 @@ ovos-phal-plugin-ipgeo
 ovos-tts-plugin-piper
 {% endif %}
 ovos-tts-plugin-polly
+{% if (ovos_installer_speech_engine | default('public')) == 'local' %}
+# Local speech: the STT and TTS plugins ovos-config recommends for running on
+# this host; ovos_config/tasks/speech.yml picks their models. onnx-asr fetches
+# models through huggingface_hub, which only its hub extra brings in.
+ovos-stt-plugin-onnx-asr
+onnx-asr[cpu,hub]
+phoonnx
+{% endif %}
 
 {% if ovos_installer_locale == "ca-es" %}
 ovos-tts-plugin-matxa-multispeaker-cat

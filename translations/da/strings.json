@@ -56,9 +56,20 @@
     "content_key": "Indtast venligst HiveMind-lytternøglen relateret til satellitten:",
     "content_password": "Indtast venligst HiveMind-lytteradgangskoden relateret til satellitten:"
   },
+  "speech.sh": {
+    "title": "Open Voice OS Installation - Tale",
+    "content": "Open Voice OS omsætter tale til tekst (genkendelse) og læser svar højt (syntese).\n\n  - local: denne maskine med offentlige servere som reserve. Henter talemodeller (hundredvis af megabyte til nogle få gigabyte). Hvis lokal genkendelse fejler eller ikke giver tekst, sendes optagelsen til offentlige servere. Hvis lokal genkendelse eller syntese ikke kan sættes op, bruger den del offentlige servere; installationsprogrammet oplyser det.\n  - public: fællesskabets servere behandler dine optagelser og talte svar over internettet. Disse frivilligt drevne reserveservere er ikke en produktionstjeneste: de kan blive langsomme eller gå ned når som helst.\n\nVælg, hvor tale skal behandles:",
+    "local_description": "Denne maskine med offentlige servere som reserve",
+    "public_description": "Offentlige servere (jeg ved, de kan gå ned)"
+  },
   "summary.sh": {
     "title": "Open Voice OS Installation - Resume",
-    "content": "Du er næsten færdig, her er en oversigt over de valg, du har truffet for at installere Open Voice OS:\n\n    - Metode:             ${METHOD:-}\n    - Version:            ${CHANNEL:-}\n    - Profil:             ${PROFILE:-}\n    - Færdigheder:        ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Ekstra færdigheder: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:     ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:                ${LLM_SUMMARY_STATE:-}\n    - Tuning:             ${TUNING_SUMMARY_STATE:-}\n\nDe valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.\n\nSer denne oversigt korrekt ud for dig? Hvis ikke, vælg ${BACK_BUTTON:-} for at gå tilbage og foretage ændringer."
+    "content": "Du er næsten færdig, her er en oversigt over de valg, du har truffet for at installere Open Voice OS:\n\n    - Metode:             ${METHOD:-}\n    - Version:            ${CHANNEL:-}\n    - Profil:             ${PROFILE:-}\n    - Færdigheder:        ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Ekstra færdigheder: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:     ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:                ${LLM_SUMMARY_STATE:-}\n    - Tale:               ${SPEECH_SUMMARY_STATE:-}\n    - Tuning:             ${TUNING_SUMMARY_STATE:-}\n\nDe valg, der blev truffet under installationen af ​​Open Voice OS, er blevet nøje overvejet for at skræddersy vores system til dine unikke behov og præferencer.\n\nSer denne oversigt korrekt ud for dig? Hvis ikke, vælg ${BACK_BUTTON:-} for at gå tilbage og foretage ændringer.",
+    "speech_local": "på denne maskine med offentlige servere som reserve",
+    "speech_public": "offentlige servere",
+    "speech_public_hardware": "offentlige servere (lokal: Pi 5 med 8 GB eller mere)",
+    "speech_public_setup": "offentlige servere (lokal er ikke tilgængelig her)",
+    "speech_unused": "bruges ikke af denne profil"
   },
   "telemetry.sh": {
     "title": "Open Voice OS Installation - Telemetri",

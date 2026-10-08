@@ -702,3 +702,119 @@ function rendered_titles() {
     run sort -u "$WHIPTAIL_BACKTITLE_LOG"
     assert_output "Back: previous screen  -  keep going back to leave"
 }
+
+@test "navigation: the speech question is only asked where local speech is available" {
+    source tui/navigation.sh
+
+    LOCAL_SPEECH_CAPABLE="true"
+    CHANNEL="alpha"
+    METHOD="virtualenv"
+    PROFILE="ovos"
+    run tui_flow_step_enabled speech
+    assert_success
+
+    CHANNEL="testing"
+    run tui_flow_step_enabled speech
+    assert_failure
+
+    CHANNEL="alpha"
+    LOCAL_SPEECH_CAPABLE="false"
+    run tui_flow_step_enabled speech
+    assert_failure
+}
+
+@test "tui: capable hardware on alpha is asked where speech runs" {
+    export LOCAL_SPEECH_CAPABLE="true"
+    WHIPTAIL_PREFERRED_TAGS="alpha"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    run rendered_titles
+    assert_line --index 5 "Open Voice OS Installation - Features"
+    assert_line --index 6 "Open Voice OS Installation - Speech"
+    assert_line --index 7 "Open Voice OS Installation - Summary"
+
+    # Local is what the hardware was checked for, so it is preselected.
+    assert_equal "$SPEECH_ENGINE" "local"
+    assert_equal "$(jq -r '.speech_engine' "$INSTALLER_STATE_FILE")" "local"
+}
+
+@test "tui: back on the summary screen returns to the speech question" {
+    export LOCAL_SPEECH_CAPABLE="true"
+    WHIPTAIL_PREFERRED_TAGS="alpha"
+    # 6 features, 7 speech, 8 summary.
+    cancel_on_call 8
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    run rendered_titles
+    assert_line --index 7 "Open Voice OS Installation - Summary"
+    assert_line --index 8 "Open Voice OS Installation - Speech"
+    assert_line --index 9 "Open Voice OS Installation - Summary"
+}
+
+@test "tui: choosing the public servers is kept" {
+    export LOCAL_SPEECH_CAPABLE="true"
+    WHIPTAIL_PREFERRED_TAGS="alpha public"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    assert_equal "$SPEECH_ENGINE" "public"
+    assert_equal "$(jq -r '.speech_engine' "$INSTALLER_STATE_FILE")" "public"
+}
+
+@test "tui: updating an install from before the speech question keeps it public" {
+    # It ran on the public servers, and pressing Enter through an update must not
+    # switch it over and download gigabytes of models.
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="virtualenv"
+    export LOCAL_SPEECH_CAPABLE="true"
+    WHIPTAIL_PREFERRED_TAGS="alpha"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    run rendered_titles
+    assert_line "Open Voice OS Installation - Speech"
+    assert_equal "$SPEECH_ENGINE" "public"
+}
+
+@test "tui: updating an install keeps the speech it chose" {
+    EXISTING_INSTANCE="true"
+    INSTANCE_TYPE="virtualenv"
+    export LOCAL_SPEECH_CAPABLE="true"
+    WHIPTAIL_PREFERRED_TAGS="alpha"
+    printf '{"speech_engine": "local"}\n' >"$INSTALLER_STATE_FILE"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    assert_equal "$SPEECH_ENGINE" "local"
+}
+
+@test "tui: the testing channel is never asked about speech" {
+    export LOCAL_SPEECH_CAPABLE="true"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    assert_equal "$CHANNEL" "testing"
+    run rendered_titles
+    refute_line "Open Voice OS Installation - Speech"
+}
+
+@test "tui: a containers install on alpha is asked where speech runs" {
+    export LOCAL_SPEECH_CAPABLE="true"
+    WHIPTAIL_PREFERRED_TAGS="containers alpha"
+
+    # shellcheck source=tui/main.sh
+    source tui/main.sh
+
+    assert_equal "$METHOD" "containers"
+    run rendered_titles
+    assert_line --index 6 "Open Voice OS Installation - Speech"
+    assert_equal "$SPEECH_ENGINE" "local"
+}

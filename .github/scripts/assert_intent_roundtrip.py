@@ -118,7 +118,12 @@ class Bus:
                 self._dropped(error)
 
     def wait_for(self, reply_type, timeout, match=None):
-        """Read until `reply_type` arrives, or the deadline passes. None on timeout."""
+        """Read until `reply_type` arrives, or the deadline passes. None on timeout.
+
+        `reply_type` may be a tuple of types, for an answer that arrives under a spec
+        topic on newer services and a legacy one on older ones.
+        """
+        reply_types = reply_type if isinstance(reply_type, tuple) else (reply_type,)
         deadline = time.monotonic() + timeout
         while True:
             remaining = deadline - time.monotonic()
@@ -140,7 +145,7 @@ class Bus:
                 message = json.loads(raw)
             except (TypeError, ValueError):
                 continue
-            if message.get("type") != reply_type:
+            if message.get("type") not in reply_types:
                 continue
             if match and not match(message):
                 continue
