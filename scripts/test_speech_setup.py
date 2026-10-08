@@ -59,6 +59,9 @@ STUBS = {
                                      model.replace("/", "--"))
                 os.makedirs(cache, exist_ok=True)
                 open(os.path.join(cache, "model.onnx"), "a").close()
+                # A repository without int8 weights: asking for them fails.
+                if "fp32only" in model and config.get("quantization") == "int8":
+                    raise RuntimeError("no int8 weights in " + model)
                 if model.startswith("broken"):
                     raise RuntimeError("cannot load " + model)
                 if model.startswith("stalled"):
@@ -294,16 +297,49 @@ class SpeechSetupTest(unittest.TestCase):
         self.assertNotIn("ovos-stt-plugin-server", result["stt"])
 
     def test_a_fault_while_choosing_costs_that_half_and_not_the_run(self):
-        # A recommendation that is not even JSON: the script must still answer, with the
-        # other half set up and the reason in the notes, rather than exit without a result.
-        self.recommends({"offline_male/en-us.conf": tts("miro")})
-        broken = self.root / "stubs" / "ovos_config" / "recommends" / "offline_stt" / "en-us.conf"
-        broken.parent.mkdir(parents=True, exist_ok=True)
-        broken.write_text("{ not json")
+        # A section that names no plugin: the script must still answer, with the other
+        # half set up and the reason in the notes, rather than exit without a result.
+        self.recommends({"offline_stt/en-us.conf": {"stt": {"model": "parakeet"}},
+                         "offline_male/en-us.conf": tts("miro")})
         result = self.setup("en-us")
         self.assertIsNone(result["stt"])
         self.assertEqual(result["tts"][TTS]["voice"], "miro")
         self.assertTrue(any(note.startswith("STT could not be set up") for note in result["notes"]))
+
+    def broken_recommendation(self, folder):
+        broken = self.root / "stubs" / "ovos_config" / "recommends" / folder / "en-us.conf"
+        broken.parent.mkdir(parents=True, exist_ok=True)
+        broken.write_text("{ not json")
+
+    def test_a_recommendation_that_cannot_be_read_gives_way_to_the_plugins_own_model(self):
+        self.recommends({"offline_male/en-us.conf": tts("miro")})
+        self.broken_recommendation("offline_stt")
+        result = self.setup("en-us", registry={"en": "OpenVoiceOS/parakeet-en"})
+        self.assertEqual(result["stt"][STT]["model"], "OpenVoiceOS/parakeet-en")
+        self.assertTrue(any(note.startswith("STT recommendation could not be loaded") for note in result["notes"]))
+
+    def test_a_voice_recommendation_that_cannot_be_read_gives_way_to_phoonnx_voices(self):
+        self.recommends({})
+        self.broken_recommendation("offline_male")
+        result = self.setup("en-us", kinds="tts", voices={"en": ["miro"]})
+        self.assertEqual(result["tts"][TTS]["voice"], "miro")
+        self.assertTrue(any(note.startswith("TTS recommendation could not be loaded") for note in result["notes"]))
+
+    def test_the_same_model_without_int8_is_tried_when_its_int8_weights_do_not_load(self):
+        self.recommends({"offline_stt/en-us.conf": stt("org/fp32only-en", quantization="int8")})
+        result = self.setup("en-us", kinds="stt", registry={"en": "org/fp32only-en"})
+        self.assertEqual(result["stt"][STT], {"model": "org/fp32only-en"})
+        self.assertTrue(any("no int8 weights" in note for note in result["notes"]))
+
+    def test_a_download_from_an_earlier_try_this_run_is_still_this_runs_to_delete(self):
+        # The int8 try downloads, then fails; the fp32 try of the same model is over the
+        # budget. What the int8 try downloaded is this run's, and goes.
+        self.recommends({"offline_stt/en-us.conf": stt("huge/fp32only-en", quantization="int8")})
+        downloaded = self.data / "ovos_stt_plugin_onnxasr" / "huge--fp32only-en"
+        result = self.setup("en-us", kinds="stt", budget=100, registry={"en": "huge/fp32only-en"})
+        self.assertIsNone(result["stt"])
+        self.assertTrue(any("above the 100 MB budget" in note for note in result["notes"]))
+        self.assertFalse(downloaded.exists())
 
     def test_a_candidate_that_never_finishes_is_given_up_on(self):
         self.recommends({"offline_stt/en-us.conf": stt("stalled/parakeet")})

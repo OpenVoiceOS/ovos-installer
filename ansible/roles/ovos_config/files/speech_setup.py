@@ -118,9 +118,16 @@ def prefer_int8(stt):
 
 
 def stt_candidates():
-    rec = recommended("offline_stt", "stt")
+    # A recommendation that cannot be read or used costs only itself: the plugin's
+    # own model for the language is still tried.
+    try:
+        rec = recommended("offline_stt", "stt")
+        rec = prefer_int8(rec) if rec else None
+    except Exception as error:
+        notes.append(f"STT recommendation could not be loaded: {type(error).__name__}: {error}")
+        rec = None
     if rec:
-        yield "ovos-config's recommendation", prefer_int8(rec)
+        yield "ovos-config's recommendation", rec
     try:
         from ovos_stt_plugin_onnxasr.defaults import resolve_model
         model = resolve_model(lang, {})
@@ -133,7 +140,12 @@ def stt_candidates():
 
 
 def tts_candidates():
-    rec = recommended(f"offline_{gender}", "tts")
+    # As for STT: phoonnx's own voices are still tried.
+    try:
+        rec = recommended(f"offline_{gender}", "tts")
+    except Exception as error:
+        notes.append(f"TTS recommendation could not be loaded: {type(error).__name__}: {error}")
+        rec = None
     if rec:
         yield "ovos-config's recommendation", rec
     try:
@@ -174,15 +186,27 @@ def forget_model(model, existed_before):
         shutil.rmtree(path, ignore_errors=True)
 
 
+# Whether each recognizer model's directory was there when this run first looked.
+# The same model can be tried twice, as int8 and as fp32, and the second try must not
+# take the first try's download for one that was there before.
+there_at_first_sight = {}
+
+
 def first_working(kind, candidates):
     tried = set()
     for origin, section in candidates:
         model = model_of(section)
-        if model in tried:
+        # The same model with other settings is another candidate: a recommendation
+        # can ask for int8 weights a repository does not have, and the plugin's own
+        # choice of that model without them then still gets its try.
+        key = json.dumps(section, sort_keys=True)
+        if key in tried:
             continue
-        tried.add(model)
+        tried.add(key)
         cache = model_cache(model) if kind == "stt" else None
-        existed_before = bool(cache) and os.path.exists(cache)
+        if cache and cache not in there_at_first_sight:
+            there_at_first_sight[cache] = os.path.exists(cache)
+        existed_before = bool(cache) and there_at_first_sight[cache]
         try:
             run = subprocess.run([sys.executable, "-c", TRY, kind, lang, json.dumps(section)],
                                  capture_output=True, text=True, timeout=CANDIDATE_TIMEOUT)
