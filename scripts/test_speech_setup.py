@@ -44,16 +44,21 @@ STUBS = {
             def __init__(self, frames, rate, width):
                 self.frames = frames
     """,
-    # A model whose name starts with "broken" fails to load, one starting with "huge"
-    # holds 200 MB once loaded, one starting with "stalled" never finishes loading;
-    # anything else loads and hears nothing.
+    # Loading downloads the model where the plugin keeps it, as the real one does. A
+    # model whose name starts with "broken" then fails to load, one starting with
+    # "huge" holds 200 MB once loaded, one starting with "stalled" never finishes
+    # loading; anything else loads and hears nothing.
     "ovos_plugin_manager/stt.py": """
-        import time
+        import os, time
 
 
         class Recognizer:
             def __init__(self, config):
                 model = config.get("model", "")
+                cache = os.path.join(os.environ["STUB_XDG_DATA_HOME"], "ovos_stt_plugin_onnxasr",
+                                     model.replace("/", "--"))
+                os.makedirs(cache, exist_ok=True)
+                open(os.path.join(cache, "model.onnx"), "a").close()
                 if model.startswith("broken"):
                     raise RuntimeError("cannot load " + model)
                 if model.startswith("stalled"):
@@ -219,11 +224,20 @@ class SpeechSetupTest(unittest.TestCase):
     def test_a_recognizer_over_the_memory_budget_gives_way_and_is_deleted(self):
         self.recommends({"offline_stt/pt-pt.conf": stt("huge/whisper-medium-pt")})
         downloaded = self.data / "ovos_stt_plugin_onnxasr" / "huge--whisper-medium-pt"
-        downloaded.mkdir(parents=True)
         result = self.setup("pt-pt", kinds="stt", budget=100, registry={"pt": "OpenVoiceOS/parakeet-pt"})
         self.assertEqual(result["stt"][STT]["model"], "OpenVoiceOS/parakeet-pt")
         self.assertTrue(any("above the 100 MB budget" in note for note in result["notes"]))
         self.assertFalse(downloaded.exists())
+
+    def test_a_recognizer_over_the_budget_that_was_there_before_is_kept(self):
+        # An earlier install's local section can name the very model tried here.
+        self.recommends({"offline_stt/pt-pt.conf": stt("huge/whisper-medium-pt")})
+        earlier = self.data / "ovos_stt_plugin_onnxasr" / "huge--whisper-medium-pt"
+        earlier.mkdir(parents=True)
+        (earlier / "weights.onnx").write_text("an earlier download")
+        result = self.setup("pt-pt", kinds="stt", budget=100, registry={"pt": "OpenVoiceOS/parakeet-pt"})
+        self.assertEqual(result["stt"][STT]["model"], "OpenVoiceOS/parakeet-pt")
+        self.assertEqual((earlier / "weights.onnx").read_text(), "an earlier download")
 
     def test_a_voice_that_cannot_speak_gives_way_to_the_next_phoonnx_voice(self):
         self.recommends({"offline_male/es-es.conf": tts("mute/pipertts_es-ES_miro")})

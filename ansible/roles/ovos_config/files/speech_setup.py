@@ -156,14 +156,22 @@ def model_of(section):
     return options.get("model") or options.get("voice") or section["module"]
 
 
-def forget_model(model):
-    """Delete a rejected recognizer model, so it does not hold the disk until uninstall."""
+def model_cache(model):
+    """Where the recognizer plugin keeps `model`, or None when that cannot be told."""
     try:
         from ovos_utils.xdg_utils import xdg_data_home
     except ImportError:
-        return
-    shutil.rmtree(os.path.join(xdg_data_home(), "ovos_stt_plugin_onnxasr", model.replace("/", "--")),
-                  ignore_errors=True)
+        return None
+    return os.path.join(xdg_data_home(), "ovos_stt_plugin_onnxasr", model.replace("/", "--"))
+
+
+def forget_model(model, existed_before):
+    """Delete a rejected recognizer model this run downloaded, so it does not hold the
+    disk until uninstall. One that was there before this run is not this run's to
+    delete: an earlier install's local section can name the very model tried here."""
+    path = model_cache(model)
+    if path and not existed_before:
+        shutil.rmtree(path, ignore_errors=True)
 
 
 def first_working(kind, candidates):
@@ -173,6 +181,8 @@ def first_working(kind, candidates):
         if model in tried:
             continue
         tried.add(model)
+        cache = model_cache(model) if kind == "stt" else None
+        existed_before = bool(cache) and os.path.exists(cache)
         try:
             run = subprocess.run([sys.executable, "-c", TRY, kind, lang, json.dumps(section)],
                                  capture_output=True, text=True, timeout=CANDIDATE_TIMEOUT)
@@ -188,7 +198,7 @@ def first_working(kind, candidates):
         peak = json.loads(lines[-1])["peak_mb"]
         if kind == "stt" and peak > budget_mb:
             notes.append(f"STT {model} ({origin}) needs {peak} MB, above the {budget_mb} MB budget")
-            forget_model(model)
+            forget_model(model, existed_before)
             continue
         if origin != "ovos-config's recommendation":
             notes.append(f"{kind.upper()} uses {model}, {origin}")
