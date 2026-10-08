@@ -28,20 +28,23 @@ home added $HOME/Library/Logs/Homebrew(/.*)?
 # com.apple., group.com.apple. or an Apple team prefix (243LU875E5.groups.com.apple.
 # is Podcasts), the UUID-named containers of its extensions, and the stores only
 # macOS keeps, Siri's speech service log and the App Store's AppleMediaServices
-# engagement data among them. A UUID-named container is
-# accepted only as added: an extension of any program can have one, so one that
-# disappears may be someone's data. LaunchAgents, where the installer writes, stays
-# checked.
+# engagement data among them, and the stores its daemons keep directly in ~/Library
+# under their own names (Find My's com.apple.icloud.searchpartyd). A UUID-named
+# container is accepted only as added: an extension of any program can have one,
+# so one that disappears may be someone's data. LaunchAgents, where the installer
+# writes, stays checked.
 home added $HOME/Library/(Application Scripts|Containers|Group Containers|Daemon Containers)/((group\.|[0-9A-Z]{10}\.groups?\.)?com\.apple\.[^/]+|[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})(/.*)?
 home added $HOME/Library/Application Support/(com\.apple\.[^/]+|locationaccessstored)(/.*)?
 home added $HOME/Library/HTTPStorages/com\.apple\.[^/]+(/.*)?
 home added $HOME/Library/Preferences/(ByHost/)?com\.apple\.[^/]+\.plist
 home added $HOME/Library/(AppleMediaServices|DuetExpertCenter|PersonalizationPortrait|PrivateCloudCompute|Suggestions|Metadata/CoreSpotlight|Logs/SiriTTSService)(/.*)?
+home added $HOME/Library/com\.apple\.[^/]+(/.*)?
 home removed $HOME/Library/(Application Scripts|Containers|Group Containers|Daemon Containers)/(group\.|[0-9A-Z]{10}\.groups?\.)?com\.apple\.[^/]+(/.*)?
 home removed $HOME/Library/Application Support/(com\.apple\.[^/]+|locationaccessstored)(/.*)?
 home removed $HOME/Library/HTTPStorages/com\.apple\.[^/]+(/.*)?
 home removed $HOME/Library/Preferences/(ByHost/)?com\.apple\.[^/]+\.plist
 home removed $HOME/Library/(AppleMediaServices|DuetExpertCenter|PersonalizationPortrait|PrivateCloudCompute|Suggestions|Metadata/CoreSpotlight|Logs/SiriTTSService)(/.*)?
+home removed $HOME/Library/com\.apple\.[^/]+(/.*)?
 
 # Stores macOS keeps changing on its own schedule: the identity services park what
 # they are about to delete in IdentityServices/delete and persist their own state
