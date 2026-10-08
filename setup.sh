@@ -32,6 +32,14 @@ else
   export LANG=C LC_ALL=C
 fi
 
+# What the installer creates is read and run by more than root: the user runs the
+# installer's virtualenv, and services read their units and wrappers. So files are
+# created the way root's usual umask creates them, whatever umask this started
+# under. A launcher's 077 once made the installer virtualenv root's alone, and every
+# task run as the user failed with "Permission denied". What has to stay private
+# sets its own mode, as the extra-vars file below does.
+umask 022
+
 # Base installer version on commit hash
 INSTALLER_VERSION="$(git rev-parse --short=8 HEAD)"
 export INSTALLER_VERSION
