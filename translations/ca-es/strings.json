@@ -58,14 +58,14 @@
   },
   "speech.sh": {
     "title": "Instal·lació de l'Open Voice OS - Veu",
-    "content": "L'Open Voice OS converteix el que dius en text (reconeixement de veu) i llegeix les respostes en veu alta (síntesi de veu). Aquest equip és prou potent per fer totes dues coses ell mateix.\n\n- local: tot s'executa en aquest equip. La teva veu es queda aquí i res no depèn d'internet ni de com d'ocupats estiguin els servidors. L'instal·lador baixa els models de veu del teu idioma, des d'uns quants centenars de megabytes fins a uns quants gigabytes, i el reconeixement manté ocupat el processador mentre parles.\n- public: la feina la fan servidors de la comunitat. S'ofereixen de bona voluntat, com a reserva i com a exemple de veu autoallotjada, no com un servei de producció: les respostes triguen més quan molta gent els fa servir alhora, i poden deixar de funcionar en qualsevol moment. No cal baixar res, però les teves gravacions i les respostes viatgen per internet i es processen en aquests servidors.\n\nSi el reconeixement local falla o no sent res, aquella gravació s'envia als servidors públics.\n\nSelecciona on es processa la veu, si us plau:",
-    "local_description": "Processar la veu en aquest equip",
+    "content": "L'Open Voice OS converteix la veu en text (reconeixement) i llegeix les respostes en veu alta (síntesi).\n\n  - local: aquest equip amb servidors públics de reserva. Baixa models de veu (de centenars de megabytes a uns quants gigabytes). Si el reconeixement local falla o no retorna text, aquella gravació s'envia als servidors públics. Si no es pot configurar el reconeixement o la síntesi local, aquella part fa servir servidors públics; l'instal·lador ho indica.\n  - public: els servidors de la comunitat processen les teves gravacions i les respostes de veu per internet. Aquests servidors de reserva, mantinguts per voluntaris, no són un servei de producció: poden anar lents o deixar de funcionar en qualsevol moment.\n\nSelecciona on es processa la veu:",
+    "local_description": "Aquest equip amb servidors públics de reserva",
     "public_description": "Servidors públics (sé que poden caure)"
   },
   "summary.sh": {
     "title": "Instal·lació de l'Open VoiceOS - Resum",
     "content": "Gairebé heu acabat, aquí teniu un resum de les opcions que heu triat en instal·lar l'Open Voice OS:\n\n    - Mètode:           ${METHOD:-}\n    - Versió:           ${CHANNEL:-}\n    - Perfil:           ${PROFILE:-}\n    - Habilitats:       ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Habilitats extra: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:   ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:              ${LLM_SUMMARY_STATE:-}\n    - Veu:              ${SPEECH_SUMMARY_STATE:-}\n    - Afinació:         ${TUNING_SUMMARY_STATE:-}\n\nLes opcions seleccionades durant el procés d'instal·lació de l'Open Voice OS s'han considerat acuradament per a adaptar el nostre sistema a les vostres necessitats i preferències úniques.\n\nUs sembla correcte aquest resum? Si no, selecciona ${BACK_BUTTON:-} per tornar enrere i fer canvis.",
-    "speech_local": "en aquest equip",
+    "speech_local": "en aquest equip amb servidors públics de reserva",
     "speech_public": "servidors públics",
     "speech_public_hardware": "servidors públics (local: Pi 5 de 8 GB o més)",
     "speech_public_setup": "servidors públics (local no disponible aquí)",

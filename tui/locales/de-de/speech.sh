@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
 CONTENT="
-Open Voice OS wandelt Gesprochenes in Text um (Spracherkennung) und liest seine Antworten vor (Sprachsynthese). Dieser Rechner ist leistungsfähig genug, beides selbst zu erledigen.
+Open Voice OS wandelt Sprache in Text um (Erkennung) und liest Antworten vor (Synthese).
 
-- local: Alles läuft auf diesem Rechner. Ihre Stimme bleibt hier, und nichts hängt vom Internet oder von der Auslastung der Server ab. Der Installer lädt die Sprachmodelle für Ihre Sprache herunter, von einigen hundert Megabyte bis zu ein paar Gigabyte, und die Erkennung lastet den Prozessor aus, während Sie sprechen.
-- public: Server der Community übernehmen die Arbeit. Sie werden aus gutem Willen betrieben, als Rückfallebene und als Beispiel für selbst gehostete Sprachverarbeitung, nicht als Produktionsdienst: Antworten dauern länger, wenn viele sie gleichzeitig nutzen, und die Server können jederzeit ausfallen. Es muss nichts heruntergeladen werden, aber Ihre Aufnahmen und die Antworten gehen über das Internet und werden auf diesen Servern verarbeitet.
+  - local: dieser Rechner mit öffentlichen Servern als Ersatz. Lädt Sprachmodelle herunter (hunderte Megabyte bis einige Gigabyte). Wenn die lokale Erkennung fehlschlägt oder keinen Text liefert, wird die Aufnahme an öffentliche Server gesendet. Lässt sich die lokale Erkennung oder Synthese nicht einrichten, nutzt dieser Teil öffentliche Server; der Installer weist darauf hin.
+  - public: Community-Server verarbeiten Ihre Aufnahmen und gesprochenen Antworten über das Internet. Diese ehrenamtlich betriebenen Ersatzserver sind kein Produktionsdienst: Sie können jederzeit langsamer werden oder ausfallen.
 
-Wenn die lokale Erkennung fehlschlägt oder nichts hört, wird genau diese Aufnahme stattdessen an die öffentlichen Server geschickt.
-
-Bitte wählen Sie, wo die Sprache verarbeitet wird:
+Bitte wählen Sie, wo Sprache verarbeitet wird:
 "
 TITLE="Open Voice OS-Installation - Sprachverarbeitung"
-LOCAL_DESCRIPTION="Sprache auf diesem Rechner verarbeiten"
+LOCAL_DESCRIPTION="Dieser Rechner mit öffentlichen Servern als Ersatz"
 PUBLIC_DESCRIPTION="Öffentliche Server (ich weiß, sie können ausfallen)"
 
 export CONTENT TITLE LOCAL_DESCRIPTION PUBLIC_DESCRIPTION

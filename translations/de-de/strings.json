@@ -58,14 +58,14 @@
   },
   "speech.sh": {
     "title": "Open Voice OS-Installation - Sprachverarbeitung",
-    "content": "Open Voice OS wandelt Gesprochenes in Text um (Spracherkennung) und liest seine Antworten vor (Sprachsynthese). Dieser Rechner ist leistungsfähig genug, beides selbst zu erledigen.\n\n- local: Alles läuft auf diesem Rechner. Ihre Stimme bleibt hier, und nichts hängt vom Internet oder von der Auslastung der Server ab. Der Installer lädt die Sprachmodelle für Ihre Sprache herunter, von einigen hundert Megabyte bis zu ein paar Gigabyte, und die Erkennung lastet den Prozessor aus, während Sie sprechen.\n- public: Server der Community übernehmen die Arbeit. Sie werden aus gutem Willen betrieben, als Rückfallebene und als Beispiel für selbst gehostete Sprachverarbeitung, nicht als Produktionsdienst: Antworten dauern länger, wenn viele sie gleichzeitig nutzen, und die Server können jederzeit ausfallen. Es muss nichts heruntergeladen werden, aber Ihre Aufnahmen und die Antworten gehen über das Internet und werden auf diesen Servern verarbeitet.\n\nWenn die lokale Erkennung fehlschlägt oder nichts hört, wird genau diese Aufnahme stattdessen an die öffentlichen Server geschickt.\n\nBitte wählen Sie, wo die Sprache verarbeitet wird:",
-    "local_description": "Sprache auf diesem Rechner verarbeiten",
+    "content": "Open Voice OS wandelt Sprache in Text um (Erkennung) und liest Antworten vor (Synthese).\n\n  - local: dieser Rechner mit öffentlichen Servern als Ersatz. Lädt Sprachmodelle herunter (hunderte Megabyte bis einige Gigabyte). Wenn die lokale Erkennung fehlschlägt oder keinen Text liefert, wird die Aufnahme an öffentliche Server gesendet. Lässt sich die lokale Erkennung oder Synthese nicht einrichten, nutzt dieser Teil öffentliche Server; der Installer weist darauf hin.\n  - public: Community-Server verarbeiten Ihre Aufnahmen und gesprochenen Antworten über das Internet. Diese ehrenamtlich betriebenen Ersatzserver sind kein Produktionsdienst: Sie können jederzeit langsamer werden oder ausfallen.\n\nBitte wählen Sie, wo Sprache verarbeitet wird:",
+    "local_description": "Dieser Rechner mit öffentlichen Servern als Ersatz",
     "public_description": "Öffentliche Server (ich weiß, sie können ausfallen)"
   },
   "summary.sh": {
     "title": "Open Voice OS Installation - Zusammenfassung",
     "content": "Fast fertig. Eine kurze Zusammenfassung:\n\n    - Umgebung:       ${METHOD:-}\n    - Version:        ${CHANNEL:-}\n    - Profil:         ${PROFILE:-}\n    - Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra-Skills:   ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - Sprache:        ${SPEECH_SUMMARY_STATE:-}\n    - Tuning:         ${TUNING_SUMMARY_STATE:-}\n\nDie Entscheidungen, die während des Installationsprozesses von Open Voice OS getroffen werden, wurden sorgfältig abgewogen, um unser System an Ihre individuellen Bedürfnisse und Vorlieben anzupassen.\n\nStimmen die Einstellungen? Falls nicht, wählen Sie ${BACK_BUTTON:-}, um zurückzugehen und Änderungen vorzunehmen.",
-    "speech_local": "auf diesem Rechner",
+    "speech_local": "auf diesem Rechner mit öffentlichen Servern als Ersatz",
     "speech_public": "öffentliche Server",
     "speech_public_hardware": "öffentliche Server (lokal: Pi 5 mit 8 GB oder besser)",
     "speech_public_setup": "öffentliche Server (lokal hier nicht verfügbar)",

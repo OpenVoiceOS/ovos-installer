@@ -58,14 +58,14 @@
   },
   "speech.sh": {
     "title": "Open Voice OS Installatie - Spraak",
-    "content": "Open Voice OS zet wat je zegt om in tekst (spraakherkenning) en leest zijn antwoorden voor (spraaksynthese). Deze machine is krachtig genoeg om beide zelf te doen.\n\n- local: alles draait op deze machine. Je stem blijft hier, en niets hangt af van internet of van hoe druk de servers zijn. Het installatieprogramma downloadt de spraakmodellen voor je taal, van een paar honderd megabyte tot een paar gigabyte, en de herkenning houdt de processor bezig terwijl je praat.\n- public: servers van de community doen het werk. Ze draaien uit goede wil, als reserve en als voorbeeld van zelf gehoste spraakverwerking, niet als productiedienst: antwoorden duren langer wanneer veel mensen ze tegelijk gebruiken, en de servers kunnen op elk moment uitvallen. Je hoeft niets te downloaden, maar je opnames en de antwoorden gaan via internet en worden op die servers verwerkt.\n\nAls de lokale herkenning mislukt of niets hoort, wordt die ene opname naar de openbare servers gestuurd.\n\nSelecteer waar spraak wordt verwerkt:",
-    "local_description": "Spraak op deze machine verwerken",
+    "content": "Open Voice OS zet spraak om in tekst (herkenning) en leest antwoorden voor (synthese).\n\n  - local: deze machine met openbare servers als reserve. Downloadt spraakmodellen (honderden megabytes tot enkele gigabytes). Als lokale herkenning mislukt of geen tekst oplevert, gaat die opname naar openbare servers. Als lokale herkenning of synthese niet kan worden ingesteld, gebruikt dat onderdeel openbare servers; het installatieprogramma meldt dit.\n  - public: servers van de community verwerken je opnames en gesproken antwoorden via internet. Deze reserveservers draaien dankzij vrijwilligers en zijn geen productiedienst: ze kunnen op elk moment traag worden of uitvallen.\n\nSelecteer waar spraak wordt verwerkt:",
+    "local_description": "Deze machine met openbare servers als reserve",
     "public_description": "Openbare servers (ik weet dat ze kunnen uitvallen)"
   },
   "summary.sh": {
     "title": "OpenVoice OS Installatie - Samenvatting",
     "content": "Bijna klaar. Een korte samenvatting:\n\n    - Omgeving:       ${METHOD:-}\n    - Versie:         ${CHANNEL:-}\n    - Profiel:        ${PROFILE:-}\n    - Skills:         ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Extra skills:   ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant: ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:            ${LLM_SUMMARY_STATE:-}\n    - Spraak:         ${SPEECH_SUMMARY_STATE:-}\n    - Tuning:         ${TUNING_SUMMARY_STATE:-}\n\nDe beslissingen die zijn genomen tijdens het installatieproces van OpenVoice OS zijn zorgvuldig gemaakt om ons systeem aan te passen aan je individuele behoeften en voorkeuren.\n\nZijn de instellingen zo in orde? Zo niet, kies ${BACK_BUTTON:-} om terug te gaan en wijzigingen te maken.",
-    "speech_local": "op deze machine",
+    "speech_local": "op deze machine met openbare servers als reserve",
     "speech_public": "openbare servers",
     "speech_public_hardware": "openbare servers (lokaal: Pi 5 met 8 GB of beter)",
     "speech_public_setup": "openbare servers (lokaal hier niet beschikbaar)",

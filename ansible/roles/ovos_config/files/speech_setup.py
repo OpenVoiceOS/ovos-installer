@@ -26,6 +26,7 @@ import re
 import shutil
 import subprocess
 import sys
+from collections.abc import Iterable
 
 # Each candidate gets this long to download its model, load it and run once. That
 # is far more than any of them needs - it is there so that a download that stalls
@@ -192,7 +193,8 @@ def forget_model(model, existed_before):
 there_at_first_sight = {}
 
 
-def first_working(kind, candidates):
+def first_working(kind: str, candidates: Iterable[tuple[str, dict]]) -> dict | None:
+    """Keep the first working candidate and remove only this run's rejected STT downloads."""
     tried = set()
     for origin, section in candidates:
         model = model_of(section)
@@ -213,11 +215,15 @@ def first_working(kind, candidates):
         except subprocess.TimeoutExpired:
             notes.append(f"{kind.upper()} {model} ({origin}) was given up on after "
                          f"{CANDIDATE_TIMEOUT} seconds")
+            if kind == "stt":
+                forget_model(model, existed_before)
             continue
         lines = [line for line in run.stdout.splitlines() if line.startswith("{")]
         if run.returncode != 0 or not lines:
             reason = (run.stderr.strip().splitlines() or ["it did not start"])[-1]
             notes.append(f"{kind.upper()} {model} ({origin}) does not work here: {reason[:200]}")
+            if kind == "stt":
+                forget_model(model, existed_before)
             continue
         peak = json.loads(lines[-1])["peak_mb"]
         if kind == "stt" and peak > budget_mb:

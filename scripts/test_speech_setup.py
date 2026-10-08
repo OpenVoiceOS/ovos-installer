@@ -224,6 +224,28 @@ class SpeechSetupTest(unittest.TestCase):
         self.assertEqual(result["stt"][STT]["model"], "OpenVoiceOS/nvidia-ca-conformer")
         self.assertTrue(any("broken/ca-model" in note for note in result["notes"]))
 
+    def test_failed_probes_remove_only_new_downloads(self) -> None:
+        """Crashes and timeouts free new downloads but preserve earlier installs."""
+        for failure in ("broken", "stalled"):
+            for preexisting in (False, True):
+                with self.subTest(failure=failure, preexisting=preexisting):
+                    model = f"{failure}/{'existing' if preexisting else 'new'}"
+                    self.recommends({"offline_stt/en-us.conf": stt(model)})
+                    rejected = self.data / "ovos_stt_plugin_onnxasr" / model.replace("/", "--")
+                    if preexisting:
+                        rejected.mkdir(parents=True)
+                        (rejected / "weights.onnx").write_text("earlier installation")
+
+                    result = self.setup("en-us", kinds="stt", registry={"en": "working/fallback"},
+                                        OVOS_SPEECH_CANDIDATE_TIMEOUT="1")
+
+                    self.assertEqual(result["stt"][STT]["model"], "working/fallback")
+                    self.assertTrue((self.data / "ovos_stt_plugin_onnxasr" /
+                                     "working--fallback" / "model.onnx").is_file())
+                    self.assertEqual(rejected.exists(), preexisting)
+                    if preexisting:
+                        self.assertEqual((rejected / "weights.onnx").read_text(), "earlier installation")
+
     def test_a_recognizer_over_the_memory_budget_gives_way_and_is_deleted(self):
         self.recommends({"offline_stt/pt-pt.conf": stt("huge/whisper-medium-pt")})
         downloaded = self.data / "ovos_stt_plugin_onnxasr" / "huge--whisper-medium-pt"
@@ -259,6 +281,7 @@ class SpeechSetupTest(unittest.TestCase):
         result = self.setup("es-es", voices={"es": ["mute/es", "mute/other"]})
         self.assertIsNone(result["stt"])
         self.assertIsNone(result["tts"])
+        self.assertFalse((self.data / "ovos_stt_plugin_onnxasr" / "broken--es").exists())
 
     def test_int8_is_asked_for_where_the_repository_ships_it(self):
         model = "OpenVoiceOS/parakeet-rnnt-1.1b-es"
@@ -330,6 +353,7 @@ class SpeechSetupTest(unittest.TestCase):
         result = self.setup("en-us", kinds="stt", registry={"en": "org/fp32only-en"})
         self.assertEqual(result["stt"][STT], {"model": "org/fp32only-en"})
         self.assertTrue(any("no int8 weights" in note for note in result["notes"]))
+        self.assertTrue((self.data / "ovos_stt_plugin_onnxasr" / "org--fp32only-en" / "model.onnx").is_file())
 
     def test_a_download_from_an_earlier_try_this_run_is_still_this_runs_to_delete(self):
         # The int8 try downloads, then fails; the fp32 try of the same model is over the

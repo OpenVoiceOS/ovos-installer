@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
 CONTENT="
-Open Voice OS transforme ce que vous dites en texte (reconnaissance vocale) et lit ses réponses à voix haute (synthèse vocale). Cette machine est assez puissante pour faire les deux elle-même.
+Open Voice OS transforme la parole en texte (reconnaissance) et lit les réponses à voix haute (synthèse).
 
-- local : tout fonctionne sur cette machine. Votre voix reste ici, et rien ne dépend d'Internet ni de la charge des serveurs. L'installateur télécharge les modèles vocaux de votre langue, de quelques centaines de mégaoctets à quelques gigaoctets, et la reconnaissance occupe le processeur pendant que vous parlez.
-- public : des serveurs communautaires font le travail. Ils sont fournis de bonne volonté, comme solution de secours et comme exemple de traitement de la parole auto-hébergé, pas comme un service de production : les réponses ralentissent quand beaucoup de monde les utilise, et ils peuvent s'arrêter à tout moment. Rien à télécharger, mais vos enregistrements et les réponses passent par Internet et sont traités sur ces serveurs.
-
-Si la reconnaissance locale échoue ou n'entend rien, cet enregistrement-là est envoyé aux serveurs publics à la place.
+  - local : cette machine avec des serveurs publics en secours. Télécharge des modèles vocaux (de quelques centaines de mégaoctets à quelques gigaoctets). Si la reconnaissance locale échoue ou ne renvoie aucun texte, cet enregistrement est envoyé aux serveurs publics. Si la reconnaissance ou la synthèse locale ne peut pas être configurée, cette partie utilise les serveurs publics ; l'installateur le signale.
+  - public : les serveurs communautaires traitent vos enregistrements et les réponses vocales via Internet. Ces serveurs de secours, gérés par des bénévoles, ne sont pas un service de production : ils peuvent ralentir ou s'arrêter à tout moment.
 
 Veuillez sélectionner où la parole est traitée :
 "
 TITLE="Open Voice OS Installation - Traitement de la parole"
-LOCAL_DESCRIPTION="Traiter la parole sur cette machine"
+LOCAL_DESCRIPTION="Cette machine avec des serveurs publics en secours"
 PUBLIC_DESCRIPTION="Serveurs publics (je sais qu'ils peuvent tomber)"
 
 export CONTENT TITLE LOCAL_DESCRIPTION PUBLIC_DESCRIPTION

@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
 CONTENT="
-Open Voice OS-k esaten duzuna testu bihurtzen du (ahots-ezagutza) eta bere erantzunak ozen irakurtzen ditu (ahots-sintesia). Makina honek bi lanak berak egiteko adina indar du.
+Open Voice OS-k ahotsa testu bihurtzen du (ezagutza) eta erantzunak ozen irakurtzen ditu (sintesia).
 
-  - local: dena makina honetan exekutatzen da. Zure ahotsa hemen geratzen da, eta ezer ez dago Interneten edo zerbitzarien lan-kargaren mende. Instalatzaileak zure hizkuntzako ahots-ereduak deskargatzen ditu, ehunka megabytetik gigabyte gutxi batzuetara, eta ezagutzak prozesadorea lanpetuta mantentzen du hitz egiten duzun bitartean.
-  - public: komunitatearen zerbitzariek egiten dute lana. Borondate onez eskaintzen dira, babes gisa eta norberak ostatatutako ahotsaren adibide gisa, ez produkzio-zerbitzu gisa: erantzunak motelago iristen dira jende askok aldi berean erabiltzen dituenean, eta edozein unetan gelditu daitezke. Ez dago ezer deskargatu beharrik, baina zure grabazioak eta erantzunak Internet bidez doaz eta zerbitzari horietan prozesatzen dira.
-
-Ezagutza lokalak huts egiten badu edo ezer entzuten ez badu, grabazio hori zerbitzari publikoetara bidaltzen da.
+  - local: makina hau, zerbitzari publikoak ordezko gisa erabiliz. Ahots-ereduak deskargatzen ditu (ehunka megabytetik gigabyte gutxi batzuetara). Ezagutza lokalak huts egiten badu edo testurik itzultzen ez badu, grabazioa zerbitzari publikoetara bidaltzen da. Ezagutza edo sintesi lokala ezin bada konfiguratu, zati horrek zerbitzari publikoak erabiltzen ditu; instalatzaileak horren berri ematen du.
+  - public: komunitatearen zerbitzariek zure grabazioak eta ahots-erantzunak Internet bidez prozesatzen dituzte. Boluntarioek mantendutako ordezko zerbitzari hauek ez dira produkzio-zerbitzu bat: edozein unetan moteldu edo gelditu daitezke.
 
 Aukeratu non prozesatzen den ahotsa:
 "
 TITLE="Open Voice OS instalazioa - Ahotsa"
-LOCAL_DESCRIPTION="Prozesatu ahotsa makina honetan"
+LOCAL_DESCRIPTION="Makina hau, zerbitzari publikoak ordezko gisa"
 PUBLIC_DESCRIPTION="Zerbitzari publikoak (badakit eror daitezkeela)"
 
 export CONTENT TITLE LOCAL_DESCRIPTION PUBLIC_DESCRIPTION

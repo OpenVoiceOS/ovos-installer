@@ -415,3 +415,134 @@ function setup() {
     run grep -Eq '\b(default|provider|summary|voice-friendly|tuning)\b' "$file"
     assert_failure
 }
+
+@test "locales_speech_disclose_public_fallback_in_choices_and_summaries" {
+    run python3 - <<'PY'
+import json
+import subprocess
+from pathlib import Path
+
+# Check what users see after sourcing the generated locales, including both
+# fallback triggers. A translated heading alone must not satisfy disclosure.
+expected = {
+    "en-us": (
+        "with public fallback", "Downloads speech models",
+        "fails or returns no text, that recording is sent to public servers",
+        "recognition or synthesis cannot be set up, that part uses public servers",
+        "the installer reports it", "go offline at any time",
+    ),
+    "ca-es": (
+        "amb servidors públics de reserva", "Baixa models de veu",
+        "falla o no retorna text, aquella gravació s'envia als servidors públics",
+        "reconeixement o la síntesi local, aquella part fa servir servidors públics",
+        "l'instal·lador ho indica", "deixar de funcionar en qualsevol moment",
+    ),
+    "da": (
+        "med offentlige servere som reserve", "Henter talemodeller",
+        "fejler eller ikke giver tekst, sendes optagelsen til offentlige servere",
+        "genkendelse eller syntese ikke kan sættes op, bruger den del offentlige servere",
+        "installationsprogrammet oplyser det", "gå ned når som helst",
+    ),
+    "de-de": (
+        "mit öffentlichen Servern als Ersatz", "Lädt Sprachmodelle herunter",
+        "fehlschlägt oder keinen Text liefert, wird die Aufnahme an öffentliche Server gesendet",
+        "Erkennung oder Synthese nicht einrichten, nutzt dieser Teil öffentliche Server",
+        "der Installer weist darauf hin", "jederzeit langsamer werden oder ausfallen",
+    ),
+    "es-es": (
+        "con servidores públicos de respaldo", "Descarga modelos de voz",
+        "falla o no devuelve texto, esa grabación se envía a servidores públicos",
+        "reconocimiento o la síntesis local, esa parte usa servidores públicos",
+        "el instalador lo indica", "dejar de funcionar en cualquier momento",
+    ),
+    "eu-es": (
+        "zerbitzari publikoak ordezko gisa", "Ahots-ereduak deskargatzen ditu",
+        "huts egiten badu edo testurik itzultzen ez badu, grabazioa zerbitzari publikoetara bidaltzen da",
+        "Ezagutza edo sintesi lokala ezin bada konfiguratu, zati horrek zerbitzari publikoak erabiltzen ditu",
+        "instalatzaileak horren berri ematen du", "edozein unetan moteldu edo gelditu daitezke",
+    ),
+    "fr-fr": (
+        "avec des serveurs publics en secours", "Télécharge des modèles vocaux",
+        "échoue ou ne renvoie aucun texte, cet enregistrement est envoyé aux serveurs publics",
+        "reconnaissance ou la synthèse locale ne peut pas être configurée, cette partie utilise les serveurs publics",
+        "l'installateur le signale", "s'arrêter à tout moment",
+    ),
+    "gl-es": (
+        "con servidores públicos de respaldo", "Descarga modelos de voz",
+        "falla ou non devolve texto, esa gravación envíase a servidores públicos",
+        "recoñecemento ou a síntese local, esa parte usa servidores públicos",
+        "o instalador indícao", "deixar de funcionar en calquera momento",
+    ),
+    "hi-in": (
+        "सार्वजनिक सर्वरों की मदद से", "वाक् मॉडल डाउनलोड होते हैं",
+        "विफल हो या कोई टेक्स्ट न लौटाए, तो वह रिकॉर्डिंग सार्वजनिक सर्वरों पर भेजी जाती है",
+        "पहचान या संश्लेषण स्थापित नहीं हो पाता, तो उस हिस्से के लिए सार्वजनिक सर्वर इस्तेमाल होते हैं",
+        "इंस्टॉलर इसकी जानकारी देता है", "कभी भी बंद हो सकते हैं",
+    ),
+    "it-it": (
+        "con server pubblici di riserva", "Scarica modelli vocali",
+        "fallisce o non restituisce testo, quella registrazione viene inviata ai server pubblici",
+        "riconoscimento o la sintesi locale, quella parte usa i server pubblici",
+        "l'installer lo segnala", "andare offline in qualsiasi momento",
+    ),
+    "kab-dz": (
+        "s yiqeddacen izayazen d tallalt", "Ad d-yessader timudmin n taɣect",
+        "yecceḍ uɛqal adigan neɣ ur d-yerri ara aḍris, asekles-nni ad yettwazen ɣer yiqeddacen izayazen",
+        "aɛqal neɣ asuddes adigan, aḥric-nni ad yesseqdec iqeddacen izayazen",
+        "amesbeddi ad d-yefk talɣut ɣef waya", "ad ḥbesen melmi tebɣu tili",
+    ),
+    "nl-nl": (
+        "met openbare servers als reserve", "Downloadt spraakmodellen",
+        "mislukt of geen tekst oplevert, gaat die opname naar openbare servers",
+        "herkenning of synthese niet kan worden ingesteld, gebruikt dat onderdeel openbare servers",
+        "het installatieprogramma meldt dit", "op elk moment traag worden of uitvallen",
+    ),
+    "pl-pl": (
+        "z serwerami publicznymi w rezerwie", "Pobiera modele mowy",
+        "zawiedzie lub nie zwróci tekstu, nagranie jest wysyłane do serwerów publicznych",
+        "rozpoznawania lub syntezy, ta część używa serwerów publicznych",
+        "instalator o tym informuje", "przestać działać w każdej chwili",
+    ),
+    "pt-pt": (
+        "com servidores públicos de reserva", "Descarrega modelos de voz",
+        "falhar ou não devolver texto, essa gravação é enviada para servidores públicos",
+        "reconhecimento ou a síntese local, essa parte usa servidores públicos",
+        "o instalador informa-o", "indisponíveis a qualquer momento",
+    ),
+}
+locale_paths = list(Path("translations").glob("*/strings.json"))
+assert {path.parent.name for path in locale_paths} == set(expected)
+for path in locale_paths:
+    locale = path.parent.name
+    data = json.loads(path.read_text())
+    result = subprocess.run(
+        ["bash", "-euc", 'source "$1"; printf "%s\\0%s\\0" "$CONTENT" "$LOCAL_DESCRIPTION"; '
+         'source "$2"; printf "%s" "$SUMMARY_SPEECH_LOCAL"', "bash",
+         f"tui/locales/{locale}/speech.sh", f"tui/locales/{locale}/summary.sh"],
+        check=True, capture_output=True, text=True,
+    )
+    content, choice, summary = result.stdout.split("\0")
+    fallback, *disclosures = expected[locale]
+    for field, value in (("content", content), ("choice", choice), ("summary", summary)):
+        assert fallback in value, f"{locale}: missing public fallback in {field}"
+    for disclosure in disclosures:
+        assert disclosure in content, f"{locale}: missing speech disclosure: {disclosure}"
+    assert choice == data["speech.sh"]["local_description"]
+    assert summary == data["summary.sh"]["speech_local"]
+PY
+    assert_success
+}
+
+@test "english_speech_locale_does_not_promise_private_or_offline_processing" {
+    run bash -euc '
+        source tui/locales/en-us/speech.sh
+        printf "%s\n" "$CONTENT" "$LOCAL_DESCRIPTION"
+        source tui/locales/en-us/summary.sh
+        printf "%s\n" "$SUMMARY_SPEECH_LOCAL"
+    '
+    assert_success
+    refute_output --partial "everything runs on this machine"
+    refute_output --partial "Your voice stays here"
+    refute_output --partial "nothing depends on the internet"
+    assert_output --partial "not a production service"
+}

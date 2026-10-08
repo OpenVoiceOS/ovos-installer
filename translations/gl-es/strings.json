@@ -58,14 +58,14 @@
   },
   "speech.sh": {
     "title": "Instalación de Open Voice OS - Voz",
-    "content": "Open Voice OS converte o que dis en texto (recoñecemento de voz) e le as súas respostas en voz alta (síntese de voz). Este equipo é abondo potente para facer as dúas cousas el mesmo.\n\n  - local: todo se executa neste equipo. A túa voz queda aquí e nada depende de internet nin de canto de ocupados estean os servidores. O instalador descarga os modelos de voz do teu idioma, desde uns centos de megabytes ata uns poucos gigabytes, e o recoñecemento mantén ocupado o procesador mentres falas.\n  - public: o traballo fano servidores da comunidade. Ofrécense de boa vontade, como respaldo e como exemplo de voz autoaloxada, non como un servizo de produción: as respostas tardan máis cando moita xente os usa á vez, e poden deixar de funcionar en calquera momento. Non hai nada que descargar, pero as túas gravacións e as respostas viaxan por internet e procésanse neses servidores.\n\nSe o recoñecemento local falla ou non oe nada, esa gravación envíase aos servidores públicos.\n\nSelecciona onde se procesa a voz:",
-    "local_description": "Procesar a voz neste equipo",
+    "content": "Open Voice OS converte a voz en texto (recoñecemento) e le as respostas en voz alta (síntese).\n\n  - local: este equipo con servidores públicos de respaldo. Descarga modelos de voz (de centos de megabytes a uns poucos gigabytes). Se o recoñecemento local falla ou non devolve texto, esa gravación envíase a servidores públicos. Se non se pode configurar o recoñecemento ou a síntese local, esa parte usa servidores públicos; o instalador indícao.\n  - public: os servidores da comunidade procesan as túas gravacións e as respostas de voz por internet. Estes servidores de respaldo, mantidos por voluntarios, non son un servizo de produción: poden ir máis lentos ou deixar de funcionar en calquera momento.\n\nSelecciona onde se procesa a voz:",
+    "local_description": "Este equipo con servidores públicos de respaldo",
     "public_description": "Servidores públicos (sei que poden caer)"
   },
   "summary.sh": {
     "title": "Instalación de Open Voice OS - Recapitulación",
     "content": "Estás a piques de rematar. Aquí tes un resumo das opcións que escolliches para instalar Open Voice OS:\n\n    - Método:                 ${METHOD:-}\n    - Versión:                ${CHANNEL:-}\n    - Perfil:                 ${PROFILE:-}\n    - Habilidades:            ${FEATURE_SKILLS_SUMMARY_STATE:-}\n    - Habilidades adicionais: ${FEATURE_EXTRA_SKILLS_SUMMARY_STATE:-}\n    - Home Assistant:         ${HOMEASSISTANT_SUMMARY_STATE:-}\n    - LLM:                    ${LLM_SUMMARY_STATE:-}\n    - Voz:                    ${SPEECH_SUMMARY_STATE:-}\n    - Axustes:                ${TUNING_SUMMARY_STATE:-}\n\nAs decisións tomadas durante a instalación de Open Voice OS foron coidadosamente pensadas para adaptar o noso sistema ás túas necesidades e preferencias.\n\nÉ correcto este resumo? Se non, selecciona ${BACK_BUTTON:-} para volver atrás e facer cambios.",
-    "speech_local": "neste equipo",
+    "speech_local": "neste equipo con servidores públicos de respaldo",
     "speech_public": "servidores públicos",
     "speech_public_hardware": "servidores públicos (local: Pi 5 de 8 GB ou mellor)",
     "speech_public_setup": "servidores públicos (local non dispoñible aquí)",

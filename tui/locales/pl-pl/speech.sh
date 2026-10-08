@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
 CONTENT="
-Open Voice OS zamienia to, co mówisz, na tekst (rozpoznawanie mowy) i czyta swoje odpowiedzi na głos (synteza mowy). Ten komputer jest na tyle wydajny, żeby robić jedno i drugie samodzielnie.
+Open Voice OS zamienia mowę na tekst (rozpoznawanie) i czyta odpowiedzi na głos (synteza).
 
-- local: wszystko działa na tym komputerze. Twój głos zostaje tutaj i nic nie zależy od internetu ani od obciążenia serwerów. Instalator pobiera modele mowy dla Twojego języka, od kilkuset megabajtów do kilku gigabajtów, a rozpoznawanie obciąża procesor, gdy mówisz.
-- public: pracę wykonują serwery społeczności. Działają w dobrej wierze, jako zapas i przykład samodzielnie hostowanego przetwarzania mowy, a nie jako usługa produkcyjna: odpowiedzi zwalniają, gdy korzysta z nich wiele osób naraz, a serwery w każdej chwili mogą przestać działać. Nic nie trzeba pobierać, ale Twoje nagrania i odpowiedzi trafiają przez internet na te serwery i tam są przetwarzane.
-
-Jeśli lokalne rozpoznawanie zawiedzie lub nic nie usłyszy, to nagranie zostanie wysłane do serwerów publicznych.
+  - local: ten komputer z serwerami publicznymi w rezerwie. Pobiera modele mowy (od setek megabajtów do kilku gigabajtów). Jeśli lokalne rozpoznawanie zawiedzie lub nie zwróci tekstu, nagranie jest wysyłane do serwerów publicznych. Jeśli nie da się skonfigurować lokalnego rozpoznawania lub syntezy, ta część używa serwerów publicznych; instalator o tym informuje.
+  - public: serwery społeczności przetwarzają Twoje nagrania i odpowiedzi głosowe przez internet. Te zapasowe serwery prowadzone przez wolontariuszy nie są usługą produkcyjną: mogą zwolnić lub przestać działać w każdej chwili.
 
 Wybierz, gdzie ma być przetwarzana mowa:
 "
 TITLE="Instalacja Open Voice OS - Mowa"
-LOCAL_DESCRIPTION="Przetwarzaj mowę na tym komputerze"
+LOCAL_DESCRIPTION="Ten komputer z serwerami publicznymi w rezerwie"
 PUBLIC_DESCRIPTION="Serwery publiczne (wiem, że mogą przestać działać)"
 
 export CONTENT TITLE LOCAL_DESCRIPTION PUBLIC_DESCRIPTION

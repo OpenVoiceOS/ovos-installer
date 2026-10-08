@@ -50,7 +50,7 @@ function summary_speech_state() {
     printf '%s\n' "${SUMMARY_SPEECH_UNUSED:-not used by this profile}"
   elif local_speech_available; then
     if [ "${SPEECH_ENGINE:-}" == "local" ]; then
-      printf '%s\n' "${SUMMARY_SPEECH_LOCAL:-on this machine}"
+      printf '%s\n' "${SUMMARY_SPEECH_LOCAL:-on this machine with public fallback}"
     else
       printf '%s\n' "${SUMMARY_SPEECH_PUBLIC:-public servers}"
     fi
