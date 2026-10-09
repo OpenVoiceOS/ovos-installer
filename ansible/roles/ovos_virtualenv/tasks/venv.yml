@@ -32,14 +32,16 @@
     - not (ovos_virtualenv_is_cleaning | bool)
     - ovos_virtualenv_uv_bin | length > 0
 
-# Going on without it would find uv by name again, which is how a uv of the user's own
-# in ~/.local/bin came to run the install.
+# setup.sh only hands over a uv the user can run (it installs one into the installer
+# venv otherwise), so this stops a run given a uv by hand. Going on without it would find
+# uv by name again, which is how a uv of the user's own in ~/.local/bin ran the install.
 - name: Stop if the user cannot run the uv setup.sh checked
   ansible.builtin.assert:
     that: ovos_virtualenv_uv_bin_check.rc == 0
     fail_msg: >-
-      {{ ovos_installer_user }} cannot run {{ ovos_virtualenv_uv_bin }}, the uv setup.sh
-      checked: {{ (ovos_virtualenv_uv_bin_check.stderr | default(ovos_virtualenv_uv_bin_check.msg | default(''), true)) | trim }}
+      {{ ovos_installer_user }} cannot run {{ ovos_virtualenv_uv_bin }}, the uv this
+      install was given: {{ (ovos_virtualenv_uv_bin_check.stderr | default(ovos_virtualenv_uv_bin_check.msg | default(''), true)) | trim }}.
+      Run setup.sh again: it gives the installer a uv {{ ovos_installer_user }} can run.
     quiet: true
   when:
     - not (ovos_virtualenv_is_cleaning | bool)

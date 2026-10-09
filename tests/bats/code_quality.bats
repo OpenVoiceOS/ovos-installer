@@ -772,7 +772,11 @@ function setup() {
     # venv gets none. The playbook found uv by name, and the next one on its PATH was
     # ~/.local/bin/uv: on one EndeavourOS desktop a wrapper that refuses to install into
     # ~/.venvs, so every install failed at "Install Open Voice OS in Python venv".
-    run grep -F -q 'OVOS_INSTALLER_UV_BIN="$(command -v uv)"' utils/common.sh
+    # create_python_venv hands over a uv by path, one the user can run (tests in
+    # virtualenv.bats), and records the version of that very one.
+    run grep -F -q 'if ! resolve_installer_uv "$uv_minimum_version"; then' utils/common.sh
+    assert_success
+    run grep -F -q 'OVOS_INSTALLER_UV_VERSION="$("$OVOS_INSTALLER_UV_BIN" --version' utils/common.sh
     assert_success
     run grep -F -q -- '-e "ovos_installer_uv_bin=${OVOS_INSTALLER_UV_BIN:-}"' setup.sh
     assert_success

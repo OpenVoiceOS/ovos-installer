@@ -131,6 +131,49 @@ EOF
     unset -f ver uv ansible-galaxy
 }
 
+# setup.sh runs as root and the playbook runs uv as RUN_AS: the uv handed over must be
+# one RUN_AS can run, or the install stops on a uv the user had no say in.
+function resolve_installer_uv_fixture() {
+    RUN_AS="testuser"
+    FIXTURE_DIR="$(mktemp -d)"
+    VENV_PATH="${FIXTURE_DIR}/venv"
+    mkdir -p "${FIXTURE_DIR}/bin" "${VENV_PATH}/bin"
+    printf '#!/bin/sh\necho "uv 0.12.24"\n' > "${FIXTURE_DIR}/bin/uv"
+    chmod 0755 "${FIXTURE_DIR}/bin/uv"
+    PATH="${FIXTURE_DIR}/bin:${PATH}"
+    function pip3() {
+        printf '#!/bin/sh\necho "uv 0.12.24"\n' > "${VENV_PATH}/bin/uv"
+        chmod 0755 "${VENV_PATH}/bin/uv"
+    }
+}
+
+@test "resolve_installer_uv_hands_over_the_uv_found_when_the_user_can_run_it" {
+    resolve_installer_uv_fixture
+    function run_as_target_user() { "$@"; }
+    resolve_installer_uv 0.12.0
+    [ "$OVOS_INSTALLER_UV_BIN" = "${FIXTURE_DIR}/bin/uv" ]
+    [ ! -e "${VENV_PATH}/bin/uv" ]
+    rm -rf "$FIXTURE_DIR"
+}
+
+@test "resolve_installer_uv_installs_one_the_user_can_run_when_they_cannot_run_the_one_found" {
+    resolve_installer_uv_fixture
+    # The user can run anything but the uv root found, as with one in /root/.local/bin.
+    function run_as_target_user() { [ "$1" != "${FIXTURE_DIR}/bin/uv" ] && "$@"; }
+    resolve_installer_uv 0.12.0
+    [ "$OVOS_INSTALLER_UV_BIN" = "${VENV_PATH}/bin/uv" ]
+    [ -x "${VENV_PATH}/bin/uv" ]
+    rm -rf "$FIXTURE_DIR"
+}
+
+@test "resolve_installer_uv_fails_when_the_user_can_run_no_uv_the_installer_has" {
+    resolve_installer_uv_fixture
+    function run_as_target_user() { return 1; }
+    run resolve_installer_uv 0.12.0
+    assert_failure
+    rm -rf "$FIXTURE_DIR"
+}
+
 function teardown() {
     rm -f "$LOG_FILE"
 }

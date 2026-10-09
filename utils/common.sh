@@ -1102,6 +1102,37 @@ function installer_venv_is_reusable() {
     return 0
 }
 
+# Choose the uv the playbook runs, by path, and export it as OVOS_INSTALLER_UV_BIN.
+#
+# Found by name on the playbook's PATH it could be another one: a distribution's uv is
+# never in the installer venv, and the next on that PATH is ~/.local/bin, the user's.
+# The playbook runs uv as RUN_AS while setup.sh runs as root, so a uv only root can run
+# (in /root/.local/bin, say) is no use to it either: then the installer venv gets its
+# own, which RUN_AS can run, and the install goes on.
+#
+# Args:
+#   - The minimum uv version
+#
+# Returns:
+#   - 0 with OVOS_INSTALLER_UV_BIN set, 1 when RUN_AS cannot run any uv the installer has
+function resolve_installer_uv() {
+    local minimum_version="$1"
+    local found=""
+    found="$(command -v uv 2>>"$LOG_FILE" || true)"
+    OVOS_INSTALLER_UV_BIN="$found"
+    export OVOS_INSTALLER_UV_BIN
+    # Not a file (a shell function standing in for uv): nothing to run as anyone.
+    case "$found" in /*) ;; *) return 0 ;; esac
+    if run_as_target_user "$found" --version &>>"$LOG_FILE"; then
+        return 0
+    fi
+    printf '%s\n' "[info] ${RUN_AS} cannot run ${found}; installing uv into the installer virtualenv" &>>"$LOG_FILE"
+    run_with_errexit_guard pip3 install --no-cache-dir "uv>=${minimum_version}" &>>"$LOG_FILE" || return 1
+    OVOS_INSTALLER_UV_BIN="${VENV_PATH}/bin/uv"
+    export OVOS_INSTALLER_UV_BIN
+    run_as_target_user "$OVOS_INSTALLER_UV_BIN" --version &>>"$LOG_FILE"
+}
+
 # Create the installer Python virtual environment and update pip and
 # setuptools package.Permissions on the virtual environment are set
 # to match the target user.
@@ -1188,13 +1219,13 @@ function create_python_venv() {
         echo "uv is required but was not found after installation. Check $LOG_FILE for details." | tee -a "$LOG_FILE"
         exit "${EXIT_MISSING_DEPENDENCY}"
     fi
-    OVOS_INSTALLER_UV_VERSION="$(uv --version 2>>"$LOG_FILE" | awk '{print $2}')"
+    if ! resolve_installer_uv "$uv_minimum_version"; then
+        echo -e "[$fail_format]"
+        echo "${RUN_AS} cannot run the installer's uv in ${VENV_PATH}/bin. Check that ${VENV_PATH} is readable by ${RUN_AS}, then retry." | tee -a "$LOG_FILE"
+        exit "${EXIT_MISSING_DEPENDENCY}"
+    fi
+    OVOS_INSTALLER_UV_VERSION="$("$OVOS_INSTALLER_UV_BIN" --version 2>>"$LOG_FILE" | awk '{print $2}')"
     export OVOS_INSTALLER_UV_VERSION
-    # The uv whose version was just checked, by path, for the playbook to run. Found by
-    # name on the user's PATH it could be another one: a distribution's uv is never in
-    # the installer venv, and the next on the playbook's PATH is ~/.local/bin, the user's.
-    OVOS_INSTALLER_UV_BIN="$(command -v uv)"
-    export OVOS_INSTALLER_UV_BIN
 
     if [ "$venv_reused" == "true" ] && [ "${OVOS_INSTALLER_REFRESH_BOOTSTRAP_TOOLS:-false}" != "true" ]; then
         printf '%s\n' "[info] Skipping pip/setuptools bootstrap upgrade for reused installer virtualenv" &>>"$LOG_FILE"
