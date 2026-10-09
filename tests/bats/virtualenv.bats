@@ -30,19 +30,23 @@ function setup() {
     function uv() {
         return 0  # Mock uv command
     }
+    # Choosing the uv has its own tests below; this one is about the virtualenv.
+    function resolve_installer_uv() {
+        OVOS_INSTALLER_UV_BIN=uv
+    }
     function chown() {
         return 0  # Mock chown command
     }
     function ver() {
         echo "003009000"  # Mock version comparison
     }
-    export -f python3 source pip3 uv chown ver
+    export -f python3 source pip3 uv chown ver resolve_installer_uv
 
     run mkdir -p "$VENV_PATH"
     run create_python_venv
     assert_success
 
-    unset -f python3 source pip3 uv chown ver
+    unset -f python3 source pip3 uv chown ver resolve_installer_uv
 }
 
 @test "function_create_python_venv_not_exists" {
@@ -67,18 +71,22 @@ function setup() {
     function uv() {
         return 0  # Mock uv command
     }
+    # Choosing the uv has its own tests below; this one is about the virtualenv.
+    function resolve_installer_uv() {
+        OVOS_INSTALLER_UV_BIN=uv
+    }
     function chown() {
         return 0  # Mock chown command
     }
     function ver() {
         echo "003009000"  # Mock version comparison
     }
-    export -f python3 source pip3 uv chown ver
+    export -f python3 source pip3 uv chown ver resolve_installer_uv
 
     run create_python_venv
     assert_success
 
-    unset -f python3 source pip3 uv chown ver
+    unset -f python3 source pip3 uv chown ver resolve_installer_uv
 }
 
 @test "function_installer_venv_is_reusable_when_python_version_matches" {
@@ -163,6 +171,18 @@ function resolve_installer_uv_fixture() {
     resolve_installer_uv 0.12.0
     [ "$OVOS_INSTALLER_UV_BIN" = "${VENV_PATH}/bin/uv" ]
     [ -x "${VENV_PATH}/bin/uv" ]
+    rm -rf "$FIXTURE_DIR"
+}
+
+@test "resolve_installer_uv_installs_one_when_uv_is_not_a_file" {
+    resolve_installer_uv_fixture
+    rm -f "${FIXTURE_DIR}/bin/uv"
+    function uv() { echo "uv 0.12.24"; }
+    function run_as_target_user() { "$@"; }
+    resolve_installer_uv 0.12.0
+    [ "$OVOS_INSTALLER_UV_BIN" = "${VENV_PATH}/bin/uv" ]
+    [ -x "${VENV_PATH}/bin/uv" ]
+    unset -f uv
     rm -rf "$FIXTURE_DIR"
 }
 

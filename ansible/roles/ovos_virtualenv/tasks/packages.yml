@@ -147,7 +147,15 @@
       echo "already installed"
       exit 0
     fi
-    brew install --formula "$FORMULA" || echo "brew install exited $?; checking the keg"
+    output="$(brew install --formula "$FORMULA" 2>&1)"
+    status=$?
+    printf '%s\n' "$output"
+    if [ "$status" -ne 0 ]; then
+      # Only a link that failed is fine: a dependency needs its keg, not its links.
+      # Anything else (a download, a pour) is the install failing.
+      grep -qF 'The `brew link` step did not complete successfully' <<< "$output" || exit "$status"
+      echo "$FORMULA is installed but not linked, which a dependency does not need"
+    fi
     brew list --formula --versions "$FORMULA" > /dev/null 2>&1 || exit 1
     brew tab --no-installed-on-request "$FORMULA"
     echo "installed as a dependency"

@@ -1119,14 +1119,20 @@ function resolve_installer_uv() {
     local minimum_version="$1"
     local found=""
     found="$(command -v uv 2>>"$LOG_FILE" || true)"
-    OVOS_INSTALLER_UV_BIN="$found"
-    export OVOS_INSTALLER_UV_BIN
-    # Not a file (a shell function standing in for uv): nothing to run as anyone.
-    case "$found" in /*) ;; *) return 0 ;; esac
-    if run_as_target_user "$found" --version &>>"$LOG_FILE"; then
-        return 0
-    fi
-    printf '%s\n' "[info] ${RUN_AS} cannot run ${found}; installing uv into the installer virtualenv" &>>"$LOG_FILE"
+    case "$found" in
+        /*)
+            if run_as_target_user "$found" --version &>>"$LOG_FILE"; then
+                OVOS_INSTALLER_UV_BIN="$found"
+                export OVOS_INSTALLER_UV_BIN
+                return 0
+            fi
+            printf '%s\n' "[info] ${RUN_AS} cannot run ${found}; installing uv into the installer virtualenv" &>>"$LOG_FILE"
+            ;;
+        *)
+            # A shell function or an exported one named uv: the playbook needs a file.
+            printf '%s\n' "[info] uv is not a file the playbook can run (${found:-none}); installing uv into the installer virtualenv" &>>"$LOG_FILE"
+            ;;
+    esac
     run_with_errexit_guard pip3 install --no-cache-dir "uv>=${minimum_version}" &>>"$LOG_FILE" || return 1
     OVOS_INSTALLER_UV_BIN="${VENV_PATH}/bin/uv"
     export OVOS_INSTALLER_UV_BIN
