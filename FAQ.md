@@ -37,7 +37,8 @@ The status arrow, warning sign and drink emoji were missing from some terminal
 fonts. The installer now shows them only where the terminal can draw them, and
 `>` and `WARNING:` elsewhere: on the Linux text console (a Raspberry Pi or a
 Mark II on its own screen), a dumb or serial terminal, or a locale that is not
-UTF-8. See [`set_status_marks()`](utils/common.sh).
+UTF-8. See [`set_status_marks()`](utils/common.sh). The arrow is now `→` rather than
+`➤`, which almost no monospace font has.
 
 A desktop terminal whose font lacks them can still show squares, because a
 script cannot see the font. Run the installer with `OVOS_INSTALLER_ASCII=1` for

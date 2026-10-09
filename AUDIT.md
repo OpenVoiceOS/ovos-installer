@@ -62,7 +62,7 @@ Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Address PR 666 reporting review 
 
 - **Fixed:** status arrows, warning symbols and drink emoji rendered as empty
   boxes on terminals without those glyphs.
-  [`set_status_marks()`](utils/common.sh) now chooses them once: `➤`, `⚠` and
+  [`set_status_marks()`](utils/common.sh) now chooses them once: `→`, `⚠` and
   the drinks where the terminal can draw them, `>` and `WARNING:` on the Linux
   text console, dumb or serial terminals, and locales that are not UTF-8. The
   user's own locale is read before [setup](setup.sh) replaces it.

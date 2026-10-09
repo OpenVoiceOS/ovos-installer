@@ -21,7 +21,7 @@ function log_error() {
     printf '%s\n' "$*" >&2
 }
 
-# Whether the terminal can draw the status marks (➤, ⚠) and the drinks. A shell cannot
+# Whether the terminal can draw the status marks (→, ⚠) and the drinks. A shell cannot
 # see the font, but it can see the usual reasons a mark comes out as an empty square:
 # the Linux text console (a Raspberry Pi or a Mark II on its screen), whose font has
 # none of them; a dumb or serial terminal; a locale that is not UTF-8. The locale is
@@ -43,9 +43,14 @@ function terminal_draws_symbols() {
 
 # STATUS_MARK starts each step, WARNING_MARK a warning, and STARTUP_DRINKS follows the
 # start of the playbook: the marks where the terminal draws them, plain text elsewhere.
+# The arrow is →, not the ➤ the installer used to print: a UTF-8 terminal says nothing
+# about its font, and ➤ is in almost no monospace font (of Liberation, Noto Sans, Source
+# Code Pro, JetBrains Mono and a Nerd Font, none has it), so it came out as a square in
+# kitty over SSH to a Mark II. → is in all of them. The drinks come from the emoji font
+# every desktop ships, which no monospace font replaces.
 function set_status_marks() {
     if terminal_draws_symbols; then
-        STATUS_MARK="➤"
+        STATUS_MARK="→"
         WARNING_MARK="⚠"
         STARTUP_DRINKS=" ☕🍵🧋"
     else

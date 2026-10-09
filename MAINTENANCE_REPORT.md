@@ -74,7 +74,7 @@ Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Address PR 666 reporting review 
 
 The status arrow, warning sign and drink emoji came out as empty boxes on some
 terminals. Rather than drop them everywhere,
-[`set_status_marks()`](utils/common.sh) chooses once per run: `➤`, `⚠` and the
+[`set_status_marks()`](utils/common.sh) chooses once per run: `→`, `⚠` and the
 drinks where the terminal can draw them, and `>` and `WARNING:` on the Linux
 text console, dumb or serial terminals, and non-UTF-8 locales. The user's own
 locale is captured in [setup](setup.sh) before the installer replaces it.
@@ -85,7 +85,9 @@ locale is captured in [setup](setup.sh) before the installer replaces it.
 message. Installer control flow is unchanged.
 
 A shell cannot see the font, so a UTF-8 desktop terminal lacking a glyph still
-shows a box; the override is the way out.
+shows a box; the override is the way out. The arrow is `→`, not `➤`: in kitty
+over SSH to a Mark II `➤` was a square, and it is in almost no monospace font,
+where `→` is in all of the common ones.
 
 ### Transparency Report
 
