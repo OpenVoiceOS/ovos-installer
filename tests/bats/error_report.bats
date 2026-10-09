@@ -57,6 +57,52 @@ SH
     [ ! -s "$REPORT_TEST_DIR/report" ]
 }
 
+@test "real_terminal_consent_reports_without_an_interactive_override" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    run python3 - "$REPORT_TEST_DIR/failure.sh" <<'PY'
+import os
+import pty
+import select
+import subprocess
+import sys
+import time
+
+master, slave = pty.openpty()
+process = subprocess.Popen(["bash", sys.argv[1], "open", "early"],
+                           stdin=slave, stdout=slave, stderr=slave)
+os.close(slave)
+output = b""
+answered = False
+deadline = time.monotonic() + 5
+try:
+    while process.poll() is None:
+        if time.monotonic() > deadline:
+            raise RuntimeError("The consent prompt did not finish")
+        if not select.select([master], [], [], 0.1)[0]:
+            continue
+        try:
+            output += os.read(master, 4096)
+        except OSError:
+            break
+        if b"(yes/no)" in output and not answered:
+            os.write(master, b"yes\n")
+            answered = True
+    result = process.wait(timeout=2)
+    assert answered, output
+    print(output.decode(), end="")
+    raise SystemExit(result)
+finally:
+    if process.poll() is None:
+        process.kill()
+        process.wait()
+    os.close(master)
+PY
+    assert_equal "$status" 1
+    assert_output --partial 'Upload the log on https://paste.uoi.io website?'
+    assert_equal "$(cat "$REPORT_TEST_DIR/uploads")" upload
+    assert_equal "$(cat "$REPORT_TEST_DIR/report")" "$PASTE_REPLY"
+}
+
 @test "noninteractive_failure_and_eof_never_upload_or_report" {
     unset OVOS_INSTALLER_ASSUME_INTERACTIVE
     run bash "$REPORT_TEST_DIR/failure.sh" open early <<<'yes'

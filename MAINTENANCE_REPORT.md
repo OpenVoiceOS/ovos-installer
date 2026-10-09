@@ -9,10 +9,10 @@ Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document the consented paste-URL
   Closed or unwritable descriptors do not replace the installer failure status.
 - [`setup.sh`](setup.sh) now routes Ansible failures through `on_error()`, closing
   its prior unconditional upload path. EOF in the consent prompt declines upload.
-- [Seven new BATS tests](tests/bats/error_report.bats) check actual consent,
+- [Eight new BATS tests](tests/bats/error_report.bats) check actual consent,
   report bytes, the Ansible failure branch, invalid URLs and absent/unwritable
   descriptors. The existing exit-code fixture now mocks curl instead of uploading.
-- Verification: 52 BATS passed, one existing skip; 28 pytest and 4 subtests passed;
+- Verification: 53 BATS passed, one existing skip; 28 pytest and 4 subtests passed;
   changed-shell ShellCheck (excluding source-following notices) and diff checks
   passed. New tests stub uploads; no OVOS installation was run.
 

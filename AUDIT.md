@@ -12,7 +12,7 @@ Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record consent and URL-handoff r
   fixed paste origin and bounded ASCII ID. It writes only after consent and only
   to explicitly enabled FD 3. Tests cover malicious URLs, unavailable descriptors,
   failed uploads and noninteractive refusal; no actual upload occurs.
-- Validation: 52 BATS passes, one existing sound-detection skip; 28 pytest passes
+- Validation: 53 BATS passes, one existing sound-detection skip; 28 pytest passes
   and 4 subtests; changed-shell ShellCheck and whitespace checks pass. This covers
   the installer contract, not the separate launcher's live deployment.
 
