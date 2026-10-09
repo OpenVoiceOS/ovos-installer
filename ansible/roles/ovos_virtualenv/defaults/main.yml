@@ -32,9 +32,17 @@ ovos_virtualenv_uv_allow_prerelease: >-
 ovos_virtualenv_uv_version: "{{ ovos_installer_uv_version | default('') }}"
 ovos_virtualenv_installer_venv_path: "{{ ovos_installer_venv | default(ovos_installer_user_home + '/.venvs/ovos-installer', true) }}"
 ovos_virtualenv_uv_cache_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-cache"
-# The installer's own uv first: setup.sh holds it to the 0.12 floor the alpha channel
-# needs, and a uv of the user's own in ~/.local/bin, whatever its version, is theirs.
-ovos_virtualenv_uv_exec_path: "{{ ovos_virtualenv_installer_venv_path }}/bin:{{ ovos_installer_user_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+# The uv setup.sh checked comes first, from a directory that holds nothing else: setup.sh
+# holds it to the 0.12 floor the alpha channel needs. A distribution's uv is not in the
+# installer venv, and without that directory the next uv on this PATH was the one in
+# ~/.local/bin, whatever it is: on one desktop a wrapper that refuses to install into
+# ~/.venvs, and every install failed. Only uv is linked there, so nothing else on the
+# PATH (the swig2.0 shim in ~/.local/bin) is shadowed by /usr/bin. It sits beside the uv
+# cache, in the installer's own directory the uninstall removes; not in the installer
+# venv, whose path a caller can give as the OVOS venv's before that venv exists.
+ovos_virtualenv_uv_bin: "{{ ovos_installer_uv_bin | default('') }}"
+ovos_virtualenv_uv_link_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-bin"
+ovos_virtualenv_uv_exec_path: "{{ ovos_virtualenv_uv_link_dir }}:{{ ovos_virtualenv_installer_venv_path }}/bin:{{ ovos_installer_user_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ovos_virtualenv_uv_install_retries: "{{ ovos_installer_uv_install_retries | default(3) }}"
 ovos_virtualenv_uv_install_delay: "{{ ovos_installer_uv_install_delay | default(2) }}"
 ovos_virtualenv_pip_check_warning:
@@ -139,6 +147,9 @@ ovos_virtualenv_rust_messagebus_archive_path: "{{ ovos_virtualenv_tmp_dir }}/{{ 
 ovos_virtualenv_rust_messagebus_binary_path: >-
   {{ ovos_installer_user_home }}/.local/bin/{{ ovos_virtualenv_rust_messagebus_binary_name }}
 ovos_virtualenv_homebrew_path: "/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin"
+# Installed on their own before the package list, as dependencies (tasks/packages.yml).
+ovos_virtualenv_macos_packages_first:
+  - openssl@4
 ovos_virtualenv_macos_fann_source_lib_dir: >-
   {{ '/opt/homebrew/lib'
      if (ansible_facts.architecture | default('')) in ['aarch64', 'arm64']

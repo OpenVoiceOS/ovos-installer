@@ -268,6 +268,7 @@ ansible_command=(
   -e "ovos_installer_overclock_gpu_freq=${OVERCLOCK_GPU_FREQ}" \
   -e "ovos_installer_pip_config_file=${PIP_CONFIG_FILE:-}" \
   -e "ovos_installer_uv_version=${OVOS_INSTALLER_UV_VERSION:-}" \
+  -e "ovos_installer_uv_bin=${OVOS_INSTALLER_UV_BIN:-}" \
   -e "ovos_installer_listener_host=${HIVEMIND_HOST}" \
   -e "ovos_installer_listener_port=${HIVEMIND_PORT}" \
   -e "ovos_installer_satellite_key=${SATELLITE_KEY}" \
