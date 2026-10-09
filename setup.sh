@@ -147,7 +147,7 @@ fi
 normalize_feature_gui_support
 normalize_speech_engine
 
-log_info "➤ Starting Ansible playbook... ☕🍵🧋"
+log_info "> Starting Ansible playbook..."
 
 # Execute the Ansible playbook on localhost
 export ANSIBLE_CONFIG=ansible.cfg
@@ -336,7 +336,7 @@ if [ "$ansible_rc" -eq 0 ]; then
       remove_installer_state
     fi
     log_info ""
-    log_info "➤ Open Voice OS has been successfully uninstalled."
+    log_info "> Open Voice OS has been successfully uninstalled."
   fi
 
   if ! reboot_if_requested; then
@@ -349,11 +349,11 @@ if [ "$ansible_rc" -eq 0 ]; then
 else
   debug_url="$(upload_logs)"
   log_info ""
-  log_info "➤ Unable to finalize the process, please check $LOG_FILE for more details."
+  log_info "> Unable to finalize the process, please check $LOG_FILE for more details."
   if [ -n "${debug_url:-}" ]; then
-    log_info "➤ Please share this URL with us $debug_url"
+    log_info "> Please share this URL with us $debug_url"
   else
-    log_info "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
+    log_info "> Failed to upload logs automatically. Please attach $LOG_FILE."
   fi
   exit "${EXIT_FAILURE}"
 fi

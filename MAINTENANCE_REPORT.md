@@ -1,6 +1,27 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document cleanup and speech-fallback disclosure corrections for PR 648.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record terminal status symbol fix and validation.
 
 # Maintenance report
+
+## 2026-10-08 — Readable terminal status
+
+Replaced decorative status arrows with `>`, warning symbols with `WARNING:`,
+and removed drink emoji from the Ansible startup message. This covers
+[setup](setup.sh), [common helpers](utils/common.sh),
+[speech detection](utils/speech.sh), and [cancellation](tui/navigation.sh).
+The existing [reboot ordering test](tests/bats/code_quality.bats#L3693) now
+recognizes the updated startup message. Installer control flow is unchanged.
+
+Validation: 134 focused BATS tests, 16 pytest contract tests, ShellCheck,
+`git diff --check`, and ASCII rendering checks for CPU/speech/startup output
+under `LC_ALL=C` and `C.UTF-8` with `TERM=dumb` pass.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** traced screenshot symbols to shell messages, replaced the
+  decorative glyphs, updated the existing test matcher, and ran validation.
+- **Oversight:** user identified the rendering defect; automated and AI review
+  performed. No physical-device installation was run.
 
 ## 2026-10-08 — PR 648 review fixes
 

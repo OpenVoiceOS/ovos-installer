@@ -1,6 +1,10 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record remaining local-speech validation opportunities.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record the terminal-font compatibility decision.
 
 # Suggestions
+
+Terminal status now uses plain ASCII markers. Keep progress and warning labels
+readable without additional fonts; UTF-8 locale support does not prove glyph
+availability. See [`detect_local_speech_support()`](utils/speech.sh#L61).
 
 | Problem or opportunity | Proposed action | Expected impact |
 | --- | --- | --- |

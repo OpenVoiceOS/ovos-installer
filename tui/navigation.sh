@@ -92,7 +92,7 @@ function tui_nav_reset() {
 function tui_nav_quit() {
   if declare -F log_info >/dev/null 2>&1; then
     log_info ""
-    log_info "➤ Installation cancelled, nothing has been changed."
+    log_info "> Installation cancelled, nothing has been changed."
   fi
 
   exit "${EXIT_SUCCESS:-0}"

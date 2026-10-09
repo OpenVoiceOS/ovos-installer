@@ -1,6 +1,18 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record PR 648 findings, regression evidence and remaining validation limits.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record verified replacement of unsupported terminal status symbols.
 
 # Audit
+
+## 2026-10-08 — Terminal status glyphs
+
+- **Fixed:** decorative arrows, warning symbols and drink emoji rendered as
+  empty boxes on terminals without those glyphs. [Setup](setup.sh#L150),
+  [`detect_cpu_instructions()`](utils/common.sh#L522),
+  [`detect_local_speech_support()`](utils/speech.sh#L61), and
+  [`tui_nav_quit()`](tui/navigation.sh#L95) now use ASCII status text.
+- **Verification:** 134 focused BATS tests and 16 pytest contract tests pass;
+  ShellCheck and `git diff --check` pass. Actual CPU/speech/startup output is
+  ASCII after stripping color escapes under both `C` and `C.UTF-8` locales
+  with `TERM=dumb`. No physical-device installation was performed.
 
 ## 2026-10-08 — PR 648 follow-up
 

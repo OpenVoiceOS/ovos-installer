@@ -1,6 +1,15 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain public fallback and safe rejected-model cleanup.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain terminal-safe status messages.
 
 # Frequently asked questions
+
+## Why did the installer show empty squares before its messages?
+
+The old status arrow and drink emoji were missing from some terminal fonts.
+Progress now uses `>` and warnings use `WARNING:` in
+[`detect_cpu_instructions()`](utils/common.sh),
+[`detect_local_speech_support()`](utils/speech.sh), and [setup](setup.sh).
+The change needs an installer version containing this fix; an already running
+installation keeps its existing output.
 
 ## Does local speech keep every recording offline?
 
