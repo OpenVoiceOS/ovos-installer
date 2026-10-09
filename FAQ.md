@@ -1,15 +1,19 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain optional error-report sharing with launchers.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain automatic wizard reports and standalone consent.
 
 # Frequently asked questions
 
 ## Can a launcher show the error-report link?
 
 Yes. With `OVOS_INSTALLER_REPORT_FD=3` and descriptor 3 already open,
-[`on_error()`](utils/common.sh) reports the validated paste URL after the person
-agrees to upload the log. It never sends log contents through this descriptor.
-Refusal, no terminal or a failed upload leaves the launcher without a URL; the
-Terminal still explains the failure. See [the contract](docs/automation.md#environment-variables)
-and [consent and URL tests](tests/bats/error_report.bats).
+[`on_error()`](utils/common.sh) reports the validated paste URL. It never sends
+log contents through that descriptor. The wizard sets `OVOS_INSTALLER_AUTO_REPORT=1`
+to upload automatically without a Terminal question. This path filters credentials
+from the current run's bounded log and uses verified HTTPS. It skips reporting if
+the descriptor, sanitizer or upload is unavailable; there is no raw-log fallback.
+
+Standalone installations still ask before uploading. See [the contract](docs/automation.md#environment-variables),
+[handoff tests](tests/bats/error_report.bats) and
+[`sanitize()` tests](scripts/test_sanitize_error_log.py).
 
 ## Does local speech keep every recording offline?
 

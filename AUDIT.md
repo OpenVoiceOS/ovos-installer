@@ -1,6 +1,26 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record consent and URL-handoff regression evidence.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record automatic wizard report safety and regression evidence.
 
 # Audit
+
+## 2026-10-08 — Automatic wizard failure reports
+
+- [`on_error()` and `upload_wizard_logs()`](utils/common.sh) require explicit
+  wizard flags and a writable descriptor before an automatic upload. The default
+  still asks; invalid flags and EOF cannot authorize a standalone upload.
+- Only the current run's fresh installer log is read; persistent prior Ansible
+  logs are excluded. [`sanitize()`](scripts/sanitize_error_log.py) bounds input and
+  removes known values and common credential syntax. The temporary payload is
+  mode 0600 and removed after upload; curl ignores configuration and verifies TLS
+  to the fixed paste origin with no redirect or insecure retry.
+- Failures of descriptor checks, filtering, uploads and URL validation retain the
+  installation failure and never fall back to raw logs. [BATS coverage](tests/bats/error_report.bats)
+  uses mocked uploads; [Python coverage](scripts/test_sanitize_error_log.py) checks
+  redaction, unsafe files, oversized input and malformed-log performance.
+- Validation: 55 focused BATS passes with one existing sound-detection skip;
+  53 pytest passes and four subtests; ShellCheck, Bash syntax and diff checks pass.
+- Limits: filtering cannot guarantee anonymous logs. The standalone consented
+  uploader retains its existing transport behavior; this change hardens only the
+  newly automatic path. No real upload or device installation was run.
 
 ## 2026-10-08 — Consented error-report handoff
 

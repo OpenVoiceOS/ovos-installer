@@ -47,6 +47,10 @@ export INSTALLER_VERSION
 # shellcheck source=utils/constants.sh
 source utils/constants.sh
 
+# Only delete_log() can authorize this run's log for automatic reports.
+OVOS_INSTALLER_CURRENT_LOG="false"
+unset report_homeassistant_api_key report_llm_api_key
+
 # shellcheck source=utils/banner.sh
 source utils/banner.sh
 
@@ -225,6 +229,9 @@ if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
   fi
   umask "$old_umask"
 
+  # Keep values only in this shell for automatic report redaction, not child env.
+  report_homeassistant_api_key="${HOMEASSISTANT_API_KEY:-}"
+  report_llm_api_key="${LLM_API_KEY:-}"
   # Secrets are now on disk with restrictive permissions; don't keep them exported.
   unset HOMEASSISTANT_API_KEY || true
   unset LLM_API_KEY || true

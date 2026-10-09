@@ -1,6 +1,29 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document the consented paste-URL handoff and tests.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document automatic wizard reports, secure transport and tests.
 
 # Maintenance report
+
+## 2026-10-08 — Automatic wizard failure reports
+
+- Added explicit automatic report mode in [`on_error()`](utils/common.sh), retaining
+  standalone consent. The uploader requires writable FD 3 and uses a filtered
+  current-run log, at most 1.5 MB, over verified HTTPS without curlrc or redirects.
+- [`setup.sh`](setup.sh) marks fresh logs and retains Home Assistant/LLM credential
+  values only in shell locals for filtering after their exported forms are unset.
+- Added [`sanitize_error_log.py`](scripts/sanitize_error_log.py), 25 Python cases
+  and eight additional [handoff BATS cases](tests/bats/error_report.bats). Mocked
+  network calls verify single upload, failure status, private temporary cleanup,
+  no stale logs, no raw fallback and no terminal question in wizard mode.
+- Verification: 55 BATS passes and one existing skip; 53 pytest passes and four
+  subtests; ShellCheck, Bash syntax and whitespace checks pass. No real upload or
+  installation was performed.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** implemented automatic reporting and credential filtering,
+  wrote and ran isolated regression checks, and updated the existing guides.
+- **Oversight:** user explicitly requested automatic wizard uploads; automated
+  checks and an independent AI code review were performed before the change.
 
 ## 2026-10-08 — Consented paste-URL handoff
 
