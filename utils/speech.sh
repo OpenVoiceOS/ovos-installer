@@ -58,7 +58,7 @@ function local_speech_hardware_supported() {
 
 # Requires detect_cpu_instructions and is_raspberrypi_soc to have run.
 function detect_local_speech_support() {
-    printf '%s' "➤ Checking local speech support... "
+    printf '%s' "${STATUS_MARK} Checking local speech support... "
     TOTAL_MEMORY_MB="$(total_memory_mb)"
     export TOTAL_MEMORY_MB
 

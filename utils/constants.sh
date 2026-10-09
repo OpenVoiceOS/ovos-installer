@@ -74,10 +74,15 @@ declare -rA SUPPORTED_DEVICES=(
     ["tas5806"]="2f"    #https://www.ti.com/product/TAS5806MD
 )
 export SUPPORTED_DEVICES
+# Plain-text status marks. set_status_marks (utils/common.sh) swaps in the symbols
+# where the terminal draws them; a file sourced without common.sh still has these.
+export STARTUP_DRINKS=""
+export STATUS_MARK=">"
 export TUI_WINDOW_HEIGHT="35"
 export TUI_WINDOW_WIDTH="90"
 export USE_UV="true"
 export USER_ID="$EUID"
+export WARNING_MARK="WARNING:"
 export WLAN_INTERFACE="wlan0"
 export WSL_FILE=/etc/wsl.conf
 export YQ_BINARY_PATH=/tmp/yq

@@ -1,6 +1,11 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record remaining local-speech validation opportunities.
+Last Edit: Claude (Opus 5.5) - 2026-10-09 - Motive: Record the terminal-font compatibility decision.
 
 # Suggestions
+
+Status symbols are shown only where the terminal is likely to draw them; UTF-8
+locale support does not prove glyph availability, so `OVOS_INSTALLER_ASCII=1`
+remains the escape hatch. Keep every message readable from its words alone, so
+the plain-text marks lose nothing. See [`set_status_marks()`](utils/common.sh).
 
 | Problem or opportunity | Proposed action | Expected impact |
 | --- | --- | --- |
