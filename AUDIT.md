@@ -63,4 +63,4 @@ This is a focused review of the changed paths, not a whole-repository security a
 
 ## 2026-10-09 — macOS report fixture correction
 
-`tests/bats/error_report.bats:setup` used GNU-only `stat -c`, producing an empty mode on macOS. The fixture now uses Python `os.stat()` and `stat.S_IMODE()`; the new regression verifies 0600 and 0644 while shell `stat` is unavailable. Twenty-five report/error BATS cases and nine sanitizer pytest methods pass. Production upload permissions remain unchanged.
+`tests/bats/error_report.bats:setup` used GNU-only `stat -c`, producing an empty mode on macOS. The fixture now uses Python `os.stat()` and `stat.S_IMODE()`; the new regression verifies 0600 and 0644 while shell `stat` is unavailable. Twenty-five report/error BATS cases and ten sanitizer pytest methods pass. Production upload permissions remain unchanged.

@@ -82,7 +82,7 @@ Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record portable permission check
 
 ## 2026-10-09 — Portable report fixture permissions
 
-The mock `curl` in [error_report.bats](tests/bats/error_report.bats) now reads permissions with Python `os.stat()` and `stat.S_IMODE()` instead of GNU-only `stat -c`. Both macOS CI failures were empty fixture output, not changed production permissions. A regression disables shell `stat` and verifies both mode 0600 and 0644. All 25 focused report/error BATS tests and nine sanitizer pytest methods pass; ShellCheck and whitespace checks pass. Production files and installer pins are unchanged.
+The mock `curl` in [error_report.bats](tests/bats/error_report.bats) now reads permissions with Python `os.stat()` and `stat.S_IMODE()` instead of GNU-only `stat -c`. Both macOS CI failures were empty fixture output, not changed production permissions. A regression disables shell `stat` and verifies both mode 0600 and 0644. All 25 focused report/error BATS tests and ten sanitizer pytest methods pass; ShellCheck and whitespace checks pass. Production files and installer pins are unchanged.
 
 ### Transparency Report
 
