@@ -17,7 +17,7 @@ Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record automatic wizard report s
   uses mocked uploads; [Python coverage](scripts/test_sanitize_error_log.py) checks
   redaction, unsafe files, oversized input and malformed-log performance.
 - Validation: 55 focused BATS passes with one existing sound-detection skip;
-  53 pytest passes and four subtests; ShellCheck, Bash syntax and diff checks pass.
+  54 pytest passes and four subtests; ShellCheck, Bash syntax and diff checks pass.
 - Limits: filtering cannot guarantee anonymous logs. The standalone consented
   uploader retains its existing transport behavior; this change hardens only the
   newly automatic path. No real upload or device installation was run.

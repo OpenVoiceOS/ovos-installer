@@ -16,7 +16,7 @@ SECRET_NAME = re.compile(
     r"credentials?|satellite[_-]key)(?:$|[_-])"
 )
 SECRET_FIELD_NAME = re.compile(
-    r"(?i)(?:api[_-]?key|token|password|passwd|secret|authorization|cookie|credential)"
+    r"(?i)(?:api[_-]?key|token|password|passwd|secret|authorization|cookie|credential|satellite[_-]key)"
 )
 ASSIGNMENT = re.compile(r"(?<![\w.-])[\"']?([\w.-]+)[\"']?\s*[:=]")
 

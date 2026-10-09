@@ -27,6 +27,7 @@ def test_known_secrets_and_encoded_values_are_removed() -> None:
     'accessToken: private-value',
     'clientSecret: private-value',
     'client.password: private-value',
+    'satellite_key: private-value',
     'curl https://example.org/?access_token=private-value',
     'secret = private-value',
     'curl https://example.org/?key=private-value',

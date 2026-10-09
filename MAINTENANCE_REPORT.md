@@ -9,11 +9,11 @@ Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document automatic wizard report
   current-run log, at most 1.5 MB, over verified HTTPS without curlrc or redirects.
 - [`setup.sh`](setup.sh) marks fresh logs and retains Home Assistant/LLM credential
   values only in shell locals for filtering after their exported forms are unset.
-- Added [`sanitize_error_log.py`](scripts/sanitize_error_log.py), 25 Python cases
+- Added [`sanitize_error_log.py`](scripts/sanitize_error_log.py), 26 Python cases
   and eight additional [handoff BATS cases](tests/bats/error_report.bats). Mocked
   network calls verify single upload, failure status, private temporary cleanup,
   no stale logs, no raw fallback and no terminal question in wizard mode.
-- Verification: 55 BATS passes and one existing skip; 53 pytest passes and four
+- Verification: 55 BATS passes and one existing skip; 54 pytest passes and four
   subtests; ShellCheck, Bash syntax and whitespace checks pass. No real upload or
   installation was performed.
 
