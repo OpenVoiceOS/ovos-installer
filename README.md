@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Clarify that on-device speech includes a public-server fallback.
+Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Recommend the OVOS setup wizard before the Terminal installation command.
 
 # Open Voice OS Installer
 
@@ -8,6 +8,12 @@ privacy-focused, and yours to change — on a Raspberry Pi, a Linux box, or a Ma
 [![Installs reported](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.meta.record_count&label=installs%20reported&color=2a78d6&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
 [![Distributions](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.aggregates.os.length&label=distributions&color=1baf7a&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
 [![Countries](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.aggregates.country.length&label=countries&color=4a3aa7&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
+
+**New to OVOS? [Start with the setup wizard](https://start.openvoiceos.org).**
+Choose your device and preferences, then copy the command it gives you into your
+device's Terminal.
+
+Prefer to answer the setup questions in Terminal? Run:
 
 ```shell
 sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
