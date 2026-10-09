@@ -1,27 +1,30 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record terminal status symbol fix and validation.
+Last Edit: Claude (Opus 5.5) - 2026-10-09 - Motive: Record status symbols chosen per terminal.
 
 # Maintenance report
 
-## 2026-10-08 — Readable terminal status
+## 2026-10-09 — Status symbols where the terminal draws them
 
-Replaced decorative status arrows with `>`, warning symbols with `WARNING:`,
-and removed drink emoji from the Ansible startup message. This covers
-[setup](setup.sh), [common helpers](utils/common.sh),
-[speech detection](utils/speech.sh), and [cancellation](tui/navigation.sh).
-The existing [reboot ordering test](tests/bats/code_quality.bats#L3693) now
-recognizes the updated startup message. Installer control flow is unchanged.
+The status arrow, warning sign and drink emoji came out as empty boxes on some
+terminals. Rather than drop them everywhere,
+[`set_status_marks()`](utils/common.sh) chooses once per run: `➤`, `⚠` and the
+drinks where the terminal can draw them, and `>` and `WARNING:` on the Linux
+text console, dumb or serial terminals, and non-UTF-8 locales. The user's own
+locale is captured in [setup](setup.sh) before the installer replaces it.
+`OVOS_INSTALLER_ASCII=1` forces plain text, `=0` the symbols. Messages in
+[common helpers](utils/common.sh), [speech detection](utils/speech.sh) and
+[cancellation](tui/navigation.sh) use the chosen marks; the
+[reboot ordering test](tests/bats/code_quality.bats#L3693) follows the startup
+message. Installer control flow is unchanged.
 
-Validation: 134 focused BATS tests, 16 pytest contract tests, ShellCheck,
-`git diff --check`, and ASCII rendering checks for CPU/speech/startup output
-under `LC_ALL=C` and `C.UTF-8` with `TERM=dumb` pass.
+A shell cannot see the font, so a UTF-8 desktop terminal lacking a glyph still
+shows a box; the override is the way out.
 
 ### Transparency Report
 
-- **AI Model:** GPT-6 (Codex).
-- **Actions Taken:** traced screenshot symbols to shell messages, replaced the
-  decorative glyphs, updated the existing test matcher, and ran validation.
-- **Oversight:** user identified the rendering defect; automated and AI review
-  performed. No physical-device installation was run.
+- **AI Model:** GPT-6 (Codex) first replaced the symbols with ASCII; Claude
+  (Opus 5.5) brought them back behind the terminal check.
+- **Oversight:** the user identified the rendering defect and asked to keep the
+  emoji where possible. No physical-device installation was run.
 
 ## 2026-10-08 — PR 648 review fixes
 

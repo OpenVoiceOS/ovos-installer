@@ -1,15 +1,18 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain terminal-safe status messages.
+Last Edit: Claude (Opus 5.5) - 2026-10-09 - Motive: Explain when the status symbols are shown.
 
 # Frequently asked questions
 
 ## Why did the installer show empty squares before its messages?
 
-The old status arrow and drink emoji were missing from some terminal fonts.
-Progress now uses `>` and warnings use `WARNING:` in
-[`detect_cpu_instructions()`](utils/common.sh),
-[`detect_local_speech_support()`](utils/speech.sh), and [setup](setup.sh).
-The change needs an installer version containing this fix; an already running
-installation keeps its existing output.
+The status arrow, warning sign and drink emoji were missing from some terminal
+fonts. The installer now shows them only where the terminal can draw them, and
+`>` and `WARNING:` elsewhere: on the Linux text console (a Raspberry Pi or a
+Mark II on its own screen), a dumb or serial terminal, or a locale that is not
+UTF-8. See [`set_status_marks()`](utils/common.sh).
+
+A desktop terminal whose font lacks them can still show squares, because a
+script cannot see the font. Run the installer with `OVOS_INSTALLER_ASCII=1` for
+plain text. The change needs an installer version containing this fix.
 
 ## Does local speech keep every recording offline?
 

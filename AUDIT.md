@@ -1,18 +1,21 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record verified replacement of unsupported terminal status symbols.
+Last Edit: Claude (Opus 5.5) - 2026-10-09 - Motive: Keep the status symbols where the terminal can draw them.
 
 # Audit
 
 ## 2026-10-08 — Terminal status glyphs
 
-- **Fixed:** decorative arrows, warning symbols and drink emoji rendered as
-  empty boxes on terminals without those glyphs. [Setup](setup.sh#L150),
-  [`detect_cpu_instructions()`](utils/common.sh#L522),
-  [`detect_local_speech_support()`](utils/speech.sh#L61), and
-  [`tui_nav_quit()`](tui/navigation.sh#L95) now use ASCII status text.
-- **Verification:** 134 focused BATS tests and 16 pytest contract tests pass;
-  ShellCheck and `git diff --check` pass. Actual CPU/speech/startup output is
-  ASCII after stripping color escapes under both `C` and `C.UTF-8` locales
-  with `TERM=dumb`. No physical-device installation was performed.
+- **Fixed:** status arrows, warning symbols and drink emoji rendered as empty
+  boxes on terminals without those glyphs.
+  [`set_status_marks()`](utils/common.sh) now chooses them once: `➤`, `⚠` and
+  the drinks where the terminal can draw them, `>` and `WARNING:` on the Linux
+  text console, dumb or serial terminals, and locales that are not UTF-8. The
+  user's own locale is read before [setup](setup.sh) replaces it.
+  `OVOS_INSTALLER_ASCII=1` forces plain text and `=0` the symbols.
+- **Limit:** a shell cannot see the font. A UTF-8 desktop terminal whose font
+  lacks a glyph still shows a box; `OVOS_INSTALLER_ASCII=1` is the way out.
+- **Verification:** BATS tests for each terminal case, ShellCheck, and real
+  output under `TERM=linux`, `TERM=dumb`, `LANG=C` and a UTF-8 xterm. No
+  physical-device installation was performed.
 
 ## 2026-10-08 — PR 648 follow-up
 
