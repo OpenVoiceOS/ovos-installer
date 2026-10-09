@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Backport the automatic wizard error-report contract.
+Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record the tested compatibility bootstrap backport.
 
 # Automation
 
@@ -99,3 +99,14 @@ sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-inst
 
 Uninstalling removes installed components, configuration and services. Back up
 anything you want to keep first.
+
+## Wizard compatibility bootstrap
+
+The compatibility branch keeps the existing Mac target checks while backporting the
+checked `uv` handoff and OpenSSL dependency preparation from installer PR #667.
+[`resolve_installer_uv`](../utils/common.sh) passes the selected executable through
+[`setup.sh`](../setup.sh) to the [virtualenv role](../ansible/roles/ovos_virtualenv/tasks/venv.yml).
+The role preserves an existing user-owned `~/.local/bin/uv`.
+[`test_start_compat_bootstrap.py`](../scripts/test_start_compat_bootstrap.py) exercises
+`HomebrewDependencyTests` and `UvSelectionTests` with fake tools in temporary directories.
+These tests do not prove a complete installation on physical Mac hardware.
