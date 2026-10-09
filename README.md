@@ -1,150 +1,61 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Clarify that on-device speech includes a public-server fallback.
+# OpenVoiceOS Installer
 
-# Open Voice OS Installer
+This installer sets up **OpenVoiceOS (OVOS)**, an open-source voice assistant,
+on a Raspberry Pi, Linux computer or supported Mac.
 
-**Your own voice assistant, on your own hardware.** Open source,
-privacy-focused, and yours to change — on a Raspberry Pi, a Linux box, or a Mac.
+It checks your device, asks a few questions, then installs the software and
+sets up speech, skills, sound and background services. You can also choose
+optional features such as Home Assistant or an AI assistant.
 
-[![Installs reported](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.meta.record_count&label=installs%20reported&color=2a78d6&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
-[![Distributions](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.aggregates.os.length&label=distributions&color=1baf7a&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
-[![Countries](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.aggregates.country.length&label=countries&color=4a3aa7&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
+## Install
 
-```shell
+Before starting, you need:
+
+- A [supported system](docs/supported-systems.md) and an internet connection.
+- `curl`, `git`, `sudo` and **Bash 4 or later** installed on that device.
+- On a Mac, complete the [macOS preparation](docs/macos.md) first.
+
+Open Terminal on the device you want to use and run:
+
+```sh
 sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh)"
 ```
 
-One command. It asks a handful of questions, then sets everything up itself —
-speech, skills, services, the lot.
+Use the arrow keys and **Enter** to make your choices. **Back** lets you change
+an earlier answer. Follow any restart instructions when installation finishes.
 
-## What you can do with it
+## Speech
 
-- **Ask it things.** The time, the temperature, who Ada Lovelace was — and
-  whatever else you add, because skills are open source and there are a lot of
-  them.
-- **Run your home.** The Home Assistant integration turns "turn off the kitchen
-  lights" into the thing actually happening.
-- **Give it a brain.** An optional LLM fallback answers what the skills do not,
-  pointed at whichever OpenAI-compatible endpoint you like — including one you
-  host yourself.
-- **Run speech on your device.** On a Raspberry Pi 5 with 8 GB, or anything at
-  least as capable, recognition and the assistant's voice can run locally on
-  the alpha channel. Failed or empty recognition sends the recording to public
-  servers. If a local model cannot run, that part uses public speech instead.
-  This is not a fully offline mode. See [speech settings](docs/automation.md#scenario-settings).
-- **Put it in every room.** HiveMind satellites share a single assistant across
-  several devices, so the Pi in the hallway and the one in the kitchen are the
-  same assistant.
-- **Keep it yours.** The configuration is a plain file on your disk, every
-  part is open source, and the installer asks before it shares anything.
+Speech can use public servers or, on supported hardware with the alpha channel,
+run on your device with public fallback. If local recognition fails or returns
+no text, the recording is sent to public servers. If a local speech model
+cannot run, that part uses public servers instead.
+[More about speech settings](docs/automation.md#scenario-settings).
 
-## Before you start
+## After installation
 
-You need `curl`, `git`, `sudo`, and Bash 4 or later. Macs need
-[a little setup first](docs/macos.md).
+With a microphone and speaker connected, try:
 
-Prefer to read the script before running it? Download it, look it over, then run
-it:
+> Hey Mycroft, what time is it?
 
-```shell
-curl -fsSL https://raw.githubusercontent.com/OpenVoiceOS/ovos-installer/main/installer.sh -o installer.sh
-less installer.sh
-sudo sh installer.sh
-```
+You can also [type to OVOS in a terminal](docs/terminal-client.md).
 
-Answer the questions with the arrow keys and **Enter**. **Back** returns to the
-previous screen at any point, and nothing is installed until you have answered
-every screen — so you can change your mind, or leave, without touching the
-machine.
+To **update or uninstall**, run the same install command again and follow the
+prompts. Back up your settings first: `~/.config/mycroft/mycroft.conf` for a
+virtualenv install, or `~/ovos/config/mycroft.conf` for containers.
 
-## Talk to it
+## Help
 
-The installer tells you when it is done. Then:
-
-> **"Hey Mycroft, what time is it?"**
-
-Others to try: *what is the temperature?*, *who made you?*, *who is Ada
-Lovelace?*
-
-If nothing happens, start with [Troubleshooting](docs/troubleshooting.md).
-
-### No microphone? Type instead
-
-[ovos-tui-client](docs/terminal-client.md) is a terminal you can talk to OVOS
-through — type what you would have said, read the reply, and watch which skill
-answered and why. Handy before the microphone is set up, on a machine that has
-none, or when you want to see what the assistant is actually doing.
-
-![Talking to OVOS from a terminal](docs/images/ovos-tui-client.png)
-
-Virtualenv installs get it in the box — `~/.venvs/ovos/bin/ovos-tui` and you
-are talking to it. Container installs run it as a container too;
-[Running it](docs/terminal-client.md) has both.
-
-## Everyday tasks
-
-| I want to… | Do this |
-| --- | --- |
-| Update | Re-run the installer and answer **No** to "uninstall?" |
-| Start, stop or check the services | See [Managing OVOS](docs/services.md) |
-| Change settings | Edit `~/.config/mycroft/mycroft.conf` |
-| Fix a microphone that mishears | [Calibrate it](docs/troubleshooting.md#the-assistant-does-not-answer) |
-| Install without answering questions | See [Automation](docs/automation.md) |
-| Uninstall | Re-run the installer and answer **Yes** to "uninstall?" |
-
-Back up `~/.config/mycroft/mycroft.conf` (or `~/ovos/config/mycroft.conf` for
-container installs) before updating or uninstalling if you want to keep your
-settings.
-
-## Who is running it
-
-From installs that accepted **installer telemetry**, which is one of the two
-questions the installer asks about sharing data — this one, sent to
-`telemetry.smartgic.io` while the install runs, and separately usage metrics,
-sent elsewhere during normal use. Both are off unless you accept them, and
-[Telemetry](docs/telemetry.md) lists exactly what each one sends.
-
-The numbers update on their own. The
-[live dashboard](https://telemetry.smartgic.io/ovos-installer/dashboard/) has
-the interactive version.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/telemetry-os-dark.svg">
-  <img alt="Operating systems reported by installs" src="docs/images/telemetry-os-light.svg">
-</picture>
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/images/telemetry-features-dark.svg">
-  <img alt="Share of installs enabling each feature" src="docs/images/telemetry-features-light.svg">
-</picture>
-
-## Will it run on my machine?
-
-Most likely yes. The installer is tested on Debian, Ubuntu and their
-derivatives (including Raspberry Pi OS and Linux Mint), Fedora and the
-Enterprise Linux family, Arch and its derivatives, openSUSE, WSL2, and macOS 15
-or later on Apple Silicon.
-
-[The full list of tested versions](docs/supported-systems.md) has the details,
-including which combinations macOS supports.
-
-## Documentation
-
-- [Terminal client](docs/terminal-client.md) — talk to OVOS without a microphone
-- [Managing OVOS](docs/services.md) — starting, stopping and checking services
-- [Automation](docs/automation.md) — unattended installs and every setting
-- [macOS](docs/macos.md) — extra setup Macs need
-- [Supported systems](docs/supported-systems.md) — tested distributions
-- [Troubleshooting](docs/troubleshooting.md) — when something goes wrong
-- [Telemetry](docs/telemetry.md) — what the optional data sharing sends
-- [How it works](docs/architecture.md) — for people changing the installer
-
-## Screenshots
+- [Managing OVOS](docs/services.md) — start, stop and check the services
+- [Automation](docs/automation.md) — install using saved settings
+- [Troubleshooting](docs/troubleshooting.md) — help with installation, sound and microphones
+- [Data sharing](docs/telemetry.md) — what the optional telemetry sends
+- [How it works](docs/architecture.md) — for contributors
 
 <details>
-<summary>The screens the installer walks through</summary>
+<summary>Screenshots and community statistics</summary>
 
-Rendered from the installer itself by `scripts/render_screenshots.py`, so they
-stay in step with it.
+### Setup screens
 
 ![Welcome](docs/images/screenshot_1.png)
 
@@ -162,10 +73,27 @@ stay in step with it.
 
 ![Finish](docs/images/screenshot_8.png)
 
+### Terminal client
+
+![Talking to OVOS from a terminal](docs/images/ovos-tui-client.png)
+
+### Community statistics
+
+These figures include installations that opted into installer telemetry.
+[Open the dashboard](https://telemetry.smartgic.io/ovos-installer/dashboard/).
+
+[![Installs reported](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.meta.record_count&label=installs%20reported&color=2a78d6&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
+[![Distributions](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.aggregates.os.length&label=distributions&color=1baf7a&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
+[![Countries](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Ftelemetry.smartgic.io%2Fovos-installer%2Fdashboard-summary%2F%3Finclude_records%3Dfalse&query=%24.aggregates.country.length&label=countries&color=4a3aa7&style=flat-square)](https://telemetry.smartgic.io/ovos-installer/dashboard/)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/telemetry-os-dark.svg">
+  <img alt="Operating systems reported by installs" src="docs/images/telemetry-os-light.svg">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/telemetry-features-dark.svg">
+  <img alt="Share of installs enabling each feature" src="docs/images/telemetry-features-light.svg">
+</picture>
+
 </details>
-
-## Related projects
-
-- [ovos-core](https://github.com/OpenVoiceOS/ovos-core) — the assistant this installs
-- [HiveMind-core](https://github.com/JarbasHiveMind/HiveMind-core) — distributed voice across several devices, which this can also set up
-- [raspOVOS](https://github.com/OpenVoiceOS/raspOVOS) — a prebuilt Raspberry Pi image, if you would rather flash a card than run an installer

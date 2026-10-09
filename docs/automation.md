@@ -1,5 +1,3 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document public fallbacks for local speech scenarios.
-
 # Automation
 
 Installing without answering questions, for scripted installs or several
@@ -52,13 +50,6 @@ including one that runs speech recognition and the voice on a Raspberry Pi 5
 | `raspberry_pi_tuning` | Maximum-performance tuning for a Pi, including an overclocking prompt |
 | `share_telemetry` | Share anonymous usage statistics — see [Telemetry](telemetry.md) |
 | `share_usage_telemetry` | Share detailed usage data — see [Telemetry](telemetry.md) |
-
-Speech candidates are checked by `first_working()` in
-[speech_setup.py](../ansible/roles/ovos_config/files/speech_setup.py).
-Its `with_public_fallback()` preserves the locale's public server settings;
-[speech.yml](../ansible/roles/ovos_config/tasks/speech.yml) applies the working
-models and reports which parts remain public. Regression coverage lives in
-[`SpeechSetupTest`](../scripts/test_speech_setup.py).
 
 ## Environment variables
 
