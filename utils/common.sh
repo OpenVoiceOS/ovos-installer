@@ -284,9 +284,8 @@ function container_runtime_has_ovos_instance() {
     return 1
 }
 
-# This function asks for user agreement on uploading the content of
-# ovos-installer.log on https://paste.uoi.io. Without the user
-# agreement this could lead to security infringement.
+# Standalone installations ask before uploading ovos-installer.log.
+# Wizard launchers can explicitly enable automatic reporting below.
 function ask_optin() {
     # If not running interactively, assume NO to avoid hanging CI/CD pipelines
     if [ ! -t 0 ] && [ "${OVOS_INSTALLER_ASSUME_INTERACTIVE:-}" != "true" ]; then
@@ -294,7 +293,7 @@ function ask_optin() {
     fi
 
     while true; do
-        read -rp "Upload the log on ${PASTE_URL} website? (yes/no) " yn
+        read -rp "Upload the log on ${PASTE_URL} website? (yes/no) " yn || return 1
         case $yn in
         [Yy]*)
             return 0
@@ -401,20 +400,80 @@ PY
     echo "$debug_url"
 }
 
+# Automatic reports use only the fresh run log, including the Ansible output
+# already captured by setup.sh. A sanitizer failure never falls back to raw logs.
+function upload_wizard_logs() (
+    # Error reporting immediately precedes exit; never trace secret assignments.
+    case "$-" in *x*) set +x ;; esac
+    automatic_error_report_enabled || return 1
+    [ "${OVOS_INSTALLER_CURRENT_LOG:-}" = "true" ] || return 1
+    [ -f "$LOG_FILE" ] || return 1
+    local report_file="" report_url report_limit
+    # Keep cleanup local to this upload without replacing the installer's traps.
+    trap '[ -z "$report_file" ] || rm -f -- "$report_file"' EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    trap 'exit 129' HUP
+    report_limit="${OVOS_INSTALLER_LOG_UPLOAD_MAX:-1500000}"
+    report_file="$(mktemp "${TMPDIR:-/tmp}/ovos-wizard-report.XXXXXX")" || return 1
+    if ! chmod 0600 "$report_file" || ! \
+        HOMEASSISTANT_API_KEY="${report_homeassistant_api_key:-${HOMEASSISTANT_API_KEY:-}}" \
+        LLM_API_KEY="${report_llm_api_key:-${LLM_API_KEY:-}}" \
+        SATELLITE_KEY="${report_satellite_key:-${SATELLITE_KEY:-}}" \
+        SATELLITE_PASSWORD="${report_satellite_password:-${SATELLITE_PASSWORD:-}}" \
+        python3 scripts/sanitize_error_log.py "$LOG_FILE" "$report_limit" >"$report_file"; then
+        return 1
+    fi
+    # -q must be first to ignore curlrc; no redirects, TLS bypass or raw fallback.
+    report_url="$(curl -q -sSf --proto '=https' --connect-timeout 10 -m 20 \
+        -F "content=<${report_file}" 'https://paste.uoi.io/api/' 2>/dev/null)" || report_url=""
+    [[ "$report_url" =~ ^https://paste\.uoi\.io/[A-Za-z0-9_-]{1,128}/?$ ]] || return 1
+    printf '%s\n' "$report_url"
+)
+
+# Automatic uploads are enabled only by an explicit wizard launch contract.
+# A zero-byte write verifies that FD 3 is writable without changing its receipt.
+# A missing Python runtime or descriptor prevents the automatic upload.
+function automatic_error_report_enabled() {
+    [ "${OVOS_INSTALLER_AUTO_REPORT:-}" = "1" ] || return 1
+    [ "${OVOS_INSTALLER_REPORT_FD:-}" = "3" ] || return 1
+    command -v python3 >/dev/null 2>&1 || return 1
+    python3 -c 'import os; os.write(3, b"")' 2>/dev/null
+}
+
+# Report only an authorized paste URL to an optional launcher-owned FD.
+# The installer never opens a caller-provided path or sends logs to the launcher.
+function report_upload_url() {
+    [ "${OVOS_INSTALLER_REPORT_FD:-}" = "3" ] || return 0
+    local report_url="${1:-}"
+    [[ "$report_url" =~ ^https://paste\.uoi\.io/[A-Za-z0-9_-]{1,128}/?$ ]] || return 0
+    # A missing/closed reader must not replace the installation's failure code.
+    (printf '%s\n' "$report_url" >&3) 2>/dev/null || true
+}
+
 # The function exits the installer when trap detects ERR as signal.
 # This is mainly used in setup.sh to handle errors during the functions
 # execution.
 function on_error() {
     log_error "[$fail_format]"
     local upload_optin="false"
-    if ask_optin; then
+    local automatic_report="false"
+    if [ "${OVOS_INSTALLER_AUTO_REPORT:-}" = "1" ] && [ "${OVOS_INSTALLER_REPORT_FD:-}" = "3" ]; then
+        automatic_report="true"
+        upload_optin="true"
+    elif ask_optin; then
         upload_optin="true"
     fi
-    if [ -n "${ANSIBLE_LOG_FILE:-}" ] && [ -f "$ANSIBLE_LOG_FILE" ]; then
+    if [ "$automatic_report" != "true" ] && [ -n "${ANSIBLE_LOG_FILE:-}" ] && [ -f "$ANSIBLE_LOG_FILE" ]; then
         cat "$ANSIBLE_LOG_FILE" >>"$LOG_FILE"
     fi
     if [ "$upload_optin" = "true" ]; then
-        debug_url="$(upload_logs || true)"
+        if [ "$automatic_report" = "true" ]; then
+            debug_url="$(upload_wizard_logs 2>/dev/null || true)"
+        else
+            debug_url="$(upload_logs || true)"
+        fi
+        report_upload_url "$debug_url"
     else
         debug_url=""
     fi
@@ -440,9 +499,11 @@ function on_error() {
 # Delete installer log file if existing from previous run.
 # This file will be deleted at each execution of the installer.
 function delete_log() {
+    OVOS_INSTALLER_CURRENT_LOG="false"
     if [ -f "$LOG_FILE" ]; then
-        rm -f "$LOG_FILE"
+        rm -f "$LOG_FILE" || return 1
     fi
+    OVOS_INSTALLER_CURRENT_LOG="true"
 }
 
 # Detect information about the user running the installer.

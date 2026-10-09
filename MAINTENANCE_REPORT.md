@@ -1,6 +1,74 @@
-Last Edit: Claude (Opus 5.5) - 2026-10-09 - Motive: Record status symbols chosen per terminal.
+Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Address PR 666 reporting review and retain upstream terminal fixes.
 
 # Maintenance report
+
+## 2026-10-09 — PR 666 review fixes
+
+- Capture satellite credentials independently of Home Assistant/LLM setup and
+  supply them explicitly to [`upload_wizard_logs()`](utils/common.sh).
+- Reject oversized complete logs in [`bounded_log()`](scripts/sanitize_error_log.py)
+  so truncation cannot expose private-key fragments; keep bounded reads and the
+  original log. Add upload-level and Python regressions for this behavior.
+- Give the private report file upload-local cleanup on normal return and
+  INT/TERM/HUP. New [interruption regressions](tests/bats/error_report_cleanup.bats)
+  fail against the previous revision and verify caller traps remain unchanged.
+- Merge upstream `main` through `f062c0ab`, preserving terminal-specific symbols
+  and the shared Ansible failure handler. Update [the reporting contract](docs/automation.md).
+- Verification: **39 BATS passed; 42 pytest and 28 subtests passed**. ShellCheck,
+  Ruff, Bash syntax and `git diff --check` passed. All uploads are stubbed.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** reviewed GitHub feedback, fixed reporting code, added and ran
+  regressions, resolved upstream conflicts and updated existing documentation.
+- **Oversight:** user requested the review fixes; automated checks and independent
+  agent review cover the changed paths. No physical-device install was run.
+
+## 2026-10-08 — Automatic wizard failure reports
+
+- Added explicit automatic report mode in [`on_error()`](utils/common.sh), retaining
+  standalone consent. The uploader requires writable FD 3 and uses a filtered
+  current-run log, at most 1.5 MB, over verified HTTPS without curlrc or redirects.
+- [`setup.sh`](setup.sh) marks fresh logs and retains Home Assistant/LLM credential
+  values only in shell locals for filtering after their exported forms are unset.
+- Added [`sanitize_error_log.py`](scripts/sanitize_error_log.py), 26 Python cases
+  and eight additional [handoff BATS cases](tests/bats/error_report.bats). Mocked
+  network calls verify single upload, failure status, private temporary cleanup,
+  no stale logs, no raw fallback and no terminal question in wizard mode.
+- Verification: 55 BATS passes and one existing skip; 54 pytest passes and four
+  subtests; ShellCheck, Bash syntax and whitespace checks pass. No real upload or
+  installation was performed.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** implemented automatic reporting and credential filtering,
+  wrote and ran isolated regression checks, and updated the existing guides.
+- **Oversight:** user explicitly requested automatic wizard uploads; automated
+  checks and an independent AI code review were performed before the change.
+
+## 2026-10-08 — Consented paste-URL handoff
+
+- Added optional `report_upload_url()` in [`utils/common.sh`](utils/common.sh).
+  The launcher opens FD 3; only a validated paste URL is written after consent.
+  Closed or unwritable descriptors do not replace the installer failure status.
+- [`setup.sh`](setup.sh) now routes Ansible failures through `on_error()`, closing
+  its prior unconditional upload path. EOF in the consent prompt declines upload.
+- [Eight new BATS tests](tests/bats/error_report.bats) check actual consent,
+  report bytes, the Ansible failure branch, invalid URLs and absent/unwritable
+  descriptors. The existing exit-code fixture now mocks curl instead of uploading.
+- Verification: 53 BATS passed, one existing skip; 28 pytest and 4 subtests passed;
+  changed-shell ShellCheck (excluding source-following notices) and diff checks
+  passed. New tests stub uploads; no OVOS installation was run.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** implemented the optional handoff, corrected consent handling,
+  added isolated regressions, ran checks and updated existing documentation.
+- **Oversight:** user requested the wizard error link; automated checks and AI
+  review performed. Separate launcher/relay rollout is not claimed here.
 
 ## 2026-10-09 — Status symbols where the terminal draws them
 
@@ -58,3 +126,13 @@ shows a box; the override is the way out.
   these maintenance notes.
 - **Oversight:** user requested the fixes; automated and AI review were performed.
   No human translation sign-off or physical Raspberry Pi test is claimed.
+
+## 2026-10-09 — Portable report fixture permissions
+
+The mock `curl` in [error_report.bats](tests/bats/error_report.bats) now reads permissions with Python `os.stat()` and `stat.S_IMODE()` instead of GNU-only `stat -c`. Both macOS CI failures were empty fixture output, not changed production permissions. A regression disables shell `stat` and verifies both mode 0600 and 0644. All 25 focused report/error BATS tests and ten sanitizer pytest methods pass; ShellCheck and whitespace checks pass. Production files and installer pins are unchanged.
+
+### Transparency Report
+
+- AI model: GPT-6.
+- Actions: inspected macOS CI logs, corrected the test fixture, added portable permission regression coverage and ran focused tests.
+- Oversight: the coordinating agent authorized this scoped correction; no human code review or real upload was performed.

@@ -52,6 +52,10 @@ export INSTALLER_VERSION
 # shellcheck source=utils/constants.sh
 source utils/constants.sh
 
+# Only delete_log() can authorize this run's log for automatic reports.
+OVOS_INSTALLER_CURRENT_LOG="false"
+unset report_homeassistant_api_key report_llm_api_key report_satellite_key report_satellite_password
+
 # shellcheck source=utils/banner.sh
 source utils/banner.sh
 
@@ -196,6 +200,11 @@ if [ "$xtrace_was_on" == "true" ]; then
   set +x
 fi
 
+# Satellite-only setups do not enter the Home Assistant/LLM block below.
+# Retain shell-only copies while tracing is off, just like the other credentials.
+report_satellite_key="${SATELLITE_KEY:-}"
+report_satellite_password="${SATELLITE_PASSWORD:-}"
+
 if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
   [ "${FEATURE_LLM:-false}" == "true" ] || [ -n "${LLM_API_URL:-}" ] || [ -n "${LLM_API_KEY:-}" ] || [ -n "${LLM_MODEL:-}" ]; then
 
@@ -230,6 +239,9 @@ if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
   fi
   umask "$old_umask"
 
+  # Keep values only in this shell for automatic report redaction, not child env.
+  report_homeassistant_api_key="${HOMEASSISTANT_API_KEY:-}"
+  report_llm_api_key="${LLM_API_KEY:-}"
   # Secrets are now on disk with restrictive permissions; don't keep them exported.
   unset HOMEASSISTANT_API_KEY || true
   unset LLM_API_KEY || true
@@ -353,13 +365,5 @@ if [ "$ansible_rc" -eq 0 ]; then
     rm -f "$LOG_FILE"
   fi
 else
-  debug_url="$(upload_logs)"
-  log_info ""
-  log_info "${STATUS_MARK} Unable to finalize the process, please check $LOG_FILE for more details."
-  if [ -n "${debug_url:-}" ]; then
-    log_info "${STATUS_MARK} Please share this URL with us $debug_url"
-  else
-    log_info "${STATUS_MARK} Failed to upload logs automatically. Please attach $LOG_FILE."
-  fi
-  exit "${EXIT_FAILURE}"
+  on_error
 fi

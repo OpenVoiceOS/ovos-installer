@@ -15,7 +15,10 @@ function setup() {
     function ask_optin() {
         return 0  # Simulate user agreeing
     }
-    export -f ask_optin
+    function curl() {
+        printf '%s\n' 'https://paste.uoi.io/fixture'
+    }
+    export -f ask_optin curl
 
     touch "$LOG_FILE"
 
