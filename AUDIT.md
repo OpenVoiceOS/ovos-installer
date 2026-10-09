@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record automatic wizard report safety and regression evidence.
+Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record portable permission checks in report test fixtures.
 
 # Audit
 
@@ -60,3 +60,7 @@ Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record automatic wizard report s
   Raspberry Pi 5 timing are required before claiming complete device coverage.
 
 This is a focused review of the changed paths, not a whole-repository security audit.
+
+## 2026-10-09 — macOS report fixture correction
+
+`tests/bats/error_report.bats:setup` used GNU-only `stat -c`, producing an empty mode on macOS. The fixture now uses Python `os.stat()` and `stat.S_IMODE()`; the new regression verifies 0600 and 0644 while shell `stat` is unavailable. Twenty-five report/error BATS cases and nine sanitizer pytest methods pass. Production upload permissions remain unchanged.

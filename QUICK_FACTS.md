@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record explicit wizard reports and standalone consent.
+Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record portable permission checks in report test fixtures.
 
 # Quick facts
 
@@ -19,3 +19,5 @@ Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record explicit wizard reports a
 
 Source: [`first_working()`, `forget_model()` and `with_public_fallback()`](ansible/roles/ovos_config/files/speech_setup.py),
 [`SpeechSetupTest`](scripts/test_speech_setup.py), [documentation](docs/index.md).
+
+Report permission regression: [error_report.bats](tests/bats/error_report.bats) inspects real file modes through Python, with both private and non-private fixtures; it does not depend on GNU/BSD `stat` flags.

@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document automatic wizard reports, secure transport and tests.
+Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record portable permission checks in report test fixtures.
 
 # Maintenance report
 
@@ -79,3 +79,13 @@ Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document automatic wizard report
   these maintenance notes.
 - **Oversight:** user requested the fixes; automated and AI review were performed.
   No human translation sign-off or physical Raspberry Pi test is claimed.
+
+## 2026-10-09 — Portable report fixture permissions
+
+The mock `curl` in [error_report.bats](tests/bats/error_report.bats) now reads permissions with Python `os.stat()` and `stat.S_IMODE()` instead of GNU-only `stat -c`. Both macOS CI failures were empty fixture output, not changed production permissions. A regression disables shell `stat` and verifies both mode 0600 and 0644. All 25 focused report/error BATS tests and nine sanitizer pytest methods pass; ShellCheck and whitespace checks pass. Production files and installer pins are unchanged.
+
+### Transparency Report
+
+- AI model: GPT-6.
+- Actions: inspected macOS CI logs, corrected the test fixture, added portable permission regression coverage and ran focused tests.
+- Oversight: the coordinating agent authorized this scoped correction; no human code review or real upload was performed.

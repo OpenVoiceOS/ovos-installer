@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain automatic wizard reports and standalone consent.
+Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record portable permission checks in report test fixtures.
 
 # Frequently asked questions
 
@@ -35,3 +35,7 @@ See [implementation](ansible/roles/ovos_config/files/speech_setup.py) and
 The speech setup unit tests use stub plugins and real child processes. They
 exercise failure, timeout, retention and fallback behavior without an actual
 installation. Real-device timing remains a separate validation step.
+
+## Why did the report permission test fail on macOS?
+
+The test fixture used Linux-specific `stat -c` flags. The production upload file still uses mode 0600. [The corrected fixture](tests/bats/error_report.bats) uses Python to read permissions and also verifies that a mode 0644 fixture is recognized.

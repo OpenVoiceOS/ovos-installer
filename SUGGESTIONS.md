@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record automatic-report coverage follow-ups.
+Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record portable permission checks in report test fixtures.
 
 # Suggestions
 
@@ -12,3 +12,5 @@ Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record automatic-report coverage
 Relevant evidence: [audit](AUDIT.md),
 [`SpeechSetupTest`](scripts/test_speech_setup.py) and
 [`first_working()`](ansible/roles/ovos_config/files/speech_setup.py).
+
+For future cross-platform permission fixtures, use Python’s `os.stat()` rather than shell-specific `stat` flags. The [report fixture regression](tests/bats/error_report.bats) covers both 0600 and 0644; this reduces false macOS CI failures without weakening the permission assertion.
