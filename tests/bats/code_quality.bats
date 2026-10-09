@@ -767,6 +767,49 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_runs_the_uv_setup_sh_checked_not_the_users" {
+    # On a distribution that packages uv, setup.sh checks /usr/bin/uv and the installer
+    # venv gets none. The playbook found uv by name, and the next one on its PATH was
+    # ~/.local/bin/uv: on one EndeavourOS desktop a wrapper that refuses to install into
+    # ~/.venvs, so every install failed at "Install Open Voice OS in Python venv".
+    # create_python_venv hands over a uv by path, one the user can run (tests in
+    # virtualenv.bats), and records the version of that very one.
+    run grep -F -q 'if ! resolve_installer_uv "$uv_minimum_version"; then' utils/common.sh
+    assert_success
+    run grep -F -q 'OVOS_INSTALLER_UV_VERSION="$("$OVOS_INSTALLER_UV_BIN" --version' utils/common.sh
+    assert_success
+    run grep -F -q -- '-e "ovos_installer_uv_bin=${OVOS_INSTALLER_UV_BIN:-}"' setup.sh
+    assert_success
+
+    # The checked uv is linked alone into a directory that leads the PATH every uv
+    # command runs with, ahead of the installer venv and ~/.local/bin.
+    local defaults="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    run grep -F -q 'ovos_virtualenv_uv_exec_path: "{{ ovos_virtualenv_uv_link_dir }}:{{ ovos_virtualenv_installer_venv_path }}/bin:{{ ovos_installer_user_home }}/.local/bin:' "$defaults"
+    assert_success
+    # Beside the uv cache, in the directory the uninstall removes. Not in the installer
+    # venv: the Arch job hands the OVOS venv's path as that, and a uv-bin made there
+    # before the venv exists makes `uv venv` refuse an existing directory.
+    run grep -F -q 'ovos_virtualenv_uv_link_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-bin"' "$defaults"
+    assert_success
+    run grep -F -q '"{{ ovos_installer_user_home }}/.ovos-installer"' ansible/roles/ovos_services/defaults/main.yml
+    assert_success
+
+    # ...and before the first task that runs uv.
+    local tasks="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    local link_line first_uv_line
+    link_line=$(grep -n -F -- "- name: Put the uv setup.sh checked first on the installer's PATH" "$tasks" | cut -d: -f1)
+    first_uv_line=$(grep -n -E 'cmd: .*\buv |moreati\.uv\.' "$tasks" | head -1 | cut -d: -f1)
+    [ -n "$link_line" ] && [ -n "$first_uv_line" ]
+    [ "$link_line" -lt "$first_uv_line" ]
+
+    # A uv the user cannot run stops the role: going on would look uv up by name again.
+    run bash -c "grep -A3 -F -- '- name: Stop if the user cannot run the uv setup.sh checked' '$tasks' | grep -F -q 'ovos_virtualenv_uv_bin_check.rc == 0'"
+    assert_success
+    # A run given no uv removes the link an earlier run left, so it cannot come first.
+    run grep -F -q -- "- name: Remove the uv link an earlier run left" "$tasks"
+    assert_success
+}
+
 @test "uninstall_gives_back_the_lingering_it_turned_on" {
     # Lingering keeps the user's systemd instance - and PipeWire with it - running
     # with no login session. Left behind by an uninstall it is not inert: a sound

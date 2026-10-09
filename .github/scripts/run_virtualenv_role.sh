@@ -43,5 +43,6 @@ ANSIBLE_CONFIG="${PWD}/ansible.cfg" \
     -e "ovos_installer_reboot_file_path=/tmp/ovos.reboot" \
     -e "ovos_installer_venv=${install_home}/.venvs/ovos" \
     -e "ovos_installer_venv_python=3.11" \
+    -e "ovos_installer_uv_bin=${OVOS_CI_UV_BIN:-}" \
     -e '{"ovos_installer_i2c_devices":[]}' \
     --tags ovos_virtualenv

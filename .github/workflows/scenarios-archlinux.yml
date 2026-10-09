@@ -44,10 +44,13 @@ jobs:
       OVOS_CI_INSTALL_HOME: /home/ovosci
       # Keep in sync with ANSIBLE_VERSION in utils/common.sh.
       OVOS_CI_ANSIBLE_VERSION: 10.7.0
+      # Arch packages uv, so setup.sh finds and checks /usr/bin/uv and puts no uv in
+      # the installer venv. The role is handed that path, as setup.sh hands it.
+      OVOS_CI_UV_BIN: /usr/bin/uv
 
     steps:
       - name: Install container prerequisites
-        run: pacman -Syu --noconfirm --needed base-devel git python python-pip sudo
+        run: pacman -Syu --noconfirm --needed base-devel git python python-pip sudo uv
 
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -72,8 +75,19 @@ jobs:
           python3 -m venv /opt/ansible-venv
           /opt/ansible-venv/bin/pip install --quiet "ansible==${OVOS_CI_ANSIBLE_VERSION}"
           /opt/ansible-venv/bin/ansible-galaxy collection install -r ansible/requirements.yml
-          sudo -u "$OVOS_CI_INSTALL_USER" \
-            python3 -m pip install --quiet --user --break-system-packages uv
+      # A uv of the user's own in ~/.local/bin, the next uv on the role's PATH after the
+      # installer's. On an EndeavourOS desktop it was a wrapper that refuses to install
+      # into ~/.venvs, and every install failed at "Install Open Voice OS in Python venv".
+      # This one refuses everything, so the role passes only if it never runs it.
+      - name: Give the user a uv of their own that refuses to run
+        run: |
+          bin="${OVOS_CI_INSTALL_HOME}/.local/bin"
+          sudo -u "$OVOS_CI_INSTALL_USER" mkdir -p "$bin"
+          printf '%s\n' '#!/bin/sh' \
+            'echo "REFUSED: this is the user'"'"'s own uv; the installer must run the uv setup.sh checked" >&2' \
+            'exit 1' | sudo -u "$OVOS_CI_INSTALL_USER" tee "$bin/uv" > /dev/null
+          chmod 0755 "$bin/uv"
+          "$OVOS_CI_UV_BIN" --version
 
       - name: Run ovos_virtualenv role
         run: .github/scripts/run_virtualenv_role.sh false
@@ -135,5 +149,6 @@ jobs:
           cat "${OVOS_CI_INSTALL_HOME}/.local/bin/swig2.0" || true
           ls -la "${OVOS_CI_INSTALL_HOME}/.local/bin" || true
           ls -la "${OVOS_CI_INSTALL_HOME}/.venvs/ovos/bin" || true
+          ls -la "${OVOS_CI_INSTALL_HOME}/.ovos-installer/uv-bin" || true
           swig -version || true
           pacman -Q swig fann gcc || true
