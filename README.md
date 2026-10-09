@@ -1,5 +1,3 @@
-Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Recommend the OVOS setup wizard before the Terminal installation command.
-
 # Open Voice OS Installer
 
 **Your own voice assistant, on your own hardware.** Open source,
