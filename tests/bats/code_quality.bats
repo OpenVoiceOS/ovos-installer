@@ -767,6 +767,33 @@ function setup() {
     assert_success
 }
 
+@test "virtualenv_runs_the_uv_setup_sh_checked_not_the_users" {
+    # On a distribution that packages uv, setup.sh checks /usr/bin/uv and the installer
+    # venv gets none. The playbook found uv by name, and the next one on its PATH was
+    # ~/.local/bin/uv: on one EndeavourOS desktop a wrapper that refuses to install into
+    # ~/.venvs, so every install failed at "Install Open Voice OS in Python venv".
+    run grep -F -q 'OVOS_INSTALLER_UV_BIN="$(command -v uv)"' utils/common.sh
+    assert_success
+    run grep -F -q -- '-e "ovos_installer_uv_bin=${OVOS_INSTALLER_UV_BIN:-}"' setup.sh
+    assert_success
+
+    # The checked uv is linked alone into a directory that leads the PATH every uv
+    # command runs with, ahead of the installer venv and ~/.local/bin.
+    local defaults="ansible/roles/ovos_virtualenv/defaults/main.yml"
+    run grep -F -q 'ovos_virtualenv_uv_exec_path: "{{ ovos_virtualenv_uv_link_dir }}:{{ ovos_virtualenv_installer_venv_path }}/bin:{{ ovos_installer_user_home }}/.local/bin:' "$defaults"
+    assert_success
+    run grep -F -q 'ovos_virtualenv_uv_link_dir: "{{ ovos_virtualenv_installer_venv_path }}/uv-bin"' "$defaults"
+    assert_success
+
+    # ...and before the first task that runs uv.
+    local tasks="ansible/roles/ovos_virtualenv/tasks/venv.yml"
+    local link_line first_uv_line
+    link_line=$(grep -n -F -- "- name: Put the uv setup.sh checked first on the installer's PATH" "$tasks" | cut -d: -f1)
+    first_uv_line=$(grep -n -E 'cmd: .*\buv |moreati\.uv\.' "$tasks" | head -1 | cut -d: -f1)
+    [ -n "$link_line" ] && [ -n "$first_uv_line" ]
+    [ "$link_line" -lt "$first_uv_line" ]
+}
+
 @test "uninstall_gives_back_the_lingering_it_turned_on" {
     # Lingering keeps the user's systemd instance - and PipeWire with it - running
     # with no login session. Left behind by an uninstall it is not inert: a sound

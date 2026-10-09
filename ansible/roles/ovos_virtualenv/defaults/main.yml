@@ -32,9 +32,15 @@ ovos_virtualenv_uv_allow_prerelease: >-
 ovos_virtualenv_uv_version: "{{ ovos_installer_uv_version | default('') }}"
 ovos_virtualenv_installer_venv_path: "{{ ovos_installer_venv | default(ovos_installer_user_home + '/.venvs/ovos-installer', true) }}"
 ovos_virtualenv_uv_cache_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-cache"
-# The installer's own uv first: setup.sh holds it to the 0.12 floor the alpha channel
-# needs, and a uv of the user's own in ~/.local/bin, whatever its version, is theirs.
-ovos_virtualenv_uv_exec_path: "{{ ovos_virtualenv_installer_venv_path }}/bin:{{ ovos_installer_user_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+# The uv setup.sh checked comes first, from a directory that holds nothing else: setup.sh
+# holds it to the 0.12 floor the alpha channel needs. A distribution's uv is not in the
+# installer venv, and without that directory the next uv on this PATH was the one in
+# ~/.local/bin, whatever it is: on one desktop a wrapper that refuses to install into
+# ~/.venvs, and every install failed. Only uv is linked there, so nothing else on the
+# PATH (the swig2.0 shim in ~/.local/bin) is shadowed by /usr/bin.
+ovos_virtualenv_uv_bin: "{{ ovos_installer_uv_bin | default('') }}"
+ovos_virtualenv_uv_link_dir: "{{ ovos_virtualenv_installer_venv_path }}/uv-bin"
+ovos_virtualenv_uv_exec_path: "{{ ovos_virtualenv_uv_link_dir }}:{{ ovos_virtualenv_installer_venv_path }}/bin:{{ ovos_installer_user_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ovos_virtualenv_uv_install_retries: "{{ ovos_installer_uv_install_retries | default(3) }}"
 ovos_virtualenv_uv_install_delay: "{{ ovos_installer_uv_install_delay | default(2) }}"
 ovos_virtualenv_pip_check_warning:

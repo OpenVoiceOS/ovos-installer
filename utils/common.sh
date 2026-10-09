@@ -1190,6 +1190,11 @@ function create_python_venv() {
     fi
     OVOS_INSTALLER_UV_VERSION="$(uv --version 2>>"$LOG_FILE" | awk '{print $2}')"
     export OVOS_INSTALLER_UV_VERSION
+    # The uv whose version was just checked, by path, for the playbook to run. Found by
+    # name on the user's PATH it could be another one: a distribution's uv is never in
+    # the installer venv, and the next on the playbook's PATH is ~/.local/bin, the user's.
+    OVOS_INSTALLER_UV_BIN="$(command -v uv)"
+    export OVOS_INSTALLER_UV_BIN
 
     if [ "$venv_reused" == "true" ] && [ "${OVOS_INSTALLER_REFRESH_BOOTSTRAP_TOOLS:-false}" != "true" ]; then
         printf '%s\n' "[info] Skipping pip/setuptools bootstrap upgrade for reused installer virtualenv" &>>"$LOG_FILE"
