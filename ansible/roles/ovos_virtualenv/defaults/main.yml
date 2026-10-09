@@ -147,6 +147,9 @@ ovos_virtualenv_rust_messagebus_archive_path: "{{ ovos_virtualenv_tmp_dir }}/{{ 
 ovos_virtualenv_rust_messagebus_binary_path: >-
   {{ ovos_installer_user_home }}/.local/bin/{{ ovos_virtualenv_rust_messagebus_binary_name }}
 ovos_virtualenv_homebrew_path: "/usr/local/bin:/opt/homebrew/bin:/home/linuxbrew/.linuxbrew/bin"
+# Installed on their own before the package list, as dependencies (tasks/packages.yml).
+ovos_virtualenv_macos_packages_first:
+  - openssl@4
 ovos_virtualenv_macos_fann_source_lib_dir: >-
   {{ '/opt/homebrew/lib'
      if (ansible_facts.architecture | default('')) in ['aarch64', 'arm64']

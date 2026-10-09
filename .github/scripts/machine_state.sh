@@ -178,6 +178,24 @@ allowed() {
     return 1
 }
 
+# A Homebrew formula the install added can only go if nothing still needs it. When a
+# formula that was there before the install needs it now - Homebrew upgrades an outdated
+# dependency in place, and python@3.14 3.14.8_1 needs openssl@4 where 3.14.8 did not -
+# taking it would break what the machine already had. Prints who needs it, if anyone.
+needed_by_what_was_there() {
+    local before_packages="$1" formula="$2" user
+    command -v brew >/dev/null 2>&1 || return 1
+    case "$formula" in cask:*) return 1 ;; esac
+    while read -r user; do
+        [ -n "$user" ] || continue
+        if grep -qxF -- "$user" "$before_packages"; then
+            printf '%s\n' "$user"
+            return 0
+        fi
+    done < <(brew uses --installed --recursive -- "$formula" 2>/dev/null)
+    return 1
+}
+
 compare() {
     local before="$1"
     local after kind
@@ -205,6 +223,12 @@ compare() {
                 [ -n "$entry" ] || continue
                 if allowed "$kind" "$change" "$entry"; then
                     echo "  allowed  ${kind} ${change}: ${entry}"
+                    continue
+                fi
+                local needed_by=""
+                if [ "$kind" = "packages" ] && [ "$change" = "added" ] &&
+                    needed_by="$(needed_by_what_was_there "$before/packages" "$entry")"; then
+                    echo "  kept     ${kind} ${change}: ${entry} (needed by ${needed_by}, there before the install)"
                     continue
                 fi
                 if [ "$change" = "added" ]; then
