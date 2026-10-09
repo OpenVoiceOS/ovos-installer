@@ -366,29 +366,34 @@ PY
 
 # Automatic reports use only the fresh run log, including the Ansible output
 # already captured by setup.sh. A sanitizer failure never falls back to raw logs.
-function upload_wizard_logs() {
+function upload_wizard_logs() (
     # Error reporting immediately precedes exit; never trace secret assignments.
     case "$-" in *x*) set +x ;; esac
     automatic_error_report_enabled || return 1
     [ "${OVOS_INSTALLER_CURRENT_LOG:-}" = "true" ] || return 1
     [ -f "$LOG_FILE" ] || return 1
-    local report_file report_url report_limit
+    local report_file="" report_url report_limit
+    # Keep cleanup local to this upload without replacing the installer's traps.
+    trap '[ -z "$report_file" ] || rm -f -- "$report_file"' EXIT
+    trap 'exit 130' INT
+    trap 'exit 143' TERM
+    trap 'exit 129' HUP
     report_limit="${OVOS_INSTALLER_LOG_UPLOAD_MAX:-1500000}"
     report_file="$(mktemp "${TMPDIR:-/tmp}/ovos-wizard-report.XXXXXX")" || return 1
     if ! chmod 0600 "$report_file" || ! \
         HOMEASSISTANT_API_KEY="${report_homeassistant_api_key:-${HOMEASSISTANT_API_KEY:-}}" \
         LLM_API_KEY="${report_llm_api_key:-${LLM_API_KEY:-}}" \
+        SATELLITE_KEY="${report_satellite_key:-${SATELLITE_KEY:-}}" \
+        SATELLITE_PASSWORD="${report_satellite_password:-${SATELLITE_PASSWORD:-}}" \
         python3 scripts/sanitize_error_log.py "$LOG_FILE" "$report_limit" >"$report_file"; then
-        rm -f "$report_file"
         return 1
     fi
     # -q must be first to ignore curlrc; no redirects, TLS bypass or raw fallback.
     report_url="$(curl -q -sSf --proto '=https' --connect-timeout 10 -m 20 \
         -F "content=<${report_file}" 'https://paste.uoi.io/api/' 2>/dev/null)" || report_url=""
-    rm -f "$report_file"
     [[ "$report_url" =~ ^https://paste\.uoi\.io/[A-Za-z0-9_-]{1,128}/?$ ]] || return 1
     printf '%s\n' "$report_url"
-}
+)
 
 # Automatic uploads are enabled only by an explicit wizard launch contract.
 # A zero-byte write verifies that FD 3 is writable without changing its receipt.

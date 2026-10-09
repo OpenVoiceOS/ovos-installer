@@ -31,7 +31,11 @@ def has_secret_field(line: str) -> bool:
 
 
 def bounded_log(path: str, limit: int) -> str:
-    """Read only a regular file's bounded tail, discarding a partial first line."""
+    """Read a complete regular file within the cap, or refuse the report.
+
+    A tail may begin inside a multiline credential whose opening marker was
+    omitted. Reject oversized logs rather than sanitize incomplete context.
+    """
     if not 1 <= limit <= MAX_BYTES:
         raise ValueError("Invalid report size limit")
     descriptor = os.open(path, os.O_RDONLY | os.O_NONBLOCK | os.O_NOFOLLOW)
@@ -39,11 +43,13 @@ def bounded_log(path: str, limit: int) -> str:
         metadata = os.fstat(source.fileno())
         if not stat.S_ISREG(metadata.st_mode):
             raise ValueError("The report source must be a regular file")
-        offset = max(0, metadata.st_size - limit)
-        source.seek(offset)
-        data = source.read(limit)
-    if offset:
-        data = data.partition(b"\n")[2]
+        if metadata.st_size > limit:
+            raise ValueError("The complete report source exceeds the size limit")
+        # Check again while reading in case the file grew after fstat(). The
+        # sentinel byte keeps I/O bounded while detecting a truncated read.
+        data = source.read(limit + 1)
+    if len(data) > limit:
+        raise ValueError("The complete report source exceeds the size limit")
     return data.decode("utf-8", "replace")
 
 

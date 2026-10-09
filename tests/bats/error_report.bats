@@ -45,6 +45,34 @@ if [ "${REPORT_TEST_STALE_LOG:-}" != true ]; then
         report_llm_api_key='private-llm-value'
         printf '%s\n' "$report_homeassistant_api_key" "$report_llm_api_key" >>"$LOG_FILE"
     fi
+    if [ -n "${REPORT_TEST_SATELLITE:-}" ]; then
+        SATELLITE_KEY='satellite-key-without-a-field'
+        SATELLITE_PASSWORD='satellite-pass-without-a-field'
+        export -n SATELLITE_KEY SATELLITE_PASSWORD
+        printf '%s\n' "$SATELLITE_KEY" "$SATELLITE_PASSWORD" >>"$LOG_FILE"
+        if [ "$REPORT_TEST_SATELLITE" = retained ]; then
+            # Exercise setup's real credential preparation, with no HA or LLM.
+            unset HOMEASSISTANT_URL HOMEASSISTANT_API_KEY LLM_API_URL LLM_API_KEY LLM_MODEL
+            FEATURE_LLM=false
+            source <(sed -n '/^# Pass Home Assistant\/LLM credentials/,/^ansible_command=(/ { /^ansible_command=(/!p; }' "$REPORT_TEST_ROOT/setup.sh")
+            unset SATELLITE_KEY SATELLITE_PASSWORD
+        elif [ "$REPORT_TEST_SATELLITE" = exported ]; then
+            export SATELLITE_KEY SATELLITE_PASSWORD
+        fi
+    fi
+    if [ "${REPORT_TEST_OVERSIZED_KEY:-}" = true ]; then
+        # A 1.5 MB tail would start inside the key and lose its BEGIN marker.
+        python3 - "$LOG_FILE" <<'PY'
+from pathlib import Path
+import sys
+
+Path(sys.argv[1]).write_text(
+    "-----BEGIN PRIVATE KEY-----\n"
+    + "sensitiveKeyFragment\n" * 80_000
+    + "-----END PRIVATE KEY-----\ninstallation failed\n"
+)
+PY
+    fi
 fi
 if [ "${REPORT_TEST_NO_PYTHON:-}" = true ]; then
     function python3() { return 127; }
@@ -373,6 +401,39 @@ PY
     assert_output --partial '[redacted]'
     refute_output --partial 'private-home-assistant-value'
     refute_output --partial 'private-llm-value'
+    run compgen -G "$REPORT_TEST_DIR/ovos-wizard-report.*"
+    assert_failure
+}
+
+@test "automatic_payload_filters_satellite_credentials_without_field_names" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    export OVOS_INSTALLER_AUTO_REPORT=1
+    local source
+    for source in exported shell retained; do
+        export REPORT_TEST_SATELLITE="$source"
+        rm -f "$REPORT_TEST_DIR/uploads" "$REPORT_TEST_DIR/payload"
+        run bash "$REPORT_TEST_DIR/failure.sh" open ansible </dev/null
+        assert_equal "$status" 1
+        assert_equal "$(cat "$REPORT_TEST_DIR/uploads")" upload
+        assert_equal "$(cat "$REPORT_TEST_DIR/report")" "$PASTE_REPLY"
+        run cat "$REPORT_TEST_DIR/payload"
+        assert_output --partial 'fresh fixture log'
+        assert_output --partial '[redacted]'
+        refute_output --partial 'satellite-key-without-a-field'
+        refute_output --partial 'satellite-pass-without-a-field'
+    done
+}
+
+@test "automatic_upload_skips_oversized_logs_without_uploading_private_key_fragments" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    export OVOS_INSTALLER_AUTO_REPORT=1
+    export REPORT_TEST_OVERSIZED_KEY=true
+    run bash "$REPORT_TEST_DIR/failure.sh" open ansible </dev/null
+    assert_equal "$status" 1
+    assert_output --partial 'Failed to upload logs automatically'
+    [ ! -e "$REPORT_TEST_DIR/uploads" ]
+    [ ! -s "$REPORT_TEST_DIR/report" ]
+    [ -s "$REPORT_TEST_DIR/log" ]
     run compgen -G "$REPORT_TEST_DIR/ovos-wizard-report.*"
     assert_failure
 }

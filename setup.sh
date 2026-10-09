@@ -49,7 +49,7 @@ source utils/constants.sh
 
 # Only delete_log() can authorize this run's log for automatic reports.
 OVOS_INSTALLER_CURRENT_LOG="false"
-unset report_homeassistant_api_key report_llm_api_key
+unset report_homeassistant_api_key report_llm_api_key report_satellite_key report_satellite_password
 
 # shellcheck source=utils/banner.sh
 source utils/banner.sh
@@ -194,6 +194,11 @@ esac
 if [ "$xtrace_was_on" == "true" ]; then
   set +x
 fi
+
+# Satellite-only setups do not enter the Home Assistant/LLM block below.
+# Retain shell-only copies while tracing is off, just like the other credentials.
+report_satellite_key="${SATELLITE_KEY:-}"
+report_satellite_password="${SATELLITE_PASSWORD:-}"
 
 if [ -n "${HOMEASSISTANT_URL:-}" ] || [ -n "${HOMEASSISTANT_API_KEY:-}" ] || \
   [ "${FEATURE_LLM:-false}" == "true" ] || [ -n "${LLM_API_URL:-}" ] || [ -n "${LLM_API_KEY:-}" ] || [ -n "${LLM_MODEL:-}" ]; then
