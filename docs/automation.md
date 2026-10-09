@@ -1,3 +1,5 @@
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Backport the automatic wizard error-report contract.
+
 # Automation
 
 Installing without answering questions, for scripted installs or several
@@ -52,6 +54,28 @@ including one that runs speech recognition and the voice on a Raspberry Pi 5
 | `share_usage_telemetry` | Share detailed usage data — see [Telemetry](telemetry.md) |
 
 ## Environment variables
+
+Launchers may set `OVOS_INSTALLER_REPORT_FD=3` and open writable descriptor 3
+before running `setup.sh`. `on_error()` writes only a validated
+`https://paste.uoi.io/<id>` URL and newline after a successful log upload. The ID
+contains 1–128 ASCII letters, digits, `_` or `-`; a trailing slash is allowed.
+No log contents travel through this descriptor.
+
+The wizard also sets `OVOS_INSTALLER_AUTO_REPORT=1` to upload failure reports
+without another Terminal question. This requires both exact flag values and a
+usable descriptor. The automatic path uploads only the fresh current run's log,
+including its captured Ansible output, capped at 1.5 MB. It filters known secret
+values and common credential fields before one HTTPS request with certificate
+verification; redirects and curl configuration files are disabled. Filtering is
+not a promise of anonymity: diagnostic paths and device details may remain.
+If preparation, filtering or upload fails, no raw-log fallback is attempted.
+
+Standalone installations retain `ask_optin()`: refusal, EOF or no Terminal skips
+the upload. A report failure never replaces the installer's failure exit code.
+See [`upload_wizard_logs()` and `report_upload_url()`](../utils/common.sh),
+[`sanitize()`](../scripts/sanitize_error_log.py), the
+[handoff tests](../tests/bats/error_report.bats) and
+[sanitizer tests](../scripts/test_sanitize_error_log.py).
 
 For the settings that are not worth a screen of their own. With the `curl`
 one-liner they have to go through `sudo env ...` so they reach the installer:

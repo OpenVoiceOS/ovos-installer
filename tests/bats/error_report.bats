@@ -8,12 +8,24 @@ function setup() {
     REPORT_TEST_ROOT="$(cd "$BATS_TEST_DIRNAME/../.." && pwd)"
     export REPORT_TEST_ROOT
     export REPORT_TEST_DIR="$BATS_TEST_TMPDIR"
+    export TMPDIR="$REPORT_TEST_DIR"
     export PASTE_REPLY="https://paste.uoi.io/Ab9_-z/"
     export OVOS_INSTALLER_ASSUME_INTERACTIVE=true
     export OVOS_INSTALLER_REPORT_FD=3
+    unset OVOS_INSTALLER_AUTO_REPORT
     printf '%s\n' 'fixture log, never sent over the network' >"$REPORT_TEST_DIR/log"
     function curl() {
         printf '%s\n' upload >>"$REPORT_TEST_DIR/uploads"
+        printf '%s\n' "$@" >"$REPORT_TEST_DIR/curl-args"
+        local arg
+        for arg in "$@"; do
+            case "$arg" in content=\<*)
+                cp "${arg#content=<}" "$REPORT_TEST_DIR/payload"
+                stat -c '%a' "${arg#content=<}" >"$REPORT_TEST_DIR/payload-mode"
+                ;;
+            esac
+        done
+        [ "${REPORT_TEST_CURL_FAIL:-}" != true ] || return 60
         printf '%s\n' "$PASTE_REPLY"
     }
     export -f curl
@@ -22,7 +34,31 @@ function setup() {
 source "$REPORT_TEST_ROOT/utils/constants.sh"
 source "$REPORT_TEST_ROOT/utils/common.sh"
 LOG_FILE="$REPORT_TEST_DIR/log"
-ANSIBLE_LOG_FILE=""
+ANSIBLE_LOG_FILE="$REPORT_TEST_DIR/stale-ansible"
+OVOS_INSTALLER_CURRENT_LOG=false
+if [ "${REPORT_TEST_STALE_LOG:-}" != true ]; then
+    delete_log
+    printf '%s\n' 'fresh fixture log, never sent over the network' >"$LOG_FILE"
+    if [ "${REPORT_TEST_CREDENTIALS:-}" = true ]; then
+        report_homeassistant_api_key='private-home-assistant-value'
+        report_llm_api_key='private-llm-value'
+        printf '%s\n' "$report_homeassistant_api_key" "$report_llm_api_key" >>"$LOG_FILE"
+    fi
+fi
+if [ "${REPORT_TEST_NO_PYTHON:-}" = true ]; then
+    function python3() { return 127; }
+fi
+if [ "${REPORT_TEST_SANITIZER_FAIL:-}" = true ]; then
+    function python3() {
+        if [ "$1" = -c ]; then command python3 "$@"; else return 1; fi
+    }
+fi
+if [ "${REPORT_TEST_FORBID_PROMPT:-}" = true ]; then
+    function ask_optin() {
+        printf '%s\n' prompt >>"$REPORT_TEST_DIR/prompts"
+        return 1
+    }
+fi
 if [ "${REPORT_TEST_UPLOAD_FAIL:-}" = true ]; then
     function upload_logs() { return 1; }
 fi
@@ -208,4 +244,132 @@ PY
     assert_equal "$status" 1
     assert_output --partial 'Failed to upload logs automatically'
     [ ! -s "$REPORT_TEST_DIR/report" ]
+}
+
+@test "wizard_failure_uploads_once_without_a_prompt_or_stdin" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    export OVOS_INSTALLER_AUTO_REPORT=1
+    export REPORT_TEST_FORBID_PROMPT=true
+    local stage
+    for stage in early ansible; do
+        rm -f "$REPORT_TEST_DIR/uploads" "$REPORT_TEST_DIR/report"
+        run bash "$REPORT_TEST_DIR/failure.sh" open "$stage" </dev/null
+        assert_equal "$status" 1
+        [ ! -e "$REPORT_TEST_DIR/prompts" ]
+        assert_equal "$(cat "$REPORT_TEST_DIR/uploads")" upload
+        assert_equal "$(cat "$REPORT_TEST_DIR/report")" "$PASTE_REPLY"
+        assert_output --partial "Please share this URL with us $PASTE_REPLY"
+    done
+}
+
+@test "invalid_automatic_reporting_flags_never_bypass_consent" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    local flag
+    for flag in '' 0 true yes 01 '1 ' ' 1'; do
+        export OVOS_INSTALLER_AUTO_REPORT="$flag"
+        run bash "$REPORT_TEST_DIR/failure.sh" open early </dev/null
+        assert_equal "$status" 1
+        assert_output --partial 'Log upload skipped'
+        [ ! -e "$REPORT_TEST_DIR/uploads" ]
+        [ ! -s "$REPORT_TEST_DIR/report" ]
+    done
+}
+
+@test "automatic_reporting_requires_the_fixed_writable_descriptor" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    export OVOS_INSTALLER_AUTO_REPORT=1
+    local descriptor
+    for descriptor in '' 0 1 2 4 '03' '/tmp/anything'; do
+        export OVOS_INSTALLER_REPORT_FD="$descriptor"
+        run bash "$REPORT_TEST_DIR/failure.sh" open early </dev/null
+        assert_equal "$status" 1
+        [ ! -e "$REPORT_TEST_DIR/uploads" ]
+        [ ! -s "$REPORT_TEST_DIR/report" ]
+    done
+    export OVOS_INSTALLER_REPORT_FD=3
+    local access
+    for access in closed readonly; do
+        run bash "$REPORT_TEST_DIR/failure.sh" "$access" early </dev/null
+        assert_equal "$status" 1
+        assert_output --partial 'Failed to upload logs automatically'
+        refute_output --partial 'Bad file descriptor'
+        [ ! -e "$REPORT_TEST_DIR/uploads" ]
+        [ ! -s "$REPORT_TEST_DIR/report" ]
+    done
+}
+
+@test "failed_automatic_upload_preserves_the_installation_failure" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    export OVOS_INSTALLER_AUTO_REPORT=1
+    export REPORT_TEST_FORBID_PROMPT=true
+    export REPORT_TEST_CURL_FAIL=true
+    run bash "$REPORT_TEST_DIR/failure.sh" open early </dev/null
+    assert_equal "$status" 1
+    assert_output --partial 'Failed to upload logs automatically'
+    [ ! -e "$REPORT_TEST_DIR/prompts" ]
+    [ ! -s "$REPORT_TEST_DIR/report" ]
+}
+
+@test "automatic_upload_is_strict_bounded_private_and_excludes_previous_ansible_logs" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    export OVOS_INSTALLER_AUTO_REPORT=1
+    printf '%s\n' 'stale previous attempt secrets' >"$REPORT_TEST_DIR/stale-ansible"
+    run bash "$REPORT_TEST_DIR/failure.sh" open early </dev/null
+    assert_equal "$status" 1
+    assert_equal "$(cat "$REPORT_TEST_DIR/uploads")" upload
+    assert_equal "$(cat "$REPORT_TEST_DIR/payload-mode")" 600
+    run cat "$REPORT_TEST_DIR/payload"
+    assert_output --partial 'fresh fixture log'
+    refute_output --partial 'stale previous attempt secrets'
+    run cat "$REPORT_TEST_DIR/curl-args"
+    assert_line --index 0 '-q'
+    assert_line '=https'
+    assert_line 'https://paste.uoi.io/api/'
+    refute_line '-k'
+    refute_line '-L'
+}
+
+@test "automatic_upload_never_sends_stale_logs_or_bypasses_a_missing_sanitizer" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    export OVOS_INSTALLER_AUTO_REPORT=1
+    export REPORT_TEST_FORBID_PROMPT=true
+    local condition
+    for condition in REPORT_TEST_STALE_LOG REPORT_TEST_NO_PYTHON REPORT_TEST_SANITIZER_FAIL; do
+        export "$condition"=true
+        run bash "$REPORT_TEST_DIR/failure.sh" open early </dev/null
+        assert_equal "$status" 1
+        assert_output --partial 'Failed to upload logs automatically'
+        [ ! -e "$REPORT_TEST_DIR/uploads" ]
+        [ ! -e "$REPORT_TEST_DIR/prompts" ]
+        [ ! -s "$REPORT_TEST_DIR/report" ]
+        unset "$condition"
+    done
+}
+
+@test "automatic_payload_filters_retained_credential_values_and_removes_temporary_file" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    export OVOS_INSTALLER_AUTO_REPORT=1
+    export REPORT_TEST_CREDENTIALS=true
+    run bash "$REPORT_TEST_DIR/failure.sh" open early </dev/null
+    assert_equal "$status" 1
+    run cat "$REPORT_TEST_DIR/payload"
+    assert_output --partial '[redacted]'
+    refute_output --partial 'private-home-assistant-value'
+    refute_output --partial 'private-llm-value'
+    run compgen -G "$REPORT_TEST_DIR/ovos-wizard-report.*"
+    assert_failure
+}
+
+@test "automatic_upload_rejects_untrusted_response_urls_without_retrying" {
+    unset OVOS_INSTALLER_ASSUME_INTERACTIVE
+    export OVOS_INSTALLER_AUTO_REPORT=1
+    export PASTE_REPLY='https://example.invalid/private'
+    run bash "$REPORT_TEST_DIR/failure.sh" open early </dev/null
+    assert_equal "$status" 1
+    assert_output --partial 'Failed to upload logs automatically'
+    refute_output --partial "$PASTE_REPLY"
+    assert_equal "$(cat "$REPORT_TEST_DIR/uploads")" upload
+    [ ! -s "$REPORT_TEST_DIR/report" ]
+    run compgen -G "$REPORT_TEST_DIR/ovos-wizard-report.*"
+    assert_failure
 }
