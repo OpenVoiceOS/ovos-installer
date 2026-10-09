@@ -130,6 +130,46 @@
     ovos_installer_package_tracking_homebrew_path: "{{ ovos_virtualenv_homebrew_path }}"
   when: ansible_facts.system == "Darwin"
 
+# Since October 2026 ffmpeg, and mpv with it, needs openssl@4, which links over the same
+# files as an openssl@3 already linked (GitHub's macOS runners have one). Poured as a
+# dependency of mpv among the other formulae, its link fails and Homebrew then trips on
+# its own lock ("a brew install process has already locked .../Cellar/openssl@3"),
+# leaving a half-poured keg every later run takes for one to upgrade. Installed on its
+# own first, the link can only fail, which a dependency does not need, and mpv finds it
+# there. It is then marked as a dependency, so the uninstall's autoremove still takes it
+# when nothing that stays needs it.
+- name: Install the formulae mpv's dependencies collide on, on their own (macOS)
+  become: true
+  become_user: "{{ ovos_installer_user }}"
+  ansible.builtin.shell: |
+    set -u
+    if brew list --formula --versions "$FORMULA" > /dev/null 2>&1; then
+      echo "already installed"
+      exit 0
+    fi
+    output="$(brew install --formula "$FORMULA" 2>&1)"
+    status=$?
+    printf '%s\n' "$output"
+    if [ "$status" -ne 0 ]; then
+      # Only a link that failed is fine: a dependency needs its keg, not its links.
+      # Anything else (a download, a pour) is the install failing.
+      grep -qF 'The `brew link` step did not complete successfully' <<< "$output" || exit "$status"
+      echo "$FORMULA is installed but not linked, which a dependency does not need"
+    fi
+    brew list --formula --versions "$FORMULA" > /dev/null 2>&1 || exit 1
+    brew tab --no-installed-on-request "$FORMULA"
+    echo "installed as a dependency"
+  args:
+    executable: /bin/bash
+  loop: "{{ ovos_virtualenv_macos_packages_first }}"
+  register: ovos_virtualenv_macos_packages_first_result
+  changed_when: "'installed as a dependency' in ovos_virtualenv_macos_packages_first_result.stdout"
+  environment:
+    FORMULA: "{{ item }}"
+    PATH: "{{ ovos_virtualenv_homebrew_path }}:{{ ansible_env.PATH | default('/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin') }}"
+    HOMEBREW_NO_AUTO_UPDATE: "1"
+  when: ansible_facts.system == "Darwin"
+
 # The module keeps only Homebrew's stderr, so a failure says "the brew link step did
 # not complete successfully" and nothing more: what the link collided with goes to
 # stdout. Once more then, with all of Homebrew's output. A link that failed while
