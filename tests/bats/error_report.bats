@@ -21,7 +21,8 @@ function setup() {
         for arg in "$@"; do
             case "$arg" in content=\<*)
                 cp "${arg#content=<}" "$REPORT_TEST_DIR/payload"
-                stat -c '%a' "${arg#content=<}" >"$REPORT_TEST_DIR/payload-mode"
+                python3 -c 'import os, stat, sys; print(format(stat.S_IMODE(os.stat(sys.argv[1]).st_mode), "o"))' \
+                    "${arg#content=<}" >"$REPORT_TEST_DIR/payload-mode"
                 ;;
             esac
         done
@@ -308,6 +309,22 @@ PY
     assert_output --partial 'Failed to upload logs automatically'
     [ ! -e "$REPORT_TEST_DIR/prompts" ]
     [ ! -s "$REPORT_TEST_DIR/report" ]
+}
+
+@test "report_fixture_reads_actual_permissions_without_platform_stat_flags" {
+    local payload="$REPORT_TEST_DIR/mode-fixture"
+    printf '%s\n' 'harmless fixture' >"$payload"
+    # Both GNU and BSD stat use different CLI flags. The fixture must work
+    # without either binary and still detect a genuinely non-private file.
+    function stat() { return 64; }
+    export -f stat
+    local mode
+    for mode in 600 644; do
+        chmod "$mode" "$payload"
+        run curl -F "content=<$payload" 'https://paste.uoi.io/api/'
+        assert_success
+        assert_equal "$(cat "$REPORT_TEST_DIR/payload-mode")" "$mode"
+    done
 }
 
 @test "automatic_upload_is_strict_bounded_private_and_excludes_previous_ansible_logs" {
