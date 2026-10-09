@@ -32,6 +32,19 @@
     - not (ovos_virtualenv_is_cleaning | bool)
     - ovos_virtualenv_uv_bin | length > 0
 
+# Going on without it would find uv by name again, which is how a uv of the user's own
+# in ~/.local/bin came to run the install.
+- name: Stop if the user cannot run the uv setup.sh checked
+  ansible.builtin.assert:
+    that: ovos_virtualenv_uv_bin_check.rc == 0
+    fail_msg: >-
+      {{ ovos_installer_user }} cannot run {{ ovos_virtualenv_uv_bin }}, the uv setup.sh
+      checked: {{ (ovos_virtualenv_uv_bin_check.stderr | default(ovos_virtualenv_uv_bin_check.msg | default(''), true)) | trim }}
+    quiet: true
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - ovos_virtualenv_uv_bin | length > 0
+
 - name: Make a directory for the installer's uv alone
   ansible.builtin.file:
     path: "{{ ovos_virtualenv_uv_link_dir }}"
@@ -41,7 +54,7 @@
     mode: "0755"
   when:
     - not (ovos_virtualenv_is_cleaning | bool)
-    - ovos_virtualenv_uv_bin_check.rc | default(1) == 0
+    - ovos_virtualenv_uv_bin | length > 0
 
 - name: Put the uv setup.sh checked first on the installer's PATH
   ansible.builtin.file:
@@ -53,7 +66,17 @@
     group: "{{ ovos_installer_group }}"
   when:
     - not (ovos_virtualenv_is_cleaning | bool)
-    - ovos_virtualenv_uv_bin_check.rc | default(1) == 0
+    - ovos_virtualenv_uv_bin | length > 0
+
+# A run given no uv (the role on its own) finds uv by name, as before; a link an earlier
+# run left would otherwise still come first.
+- name: Remove the uv link an earlier run left
+  ansible.builtin.file:
+    path: "{{ ovos_virtualenv_uv_link_dir }}/uv"
+    state: absent
+  when:
+    - not (ovos_virtualenv_is_cleaning | bool)
+    - ovos_virtualenv_uv_bin | length == 0
 
 - name: Ensure uv has requested Python available
   become: true

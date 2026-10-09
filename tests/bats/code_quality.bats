@@ -797,6 +797,13 @@ function setup() {
     first_uv_line=$(grep -n -E 'cmd: .*\buv |moreati\.uv\.' "$tasks" | head -1 | cut -d: -f1)
     [ -n "$link_line" ] && [ -n "$first_uv_line" ]
     [ "$link_line" -lt "$first_uv_line" ]
+
+    # A uv the user cannot run stops the role: going on would look uv up by name again.
+    run bash -c "grep -A3 -F -- '- name: Stop if the user cannot run the uv setup.sh checked' '$tasks' | grep -F -q 'ovos_virtualenv_uv_bin_check.rc == 0'"
+    assert_success
+    # A run given no uv removes the link an earlier run left, so it cannot come first.
+    run grep -F -q -- "- name: Remove the uv link an earlier run left" "$tasks"
+    assert_success
 }
 
 @test "uninstall_gives_back_the_lingering_it_turned_on" {
