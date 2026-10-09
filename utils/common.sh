@@ -258,7 +258,7 @@ function ask_optin() {
     fi
 
     while true; do
-        read -rp "Upload the log on ${PASTE_URL} website? (yes/no) " yn
+        read -rp "Upload the log on ${PASTE_URL} website? (yes/no) " yn || return 1
         case $yn in
         [Yy]*)
             return 0
@@ -365,6 +365,16 @@ PY
     echo "$debug_url"
 }
 
+# Report only an already-consented paste URL to an optional launcher-owned FD.
+# The installer never opens a caller-provided path or sends logs to the launcher.
+function report_upload_url() {
+    [ "${OVOS_INSTALLER_REPORT_FD:-}" = "3" ] || return 0
+    local report_url="${1:-}"
+    [[ "$report_url" =~ ^https://paste\.uoi\.io/[A-Za-z0-9_-]{1,128}/?$ ]] || return 0
+    # A missing/closed reader must not replace the installation's failure code.
+    (printf '%s\n' "$report_url" >&3) 2>/dev/null || true
+}
+
 # The function exits the installer when trap detects ERR as signal.
 # This is mainly used in setup.sh to handle errors during the functions
 # execution.
@@ -379,6 +389,7 @@ function on_error() {
     fi
     if [ "$upload_optin" = "true" ]; then
         debug_url="$(upload_logs || true)"
+        report_upload_url "$debug_url"
     else
         debug_url=""
     fi

@@ -1,6 +1,28 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document cleanup and speech-fallback disclosure corrections for PR 648.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document the consented paste-URL handoff and tests.
 
 # Maintenance report
+
+## 2026-10-08 — Consented paste-URL handoff
+
+- Added optional `report_upload_url()` in [`utils/common.sh`](utils/common.sh).
+  The launcher opens FD 3; only a validated paste URL is written after consent.
+  Closed or unwritable descriptors do not replace the installer failure status.
+- [`setup.sh`](setup.sh) now routes Ansible failures through `on_error()`, closing
+  its prior unconditional upload path. EOF in the consent prompt declines upload.
+- [Seven new BATS tests](tests/bats/error_report.bats) check actual consent,
+  report bytes, the Ansible failure branch, invalid URLs and absent/unwritable
+  descriptors. The existing exit-code fixture now mocks curl instead of uploading.
+- Verification: 52 BATS passed, one existing skip; 28 pytest and 4 subtests passed;
+  changed-shell ShellCheck (excluding source-following notices) and diff checks
+  passed. New tests stub uploads; no OVOS installation was run.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** implemented the optional handoff, corrected consent handling,
+  added isolated regressions, ran checks and updated existing documentation.
+- **Oversight:** user requested the wizard error link; automated checks and AI
+  review performed. Separate launcher/relay rollout is not claimed here.
 
 ## 2026-10-08 — PR 648 review fixes
 

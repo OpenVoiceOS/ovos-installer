@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record installer entry points and local-speech fallback behavior.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record the consented error-report descriptor contract.
 
 # Quick facts
 
@@ -7,6 +7,8 @@ Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record installer entry points an
 | Package/repository | `OpenVoiceOS/ovos-installer`; shell/Ansible application, not a Python distribution |
 | Version | Checked-out Git commit; `setup.sh` exports `INSTALLER_VERSION` from `git rev-parse --short=8 HEAD` |
 | Entry points | `installer.sh` bootstrap; `setup.sh` orchestration; no Python package/plugin entry points |
+| Error reports | `OVOS_INSTALLER_REPORT_FD=3` optionally receives only a validated paste URL after upload consent; no log contents; see `utils/common.sh:report_upload_url()` |
+| Upload consent | Early and Ansible failures both use `on_error()`; refusal, EOF and noninteractive sessions do not upload |
 | Speech selection | `speech_engine: public` or `local`; local includes public fallback |
 | Local eligibility | Alpha, supported audio profile, capable 64-bit hardware and at least 7680 MiB RAM; see `utils/speech.sh` |
 | Failed recognition | Failed or empty local recognition may send the recording to public servers |

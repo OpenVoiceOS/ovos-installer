@@ -1,6 +1,15 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain public fallback and safe rejected-model cleanup.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Explain optional error-report sharing with launchers.
 
 # Frequently asked questions
+
+## Can a launcher show the error-report link?
+
+Yes. With `OVOS_INSTALLER_REPORT_FD=3` and descriptor 3 already open,
+[`on_error()`](utils/common.sh) reports the validated paste URL after the person
+agrees to upload the log. It never sends log contents through this descriptor.
+Refusal, no terminal or a failed upload leaves the launcher without a URL; the
+Terminal still explains the failure. See [the contract](docs/automation.md#environment-variables)
+and [consent and URL tests](tests/bats/error_report.bats).
 
 ## Does local speech keep every recording offline?
 

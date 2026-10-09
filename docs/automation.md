@@ -1,4 +1,4 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document public fallbacks for local speech scenarios.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Document the optional consented error-report handoff.
 
 # Automation
 
@@ -61,6 +61,17 @@ models and reports which parts remain public. Regression coverage lives in
 [`SpeechSetupTest`](../scripts/test_speech_setup.py).
 
 ## Environment variables
+
+Launchers may set `OVOS_INSTALLER_REPORT_FD=3` and open file descriptor 3 before
+running `setup.sh`. After the person agrees to upload a failed installation's
+log, `on_error()` writes the resulting `https://paste.uoi.io/<id>` URL and a
+newline to that descriptor. Only ASCII letters, digits, `_` and `-` are accepted
+in the 1–128-character ID; a trailing slash is allowed. The descriptor receives
+no log contents. This option never grants upload consent. Noninteractive runs,
+refused uploads and unsuccessful uploads produce no report. A closed descriptor
+does not change the installer's failure exit code. See
+[`report_upload_url()`](../utils/common.sh) and the
+[handoff tests](../tests/bats/error_report.bats).
 
 For the settings that are not worth a screen of their own. With the `curl`
 one-liner they have to go through `sudo env ...` so they reach the installer:

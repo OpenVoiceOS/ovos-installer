@@ -1,6 +1,20 @@
-Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record PR 648 findings, regression evidence and remaining validation limits.
+Last Edit: Codex (GPT-6) - 2026-10-08 - Motive: Record consent and URL-handoff regression evidence.
 
 # Audit
+
+## 2026-10-08 — Consented error-report handoff
+
+- **Fixed:** the Ansible failure branch in [`setup.sh`](setup.sh) now uses
+  `on_error()` instead of uploading logs without asking. `ask_optin()` treats EOF
+  as refusal. [`error_report.bats`](tests/bats/error_report.bats) executes the real
+  failure branch with yes/no answers and verifies upload calls and report bytes.
+- `report_upload_url()` in [`utils/common.sh`](utils/common.sh) accepts only the
+  fixed paste origin and bounded ASCII ID. It writes only after consent and only
+  to explicitly enabled FD 3. Tests cover malicious URLs, unavailable descriptors,
+  failed uploads and noninteractive refusal; no actual upload occurs.
+- Validation: 52 BATS passes, one existing sound-detection skip; 28 pytest passes
+  and 4 subtests; changed-shell ShellCheck and whitespace checks pass. This covers
+  the installer contract, not the separate launcher's live deployment.
 
 ## 2026-10-08 — PR 648 follow-up
 
