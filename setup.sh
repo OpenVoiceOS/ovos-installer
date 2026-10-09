@@ -338,13 +338,5 @@ if [ "$ansible_rc" -eq 0 ]; then
     rm -f "$LOG_FILE"
   fi
 else
-  debug_url="$(upload_logs)"
-  log_info ""
-  log_info "➤ Unable to finalize the process, please check $LOG_FILE for more details."
-  if [ -n "${debug_url:-}" ]; then
-    log_info "➤ Please share this URL with us $debug_url"
-  else
-    log_info "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
-  fi
-  exit "${EXIT_FAILURE}"
+  on_error
 fi
