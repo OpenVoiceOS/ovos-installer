@@ -149,6 +149,6 @@ jobs:
           cat "${OVOS_CI_INSTALL_HOME}/.local/bin/swig2.0" || true
           ls -la "${OVOS_CI_INSTALL_HOME}/.local/bin" || true
           ls -la "${OVOS_CI_INSTALL_HOME}/.venvs/ovos/bin" || true
-          ls -la "${OVOS_CI_INSTALL_HOME}/.venvs/ovos/uv-bin" || true
+          ls -la "${OVOS_CI_INSTALL_HOME}/.ovos-installer/uv-bin" || true
           swig -version || true
           pacman -Q swig fann gcc || true

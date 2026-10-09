@@ -782,7 +782,12 @@ function setup() {
     local defaults="ansible/roles/ovos_virtualenv/defaults/main.yml"
     run grep -F -q 'ovos_virtualenv_uv_exec_path: "{{ ovos_virtualenv_uv_link_dir }}:{{ ovos_virtualenv_installer_venv_path }}/bin:{{ ovos_installer_user_home }}/.local/bin:' "$defaults"
     assert_success
-    run grep -F -q 'ovos_virtualenv_uv_link_dir: "{{ ovos_virtualenv_installer_venv_path }}/uv-bin"' "$defaults"
+    # Beside the uv cache, in the directory the uninstall removes. Not in the installer
+    # venv: the Arch job hands the OVOS venv's path as that, and a uv-bin made there
+    # before the venv exists makes `uv venv` refuse an existing directory.
+    run grep -F -q 'ovos_virtualenv_uv_link_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-bin"' "$defaults"
+    assert_success
+    run grep -F -q '"{{ ovos_installer_user_home }}/.ovos-installer"' ansible/roles/ovos_services/defaults/main.yml
     assert_success
 
     # ...and before the first task that runs uv.

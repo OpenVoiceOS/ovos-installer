@@ -36,6 +36,8 @@
   ansible.builtin.file:
     path: "{{ ovos_virtualenv_uv_link_dir }}"
     state: directory
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
     mode: "0755"
   when:
     - not (ovos_virtualenv_is_cleaning | bool)
@@ -47,6 +49,8 @@
     dest: "{{ ovos_virtualenv_uv_link_dir }}/uv"
     state: link
     force: true
+    owner: "{{ ovos_installer_user }}"
+    group: "{{ ovos_installer_group }}"
   when:
     - not (ovos_virtualenv_is_cleaning | bool)
     - ovos_virtualenv_uv_bin_check.rc | default(1) == 0

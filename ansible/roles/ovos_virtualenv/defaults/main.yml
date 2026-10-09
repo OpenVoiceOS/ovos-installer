@@ -37,9 +37,11 @@ ovos_virtualenv_uv_cache_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv
 # installer venv, and without that directory the next uv on this PATH was the one in
 # ~/.local/bin, whatever it is: on one desktop a wrapper that refuses to install into
 # ~/.venvs, and every install failed. Only uv is linked there, so nothing else on the
-# PATH (the swig2.0 shim in ~/.local/bin) is shadowed by /usr/bin.
+# PATH (the swig2.0 shim in ~/.local/bin) is shadowed by /usr/bin. It sits beside the uv
+# cache, in the installer's own directory the uninstall removes; not in the installer
+# venv, whose path a caller can give as the OVOS venv's before that venv exists.
 ovos_virtualenv_uv_bin: "{{ ovos_installer_uv_bin | default('') }}"
-ovos_virtualenv_uv_link_dir: "{{ ovos_virtualenv_installer_venv_path }}/uv-bin"
+ovos_virtualenv_uv_link_dir: "{{ ovos_installer_user_home }}/.ovos-installer/uv-bin"
 ovos_virtualenv_uv_exec_path: "{{ ovos_virtualenv_uv_link_dir }}:{{ ovos_virtualenv_installer_venv_path }}/bin:{{ ovos_installer_user_home }}/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 ovos_virtualenv_uv_install_retries: "{{ ovos_installer_uv_install_retries | default(3) }}"
 ovos_virtualenv_uv_install_delay: "{{ ovos_installer_uv_install_delay | default(2) }}"
