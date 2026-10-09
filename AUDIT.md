@@ -1,6 +1,28 @@
-Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record portable permission checks in report test fixtures.
+Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Address PR 666 reporting review and retain upstream terminal fixes.
 
 # Audit
+
+## 2026-10-09 — PR 666 review fixes
+
+- **Fixed:** [`setup.sh`](setup.sh) retains satellite values outside the Home
+  Assistant/LLM condition, with tracing off. `upload_wizard_logs()` in
+  [`utils/common.sh`](utils/common.sh) passes retained or current shell values
+  explicitly to the sanitizer. The field-free satellite fixture in
+  [`error_report.bats`](tests/bats/error_report.bats) covers exported, unexported
+  and retained credentials through the actual failure/upload handoff.
+- **Fixed:** [`bounded_log()`](scripts/sanitize_error_log.py) rejects oversized
+  sources and concurrent growth instead of selecting a tail inside a multiline
+  secret. The oversized-private-key upload regression failed before this fix;
+  now no request or URL is produced and the local log remains.
+- **Fixed:** upload-local EXIT/INT/TERM/HUP traps remove the private report file
+  without replacing caller traps. [`error_report_cleanup.bats`](tests/bats/error_report_cleanup.bats)
+  reproduces a leftover file on the old code and covers normal returns, errors
+  and interruptions while sanitizing or uploading.
+- Validation: **39 BATS tests**, **42 pytest tests and 28 subtests** pass;
+  ShellCheck, Ruff, Bash syntax and whitespace checks pass. Merged the upstream
+  terminal-symbol fix and retained `on_error()` for Ansible failures.
+- Limits: oversized automatic reports are skipped; filtering is not anonymity.
+  No network log uploads or physical-device installation were performed.
 
 ## 2026-10-08 — Automatic wizard failure reports
 
@@ -35,6 +57,21 @@ Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record portable permission check
 - Validation: 53 BATS passes, one existing sound-detection skip; 28 pytest passes
   and 4 subtests; changed-shell ShellCheck and whitespace checks pass. This covers
   the installer contract, not the separate launcher's live deployment.
+
+## 2026-10-08 — Terminal status glyphs
+
+- **Fixed:** status arrows, warning symbols and drink emoji rendered as empty
+  boxes on terminals without those glyphs.
+  [`set_status_marks()`](utils/common.sh) now chooses them once: `➤`, `⚠` and
+  the drinks where the terminal can draw them, `>` and `WARNING:` on the Linux
+  text console, dumb or serial terminals, and locales that are not UTF-8. The
+  user's own locale is read before [setup](setup.sh) replaces it.
+  `OVOS_INSTALLER_ASCII=1` forces plain text and `=0` the symbols.
+- **Limit:** a shell cannot see the font. A UTF-8 desktop terminal whose font
+  lacks a glyph still shows a box; `OVOS_INSTALLER_ASCII=1` is the way out.
+- **Verification:** BATS tests for each terminal case, ShellCheck, and real
+  output under `TERM=linux`, `TERM=dumb`, `LANG=C` and a UTF-8 xterm. No
+  physical-device installation was performed.
 
 ## 2026-10-08 — PR 648 follow-up
 

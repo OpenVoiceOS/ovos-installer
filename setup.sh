@@ -19,6 +19,11 @@ if [ -z "${BASH_VERSINFO:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
   exit 5
 fi
 
+# The locale the user's terminal runs in, before the override below: it decides whether
+# the status marks can be drawn (set_status_marks in utils/common.sh).
+OVOS_INSTALLER_TERMINAL_LOCALE="${LC_ALL:-${LC_CTYPE:-${LANG:-}}}"
+export OVOS_INSTALLER_TERMINAL_LOCALE
+
 # Override system locales only during the installation.
 if command -v locale >/dev/null 2>&1; then
   if locale -a 2>/dev/null | grep -qiE '^c\.utf-?8$'; then
@@ -151,7 +156,7 @@ fi
 normalize_feature_gui_support
 normalize_speech_engine
 
-log_info "➤ Starting Ansible playbook... ☕🍵🧋"
+log_info "${STATUS_MARK} Starting Ansible playbook...${STARTUP_DRINKS}"
 
 # Execute the Ansible playbook on localhost
 export ANSIBLE_CONFIG=ansible.cfg
@@ -349,7 +354,7 @@ if [ "$ansible_rc" -eq 0 ]; then
       remove_installer_state
     fi
     log_info ""
-    log_info "➤ Open Voice OS has been successfully uninstalled."
+    log_info "${STATUS_MARK} Open Voice OS has been successfully uninstalled."
   fi
 
   if ! reboot_if_requested; then

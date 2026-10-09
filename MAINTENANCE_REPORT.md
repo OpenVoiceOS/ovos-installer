@@ -1,6 +1,29 @@
-Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record portable permission checks in report test fixtures.
+Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Address PR 666 reporting review and retain upstream terminal fixes.
 
 # Maintenance report
+
+## 2026-10-09 — PR 666 review fixes
+
+- Capture satellite credentials independently of Home Assistant/LLM setup and
+  supply them explicitly to [`upload_wizard_logs()`](utils/common.sh).
+- Reject oversized complete logs in [`bounded_log()`](scripts/sanitize_error_log.py)
+  so truncation cannot expose private-key fragments; keep bounded reads and the
+  original log. Add upload-level and Python regressions for this behavior.
+- Give the private report file upload-local cleanup on normal return and
+  INT/TERM/HUP. New [interruption regressions](tests/bats/error_report_cleanup.bats)
+  fail against the previous revision and verify caller traps remain unchanged.
+- Merge upstream `main` through `f062c0ab`, preserving terminal-specific symbols
+  and the shared Ansible failure handler. Update [the reporting contract](docs/automation.md).
+- Verification: **39 BATS passed; 42 pytest and 28 subtests passed**. ShellCheck,
+  Ruff, Bash syntax and `git diff --check` passed. All uploads are stubbed.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex).
+- **Actions Taken:** reviewed GitHub feedback, fixed reporting code, added and ran
+  regressions, resolved upstream conflicts and updated existing documentation.
+- **Oversight:** user requested the review fixes; automated checks and independent
+  agent review cover the changed paths. No physical-device install was run.
 
 ## 2026-10-08 — Automatic wizard failure reports
 
@@ -46,6 +69,30 @@ Last Edit: Codex (GPT-6) - 2026-10-09 - Motive: Record portable permission check
   added isolated regressions, ran checks and updated existing documentation.
 - **Oversight:** user requested the wizard error link; automated checks and AI
   review performed. Separate launcher/relay rollout is not claimed here.
+
+## 2026-10-09 — Status symbols where the terminal draws them
+
+The status arrow, warning sign and drink emoji came out as empty boxes on some
+terminals. Rather than drop them everywhere,
+[`set_status_marks()`](utils/common.sh) chooses once per run: `➤`, `⚠` and the
+drinks where the terminal can draw them, and `>` and `WARNING:` on the Linux
+text console, dumb or serial terminals, and non-UTF-8 locales. The user's own
+locale is captured in [setup](setup.sh) before the installer replaces it.
+`OVOS_INSTALLER_ASCII=1` forces plain text, `=0` the symbols. Messages in
+[common helpers](utils/common.sh), [speech detection](utils/speech.sh) and
+[cancellation](tui/navigation.sh) use the chosen marks; the
+[reboot ordering test](tests/bats/code_quality.bats#L3693) follows the startup
+message. Installer control flow is unchanged.
+
+A shell cannot see the font, so a UTF-8 desktop terminal lacking a glyph still
+shows a box; the override is the way out.
+
+### Transparency Report
+
+- **AI Model:** GPT-6 (Codex) first replaced the symbols with ASCII; Claude
+  (Opus 5.5) brought them back behind the terminal check.
+- **Oversight:** the user identified the rendering defect and asked to keep the
+  emoji where possible. No physical-device installation was run.
 
 ## 2026-10-08 — PR 648 review fixes
 

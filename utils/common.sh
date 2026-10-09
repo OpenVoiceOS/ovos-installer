@@ -21,6 +21,42 @@ function log_error() {
     printf '%s\n' "$*" >&2
 }
 
+# Whether the terminal can draw the status marks (➤, ⚠) and the drinks. A shell cannot
+# see the font, but it can see the usual reasons a mark comes out as an empty square:
+# the Linux text console (a Raspberry Pi or a Mark II on its screen), whose font has
+# none of them; a dumb or serial terminal; a locale that is not UTF-8. The locale is
+# the user's own, from before setup.sh replaces it. OVOS_INSTALLER_ASCII=1 asks for
+# plain text anyway, and OVOS_INSTALLER_ASCII=0 for the marks.
+function terminal_draws_symbols() {
+    case "${OVOS_INSTALLER_ASCII:-}" in
+        1 | true | yes) return 1 ;;
+        0 | false | no) return 0 ;;
+    esac
+    case "${TERM:-dumb}" in
+        dumb | linux | vt100 | vt102 | vt220 | ansi | cons25) return 1 ;;
+    esac
+    case "${OVOS_INSTALLER_TERMINAL_LOCALE-${LC_ALL:-${LC_CTYPE:-${LANG:-}}}}" in
+        *[Uu][Tt][Ff]-8* | *[Uu][Tt][Ff]8*) return 0 ;;
+    esac
+    return 1
+}
+
+# STATUS_MARK starts each step, WARNING_MARK a warning, and STARTUP_DRINKS follows the
+# start of the playbook: the marks where the terminal draws them, plain text elsewhere.
+function set_status_marks() {
+    if terminal_draws_symbols; then
+        STATUS_MARK="➤"
+        WARNING_MARK="⚠"
+        STARTUP_DRINKS=" ☕🍵🧋"
+    else
+        STATUS_MARK=">"
+        WARNING_MARK="WARNING:"
+        STARTUP_DRINKS=""
+    fi
+    export STATUS_MARK WARNING_MARK STARTUP_DRINKS
+}
+set_status_marks
+
 # Strip ANSI escape sequences from a stream before writing to plain-text logs.
 function strip_ansi_stream() {
     if command -v perl >/dev/null 2>&1; then
@@ -136,7 +172,7 @@ function reboot_if_requested() {
     fi
 
     log_info ""
-    log_info "➤ Rebooting system now..."
+    log_info "${STATUS_MARK} Rebooting system now..."
     if shutdown -r now; then
         rm -f "$REBOOT_FILE_PATH"
         return 0
@@ -441,19 +477,19 @@ function on_error() {
     else
         debug_url=""
     fi
-    printf '\n%s\n' "➤ Unable to finalize the process, please check $LOG_FILE for more details."
+    printf '\n%s\n' "${STATUS_MARK} Unable to finalize the process, please check $LOG_FILE for more details."
     if [ -n "${debug_url:-}" ]; then
-        printf '%s\n' "➤ Please share this URL with us $debug_url"
+        printf '%s\n' "${STATUS_MARK} Please share this URL with us $debug_url"
         if [ "${OVOS_INSTALLER_LOG_TRUNCATED:-}" = "true" ]; then
-            printf '%s\n' "➤ Note: log upload truncated to the last ${OVOS_INSTALLER_LOG_TRUNCATED_BYTES} bytes."
+            printf '%s\n' "${STATUS_MARK} Note: log upload truncated to the last ${OVOS_INSTALLER_LOG_TRUNCATED_BYTES} bytes."
         fi
     else
         if [ "$upload_optin" != "true" ]; then
-            printf '%s\n' "➤ Log upload skipped (no consent or non-interactive session). Please attach $LOG_FILE."
+            printf '%s\n' "${STATUS_MARK} Log upload skipped (no consent or non-interactive session). Please attach $LOG_FILE."
         else
-            printf '%s\n' "➤ Failed to upload logs automatically. Please attach $LOG_FILE."
+            printf '%s\n' "${STATUS_MARK} Failed to upload logs automatically. Please attach $LOG_FILE."
             if command -v curl >/dev/null 2>&1; then
-                printf '%s\n' "➤ Manual upload: curl -F \"content=@${LOG_FILE}\" ${PASTE_URL}/api/"
+                printf '%s\n' "${STATUS_MARK} Manual upload: curl -F \"content=@${LOG_FILE}\" ${PASTE_URL}/api/"
             fi
         fi
     fi
@@ -547,7 +583,7 @@ function detect_user() {
 # Returns:
 #   Always succeeds, sets SOUND_SERVER to "N/A" if no server detected
 function detect_sound() {
-    printf '%s' "➤ Detecting sound server... "
+    printf '%s' "${STATUS_MARK} Detecting sound server... "
     local python_detection
     # Use the Python helper to reliably detect the server name
     if [ -f "utils/detect_sound.py" ] && command -v python3 &>>"$LOG_FILE"; then
@@ -580,7 +616,7 @@ function detect_sound() {
 # Ansible playbook to disable certain wake words and VAD plugins requiring
 # these features if AVX2/SIMD support is not detected.
 function detect_cpu_instructions() {
-    printf '%s' "➤ Detecting AVX2/SIMD support... "
+    printf '%s' "${STATUS_MARK} Detecting AVX2/SIMD support... "
     local cpu_capabilities=""
     local machine_arch=""
     case "$(uname -s 2>>"$LOG_FILE" || true)" in
@@ -614,7 +650,7 @@ function detect_cpu_instructions() {
 # containers, if nothing was found then the function will check for
 # the Python virtual environment.
 function detect_existing_instance() {
-    printf '%s' "➤ Checking for existing instance... "
+    printf '%s' "${STATUS_MARK} Checking for existing instance... "
     export EXISTING_INSTANCE="false"
     unset INSTANCE_TYPE || true
     export CONTAINER_RUNTIME_PROBE_FAILED=""
@@ -677,7 +713,7 @@ function detect_existing_instance() {
     # A runtime we could not query may still hold an instance. Staying silent
     # here is how an install ends up layered on top of an existing one.
     if [ -n "${CONTAINER_RUNTIME_PROBE_FAILED:-}" ]; then
-        log_warn "⚠ Unable to query ${CONTAINER_RUNTIME_PROBE_FAILED} for existing Open Voice OS containers."
+        log_warn "${WARNING_MARK} Unable to query ${CONTAINER_RUNTIME_PROBE_FAILED} for existing Open Voice OS containers."
         log_warn "  An existing container instance cannot be detected while the daemon is unreachable, see ${LOG_FILE} for details."
     fi
 }
@@ -686,7 +722,7 @@ function detect_existing_instance() {
 # This function only works with systemd as it leveraged loginctl
 # to retrieve the session type.
 function detect_display() {
-    printf '%s' "➤ Detecting display server... "
+    printf '%s' "${STATUS_MARK} Detecting display server... "
     export DISPLAY_SERVER="N/A"
 
     if [ -f "utils/detect_display.py" ] && command -v python3 &>>"$LOG_FILE"; then
@@ -702,7 +738,7 @@ function detect_display() {
 # Parse /sys/firmware/devicetree/base/model file if it exists and check
 # for "raspberrypi" string.
 function is_raspberrypi_soc() {
-    printf '%s' "➤ Checking for Raspberry Pi board... "
+    printf '%s' "${STATUS_MARK} Checking for Raspberry Pi board... "
     RASPBERRYPI_MODEL="N/A"
     if [ -f "$DT_FILE" ]; then
         if grep -q -i raspberry "$DT_FILE"; then
@@ -734,7 +770,7 @@ function is_raspeberrypi_soc() {
 # Returns:
 #   Always succeeds and exports HARDWARE_MODEL.
 function detect_hardware_model() {
-    printf '%s' "➤ Detecting hardware model... "
+    printf '%s' "${STATUS_MARK} Detecting hardware model... "
     local kernel_name=""
     local model=""
 
@@ -765,7 +801,7 @@ function detect_hardware_model() {
 # about the platform where the installer is running on and where OVOS is
 # going to be installed.
 function get_os_information() {
-    printf '%s' "➤ Retrieving OS information... "
+    printf '%s' "${STATUS_MARK} Retrieving OS information... "
     local kernel_name=""
     ARCH="$(uname -m 2>>"$LOG_FILE" || true)"
     KERNEL="$(uname -r 2>>"$LOG_FILE" || true)"
@@ -831,7 +867,7 @@ function python_belongs_to_the_install() {
 
 # Validate the requested Python version before creating the virtualenv.
 function check_python_compatibility() {
-    printf '%s' "➤ Validating Python version... "
+    printf '%s' "${STATUS_MARK} Validating Python version... "
     local python_version=""
     local python_cmd="python3"
     local requested_python=""
@@ -1062,7 +1098,7 @@ function required_packages() {
         exit "${EXIT_MISSING_DEPENDENCY}"
     fi
 
-    printf '%s' "➤ Validating installer package requirements... "
+    printf '%s' "${STATUS_MARK} Validating installer package requirements... "
     # Add extra packages if a Raspberry Pi board is detected
     local extra_packages=()
     if [ "${RASPBERRYPI_MODEL:-N/A}" != "N/A" ]; then
@@ -1204,7 +1240,7 @@ function resolve_installer_uv() {
 # setuptools package.Permissions on the virtual environment are set
 # to match the target user.
 function create_python_venv() {
-    printf '%s' "➤ Creating installer Python virtualenv... "
+    printf '%s' "${STATUS_MARK} Creating installer Python virtualenv... "
     local reuse_cached_artifacts="${REUSE_CACHED_ARTIFACTS:-false}"
     local venv_reused="false"
     local venv_python_cmd="${PYTHON_CMD:-python3}"
@@ -1441,7 +1477,7 @@ function required_collections_present() {
 # collections required by the playbook. Collections are installed into a
 # repository-local path to avoid sudo/HOME collection discovery mismatches.
 function install_ansible() {
-    printf '%s' "➤ Installing Ansible requirements in Python virtualenv... "
+    printf '%s' "${STATUS_MARK} Installing Ansible requirements in Python virtualenv... "
     ANSIBLE_VERSION="10.7.0"
     local collections_path
     local requirements_file
@@ -1613,8 +1649,8 @@ function download_yq() {
 
     if ! download_with_retry "$YQ_URL/yq_${kernel,,}_$arch" "$YQ_BINARY_PATH"; then
         echo -e "[$fail_format]"
-        log_error "➤ Unable to download yq from $YQ_URL after ${DOWNLOAD_MAX_ATTEMPTS:-3} attempts."
-        log_error "➤ Check the network connection to GitHub releases, then run the installer again."
+        log_error "${STATUS_MARK} Unable to download yq from $YQ_URL after ${DOWNLOAD_MAX_ATTEMPTS:-3} attempts."
+        log_error "${STATUS_MARK} Check the network connection to GitHub releases, then run the installer again."
         return 1
     fi
     chmod 0755 "$YQ_BINARY_PATH" &>>"$LOG_FILE"
@@ -1624,7 +1660,7 @@ function download_yq() {
 # installation like when running within a CI or when industrial deployments
 # are required.
 function detect_scenario() {
-    printf '%s' "➤ Looking for automated scenario... "
+    printf '%s' "${STATUS_MARK} Looking for automated scenario... "
     SCENARIO_PATH="$RUN_AS_HOME/.config/ovos-installer/$SCENARIO_NAME"
     export SCENARIO_FOUND="false"
     if [ -f "$SCENARIO_PATH" ]; then
@@ -1641,11 +1677,11 @@ function detect_scenario() {
             echo "scenario not supported${SCENARIO_ERROR:+: $SCENARIO_ERROR}" &>>"$LOG_FILE"
             log_error ""
             if [ -n "${SCENARIO_ERROR:-}" ]; then
-                log_error "➤ Unsupported value in ${SCENARIO_NAME:-the scenario file}: $SCENARIO_ERROR"
+                log_error "${STATUS_MARK} Unsupported value in ${SCENARIO_NAME:-the scenario file}: $SCENARIO_ERROR"
             else
-                log_error "➤ ${SCENARIO_NAME:-The scenario file} was refused; see $LOG_FILE"
+                log_error "${STATUS_MARK} ${SCENARIO_NAME:-The scenario file} was refused; see $LOG_FILE"
             fi
-            log_error "➤ Edit $SCENARIO_PATH and run the installer again."
+            log_error "${STATUS_MARK} Edit $SCENARIO_PATH and run the installer again."
             on_error
         fi
 
@@ -1680,8 +1716,8 @@ function in_array() {
     echo "$detail" &>>"$LOG_FILE"
     echo "$supported" &>>"$LOG_FILE"
     log_error ""
-    log_error "➤ $detail"
-    log_error "➤ $supported"
+    log_error "${STATUS_MARK} $detail"
+    log_error "${STATUS_MARK} $supported"
     on_error
 }
 
@@ -1689,7 +1725,7 @@ function in_array() {
 # handles the boot process, etc...
 function wsl2_requirements() {
     if [[ "$KERNEL" == *"microsoft"* ]]; then
-        printf '%s' "➤ Validating WSL2 requirements... "
+        printf '%s' "${STATUS_MARK} Validating WSL2 requirements... "
         if ! grep -q "systemd=true" "$WSL_FILE" &>>"$LOG_FILE"; then
             echo "systemd=true must be added to $WSL_FILE" &>>"$LOG_FILE"
             return 1
@@ -1708,7 +1744,7 @@ function wsl2_requirements() {
 # ahead anyway, for a Mac that already has the formulae it needs.
 function macos_requirements() {
     [ "${DISTRO_NAME:-}" == "macos" ] || return 0
-    printf '%s' "➤ Validating macOS requirements... "
+    printf '%s' "${STATUS_MARK} Validating macOS requirements... "
     local major="${DISTRO_VERSION_ID%%.*}"
     local reason=""
     if [ "${ARCH:-}" != "arm64" ]; then
@@ -1782,7 +1818,7 @@ function i2c_scan() {
     local address
 
     if [ "$RASPBERRYPI_MODEL" != "N/A" ]; then
-        printf '%s' "➤ Scan I2C bus for hardware auto-detection..."
+        printf '%s' "${STATUS_MARK} Scan I2C bus for hardware auto-detection..."
 
         # Load I2C requirements if not already, nothing persistent here as
         # it will be handled later by the Ansible playbook.
@@ -2156,7 +2192,7 @@ function avrdude_shared_libraries_present() {
         esac
     done
 
-    log_warn "⚠ Mark 1 detection needs avrdude, and it cannot start."
+    log_warn "${WARNING_MARK} Mark 1 detection needs avrdude, and it cannot start."
     log_warn "  Missing shared libraries: $(printf '%s' "$missing" | tr '\n' ' ')"
     if [ "${#packages[@]}" -gt 0 ]; then
         log_warn "  Install ${packages[*]} and run the installer again."
