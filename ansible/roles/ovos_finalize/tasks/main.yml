@@ -51,7 +51,12 @@
       - "HiveMind listener at {{ ovos_installer_listener_host }}:{{ ovos_installer_listener_port | default(5678, true) }}:"
       - ""
       - "  hivemind-core list-clients"
+      - "  hivemind-core allow-msg ovos.utterance.handle <node-id>"
       - "  hivemind-core allow-msg recognizer_loop:utterance <node-id>"
+      - "  hivemind-core allow-msg ovos.audio.output.ended <node-id>"
+      - "  hivemind-core allow-msg recognizer_loop:audio_output_end <node-id>"
+      - "  hivemind-core allow-msg ovos.volume.get <node-id>"
+      - "  hivemind-core allow-msg mycroft.volume.get <node-id>"
       - ""
       - >-
         Use list-clients to find the Node ID whose access key begins

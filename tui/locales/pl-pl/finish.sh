@@ -7,7 +7,12 @@ HIVEMIND_SATELLITE_NOTE="
 Ten satelita musi jeszcze otrzymać pozwolenie na mówienie - na maszynie, na której działa nasłuch HiveMind, pod adresem ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678}:
 
   hivemind-core list-clients
+  hivemind-core allow-msg ovos.utterance.handle <node-id>
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
+  hivemind-core allow-msg ovos.audio.output.ended <node-id>
+  hivemind-core allow-msg recognizer_loop:audio_output_end <node-id>
+  hivemind-core allow-msg ovos.volume.get <node-id>
+  hivemind-core allow-msg mycroft.volume.get <node-id>
 
 Użyj list-clients, aby znaleźć Node ID, którego klucz dostępu zaczyna się od ${HIVEMIND_KEY_PREFIX-} - to właśnie ten satelita. Dopóki uprawnienie nie zostanie nadane, satelita będzie się łączyć i uwierzytelniać, ale wszystko, co powie, zostanie odrzucone.
 "

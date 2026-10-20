@@ -24,13 +24,13 @@
   # ids, the grant loop does nothing, and the play would report success having
   # granted nothing.
 
-- name: Allow satellites to send utterances to the hub
+- name: Allow satellites to send the message types they need to the hub
   become: true
   become_user: "{{ ovos_installer_user }}"
   community.docker.docker_container_exec:
     container: "{{ ovos_containers_container_hivemind_cli }}"
-    command: hivemind-core allow-msg recognizer_loop:utterance {{ item }}
-  loop: "{{ ovos_containers_hivemind_client_ids }}"
+    command: hivemind-core allow-msg {{ item.1 }} {{ item.0 }}
+  loop: "{{ ovos_containers_hivemind_client_ids | product(ovos_containers_hivemind_satellite_msg_types) | list }}"
   register: ovos_containers_hivemind_allow
   # "already allowed" exits 0, so re-runs are quiet rather than merely harmless.
   changed_when: "'Allowed' in ovos_containers_hivemind_allow.stdout"

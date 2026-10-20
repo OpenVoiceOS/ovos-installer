@@ -7,7 +7,12 @@ HIVEMIND_SATELLITE_NOTE="
 Ce satellite doit encore être autorisé à parler, sur la machine qui exécute HiveMind Listener à ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678} :
 
   hivemind-core list-clients
+  hivemind-core allow-msg ovos.utterance.handle <node-id>
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
+  hivemind-core allow-msg ovos.audio.output.ended <node-id>
+  hivemind-core allow-msg recognizer_loop:audio_output_end <node-id>
+  hivemind-core allow-msg ovos.volume.get <node-id>
+  hivemind-core allow-msg mycroft.volume.get <node-id>
 
 Utilisez list-clients pour trouver le Node ID dont la clé d'accès commence par ${HIVEMIND_KEY_PREFIX-} - il s'agit de ce satellite. Tant que cette autorisation n'a pas été accordée, le satellite se connecte et s'authentifie correctement, mais tout ce qu'il dit est refusé.
 "

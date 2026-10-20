@@ -1,9 +1,8 @@
 ---
 # hivemind-core denies a client every message type until one is explicitly allowed:
 # a client whose allowed_types is empty is refused on every message, and
-# `add-client` has no option to seed it. recognizer_loop:utterance used to be
-# granted by default and no longer is, so a satellite now connects to the hub,
-# authenticates, and then has everything it says silently rejected.
+# `add-client` has no option to seed it. Nothing is granted by default, so a satellite
+# connects to the hub, authenticates, and then has everything it says silently rejected.
 #
 # The grant is per client and lives in the hub's database, so only a hub can make
 # it - a satellite install has neither the hivemind-core CLI nor the database.
@@ -43,19 +42,19 @@
   # installed and every satellite would still be refused. Verified against hivemind-core
   # that a hub with no database yet exits 0, so a fresh install does not trip this.
 
-- name: Allow satellites to send utterances to the hub
+- name: Allow satellites to send the message types they need to the hub
   ansible.builtin.command:
     cmd: >-
       {{ ovos_services_venv_path }}/bin/hivemind-core
-      allow-msg recognizer_loop:utterance {{ item }}
+      allow-msg {{ item.1 }} {{ item.0 }}
   become: true
   become_user: "{{ ovos_installer_user }}"
   environment:
     HOME: "{{ ovos_installer_user_home }}"
-  loop: "{{ ovos_services_hivemind_client_ids }}"
+  loop: "{{ ovos_services_hivemind_client_ids | product(ovos_services_hivemind_satellite_msg_types) | list }}"
   register: ovos_services_hivemind_allow
   # hivemind-core prints "already allowed" and exits 0 when the grant is present,
-  # so re-runs are quiet rather than merely harmless.
+  # so re-runs are quiet rather than merely harmless. It takes one type per call.
   changed_when: "'Allowed' in ovos_services_hivemind_allow.stdout"
   # failed_when REPLACES the return-code check rather than adding to it, so the return
   # code has to be restated or a crashed allow-msg passes for success. The second half is

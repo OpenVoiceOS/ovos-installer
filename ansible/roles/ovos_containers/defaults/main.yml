@@ -189,6 +189,21 @@ ovos_containers_container_hivemind_cli: hivemind_cli
 ovos_containers_hivemind_client_ids: >-
   {{ ovos_containers_hivemind_clients.stdout_lines | default([])
      | select('match', '^[0-9]+,') | map('split', ',') | map('first') | list }}
+# Message types a satellite sends upward, each under both its current and its legacy
+# name: hivemind-core admits a message by exact membership, and a satellite on the
+# current stack sends ovos.utterance.handle while an older one sends
+# recognizer_loop:utterance. The volume read is the one other type the satellite sends
+# at start that a stock grant would refuse. The audio-output-ended signal comes from
+# the satellite's own audio service; without it every speak(wait=True) blocks for 15 s.
+# configuration.patch is deliberately absent: it would let a satellite patch the hub's
+# configuration.
+ovos_containers_hivemind_satellite_msg_types:
+  - ovos.utterance.handle
+  - recognizer_loop:utterance
+  - ovos.audio.output.ended
+  - recognizer_loop:audio_output_end
+  - ovos.volume.get
+  - mycroft.volume.get
 ovos_containers_container_ovos_cli: ovos_cli
 ovos_containers_container_ovos_listener: ovos_listener
 ovos_containers_container_ovos_audio: ovos_audio

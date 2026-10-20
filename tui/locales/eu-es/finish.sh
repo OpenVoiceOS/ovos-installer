@@ -7,7 +7,12 @@ HIVEMIND_SATELLITE_NOTE="
 Satelite honi oraindik hitz egiteko baimena eman behar zaio, ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678} helbidean HiveMind entzulea exekutatzen ari den makinan:
 
   hivemind-core list-clients
+  hivemind-core allow-msg ovos.utterance.handle <node-id>
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
+  hivemind-core allow-msg ovos.audio.output.ended <node-id>
+  hivemind-core allow-msg recognizer_loop:audio_output_end <node-id>
+  hivemind-core allow-msg ovos.volume.get <node-id>
+  hivemind-core allow-msg mycroft.volume.get <node-id>
 
 Erabili list-clients sarbide-gakoaren hasieran ${HIVEMIND_KEY_PREFIX-} duen Node ID aurkitzeko - hori da satelite hau. Baimena eman arte, satelitea konektatu eta autentifikatu egingo da, baina esaten duen guztia ukatu egingo da.
 "

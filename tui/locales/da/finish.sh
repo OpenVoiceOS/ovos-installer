@@ -7,7 +7,12 @@ HIVEMIND_SATELLITE_NOTE="
 Denne satellit skal stadig have lov til at tale. Tilladelsen gives på maskinen, der kører HiveMind-lytteren på ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678}:
 
   hivemind-core list-clients
+  hivemind-core allow-msg ovos.utterance.handle <node-id>
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
+  hivemind-core allow-msg ovos.audio.output.ended <node-id>
+  hivemind-core allow-msg recognizer_loop:audio_output_end <node-id>
+  hivemind-core allow-msg ovos.volume.get <node-id>
+  hivemind-core allow-msg mycroft.volume.get <node-id>
 
 Brug list-clients til at finde det Node ID, hvis adgangsnøgle begynder ${HIVEMIND_KEY_PREFIX-} - det er denne satellit. Indtil tilladelsen er givet, opretter satellitten forbindelse og bliver godkendt, men alt, hvad den siger, bliver afvist.
 "

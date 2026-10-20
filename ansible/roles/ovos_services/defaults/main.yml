@@ -19,6 +19,21 @@ ovos_services_enable_satellite: "{{ ovos_installer_profile == 'satellite' }}"
 ovos_services_hivemind_client_ids: >-
   {{ ovos_services_hivemind_clients.stdout_lines | default([])
      | select('match', '^[0-9]+,') | map('split', ',') | map('first') | list }}
+# Message types a satellite sends upward, each under both its current and its legacy
+# name: hivemind-core admits a message by exact membership, and a satellite on the
+# current stack sends ovos.utterance.handle while an older one sends
+# recognizer_loop:utterance. The volume read is the one other type the satellite sends
+# at start that a stock grant would refuse. The audio-output-ended signal comes from
+# the satellite's own audio service; without it every speak(wait=True) blocks for 15 s.
+# configuration.patch is deliberately absent: it would let a satellite patch the hub's
+# configuration.
+ovos_services_hivemind_satellite_msg_types:
+  - ovos.utterance.handle
+  - recognizer_loop:utterance
+  - ovos.audio.output.ended
+  - recognizer_loop:audio_output_end
+  - ovos.volume.get
+  - mycroft.volume.get
 ovos_services_wrapper_template: virtualenv/wrapper-ovos-phal-admin.sh.j2
 ovos_services_wrapper_path: /usr/local/bin/wrapper-ovos-phal-admin.sh
 ovos_services_wrapper_mode: "0755"

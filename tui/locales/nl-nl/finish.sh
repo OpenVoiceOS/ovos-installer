@@ -7,7 +7,12 @@ HIVEMIND_SATELLITE_NOTE="
 Deze satelliet moet nog toestemming krijgen om te spreken. Dat doe je op de machine waarop de HiveMind listener draait, op ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678}:
 
   hivemind-core list-clients
+  hivemind-core allow-msg ovos.utterance.handle <node-id>
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
+  hivemind-core allow-msg ovos.audio.output.ended <node-id>
+  hivemind-core allow-msg recognizer_loop:audio_output_end <node-id>
+  hivemind-core allow-msg ovos.volume.get <node-id>
+  hivemind-core allow-msg mycroft.volume.get <node-id>
 
 Gebruik list-clients om het Node ID te vinden waarvan de toegangssleutel begint ${HIVEMIND_KEY_PREFIX-} - dat is deze satelliet. Zolang die toestemming niet is gegeven, maakt de satelliet wel verbinding en slaagt de authenticatie, maar wordt alles wat hij zegt geweigerd.
 "

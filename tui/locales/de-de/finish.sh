@@ -7,7 +7,12 @@ HIVEMIND_SATELLITE_NOTE="
 Dieser Satellit muss noch die Freigabe zum Sprechen erhalten, und zwar auf dem Rechner, auf dem der HiveMind-Listener läuft, unter ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678}:
 
   hivemind-core list-clients
+  hivemind-core allow-msg ovos.utterance.handle <node-id>
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
+  hivemind-core allow-msg ovos.audio.output.ended <node-id>
+  hivemind-core allow-msg recognizer_loop:audio_output_end <node-id>
+  hivemind-core allow-msg ovos.volume.get <node-id>
+  hivemind-core allow-msg mycroft.volume.get <node-id>
 
 Mit list-clients finden Sie die Node ID, deren Zugangsschlüssel mit ${HIVEMIND_KEY_PREFIX-} beginnt - das ist dieser Satellit. Solange die Freigabe nicht erteilt ist, verbindet er sich und authentifiziert sich erfolgreich, aber alles, was er sagt, wird abgewiesen.
 "

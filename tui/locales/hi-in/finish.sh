@@ -7,7 +7,12 @@ HIVEMIND_SATELLITE_NOTE="
 इस सैटेलाइट को बोलने की अनुमति अभी दी जानी बाकी है। यह अनुमति उस मशीन पर दी जाती है जिस पर HiveMind listener चल रहा है, पते ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678} पर:
 
   hivemind-core list-clients
+  hivemind-core allow-msg ovos.utterance.handle <node-id>
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
+  hivemind-core allow-msg ovos.audio.output.ended <node-id>
+  hivemind-core allow-msg recognizer_loop:audio_output_end <node-id>
+  hivemind-core allow-msg ovos.volume.get <node-id>
+  hivemind-core allow-msg mycroft.volume.get <node-id>
 
 list-clients चलाकर वह Node ID ढूँढें जिसकी एक्सेस कुंजी ${HIVEMIND_KEY_PREFIX-} से शुरू होती है - वही यह सैटेलाइट है। जब तक यह अनुमति नहीं दी जाती, यह जुड़ भी जाएगा और प्रमाणीकरण भी पूरा कर लेगा, लेकिन यह जो कुछ भी कहेगा वह अस्वीकार कर दिया जाएगा।
 "

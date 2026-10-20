@@ -5134,7 +5134,11 @@ FAKE
             source '${dir}finish.sh'; printf '%s' \"\$CONTENT\""
         assert_success
         # the commands a user types are never translated
-        assert_output --partial "hivemind-core allow-msg recognizer_loop:utterance <node-id>"
+        for msg_type in ovos.utterance.handle recognizer_loop:utterance ovos.audio.output.ended recognizer_loop:audio_output_end ovos.volume.get mycroft.volume.get; do
+            assert_output --partial "hivemind-core allow-msg ${msg_type} <node-id>"
+        done
+        # one type per command: hivemind-core older than 5.2.4a2 rejects several types in one call
+        refute_output --regexp "allow-msg [^ <]+ [^ <]+ <node-id>"
         # and the values the installer fills in actually arrive
         assert_output --partial "hub.example"
         assert_output --partial "deadbeef"
@@ -5216,8 +5220,12 @@ print(' '.join(out))
 
     # A scenario install never reaches the finish screen, and a scenario install is
     # exactly how a fleet of satellites gets built - so the play says it too.
-    run grep -q "allow-msg recognizer_loop:utterance" ansible/roles/ovos_finalize/tasks/main.yml
-    assert_success
+    for msg_type in ovos.utterance.handle recognizer_loop:utterance ovos.audio.output.ended recognizer_loop:audio_output_end ovos.volume.get mycroft.volume.get; do
+        run grep -qF "hivemind-core allow-msg ${msg_type} <node-id>" ansible/roles/ovos_finalize/tasks/main.yml
+        assert_success
+    done
+    run grep -qE "allow-msg [^ <]+ [^ <]+ <node-id>" ansible/roles/ovos_finalize/tasks/main.yml
+    assert_failure
     run grep -q "\[:8\]" ansible/roles/ovos_finalize/tasks/main.yml
     assert_success
     run grep -q "ovos_installer_listener_host" ansible/roles/ovos_finalize/tasks/main.yml
@@ -5244,6 +5252,17 @@ print(' '.join(out))
     # alone is undone by the next sync.
     run grep -q "hivemind_satellite_note" translations/en-us/strings.json
     assert_success
+
+    # Every translation carries one command per granted type, and none the multi-type form.
+    local file msg_type
+    for file in translations/*/strings.json; do
+        for msg_type in ovos.utterance.handle recognizer_loop:utterance ovos.audio.output.ended recognizer_loop:audio_output_end ovos.volume.get mycroft.volume.get; do
+            run grep -qF "hivemind-core allow-msg ${msg_type} <node-id>" "$file"
+            assert_success
+        done
+        run grep -qE "allow-msg [^ <]+ [^ <]+ <node-id>" "$file"
+        assert_failure
+    done
 }
 
 @test "reading_the_hivemind_clients_does_not_race_the_listener" {
@@ -5282,8 +5301,31 @@ print(' '.join(out))
     # hivemind-core denies a client every message type until one is allowed, and
     # recognizer_loop:utterance stopped being granted by default - so a satellite
     # connects, authenticates, and has everything it says silently refused.
-    run grep -q "allow-msg recognizer_loop:utterance" "$tasks"
+    run grep -qF "allow-msg {{ item.1 }} {{ item.0 }}" "$tasks"
     assert_success
+
+    # The containers method grants through its own task, so it is held to the same loop.
+    run grep -qF "allow-msg {{ item.1 }} {{ item.0 }}" ansible/roles/ovos_containers/tasks/hivemind-permissions.yml
+    assert_success
+    run grep -qF "product(ovos_containers_hivemind_satellite_msg_types)" ansible/roles/ovos_containers/tasks/hivemind-permissions.yml
+    assert_success
+    run grep -qF "product(ovos_services_hivemind_satellite_msg_types)" "$tasks"
+    assert_success
+    run grep -q "allow-msg recognizer_loop:utterance {{ item }}" ansible/roles/ovos_containers/tasks/hivemind-permissions.yml
+    assert_failure
+
+    # The hub admits a message on the exact topic it carries, so the grant is exactly
+    # these types: each utterance topic, the audio-output-ended signal (without it every
+    # speak(wait=True) blocks for 15 s) and the volume read, never configuration.patch.
+    local expected="ovos.utterance.handle recognizer_loop:utterance ovos.audio.output.ended recognizer_loop:audio_output_end ovos.volume.get mycroft.volume.get"
+    local role granted
+    for role in ovos_services ovos_containers; do
+        granted="$(awk -v key="${role}_hivemind_satellite_msg_types:" '
+            $1 == key { inlist = 1; next }
+            inlist && $1 == "-" { printf "%s ", $2; next }
+            inlist { exit }' "ansible/roles/${role}/defaults/main.yml")"
+        [ "${granted% }" = "$expected" ]
+    done
 
     # The grant lives in the hub's database and is made per client, so it can only run
     # where hivemind-core and that database exist. A satellite installs

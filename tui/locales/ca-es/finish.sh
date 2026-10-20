@@ -7,7 +7,12 @@ HIVEMIND_SATELLITE_NOTE="
 Aquest satèl·lit encara ha de rebre permís per a parlar, a la màquina on s'executa l'escolta de HiveMind a ${HIVEMIND_HOST-}:${HIVEMIND_PORT:-5678}:
 
   hivemind-core list-clients
+  hivemind-core allow-msg ovos.utterance.handle <node-id>
   hivemind-core allow-msg recognizer_loop:utterance <node-id>
+  hivemind-core allow-msg ovos.audio.output.ended <node-id>
+  hivemind-core allow-msg recognizer_loop:audio_output_end <node-id>
+  hivemind-core allow-msg ovos.volume.get <node-id>
+  hivemind-core allow-msg mycroft.volume.get <node-id>
 
 Feu servir list-clients per a trobar el Node ID la clau d'accés del qual comença per ${HIVEMIND_KEY_PREFIX-} - aquest és el Node ID d'aquest satèl·lit. Fins que no es concedeixi el permís, el satèl·lit es connectarà i s'autenticarà correctament, però es rebutjarà tot el que digui.
 "
