@@ -51,6 +51,13 @@
     - ovos_installer_package_family in _lists
     - ovos_installer_footprint.orphans is not defined or ovos_installer_footprint.orphans is none
 
+# Homebrew may remove the Python keg backing the installer venv. Later file
+# cleanup must use the OS interpreter, which Homebrew cannot uninstall.
+- name: Keep macOS cleanup independent of Homebrew Python
+  ansible.builtin.set_fact:
+    ansible_python_interpreter: /usr/bin/python3
+  when: ansible_facts.system == 'Darwin'
+
 - name: List the formulae Homebrew now considers unneeded
   become: true
   become_user: "{{ ovos_installer_user }}"

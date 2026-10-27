@@ -123,3 +123,36 @@ with tempfile.TemporaryDirectory() as directory:
 PYTEST
     assert_success
 }
+
+@test "homebrew: final cleanup survives removal of the installer interpreter" {
+    run python3 - <<'PYTEST'
+from pathlib import Path
+import json
+import subprocess
+import sys
+import tempfile
+import yaml
+
+tasks = yaml.safe_load(Path('ansible/roles/ovos_installer/tasks/uninstall.yml').read_text())
+names = [task['name'] for task in tasks]
+name = 'Keep macOS cleanup independent of Homebrew Python'
+assert names.index(name) < names.index('Remove the formulae this uninstall left unneeded')
+with tempfile.TemporaryDirectory() as directory:
+    root = Path(directory)
+    interpreter = root / 'installer-python'
+    interpreter.symlink_to(sys.executable)
+    result = root / 'cleanup-completed'
+    play = [{'hosts': 'all', 'gather_facts': False,
+             'vars': {'ansible_python_interpreter': str(interpreter),
+                      'ansible_facts': {'system': 'Darwin'}},
+             'tasks': [tasks[names.index(name)],
+                       {'ansible.builtin.file': {'path': str(interpreter), 'state': 'absent'}},
+                       {'ansible.builtin.file': {'path': str(result), 'state': 'touch'}}]}]
+    playbook = root / 'play.json'
+    playbook.write_text(json.dumps(play))
+    subprocess.run(['ansible-playbook', '-i', 'localhost,', '-c', 'local', str(playbook)], check=True)
+    assert result.exists()
+    assert not interpreter.exists()
+PYTEST
+    assert_success
+}
