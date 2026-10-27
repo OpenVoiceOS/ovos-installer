@@ -20,6 +20,12 @@
     state: stopped
   failed_when: false
 
+- name: Check if Mycroft state tmpfs is mounted  # noqa command-instead-of-module
+  ansible.builtin.command: "{{ ovos_storage_tuning_mount_cmd }} \"{{ ovos_storage_tuning_mycroft_state_dir }}\""
+  register: ovos_storage_tuning_mycroft_state_mount
+  changed_when: false
+  failed_when: false
+
 - name: Check that archival and restore completed before syncing state
   ansible.builtin.stat:
     path: "{{ ovos_storage_tuning_mycroft_state_dir }}/{{ item }}"
@@ -28,28 +34,25 @@
     - .ovos-state-restored
   register: ovos_storage_tuning_restore_ready
 
-- name: Keep restored live state mounted if log archival failed
+- name: Keep live state mounted until archival and restore complete
   ansible.builtin.assert:
     that:
-      - not ovos_storage_tuning_restore_ready.results[1].stat.exists or ovos_storage_tuning_restore_ready.results[0].stat.exists
+      - ovos_storage_tuning_restore_ready.results | selectattr('stat.exists') | list | length == 2
     fail_msg: >-
-      State restoration completed but log archival failed. Live state remains
-      mounted to preserve changes. Check archive disk space and permissions,
-      complete log archival, and retry uninstall.
+      State archival or restoration did not complete. Live state remains mounted
+      to preserve changes. Check archive disk space, permissions, and the restore
+      service, complete archival and restoration, and retry uninstall.
+  when: ovos_storage_tuning_mycroft_state_mount.rc == 0
 
 - name: Sync Mycroft state back to disk  # noqa command-instead-of-module
   ansible.builtin.command: >-
     {{ ovos_storage_tuning_rsync_path }} -a --delete --exclude='.ovos-logs-archived' --exclude='.ovos-state-restored'
     "{{ ovos_storage_tuning_mycroft_state_dir }}/"
     "{{ ovos_storage_tuning_mycroft_state_persist_dir }}/"
-  when: ovos_storage_tuning_restore_ready.results | selectattr('stat.exists') | list | length == 2
+  when:
+    - ovos_storage_tuning_mycroft_state_mount.rc == 0
+    - ovos_storage_tuning_restore_ready.results | selectattr('stat.exists') | list | length == 2
   changed_when: false
-
-- name: Check if Mycroft state tmpfs is mounted  # noqa command-instead-of-module
-  ansible.builtin.command: "{{ ovos_storage_tuning_mount_cmd }} \"{{ ovos_storage_tuning_mycroft_state_dir }}\""
-  register: ovos_storage_tuning_mycroft_state_mount
-  changed_when: false
-  failed_when: false
 
 - name: Unmount Mycroft state tmpfs  # noqa command-instead-of-module
   ansible.builtin.command: "{{ ovos_storage_tuning_umount_cmd }} \"{{ ovos_storage_tuning_mycroft_state_dir }}\""

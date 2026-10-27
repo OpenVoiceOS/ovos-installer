@@ -39,8 +39,10 @@ def prepare_logs(state, archive, limit=1_000_000, archive_all=False,
         raise ValueError('archive limits must be positive')
     state, archive = Path(state), Path(archive)
     resolved_archive, resolved_state = archive.resolve(), state.resolve()
-    inside_state = resolved_archive == resolved_state or resolved_state in resolved_archive.parents
-    if archive.is_symlink() or inside_state:
+    overlaps_state = (resolved_archive == resolved_state
+                      or resolved_state in resolved_archive.parents
+                      or resolved_archive in resolved_state.parents)
+    if archive.is_symlink() or overlaps_state:
         raise ValueError('archive must be a separate directory outside state')
     for source in regular_files(state):
         rotated = '.log.' in source.name

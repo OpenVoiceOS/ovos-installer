@@ -98,6 +98,22 @@ class StateLogsTest(unittest.TestCase):
             self.assertEqual((external / 'private.log').read_bytes(), b'outside state')
             self.assertTrue((archive / 'logs').is_dir())
 
+    def test_overlapping_archive_paths_cannot_prune_state(self):
+        """Archives containing state, inside state, or equal to state cannot delete it."""
+        with tempfile.TemporaryDirectory() as directory:
+            state = Path(directory) / 'state'
+            state.mkdir()
+            log, schedule = state / 'skills.log', state / 'schedule.json'
+            log.write_bytes(b'live log')
+            schedule.write_bytes(b'important schedule')
+            for archive in (Path(directory), state, state / 'archive'):
+                with self.subTest(archive=archive):
+                    with self.assertRaisesRegex(ValueError, 'separate directory'):
+                        module.prepare_logs(state, archive, archive_all=True,
+                                            max_archive_bytes=1, max_archive_files=1)
+                    self.assertEqual(log.read_bytes(), b'live log')
+                    self.assertEqual(schedule.read_bytes(), b'important schedule')
+
     def test_archive_budget_and_file_count_bound_repeated_runs(self):
         """Repeated boots retain bounded recent diagnostics, including oversized tails."""
         with tempfile.TemporaryDirectory() as directory:
@@ -239,13 +255,17 @@ class LoggingConfigurationTest(unittest.TestCase):
         """A failed archive or final sync stops uninstall before unmounting live state."""
         tasks = yaml.safe_load((SCRIPT.parents[4] / 'ansible/roles/ovos_storage_tuning/tasks/uninstall.yml').read_text())
         selected = [t for t in tasks if t['name'] in (
+            'Check if Mycroft state tmpfs is mounted',
             'Check that archival and restore completed before syncing state',
-            'Keep restored live state mounted if log archival failed',
+            'Keep live state mounted until archival and restore complete',
             'Sync Mycroft state back to disk')]
-        self.assertEqual(len(selected), 3)
-        for archived, restored, sync_ok in ((False, True, True), (True, True, False),
-                                            (True, True, True), (False, False, False)):
-            with self.subTest(archived=archived, restored=restored, sync_ok=sync_ok):
+        self.assertEqual(len(selected), 4)
+        for archived, restored, sync_ok, mounted in (
+                (False, True, True, True), (True, True, False, True),
+                (True, True, True, True), (False, False, False, True),
+                (True, False, True, True), (False, False, False, False),
+                (True, True, False, False)):
+            with self.subTest(archived=archived, restored=restored, sync_ok=sync_ok, mounted=mounted):
                 with tempfile.TemporaryDirectory() as directory:
                     root = Path(directory)
                     state = root / 'state'
@@ -257,14 +277,15 @@ class LoggingConfigurationTest(unittest.TestCase):
                     plays = [{'hosts': 'all', 'connection': 'local', 'gather_facts': False,
                               'vars': {'ovos_storage_tuning_mycroft_state_dir': str(state),
                                        'ovos_storage_tuning_mycroft_state_persist_dir': str(root / 'persist'),
-                                       'ovos_storage_tuning_rsync_path': '/usr/bin/true' if sync_ok else '/usr/bin/false'},
+                                       'ovos_storage_tuning_rsync_path': '/usr/bin/true' if sync_ok else '/usr/bin/false',
+                                       'ovos_storage_tuning_mount_cmd': '/usr/bin/true' if mounted else '/usr/bin/false'},
                               'tasks': selected + [{'ansible.builtin.file': {
                                   'path': str(reached_unmount), 'state': 'touch'}}]}]
                     playbook = root / 'verify.yml'
                     playbook.write_text(yaml.safe_dump(plays, sort_keys=False))
                     result = subprocess.run(['ansible-playbook', '-i', 'localhost,', str(playbook)],
                                             capture_output=True, text=True, timeout=40)
-                    safe = not restored or (archived and sync_ok)
+                    safe = not mounted or (archived and restored and sync_ok)
                     self.assertEqual(result.returncode == 0, safe, result.stdout + result.stderr)
                     self.assertEqual(reached_unmount.exists(), safe)
 
