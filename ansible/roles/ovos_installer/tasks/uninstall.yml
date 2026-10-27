@@ -56,7 +56,9 @@
     argv:
       - "{{ ansible_playbook_python }}"
       - -c
-      - "import json, sys; print(json.dumps([sys.executable, sys.prefix, sys.base_prefix]))"
+      # Framework Python can resolve sys.executable past the venv's launch alias.
+      - "import json, sys; print(json.dumps([sys.argv[1], sys.executable, sys.prefix, sys.base_prefix]))"
+      - "{{ ansible_playbook_python }}"
   register: ovos_installer_controller_python
   changed_when: false
   when: ansible_facts.system == 'Darwin'

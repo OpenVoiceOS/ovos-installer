@@ -146,7 +146,14 @@ with tempfile.TemporaryDirectory() as directory:
     result = root / 'cleanup-completed'
     result.touch()
     capture = tasks[names.index('Remember the Python paths used by the running controller')]
-    capture['ansible.builtin.command']['argv'][0] = '{{ removed_controller_python }}'
+    capture['ansible.builtin.command']['argv'] = [
+        arg.replace('ansible_playbook_python', 'removed_controller_python')
+        for arg in capture['ansible.builtin.command']['argv']]
+    # Framework Python resolves sys.executable to its real executable on macOS.
+    # Reproduce that on Linux too, so the explicit launch alias must be protected.
+    capture['ansible.builtin.command']['argv'][2] = (
+        'import os, sys; sys.executable = os.path.realpath(sys.executable); '
+        + capture['ansible.builtin.command']['argv'][2])
     footprint = yaml.safe_load(Path('ansible/roles/ovos_installer/tasks/footprint_prepare_restore.yml').read_text())[0]
     # Make only the controller's old interpreter disposable; execute the real scan.
     footprint['ansible.builtin.command']['argv'] = footprint['ansible.builtin.command']['argv'].replace(
