@@ -235,6 +235,39 @@ class LoggingConfigurationTest(unittest.TestCase):
                                     capture_output=True, text=True, timeout=40)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
+    def test_uninstall_preserves_live_state_on_archival_or_sync_failure(self):
+        """A failed archive or final sync stops uninstall before unmounting live state."""
+        tasks = yaml.safe_load((SCRIPT.parents[4] / 'ansible/roles/ovos_storage_tuning/tasks/uninstall.yml').read_text())
+        selected = [t for t in tasks if t['name'] in (
+            'Check that archival and restore completed before syncing state',
+            'Keep restored live state mounted if log archival failed',
+            'Sync Mycroft state back to disk')]
+        self.assertEqual(len(selected), 3)
+        for archived, restored, sync_ok in ((False, True, True), (True, True, False),
+                                            (True, True, True), (False, False, False)):
+            with self.subTest(archived=archived, restored=restored, sync_ok=sync_ok):
+                with tempfile.TemporaryDirectory() as directory:
+                    root = Path(directory)
+                    state = root / 'state'
+                    state.mkdir()
+                    for marker, present in (('.ovos-logs-archived', archived), ('.ovos-state-restored', restored)):
+                        if present:
+                            (state / marker).touch()
+                    reached_unmount = root / 'reached-unmount'
+                    plays = [{'hosts': 'all', 'connection': 'local', 'gather_facts': False,
+                              'vars': {'ovos_storage_tuning_mycroft_state_dir': str(state),
+                                       'ovos_storage_tuning_mycroft_state_persist_dir': str(root / 'persist'),
+                                       'ovos_storage_tuning_rsync_path': '/usr/bin/true' if sync_ok else '/usr/bin/false'},
+                              'tasks': selected + [{'ansible.builtin.file': {
+                                  'path': str(reached_unmount), 'state': 'touch'}}]}]
+                    playbook = root / 'verify.yml'
+                    playbook.write_text(yaml.safe_dump(plays, sort_keys=False))
+                    result = subprocess.run(['ansible-playbook', '-i', 'localhost,', str(playbook)],
+                                            capture_output=True, text=True, timeout=40)
+                    safe = not restored or (archived and sync_ok)
+                    self.assertEqual(result.returncode == 0, safe, result.stdout + result.stderr)
+                    self.assertEqual(reached_unmount.exists(), safe)
+
     def test_sync_is_gated_and_footprint_survives_failed_cleanup(self):
         """Service dependencies and markers guard sync; cleanup retains its retry baseline."""
         root = SCRIPT.parents[4]
