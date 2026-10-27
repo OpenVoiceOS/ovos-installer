@@ -86,7 +86,8 @@ values take precedence. Container installs continue logging to stdout.
 
 Re-running the installer archives oversized active logs and rotated logs from
 the live and persisted state directories into `~/.local/state/mycroft-persistent-log-backups/`
-(on disk) before reclaiming their space. Boot restores skip `*.log` and
+(on disk) before reclaiming their space. Before each boot restore, persisted logs (including small and newly rotated
+logs) are archived outside the sync destination. Boot restores skip `*.log` and
 `*.log.*`, keeping archived diagnostics on disk rather than filling tmpfs
 again. Other state, including `schedule.json`, is restored normally. After
 space is recovered, restart OVOS and check that the clock advances.

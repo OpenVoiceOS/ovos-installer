@@ -129,7 +129,11 @@
   block:
     - name: Read logging sections from the current configuration
       vars:
-        _existing: "{{ ovos_config_existing_conf.content | b64decode | from_json }}"
+        # OVOS accepts independent comment lines beginning with // or #.
+        # Do not strip comment markers inside JSON strings (URLs and paths).
+        _existing: >-
+          {{ ovos_config_existing_conf.content | b64decode
+             | regex_replace('(?m)^[ \t]*(?://|#)[^\r\n]*', '') | from_json }}
       ansible.builtin.set_fact:
         ovos_config_existing_logs: "{{ _existing.logs if _existing.logs is defined and _existing.logs is mapping else {} }}"
         ovos_config_existing_logging: "{{ _existing.logging if _existing.logging is defined and _existing.logging is mapping else {} }}"

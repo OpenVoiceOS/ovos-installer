@@ -69,6 +69,7 @@
     - "{{ ovos_storage_tuning_mycroft_state_restore_path }}"
     - "{{ ovos_storage_tuning_mycroft_state_sync_path }}"
     - "{{ ovos_storage_tuning_mycroft_state_timer_path }}"
+    - "{{ ovos_storage_tuning_log_cleanup_path }}"
 
 - name: Flush handlers fstab
   ansible.builtin.meta: flush_handlers

@@ -105,6 +105,22 @@
       ansible.builtin.set_fact:
         ovos_storage_tuning_mycroft_state_active: true
 
+    - name: Ensure log recovery helper directory exists
+      ansible.builtin.file:
+        path: "{{ ovos_storage_tuning_log_cleanup_path | dirname }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Install Mycroft log recovery helper
+      ansible.builtin.copy:
+        src: prepare_state_logs.py
+        dest: "{{ ovos_storage_tuning_log_cleanup_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+
     # Archive before truncating: freeing tmpfs must not destroy diagnostics.
     - name: Archive oversized Mycroft logs from existing installations
       ansible.builtin.script:
@@ -112,6 +128,7 @@
           prepare_state_logs.py
           {{ item | quote }}
           {{ (ovos_storage_tuning_mycroft_state_persist_dir ~ '-log-backups') | quote }}
+          {{ '--archive-all' if item == ovos_storage_tuning_mycroft_state_persist_dir else '' }}
         executable: "{{ ansible_facts.python.executable }}"
       become: true
       become_user: "{{ ovos_installer_user }}"
@@ -140,6 +157,7 @@
           Type=oneshot
           User={{ ovos_installer_user }}
           Group={{ ovos_installer_group }}
+          ExecStartPre="{{ ovos_storage_tuning_log_cleanup_path }}" "{{ ovos_storage_tuning_mycroft_state_persist_dir }}" "{{ ovos_storage_tuning_mycroft_state_persist_dir }}-log-backups" --archive-all
           ExecStart={{ ovos_storage_tuning_state_restore_exec }}
 
           [Install]
