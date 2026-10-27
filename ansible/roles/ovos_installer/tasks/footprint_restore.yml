@@ -124,7 +124,7 @@
                   if reachable(path):
                       keep_or_print(path)
   ansible.builtin.command:
-    argv: "{{ [ansible_playbook_python, '-c', _script, ovos_installer_user_home] + _paths + ['--if-empty'] + _files_if_empty }}"
+    argv: "{{ [('/usr/bin/python3' if ansible_facts.system == 'Darwin' else ansible_playbook_python), '-c', _script, ovos_installer_user_home] + _paths + ['--if-empty'] + _files_if_empty }}"
   environment:
     OVOS_FOOTPRINT_SHARED: "{{ ovos_installer_footprint_shared_dirs | to_json }}"
     OVOS_FOOTPRINT_RECORDED: "{{ _recorded | to_json }}"

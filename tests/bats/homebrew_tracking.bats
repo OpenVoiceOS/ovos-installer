@@ -142,11 +142,26 @@ with tempfile.TemporaryDirectory() as directory:
     interpreter = root / 'installer-python'
     interpreter.symlink_to(sys.executable)
     result = root / 'cleanup-completed'
+    result.touch()
+    footprint = yaml.safe_load(Path('ansible/roles/ovos_installer/tasks/footprint_restore.yml').read_text())[0]
+    # Make only the controller's old interpreter disposable; execute the real scan.
+    footprint['ansible.builtin.command']['argv'] = footprint['ansible.builtin.command']['argv'].replace(
+        'ansible_playbook_python', 'removed_controller_python')
     play = [{'hosts': 'all', 'gather_facts': False,
              'vars': {'ansible_python_interpreter': str(interpreter),
-                      'ansible_facts': {'system': 'Darwin'}},
+                      'ansible_facts': {'system': 'Darwin'},
+                      'removed_controller_python': str(interpreter),
+                      'ovos_installer_user_home': str(root),
+                      'ovos_installer_footprint': {'absent': [str(result)]},
+                      'ovos_installer_footprint_paths': [str(result)],
+                      'ovos_installer_footprint_parent_dirs': [],
+                      'ovos_installer_footprint_files_if_empty': [],
+                      'ovos_installer_footprint_shared_dirs': {}},
              'tasks': [tasks[names.index(name)],
                        {'ansible.builtin.file': {'path': str(interpreter), 'state': 'absent'}},
+                       footprint,
+                       {'ansible.builtin.assert': {'that':
+                           ['ovos_installer_footprint_safe.stdout == ' + json.dumps(str(result))]}},
                        {'ansible.builtin.file': {'path': str(result), 'state': 'touch'}}]}]
     playbook = root / 'play.json'
     playbook.write_text(json.dumps(play))
