@@ -121,6 +121,38 @@
         ovos_config_speech_current: {}
       changed_when: false
 
+# Keep operator overrides while supplying safe defaults for native file logging.
+- name: Preserve existing file logging configuration
+  when:
+    - ovos_installer_method == 'virtualenv'
+    - ovos_config_existing_conf.content is defined
+  block:
+    - name: Read logging sections from the current configuration
+      vars:
+        _existing: "{{ ovos_config_existing_conf.content | b64decode | from_json }}"
+      ansible.builtin.set_fact:
+        ovos_config_existing_logs: "{{ _existing.logs if _existing.logs is defined and _existing.logs is mapping else {} }}"
+        ovos_config_existing_logging: "{{ _existing.logging if _existing.logging is defined and _existing.logging is mapping else {} }}"
+      changed_when: false
+    - name: Supply rotation defaults for per-service log paths
+      ansible.builtin.set_fact:
+        ovos_config_existing_logging: >-
+          {{ ovos_config_existing_logging | combine({item.key: item.value | combine({
+             'logs': {'max_bytes': ovos_config_logs_max_bytes, 'backup_count': ovos_config_logs_backup_count}
+                     | combine(item.value.logs)})}) }}
+      loop: "{{ ovos_config_existing_logging | dict2items }}"
+      when:
+        - item.value is mapping
+        - item.value.logs is defined
+        - item.value.logs is mapping
+      changed_when: false
+  rescue:
+    - name: Keep safe logging defaults for unreadable configuration
+      ansible.builtin.set_fact:
+        ovos_config_existing_logs: {}
+        ovos_config_existing_logging: {}
+      changed_when: false
+
 - name: Generate mycroft.conf
   ansible.builtin.template:
     src: mycroft.conf.j2
