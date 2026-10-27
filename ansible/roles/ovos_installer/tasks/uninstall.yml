@@ -95,11 +95,21 @@
   environment:
     PATH: "{{ ovos_installer_homebrew_path | default('/opt/homebrew/bin:/usr/local/bin') }}:/usr/bin:/bin:/usr/sbin:/sbin"
     HOMEBREW_NO_AUTOREMOVE: "1"
-  changed_when: true
-  failed_when: false
+  register: ovos_installer_brew_cleanup
+  changed_when: ovos_installer_brew_cleanup.rc == 0
+  failed_when: ovos_installer_brew_cleanup.rc != 0
   when:
     - ovos_installer_brew_orphans_now.stdout_lines is defined
     - (_now | difference(ovos_installer_footprint.orphans)) | length > 0
+
+- name: Show Homebrew scoped cleanup results
+  ansible.builtin.debug:
+    msg: >-
+      {{ (ovos_installer_brew_cleanup.stdout_lines | default([]))
+         + (ovos_installer_brew_cleanup.stderr_lines | default([])) }}
+  when:
+    - ovos_installer_brew_cleanup is defined
+    - not (ovos_installer_brew_cleanup.skipped | default(false))
 
 - name: Say why the formulae the install added may stay
   ansible.builtin.debug:
