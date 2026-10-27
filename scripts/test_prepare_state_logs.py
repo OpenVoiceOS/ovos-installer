@@ -6,9 +6,14 @@ import subprocess
 import json
 import base64
 import copy
-import jinja2
-import yaml
-from ansible.plugins.filter.core import combine, to_json, to_bool
+# The shell CI discovers every scripts/test_*.py without installing Ansible.
+# Configuration integration tests run in the dedicated Ansible lint jobs.
+try:
+    import jinja2
+    import yaml
+    from ansible.plugins.filter.core import combine, to_json, to_bool
+except ImportError:
+    combine = None
 import unittest
 from unittest.mock import patch
 
@@ -79,6 +84,7 @@ class StateLogsTest(unittest.TestCase):
             self.assertIn(b'new boot log', [p.read_bytes() for p in archive.iterdir()])
 
 
+@unittest.skipIf(combine is None, "configuration integration requires Ansible; covered by Ansible CI")
 class LoggingConfigurationTest(unittest.TestCase):
     def render(self, method='virtualenv', logs=None, logging=None, active=True, mounts=None, **extra):
         """Render the actual logging template and tmpfs predicate with Ansible filters."""
