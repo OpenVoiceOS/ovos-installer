@@ -5,6 +5,14 @@
   "logs": {
     "path": "stdout"
   },
+{% else %}
+{% set _rotation_defaults = {'max_bytes': ovos_config_logs_max_bytes, 'backup_count': ovos_config_logs_backup_count} if ovos_config_state_tmpfs_enabled | bool else {} %}
+{% if _rotation_defaults or ovos_config_existing_logs %}
+  "logs": {{ _rotation_defaults | combine(ovos_config_existing_logs) | to_json }},
+{% endif %}
+{% if ovos_config_existing_logging %}
+  "logging": {{ ({'logs': _rotation_defaults} if _rotation_defaults else {}) | combine(ovos_config_existing_logging, recursive=True) | to_json }},
+{% endif %}
 {% endif %}
 {% set _ovos_is_raspberry_pi_4 = (ovos_installer_raspberrypi | default('')) | regex_search(ovos_installer_raspberry_pi_4_regex) %}
 {% set _ovos_is_mark2_family = _ovos_is_raspberry_pi_4 and ('tas5806' in (ovos_installer_i2c_devices | default([]))) %}

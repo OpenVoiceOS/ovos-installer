@@ -54,3 +54,6 @@ ovos_storage_tuning_state_restore_after: local-fs.target
 ovos_storage_tuning_state_sync_after: local-fs.target
 ovos_storage_tuning_timer_on_boot: 2min
 ovos_storage_tuning_timer_accuracy: 1min
+
+# Runs before every boot restore, including logs rotated since the last install.
+ovos_storage_tuning_log_cleanup_path: /usr/local/libexec/ovos-prepare-state-logs.py
