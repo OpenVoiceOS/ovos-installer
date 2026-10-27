@@ -1415,7 +1415,7 @@ print('constraint=' + cfg['global']['constraint'])
     run bash -c "grep -A5 -F -- \"- name: Remove OVOS service directories after tuning cleanup\" \"$uninstall_file\" | grep -F -q -- \"ansible.builtin.import_role:\""
     assert_failure
 
-    run bash -c 'remove_line=$(grep -n -F -- "- name: Remove OVOS service directories after tuning cleanup" "$1" | head -n1 | cut -d: -f1); autoremove_line=$(grep -n -F -- "- name: Remove the packages this uninstall left unneeded" "$1" | head -n1 | cut -d: -f1); [ -n "$remove_line" ] && [ -n "$autoremove_line" ] && [ "$remove_line" -lt "$autoremove_line" ]' _ "$uninstall_file"
+    run bash -c 'remove_line=$(grep -n -F -- "- name: Remove OVOS service directories after tuning cleanup" "$1" | head -n1 | cut -d: -f1); autoremove_line=$(grep -n -F -- "- name: Remove the packages this uninstall left unneeded" "$1" | head -n1 | cut -d: -f1); [ -n "$remove_line" ] && [ -n "$autoremove_line" ] && [ "$remove_line" -gt "$autoremove_line" ]' _ "$uninstall_file"
     assert_success
 
     run grep -F -q 'loop: "{{ ovos_services_remove_directories }}"' "$services_uninstall_file"

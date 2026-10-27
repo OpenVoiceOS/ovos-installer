@@ -129,6 +129,9 @@ jobs:
       - name: Run ansible-lint (production profile)
         run: ansible-lint --profile production
 
+      - name: Test Mycroft state log recovery and configuration scope
+        run: python -m unittest discover -s scripts -p test_prepare_state_logs.py
+
       - name: Run BATS test suite
         run: bats tests/bats --verbose-run --print-output-on-failure
 
@@ -324,6 +327,14 @@ jobs:
             --utterance "what time is it" --expect-speak \
             --ready-timeout 420 --reply-timeout 120 --speak-timeout 120
 
+      - name: Preserve service diagnostics before uninstall
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/ovos-diagnostics"
+          if [ -d "$HOME/.local/state/mycroft/logs" ]; then
+            cp -R "$HOME/.local/state/mycroft/logs" "$RUNNER_TEMP/ovos-diagnostics/"
+          fi
+
       - name: Create uninstall scenario
         shell: bash
         run: |
@@ -393,3 +404,18 @@ jobs:
             brew link --dry-run --overwrite "$formula" 2>&1 | head -n 30 || true
           done <"$RUNNER_TEMP/not-linked.txt"
           sudo tail -n 200 /var/log/ovos-ansible.log || true
+
+      - name: Preserve macOS crash reports
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/ovos-diagnostics/crash-reports"
+          find "$HOME/Library/Logs/DiagnosticReports" -maxdepth 1 -type f \
+            -name 'python*.ips' -exec cp {} "$RUNNER_TEMP/ovos-diagnostics/crash-reports/" \; 2>/dev/null || true
+
+      - name: Upload service and crash diagnostics
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: macos-diagnostics-${{ matrix.runner }}-${{ matrix.channel }}-${{ matrix.profile }}-${{ matrix.feature_set }}
+          path: ${{ runner.temp }}/ovos-diagnostics
+          retention-days: 7

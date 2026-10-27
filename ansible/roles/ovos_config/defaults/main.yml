@@ -113,3 +113,16 @@ ovos_config_windspeed_unit: "{{ ovos_installer_windspeed_unit }}"
 ovos_config_time_format: "{{ ovos_installer_time_format }}"
 ovos_config_spoken_time_format: "{{ ovos_installer_spoken_time_format }}"
 ovos_config_date_format: "{{ ovos_installer_date_format }}"
+
+# Bound logs only when the state directory is actually backed by tmpfs.
+# The storage role sets the fact for mounts created after fact gathering.
+ovos_config_state_tmpfs_enabled: >-
+  {{ (ovos_storage_tuning_mycroft_state_active | default(false) | bool)
+     or ((ansible_facts.mounts | default([])
+          | selectattr('mount', 'equalto', ovos_installer_tuning_mycroft_state_dir
+                       | default(ovos_installer_user_home ~ '/.local/state/mycroft'))
+          | selectattr('fstype', 'equalto', 'tmpfs') | list | length) > 0) }}
+ovos_config_logs_max_bytes: 1000000
+ovos_config_logs_backup_count: 1
+ovos_config_existing_logs: {}
+ovos_config_existing_logging: {}

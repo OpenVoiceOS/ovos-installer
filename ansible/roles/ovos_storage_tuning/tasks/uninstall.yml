@@ -20,19 +20,39 @@
     state: stopped
   failed_when: false
 
-- name: Sync Mycroft state back to disk  # noqa command-instead-of-module
-  ansible.builtin.command: >-
-    {{ ovos_storage_tuning_rsync_path }} -a --delete
-    "{{ ovos_storage_tuning_mycroft_state_dir }}/"
-    "{{ ovos_storage_tuning_mycroft_state_persist_dir }}/"
-  changed_when: false
-  failed_when: false
-
 - name: Check if Mycroft state tmpfs is mounted  # noqa command-instead-of-module
   ansible.builtin.command: "{{ ovos_storage_tuning_mount_cmd }} \"{{ ovos_storage_tuning_mycroft_state_dir }}\""
   register: ovos_storage_tuning_mycroft_state_mount
   changed_when: false
   failed_when: false
+
+- name: Check that archival and restore completed before syncing state
+  ansible.builtin.stat:
+    path: "{{ ovos_storage_tuning_mycroft_state_dir }}/{{ item }}"
+  loop:
+    - .ovos-logs-archived
+    - .ovos-state-restored
+  register: ovos_storage_tuning_restore_ready
+
+- name: Keep live state mounted until archival and restore complete
+  ansible.builtin.assert:
+    that:
+      - ovos_storage_tuning_restore_ready.results | selectattr('stat.exists') | list | length == 2
+    fail_msg: >-
+      State archival or restoration did not complete. Live state remains mounted
+      to preserve changes. Check archive disk space, permissions, and the restore
+      service, complete archival and restoration, and retry uninstall.
+  when: ovos_storage_tuning_mycroft_state_mount.rc == 0
+
+- name: Sync Mycroft state back to disk  # noqa command-instead-of-module
+  ansible.builtin.command: >-
+    {{ ovos_storage_tuning_rsync_path }} -a --delete --exclude='.ovos-logs-archived' --exclude='.ovos-state-restored'
+    "{{ ovos_storage_tuning_mycroft_state_dir }}/"
+    "{{ ovos_storage_tuning_mycroft_state_persist_dir }}/"
+  when:
+    - ovos_storage_tuning_mycroft_state_mount.rc == 0
+    - ovos_storage_tuning_restore_ready.results | selectattr('stat.exists') | list | length == 2
+  changed_when: false
 
 - name: Unmount Mycroft state tmpfs  # noqa command-instead-of-module
   ansible.builtin.command: "{{ ovos_storage_tuning_umount_cmd }} \"{{ ovos_storage_tuning_mycroft_state_dir }}\""
@@ -69,6 +89,7 @@
     - "{{ ovos_storage_tuning_mycroft_state_restore_path }}"
     - "{{ ovos_storage_tuning_mycroft_state_sync_path }}"
     - "{{ ovos_storage_tuning_mycroft_state_timer_path }}"
+    - "{{ ovos_storage_tuning_log_cleanup_path }}"
 
 - name: Flush handlers fstab
   ansible.builtin.meta: flush_handlers
