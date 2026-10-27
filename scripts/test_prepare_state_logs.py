@@ -6,6 +6,7 @@ import subprocess
 import json
 import base64
 import copy
+import sys
 # The shell CI discovers every scripts/test_*.py without installing Ansible.
 # Configuration integration tests run in the dedicated Ansible lint jobs.
 try:
@@ -58,7 +59,7 @@ class StateLogsTest(unittest.TestCase):
             state.mkdir()
             log = state / 'skills.log'
             log.write_bytes(b'diagnostics')
-            with patch.object(module.shutil, 'copyfileobj', side_effect=OSError('disk full')):
+            with patch.object(module.os, 'fsync', side_effect=OSError('disk full')):
                 with self.assertRaises(OSError):
                     module.prepare_logs(state, Path(directory) / 'archive', limit=1)
             self.assertEqual(log.read_bytes(), b'diagnostics')
@@ -82,6 +83,66 @@ class StateLogsTest(unittest.TestCase):
             self.assertEqual((persist / 'schedule.json').read_text(), '{"event": 200}')
             module.prepare_logs(persist, archive, archive_all=True)
             self.assertIn(b'new boot log', [p.read_bytes() for p in archive.iterdir()])
+
+    def test_nested_logs_are_archived_without_following_symlinks(self):
+        """Nested custom log paths are preserved without traversing external paths."""
+        with tempfile.TemporaryDirectory() as directory:
+            state, archive, external = (Path(directory) / n for n in ('state', 'archive', 'external'))
+            (state / 'logs').mkdir(parents=True)
+            external.mkdir()
+            (state / 'logs/skills.log').write_bytes(b'nested log')
+            (external / 'private.log').write_bytes(b'outside state')
+            (state / 'linked').symlink_to(external, target_is_directory=True)
+            module.prepare_logs(state, archive, archive_all=True)
+            self.assertEqual([p.read_bytes() for p in module.regular_files(archive)], [b'nested log'])
+            self.assertEqual((external / 'private.log').read_bytes(), b'outside state')
+            self.assertTrue((archive / 'logs').is_dir())
+
+    def test_archive_budget_and_file_count_bound_repeated_runs(self):
+        """Repeated boots retain bounded recent diagnostics, including oversized tails."""
+        with tempfile.TemporaryDirectory() as directory:
+            state, archive = Path(directory) / 'state', Path(directory) / 'archive'
+            state.mkdir()
+            for i in range(5):
+                (state / 'skills.log').write_bytes(bytes([i]) * 4)
+                module.prepare_logs(state, archive, archive_all=True, max_archive_bytes=8, max_archive_files=2)
+                backups = list(module.regular_files(archive))
+                self.assertLessEqual(len(backups), 2)
+                self.assertLessEqual(sum(p.stat().st_size for p in backups), 8)
+                self.assertIn(bytes([i]) * 4, [p.read_bytes() for p in backups])
+            (state / 'skills.log').write_bytes(b'0123456789abcdef')
+            module.prepare_logs(state, archive, archive_all=True, max_archive_bytes=8, max_archive_files=2)
+            self.assertEqual([p.read_bytes() for p in module.regular_files(archive)], [b'89abcdef'])
+
+    def test_failed_archival_clears_readiness_and_preserves_original(self):
+        """A failed boot archive cannot leave a stale readiness marker enabling sync."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            state = root / 'state'
+            state.mkdir()
+            (state / 'skills.log').write_bytes(b'diagnostics')
+            archive = root / 'not-a-directory'
+            archive.write_text('occupied')
+            ready = root / 'ready'
+            ready.touch()
+            result = subprocess.run([sys.executable, str(SCRIPT), str(state), str(archive),
+                                     '--archive-all', '--ready-file', str(ready)], capture_output=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(ready.exists())
+            self.assertEqual((state / 'skills.log').read_bytes(), b'diagnostics')
+            self.assertIn(b'state sync remains disabled', result.stderr)
+
+    def test_missing_state_does_not_enable_sync(self):
+        """A missing or unreadable traversal must not be treated as an empty archive."""
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            ready = root / 'ready'
+            ready.touch()
+            result = subprocess.run([sys.executable, str(SCRIPT), str(root / 'missing'),
+                                     str(root / 'archive'), '--archive-all',
+                                     '--ready-file', str(ready)], capture_output=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertFalse(ready.exists())
 
 
 @unittest.skipIf(combine is None, "configuration integration requires Ansible; covered by Ansible CI")
@@ -173,6 +234,28 @@ class LoggingConfigurationTest(unittest.TestCase):
             result = subprocess.run(['ansible-playbook', '-i', 'localhost,', str(playbook)],
                                     capture_output=True, text=True, timeout=40)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_sync_is_gated_and_footprint_survives_failed_cleanup(self):
+        """Service dependencies and markers guard sync; cleanup retains its retry baseline."""
+        root = SCRIPT.parents[4]
+        tasks = yaml.safe_load((root / 'ansible/roles/ovos_storage_tuning/tasks/install.yml').read_text())
+        storage = next(t['block'] for t in tasks if t['name'] == 'Configure persistent tmpfs for Mycroft state')
+        restore = next(t['ansible.builtin.copy']['content'] for t in storage if t['name'] == 'Install Mycroft state restore service')
+        sync = next(t['ansible.builtin.copy']['content'] for t in storage if t['name'] == 'Install Mycroft state sync service')
+        self.assertIn('RemainAfterExit=yes', restore)
+        self.assertIn('ExecStartPre=-', restore)
+        self.assertIn('--ready-file', restore)
+        self.assertIn('ExecStartPost=/usr/bin/touch', restore)
+        self.assertIn('Requires={{ ovos_storage_tuning_mycroft_state_restore_unit }}', sync)
+        self.assertIn('After={{ ovos_storage_tuning_state_sync_after }} {{ ovos_storage_tuning_mycroft_state_restore_unit }}', sync)
+        self.assertIn('ConditionPathExists={{ ovos_storage_tuning_mycroft_state_dir }}/.ovos-logs-archived', sync)
+        self.assertIn('ConditionPathExists={{ ovos_storage_tuning_mycroft_state_dir }}/.ovos-state-restored', sync)
+        uninstall = yaml.safe_load((root / 'ansible/roles/ovos_installer/tasks/uninstall.yml').read_text())
+        names = [t['name'] for t in uninstall]
+        self.assertLess(names.index('Remove the formulae this uninstall left unneeded'),
+                        names.index('Remove OVOS service directories after tuning cleanup'))
+        self.assertLess(names.index('Remove the formulae this uninstall left unneeded'),
+                        names.index("Give back the user's home as the first install found it"))
 
     def test_containers_still_log_to_stdout(self):
         """Containers still log to stdout."""

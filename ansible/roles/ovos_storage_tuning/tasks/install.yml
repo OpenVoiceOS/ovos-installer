@@ -141,7 +141,7 @@
     - name: Install Mycroft state restore service
       vars:
         ovos_storage_tuning_state_restore_exec: >-
-          {{ ovos_storage_tuning_rsync_path }} -a --exclude='*.log' --exclude='*.log.*'
+          {{ ovos_storage_tuning_rsync_path }} -a --include='*/' --exclude='*.log' --exclude='*.log.*' --exclude='.ovos-logs-archived' --exclude='.ovos-state-restored'
           "{{ ovos_storage_tuning_mycroft_state_persist_dir }}/"
           "{{ ovos_storage_tuning_mycroft_state_dir }}/"
       ansible.builtin.copy:
@@ -155,10 +155,13 @@
 
           [Service]
           Type=oneshot
+          RemainAfterExit=yes
           User={{ ovos_installer_user }}
           Group={{ ovos_installer_group }}
-          ExecStartPre="{{ ovos_storage_tuning_log_cleanup_path }}" "{{ ovos_storage_tuning_mycroft_state_persist_dir }}" "{{ ovos_storage_tuning_mycroft_state_persist_dir }}-log-backups" --archive-all
+          ExecStartPre=/usr/bin/rm -f "{{ ovos_storage_tuning_mycroft_state_dir }}/.ovos-logs-archived" "{{ ovos_storage_tuning_mycroft_state_dir }}/.ovos-state-restored"
+          ExecStartPre=-"{{ ovos_storage_tuning_log_cleanup_path }}" "{{ ovos_storage_tuning_mycroft_state_persist_dir }}" "{{ ovos_storage_tuning_mycroft_state_persist_dir }}-log-backups" --archive-all --ready-file "{{ ovos_storage_tuning_mycroft_state_dir }}/.ovos-logs-archived"
           ExecStart={{ ovos_storage_tuning_state_restore_exec }}
+          ExecStartPost=/usr/bin/touch "{{ ovos_storage_tuning_mycroft_state_dir }}/.ovos-state-restored"
 
           [Install]
           WantedBy=multi-user.target
@@ -170,7 +173,7 @@
     - name: Install Mycroft state sync service
       vars:
         ovos_storage_tuning_state_sync_exec: >-
-          {{ ovos_storage_tuning_rsync_path }} -a --delete
+          {{ ovos_storage_tuning_rsync_path }} -a --delete --exclude='.ovos-logs-archived' --exclude='.ovos-state-restored'
           "{{ ovos_storage_tuning_mycroft_state_dir }}/"
           "{{ ovos_storage_tuning_mycroft_state_persist_dir }}/"
       ansible.builtin.copy:
@@ -178,7 +181,10 @@
         content: |
           [Unit]
           Description=Open Voice OS - Sync Mycroft state tmpfs
-          After={{ ovos_storage_tuning_state_sync_after }}
+          Requires={{ ovos_storage_tuning_mycroft_state_restore_unit }}
+          After={{ ovos_storage_tuning_state_sync_after }} {{ ovos_storage_tuning_mycroft_state_restore_unit }}
+          ConditionPathExists={{ ovos_storage_tuning_mycroft_state_dir }}/.ovos-logs-archived
+          ConditionPathExists={{ ovos_storage_tuning_mycroft_state_dir }}/.ovos-state-restored
           RequiresMountsFor={{ ovos_storage_tuning_mycroft_state_dir }} {{ ovos_storage_tuning_mycroft_state_persist_dir }}
 
           [Service]

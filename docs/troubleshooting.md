@@ -89,7 +89,11 @@ the live and persisted state directories into `~/.local/state/mycroft-persistent
 (on disk) before reclaiming their space. Before each boot restore, persisted logs (including small and newly rotated
 logs) are archived outside the sync destination. Boot restores skip `*.log` and
 `*.log.*`, keeping archived diagnostics on disk rather than filling tmpfs
-again. Other state, including `schedule.json`, is restored normally. After
+again. Backups retain the newest 100 MB across at most 100 files; an individual
+oversized log retains only its newest 100 MB. Nested log directories are covered
+without following symlinks. Other state, including `schedule.json`, is restored
+normally. If archival fails, the error is logged and state restoration still runs,
+but sync stays disabled until archival and restore both complete successfully. After
 space is recovered, restart OVOS and check that the clock advances.
 
 ## Reporting a problem

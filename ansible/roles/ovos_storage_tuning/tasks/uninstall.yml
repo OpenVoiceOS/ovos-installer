@@ -20,11 +20,20 @@
     state: stopped
   failed_when: false
 
+- name: Check that archival and restore completed before syncing state
+  ansible.builtin.stat:
+    path: "{{ ovos_storage_tuning_mycroft_state_dir }}/{{ item }}"
+  loop:
+    - .ovos-logs-archived
+    - .ovos-state-restored
+  register: ovos_storage_tuning_restore_ready
+
 - name: Sync Mycroft state back to disk  # noqa command-instead-of-module
   ansible.builtin.command: >-
-    {{ ovos_storage_tuning_rsync_path }} -a --delete
+    {{ ovos_storage_tuning_rsync_path }} -a --delete --exclude='.ovos-logs-archived' --exclude='.ovos-state-restored'
     "{{ ovos_storage_tuning_mycroft_state_dir }}/"
     "{{ ovos_storage_tuning_mycroft_state_persist_dir }}/"
+  when: ovos_storage_tuning_restore_ready.results | selectattr('stat.exists') | list | length == 2
   changed_when: false
   failed_when: false
 
