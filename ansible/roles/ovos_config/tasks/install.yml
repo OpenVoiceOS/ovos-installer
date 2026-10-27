@@ -142,6 +142,7 @@
                      | combine(item.value.logs)})}) }}
       loop: "{{ ovos_config_existing_logging | dict2items }}"
       when:
+        - ovos_config_state_tmpfs_enabled | bool
         - item.value is mapping
         - item.value.logs is defined
         - item.value.logs is mapping

@@ -101,10 +101,30 @@
           ] | join(',') }}
         state: mounted
 
+    - name: Record that Mycroft state uses tmpfs
+      ansible.builtin.set_fact:
+        ovos_storage_tuning_mycroft_state_active: true
+
+    # Archive before truncating: freeing tmpfs must not destroy diagnostics.
+    - name: Archive oversized Mycroft logs from existing installations
+      ansible.builtin.script:
+        cmd: >-
+          prepare_state_logs.py
+          {{ item | quote }}
+          {{ (ovos_storage_tuning_mycroft_state_persist_dir ~ '-log-backups') | quote }}
+        executable: "{{ ansible_facts.python.executable }}"
+      become: true
+      become_user: "{{ ovos_installer_user }}"
+      loop:
+        - "{{ ovos_storage_tuning_mycroft_state_dir }}"
+        - "{{ ovos_storage_tuning_mycroft_state_persist_dir }}"
+      register: ovos_storage_tuning_log_cleanup
+      changed_when: "'archived ' in ovos_storage_tuning_log_cleanup.stdout"
+
     - name: Install Mycroft state restore service
       vars:
         ovos_storage_tuning_state_restore_exec: >-
-          {{ ovos_storage_tuning_rsync_path }} -a
+          {{ ovos_storage_tuning_rsync_path }} -a --exclude='*.log' --exclude='*.log.*'
           "{{ ovos_storage_tuning_mycroft_state_persist_dir }}/"
           "{{ ovos_storage_tuning_mycroft_state_dir }}/"
       ansible.builtin.copy:

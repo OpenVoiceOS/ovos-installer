@@ -70,6 +70,27 @@ If a download failed partway through, `REUSE_CACHED_ARTIFACTS=true` makes a
 retry pick up cached artifacts instead of fetching everything again. Conversely,
 setting it to `false` forces a clean-room run when you suspect a bad cache.
 
+## Homescreen clock stops updating
+
+Check `df -h ~/.local/state/mycroft`. On tuned Linux installations this
+state directory uses a 100 MiB tmpfs. If logs fill it, the scheduler cannot
+save events and the homescreen clock can stop updating while the GUI remains
+running.
+
+Native installs whose state directory uses tmpfs default to 1,000,000 bytes
+per log with one rotated backup. This includes tuned Raspberry Pi and Mark II
+installations. Disk-backed native installs keep their logging defaults.
+The `ovos_config_logs_max_bytes` and `ovos_config_logs_backup_count` Ansible
+variables set these defaults; existing `logs` and `logging` configuration
+values take precedence. Container installs continue logging to stdout.
+
+Re-running the installer archives oversized active logs and rotated logs from
+the live and persisted state directories into `~/.local/state/mycroft-persistent-log-backups/`
+(on disk) before reclaiming their space. Boot restores skip `*.log` and
+`*.log.*`, keeping archived diagnostics on disk rather than filling tmpfs
+again. Other state, including `schedule.json`, is restored normally. After
+space is recovered, restart OVOS and check that the clock advances.
+
 ## Reporting a problem
 
 Open an issue at
