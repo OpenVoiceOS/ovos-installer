@@ -51,6 +51,16 @@
     - ovos_installer_package_family in _lists
     - ovos_installer_footprint.orphans is not defined or ovos_installer_footprint.orphans is none
 
+- name: Remember the Python paths used by the running controller
+  ansible.builtin.command:
+    argv:
+      - "{{ ansible_playbook_python }}"
+      - -c
+      - "import json, sys; print(json.dumps([sys.executable, sys.prefix, sys.base_prefix]))"
+  register: ovos_installer_controller_python
+  changed_when: false
+  when: ansible_facts.system == 'Darwin'
+
 # Homebrew may remove the Python keg backing the installer venv. Later file
 # cleanup must use the OS interpreter, which Homebrew cannot uninstall.
 - name: Keep macOS cleanup independent of Homebrew Python
@@ -134,6 +144,9 @@
     - ovos_installer_footprint.orphans is not none
 
 # Keep the footprint on disk if package cleanup fails, so a retry has its baseline.
+- name: Validate footprint restoration before deleting its record
+  ansible.builtin.import_tasks: footprint_prepare_restore.yml
+
 - name: Remove OVOS service directories after tuning cleanup
   ansible.builtin.include_role:
     name: ovos_services

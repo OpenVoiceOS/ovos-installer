@@ -285,6 +285,8 @@ class LoggingConfigurationTest(unittest.TestCase):
         self.assertIn('ConditionPathExists={{ ovos_storage_tuning_mycroft_state_dir }}/.ovos-state-restored', sync)
         uninstall = yaml.safe_load((root / 'ansible/roles/ovos_installer/tasks/uninstall.yml').read_text())
         names = [t['name'] for t in uninstall]
+        self.assertLess(names.index('Validate footprint restoration before deleting its record'),
+                        names.index('Remove OVOS service directories after tuning cleanup'))
         self.assertLess(names.index('Remove the formulae this uninstall left unneeded'),
                         names.index('Remove OVOS service directories after tuning cleanup'))
         self.assertLess(names.index('Remove the formulae this uninstall left unneeded'),

@@ -139,11 +139,15 @@ name = 'Keep macOS cleanup independent of Homebrew Python'
 assert names.index(name) < names.index('Remove the formulae this uninstall left unneeded')
 with tempfile.TemporaryDirectory() as directory:
     root = Path(directory)
-    interpreter = root / 'installer-python'
+    runtime = root / 'controller-runtime'
+    runtime.mkdir()
+    interpreter = runtime / 'installer-python'
     interpreter.symlink_to(sys.executable)
     result = root / 'cleanup-completed'
     result.touch()
-    footprint = yaml.safe_load(Path('ansible/roles/ovos_installer/tasks/footprint_restore.yml').read_text())[0]
+    capture = tasks[names.index('Remember the Python paths used by the running controller')]
+    capture['ansible.builtin.command']['argv'][0] = '{{ removed_controller_python }}'
+    footprint = yaml.safe_load(Path('ansible/roles/ovos_installer/tasks/footprint_prepare_restore.yml').read_text())[0]
     # Make only the controller's old interpreter disposable; execute the real scan.
     footprint['ansible.builtin.command']['argv'] = footprint['ansible.builtin.command']['argv'].replace(
         'ansible_playbook_python', 'removed_controller_python')
@@ -152,12 +156,12 @@ with tempfile.TemporaryDirectory() as directory:
                       'ansible_facts': {'system': 'Darwin'},
                       'removed_controller_python': str(interpreter),
                       'ovos_installer_user_home': str(root),
-                      'ovos_installer_footprint': {'absent': [str(result)]},
-                      'ovos_installer_footprint_paths': [str(result)],
+                      'ovos_installer_footprint': {'absent': [str(result), str(runtime)]},
+                      'ovos_installer_footprint_paths': [str(result), str(runtime)],
                       'ovos_installer_footprint_parent_dirs': [],
                       'ovos_installer_footprint_files_if_empty': [],
                       'ovos_installer_footprint_shared_dirs': {}},
-             'tasks': [tasks[names.index(name)],
+             'tasks': [capture, tasks[names.index(name)],
                        {'ansible.builtin.file': {'path': str(interpreter), 'state': 'absent'}},
                        footprint,
                        {'ansible.builtin.assert': {'that':
