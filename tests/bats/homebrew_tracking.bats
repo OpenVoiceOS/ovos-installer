@@ -94,3 +94,91 @@ tab --no-installed-on-request flac mpv sox"
     run grep -c "^tab " "$T/calls"
     assert_output "0"
 }
+
+@test "homebrew: installer Python imports do not dirty package directories" {
+    run python3 - <<'PYTEST'
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import yaml
+
+play = yaml.safe_load(Path('ansible/site.yml').read_text())[0]
+assert play['environment']['PYTHONDONTWRITEBYTECODE'] == '1'
+assert 'export PYTHONDONTWRITEBYTECODE=1' in Path('setup.sh').read_text()
+with tempfile.TemporaryDirectory() as directory:
+    root = Path(directory)
+    (root / 'keg_module.py').write_text('value = 1\n')
+    code = 'import sys; sys.path.insert(0, sys.argv[1]); import keg_module'
+    env = dict(os.environ)
+    env.pop('PYTHONDONTWRITEBYTECODE', None)
+    env.pop('PYTHONPYCACHEPREFIX', None)
+    env.update(play['environment'])
+    subprocess.run([sys.executable, '-c', code, directory], env=env, check=True)
+    assert not (root / '__pycache__').exists()
+    env.pop('PYTHONDONTWRITEBYTECODE')
+    subprocess.run([sys.executable, '-c', code, directory], env=env, check=True)
+    assert (root / '__pycache__').is_dir()
+PYTEST
+    assert_success
+}
+
+@test "homebrew: final cleanup survives removal of the installer interpreter" {
+    run python3 - <<'PYTEST'
+from pathlib import Path
+import json
+import subprocess
+import sys
+import tempfile
+import yaml
+
+tasks = yaml.safe_load(Path('ansible/roles/ovos_installer/tasks/uninstall.yml').read_text())
+names = [task['name'] for task in tasks]
+name = 'Keep macOS cleanup independent of Homebrew Python'
+assert names.index(name) < names.index('Remove the formulae this uninstall left unneeded')
+with tempfile.TemporaryDirectory() as directory:
+    root = Path(directory)
+    runtime = root / 'controller-runtime'
+    runtime.mkdir()
+    interpreter = runtime / 'installer-python'
+    interpreter.symlink_to(sys.executable)
+    result = root / 'cleanup-completed'
+    result.touch()
+    capture = tasks[names.index('Remember the Python paths used by the running controller')]
+    capture['ansible.builtin.command']['argv'] = [
+        arg.replace('ansible_playbook_python', 'removed_controller_python')
+        for arg in capture['ansible.builtin.command']['argv']]
+    # Framework Python resolves sys.executable to its real executable on macOS.
+    # Reproduce that on Linux too, so the explicit launch alias must be protected.
+    capture['ansible.builtin.command']['argv'][2] = (
+        'import os, sys; sys.executable = os.path.realpath(sys.executable); '
+        + capture['ansible.builtin.command']['argv'][2])
+    footprint = yaml.safe_load(Path('ansible/roles/ovos_installer/tasks/footprint_prepare_restore.yml').read_text())[0]
+    # Make only the controller's old interpreter disposable; execute the real scan.
+    footprint['ansible.builtin.command']['argv'] = footprint['ansible.builtin.command']['argv'].replace(
+        'ansible_playbook_python', 'removed_controller_python')
+    play = [{'hosts': 'all', 'gather_facts': False,
+             'vars': {'ansible_python_interpreter': str(interpreter),
+                      'ansible_facts': {'system': 'Darwin'},
+                      'removed_controller_python': str(interpreter),
+                      'ovos_installer_user_home': str(root),
+                      'ovos_installer_footprint': {'absent': [str(result), str(runtime)]},
+                      'ovos_installer_footprint_paths': [str(result), str(runtime)],
+                      'ovos_installer_footprint_parent_dirs': [],
+                      'ovos_installer_footprint_files_if_empty': [],
+                      'ovos_installer_footprint_shared_dirs': {}},
+             'tasks': [capture, tasks[names.index(name)],
+                       {'ansible.builtin.file': {'path': str(interpreter), 'state': 'absent'}},
+                       footprint,
+                       {'ansible.builtin.assert': {'that':
+                           ['ovos_installer_footprint_safe.stdout == ' + json.dumps(str(result))]}},
+                       {'ansible.builtin.file': {'path': str(result), 'state': 'touch'}}]}]
+    playbook = root / 'play.json'
+    playbook.write_text(json.dumps(play))
+    subprocess.run(['ansible-playbook', '-i', 'localhost,', '-c', 'local', str(playbook)], check=True)
+    assert result.exists()
+    assert not interpreter.exists()
+PYTEST
+    assert_success
+}

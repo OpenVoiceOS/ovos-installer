@@ -5,6 +5,10 @@
   gather_facts: false
   user: "{{ ovos_installer_user }}"
   become: true
+  # become does not necessarily preserve setup.sh's environment. Apply this to
+  # module interpreters too, so they cannot dirty a Homebrew-owned Python keg.
+  environment:
+    PYTHONDONTWRITEBYTECODE: "1"
 
   vars:
     ovos_installer_reboot: false
