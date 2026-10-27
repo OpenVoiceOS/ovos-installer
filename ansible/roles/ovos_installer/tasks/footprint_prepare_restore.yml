@@ -128,7 +128,7 @@
   ansible.builtin.command:
     argv: "{{ [('/usr/bin/python3' if (ansible_facts.system | default('')) == 'Darwin' else ansible_playbook_python), '-c', _script, ovos_installer_user_home] + _paths + ['--if-empty'] + _files_if_empty }}"
   environment:
-    OVOS_CONTROLLER_PYTHON: "{{ (ovos_installer_controller_python | default({})).stdout | default('[]') }}"
+    OVOS_CONTROLLER_PYTHON: "{{ (ovos_installer_controller_python | default({})).stdout | default('[]') | from_json | to_json }}"
     OVOS_FOOTPRINT_SHARED: "{{ ovos_installer_footprint_shared_dirs | to_json }}"
     OVOS_FOOTPRINT_RECORDED: "{{ _recorded | to_json }}"
   register: ovos_installer_footprint_safe
