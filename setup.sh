@@ -19,6 +19,10 @@ if [ -z "${BASH_VERSINFO:-}" ] || [ "${BASH_VERSINFO[0]}" -lt 4 ]; then
   exit 5
 fi
 
+# Root imports must not leave root-owned __pycache__ inside Homebrew Python
+# kegs. Homebrew later removes those kegs as the unprivileged installer user.
+export PYTHONDONTWRITEBYTECODE=1
+
 # The locale the user's terminal runs in, before the override below: it decides whether
 # the status marks can be drawn (set_status_marks in utils/common.sh).
 OVOS_INSTALLER_TERMINAL_LOCALE="${LC_ALL:-${LC_CTYPE:-${LANG:-}}}"

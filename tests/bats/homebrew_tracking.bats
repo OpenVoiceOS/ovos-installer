@@ -94,3 +94,32 @@ tab --no-installed-on-request flac mpv sox"
     run grep -c "^tab " "$T/calls"
     assert_output "0"
 }
+
+@test "homebrew: installer Python imports do not dirty package directories" {
+    run python3 - <<'PYTEST'
+import os
+from pathlib import Path
+import subprocess
+import sys
+import tempfile
+import yaml
+
+play = yaml.safe_load(Path('ansible/site.yml').read_text())[0]
+assert play['environment']['PYTHONDONTWRITEBYTECODE'] == '1'
+assert 'export PYTHONDONTWRITEBYTECODE=1' in Path('setup.sh').read_text()
+with tempfile.TemporaryDirectory() as directory:
+    root = Path(directory)
+    (root / 'keg_module.py').write_text('value = 1\n')
+    code = 'import sys; sys.path.insert(0, sys.argv[1]); import keg_module'
+    env = dict(os.environ)
+    env.pop('PYTHONDONTWRITEBYTECODE', None)
+    env.pop('PYTHONPYCACHEPREFIX', None)
+    env.update(play['environment'])
+    subprocess.run([sys.executable, '-c', code, directory], env=env, check=True)
+    assert not (root / '__pycache__').exists()
+    env.pop('PYTHONDONTWRITEBYTECODE')
+    subprocess.run([sys.executable, '-c', code, directory], env=env, check=True)
+    assert (root / '__pycache__').is_dir()
+PYTEST
+    assert_success
+}
