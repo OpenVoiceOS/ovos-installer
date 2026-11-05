@@ -104,7 +104,7 @@ jobs:
         with:
           # Ansible imports dataclasses._is_type, removed in Python 3.15.
           # Keep its CI interpreter compatible; installer runtime pins are separate.
-          python-version: "3.14"
+          python-version: "3.15"
 
       - name: Restore Python/uv/Ansible caches
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
